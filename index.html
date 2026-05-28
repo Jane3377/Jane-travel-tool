@@ -676,10 +676,92 @@ html, body { max-width: 100%; overflow-x: hidden; }
   }
 }
 
+
+/* ===== v21 modal toggles + locked source rows ===== */
+.optionModal{
+  position:fixed;
+  inset:0;
+  background:rgba(44,38,32,.38);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:16px;
+  z-index:125;
+}
+.optionModal.show{display:flex}
+.optionBox{
+  width:min(560px,100%);
+  max-height:86vh;
+  overflow:auto;
+  background:rgba(255,255,255,.98);
+  border:1px solid rgba(255,255,255,.9);
+  box-shadow:var(--shadow);
+  border-radius:22px;
+  padding:18px;
+}
+.optionBox h3{margin:0 0 10px}
+.optionIntro{color:var(--muted);font-size:13px;line-height:1.65;margin-bottom:12px}
+.toggleRow{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  padding:12px;
+  border:1px solid var(--line);
+  border-radius:18px;
+  background:#fffdf8;
+  margin:8px 0;
+}
+.toggleRow b{display:block;margin-bottom:4px}
+.toggleRow span{font-size:12px;color:var(--muted);line-height:1.45}
+.switch{
+  position:relative;
+  width:54px;
+  height:30px;
+  flex:0 0 auto;
+}
+.switch input{display:none}
+.slider{
+  position:absolute;
+  inset:0;
+  cursor:pointer;
+  background:#d7d0c7;
+  border-radius:999px;
+  transition:.2s;
+}
+.slider:before{
+  content:"";
+  position:absolute;
+  width:24px;
+  height:24px;
+  left:3px;
+  top:3px;
+  background:#fff;
+  border-radius:50%;
+  box-shadow:0 2px 6px rgba(0,0,0,.18);
+  transition:.2s;
+}
+.switch input:checked + .slider{
+  background:var(--dark);
+}
+.switch input:checked + .slider:before{
+  transform:translateX(24px);
+}
+.lockedFieldHint{
+  margin-top:6px;
+  color:#c85b5b;
+  font-size:12px;
+  font-weight:900;
+}
+.lockedInput{
+  background:#f3f1ec!important;
+  color:#7a716a!important;
+}
+
 </style>
 </head>
 <body>
-<div class="app"><header><div class="badge">🧳 My Travel Book</div><div class="titleRow"><h1 id="titleText">釜山小旅行手帳</h1><button class="iconBtn" onclick="editTitle()">✎</button></div><div class="subRow"><p class="sub" id="subtitleText">把想去的海邊、巷弄、咖啡香與晚餐清單都收進來，慢慢排成一趟期待出發的旅行。</p><button class="iconBtn" onclick="editSubtitle()">✎</button></div><div class="heroStats"><div><span>目的地</span><strong id="sDest">韓國釜山</strong></div><div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v20｜2026-05-29｜Cloudinary照片書／重置保護／住宿操作版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
+<div class="app"><header><div class="badge">🧳 My Travel Book</div><div class="titleRow"><h1 id="titleText">釜山小旅行手帳</h1><button class="iconBtn" onclick="editTitle()">✎</button></div><div class="subRow"><p class="sub" id="subtitleText">把想去的海邊、巷弄、咖啡香與晚餐清單都收進來，慢慢排成一趟期待出發的旅行。</p><button class="iconBtn" onclick="editSubtitle()">✎</button></div><div class="heroStats"><div><span>目的地</span><strong id="sDest">韓國釜山</strong></div><div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v21｜2026-05-29｜儲存時重置確認／航班住宿彈窗／來源行程鎖定版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
 <script>
 const views=[["trip","旅遊地"],["planner","行程"],["spots","口袋景點"],["budget","預算"],["packing","行李"],["photoBook","照片書"],["help","說明"]];
 const currencyMap={"韓國":"KRW","日本":"JPY","泰國":"THB","美國":"USD","越南":"VND","新加坡":"SGD","歐洲":"EUR","英國":"GBP","香港":"HKD"};const rateMap={KRW:.023,JPY:.22,THB:.92,USD:31.5,VND:.00125,SGD:24,EUR:34,GBP:39,HKD:4.05};
@@ -3097,8 +3179,380 @@ function photoBookDay(d){
 
 
 /* ===== Version marker ===== */
-const APP_VERSION = "v20｜2026-05-29｜Cloudinary照片書／重置保護／住宿操作版";
+const APP_VERSION = "v21｜2026-05-29｜儲存時重置確認／航班住宿彈窗／來源行程鎖定版";
 console.log("My Travel Book", APP_VERSION);
+
+
+/* ===== v21 overrides: country reset on save, option modals, locked names, budget exclusion ===== */
+let v21PendingFlightOptions = false;
+let v21PendingHotelId = null;
+
+function refreshCityOptions(){
+  const list = v15CountryCityMaps().cityMap[$("country").value] || [];
+  $("citySelect").innerHTML = v15CityOptions(list[0] || "自訂");
+  $("cityCustom").value = "";
+  updateCustomCityVisibility();
+  countryChanged();
+}
+
+function handleCountrySelectChange(){
+  // v21: 不在選國家當下跳重置，避免城市清單還停留舊國家。
+  refreshCityOptions();
+}
+
+function saveBasic(){
+  const selectedCountry=$("country").value;
+  if(selectedCountry!==data.trip.country){
+    v18PendingCountry=selectedCountry;
+    $("countryResetModal").classList.add("show");
+    return;
+  }
+
+  const newStart=$("start").value;
+  const newEnd=$("end").value;
+  if((newStart!==data.trip.start || newEnd!==data.trip.end) && data.days?.length){
+    v19PendingDates={start:newStart,end:newEnd};
+    $("dateResetModal").classList.add("show");
+    return;
+  }
+
+  data.trip.country=$("country").value;
+  const selected = $("citySelect").value;
+  data.trip.city = selected==="自訂" ? $("cityCustom").value.trim() : selected;
+  data.trip.dest = v15DestinationName(data.trip.country, data.trip.city);
+  data.trip.currency=$("currency").value.toUpperCase();
+  data.trip.start=newStart;
+  data.trip.end=newEnd;
+  data.trip.rate=Number($("rateSetup").value||data.trip.rate||1);
+  data.trip.travelerCount=Number($("travelerCount").value||1);
+  data.trip.travelers=[];
+  for(let i=0;i<data.trip.travelerCount;i++) data.trip.travelers.push($("traveler"+i).value||String.fromCharCode(65+i));
+
+  data.days=mkDays(data.trip.start,data.trip.end);
+  v18SortHotels();
+  cur=data.days[0]?.key;
+  silentSave();
+  render();
+  const d=document.querySelectorAll("#tripView details.card")[0];
+  if(d) d.removeAttribute("open");
+  toast("已儲存旅遊地設定");
+}
+
+function saveFlights(){
+  ["out","back"].forEach(k=>{
+    const transferEl=$(k+"transfer");
+    data.flights[k]={
+      no:$(k+"no").value,
+      from:$(k+"from").value,
+      to:$(k+"to").value,
+      dep:$(k+"dep").value,
+      arr:$(k+"arr").value,
+      transfer:transferEl?transferEl.value:"",
+      toAirport:$(k+"toAirport")?$(k+"toAirport").value:"",
+      fromAirport:$(k+"fromAirport")?$(k+"fromAirport").value:"",
+      fromTerminal:$(k+"fromTerminal")?$(k+"fromTerminal").value:"",
+      toTerminal:$(k+"toTerminal")?$(k+"toTerminal").value:""
+    };
+  });
+  silentSave();
+  render();
+  v16CollapseTripDetail(1);
+  v21PendingFlightOptions=true;
+  $("flightOptionModal").classList.add("show");
+}
+
+function closeFlightOptions(){
+  v21PendingFlightOptions=false;
+  $("flightOptionModal").classList.remove("show");
+  toast("已儲存航班");
+}
+
+function confirmFlightOptions(){
+  if($("flightOptionAddPlans")?.checked){
+    v16AddFlightsToPlans(false);
+    silentSave();
+    render();
+    toast("已儲存航班並加入首尾行程");
+  }else{
+    toast("已儲存航班");
+  }
+  v21PendingFlightOptions=false;
+  $("flightOptionModal").classList.remove("show");
+}
+
+function saveHotel(){
+  if(!$("hname").value)return toast("請輸入住宿名稱");
+  let start=$("hstart").value;
+  let end=$("hend").value;
+  if(start < data.trip.start || start > data.trip.end || end < data.trip.start || end > data.trip.end){
+    return alert("住宿日期必須在旅遊出發日與回程日之間。");
+  }
+  if(end < start){
+    return alert("退房日不可早於入住日。");
+  }
+  const item={name:$("hname").value,start,end,addr:$("haddr").value,note:$("hnote").value};
+  let hotelId=editingHotelId;
+  let isNew=false;
+
+  if(editingHotelId){
+    Object.assign(data.hotels.find(x=>x.id==editingHotelId),item);
+    editingHotelId=null;
+  }else{
+    isNew=true;
+    hotelId=uid();
+    data.hotels.push({id:hotelId,...item});
+  }
+
+  v18SortHotels();
+  v16KeepHotelOpen=true;
+  silentSave();
+  render();
+  v16OpenTripDetail(2);
+
+  if(isNew){
+    v21PendingHotelId=hotelId;
+    $("hotelOptionModal").classList.add("show");
+  }else{
+    toast("已儲存住宿並依入住日排序");
+  }
+}
+
+function closeHotelOptions(){
+  v21PendingHotelId=null;
+  $("hotelOptionModal").classList.remove("show");
+  toast("已新增住宿");
+}
+
+function confirmHotelOptions(){
+  const id=v21PendingHotelId;
+  if(!id)return closeHotelOptions();
+  if($("hotelOptionAddPlans")?.checked){
+    addHotelPlans(id);
+  }
+  if($("hotelOptionAddBudget")?.checked){
+    addHotelExpense(id);
+  }
+  v21PendingHotelId=null;
+  $("hotelOptionModal").classList.remove("show");
+  toast("已完成住宿同步設定");
+}
+
+function v16AddFlightsToPlans(doRender=true){
+  const out=data.flights.out||{}, back=data.flights.back||{};
+  const outDepDay=v16DateFromDT(out.dep)||data.trip.start;
+  const outArrDay=v16DateFromDT(out.arr)||outDepDay;
+  const backDepDay=v16DateFromDT(back.dep)||data.trip.end;
+  const backArrDay=v16DateFromDT(back.arr)||backDepDay;
+
+  v16AddPlanNode({sourceType:"flight",lockedName:true,day:outDepDay,start:"14:00",end:v16TimeFromDT(out.dep),type:"交通",name:`前往 ${out.from||"出發機場"}`,note:out.toAirport||out.transfer||"",memo:"由航班資料帶入"});
+  v16AddPlanNode({sourceType:"flight",lockedName:true,day:outDepDay,start:v16TimeFromDT(out.dep),end:v16TimeFromDT(out.arr),type:"航班",name:`搭乘去程航班 ${out.no||""}`.trim(),note:`${out.from||""} → ${out.to||""}`,memo:"由航班資料帶入"});
+  v16AddPlanNode({sourceType:"flight",lockedName:true,day:outArrDay,start:v16TimeFromDT(out.arr),end:"",type:"交通",name:`從 ${out.to||"降落機場"} 前往飯店／市區`,note:out.fromAirport||"",memo:"由航班資料帶入"});
+
+  v16AddPlanNode({sourceType:"flight",lockedName:true,day:backDepDay,start:"",end:v16TimeFromDT(back.dep),type:"交通",name:`從飯店前往 ${back.from||"回程機場"}`,note:back.toAirport||back.transfer||"",memo:"由航班資料帶入"});
+  v16AddPlanNode({sourceType:"flight",lockedName:true,day:backDepDay,start:v16TimeFromDT(back.dep),end:v16TimeFromDT(back.arr),type:"航班",name:`搭乘回程航班 ${back.no||""}`.trim(),note:`${back.from||""} → ${back.to||""}`,memo:"由航班資料帶入"});
+  v16AddPlanNode({sourceType:"flight",lockedName:true,day:backArrDay,start:v16TimeFromDT(back.arr),end:"",type:"交通",name:`從 ${back.to||"抵達機場"} 回家`,note:back.fromAirport||"",memo:"由航班資料帶入"});
+
+  if(doRender) save();
+}
+
+function v16AddHotelToPlans(h){
+  if(!h.start||!h.end||!h.name)return;
+
+  v16AddPlanNode({
+    hotelId:h.id,
+    sourceType:"hotel",
+    lockedName:true,
+    day:h.start,
+    start:"15:00",
+    end:"15:30",
+    type:"住宿",
+    name:`入住 ${h.name}`,
+    note:h.addr||h.note||"",
+    memo:"由住宿資料帶入"
+  });
+
+  v16DateRange(v16DateAdd(h.start,1), h.end).forEach(day=>{
+    v16AddPlanNode({
+      hotelId:h.id,
+      sourceType:"hotel",
+      lockedName:true,
+      day,
+      start:"09:00",
+      end:"09:10",
+      type:"住宿",
+      name:`從 ${h.name} 出發`,
+      note:h.addr||"",
+      memo:"由住宿資料帶入"
+    });
+  });
+
+  v16DateRange(h.start, v16DateAdd(h.end,-1)).forEach(day=>{
+    v16AddPlanNode({
+      hotelId:h.id,
+      sourceType:"hotel",
+      lockedName:true,
+      day,
+      start:"21:00",
+      end:"21:10",
+      type:"住宿",
+      name:`回到 ${h.name}`,
+      note:h.addr||"",
+      memo:"由住宿資料帶入"
+    });
+  });
+}
+
+function addHotelPlans(id){
+  const h=data.hotels.find(x=>x.id==id);
+  if(!h)return;
+  v16AddHotelToPlans({...h});
+  save();
+  toast("已帶入住宿行程");
+}
+
+function saveSpot(){
+  if(!$("sn").value)return toast("請輸入名稱");
+  const item={name:$("sn").value,type:$("st").value,day:$("sd").value,addr:$("sa").value,memo:$("sm").value};
+  let id=editingSpotId;
+  let spot;
+
+  if(id){
+    spot=data.spots.find(x=>x.id==id);
+    Object.assign(spot,item);
+    editingSpotId=null;
+  }else{
+    id=uid();
+    spot={id,...item,source:"手動"};
+    data.spots.push(spot);
+  }
+
+  if($("sToPlan").value==="yes"){
+    const day=item.day||cur;
+    const planId=uid();
+    data.plans.push({id:planId,sourceType:"spot",lockedName:true,day,start:$("sStart").value,end:$("sEnd").value,type:["景點","餐廳","咖啡廳","購物","其他"].includes(item.type)?item.type:"景點",name:item.name,mode:"foreign",foreign:0,twd:0,payer:"未定",payMethod:"未定",note:item.memo,memo:"由口袋景點帶入",adjusted:false});
+    spot.planId=planId;
+  }
+  save();
+}
+
+function savePlanForm(){
+  if(!$("pname").value)return toast("請輸入行程名稱");
+  let item={day:$("pday").value,start:$("ps").value,end:$("pe").value,type:$("ptype").value,name:$("pname").value,mode:"foreign",foreign:Number($("pforeign").value||0),twd:Number($("ptwd").value||0),payer:$("pp").value,payMethod:$("ppm").value,note:$("pnote").value,memo:$("pmemo").value,adjusted:false};
+  let planId=editingPlanId;
+
+  if(editingPlanId){
+    const existing=data.plans.find(p=>p.id==editingPlanId);
+    if(existing?.lockedName){
+      item.name=existing.name;
+      item.sourceType=existing.sourceType;
+      item.lockedName=true;
+      if(existing.hotelId)item.hotelId=existing.hotelId;
+    }
+    Object.assign(existing,item);
+    editingPlanId=null;
+  }else{
+    planId=uid();
+    data.plans.push({id:planId,...item});
+  }
+
+  if(v16PendingSpotId){
+    const spot=data.spots.find(s=>s.id==v16PendingSpotId);
+    const p=data.plans.find(x=>x.id==planId);
+    if(spot && p){
+      spot.planId=planId;
+      p.sourceType="spot";
+      p.lockedName=true;
+      p.name=spot.name;
+      p.memo=p.memo || "由口袋景點帶入";
+    }
+    v16PendingSpotId=null;
+  }
+
+  cur=item.day;
+  save();
+}
+
+function renderPlanner(){
+  normalizePlanTimes(cur);
+  let plans=sortedPlans(cur);
+  $("plannerView").innerHTML=`<div class="section"><div><h2>${dayTitle(cur)}</h2><div class="hint">住宿：${hotelFor(cur)?.name||"未設定"}。行程依開始時間排序。</div></div><button class="iconBtn smallIcon" onclick="clearPlanForm()">＋</button></div>
+  <details class="card" ${editingPlanId||v16PendingSpotId?"open":""}><summary>${editingPlanId?"編輯行程":"＋ 新增行程"}</summary><div class="detailBody">
+    <div class="three compactMobile">
+      <div class="full"><label>日期</label><select id="pday" onchange="cur=this.value; renderPlanner();">${optsDays(cur)}</select></div>
+      <div><label>開始</label><input id="ps" type="time" value="10:00"></div>
+      <div><label>結束</label><input id="pe" type="time" value="11:30"></div>
+    </div>
+    <div class="two">
+      <div><label>分類</label><select id="ptype"><option>景點</option><option>餐廳</option><option>咖啡廳</option><option>購物</option><option>交通</option><option>航班</option><option>住宿</option><option>其他</option></select></div>
+      <div><label>付款方式</label><select id="ppm">${optsPayMethod("未定")}</select></div>
+    </div>
+    <label>行程名稱</label><input id="pname">
+    <div id="lockedNameHint" class="lockedFieldHint" style="display:none">此行程由航班／住宿／口袋景點帶入，名稱不可編輯；可回來源資料調整。</div>
+    <div class="four compactMobile">
+      <div><label>${esc(data.trip.currency)} 金額</label><input id="pforeign" type="number" oninput="syncPlanMoney('f')"></div>
+      <div><label>TWD</label><input id="ptwd" type="number" oninput="syncPlanMoney('t')"></div>
+      <div class="full"><label>付款人</label><select id="pp">${optsPayer("未定")}</select></div>
+    </div>
+    <label>注意事項</label><textarea id="pnote"></textarea>
+    <label>備註</label><textarea id="pmemo"></textarea>
+    <div class="btns"><button class="btn dark" onclick="savePlanForm()">${editingPlanId?"儲存行程":"加入行程"}</button>${editingPlanId||v16PendingSpotId?'<button class="btn soft" onclick="clearPlanForm()">取消編輯 / 新增</button>':""}</div>
+  </div></details>
+  <div id="pcards">${planCards(plans)}</div>`;
+  if(editingPlanId) fillPlanForm(editingPlanId);
+  if(v16PendingSpotId) v16FillPendingSpot();
+  v21ApplyLockedNameState();
+}
+
+function fillPlanForm(id){
+  let p=data.plans.find(x=>x.id==id);
+  if(!p)return;
+  ["pday","ps","pe","ptype","pname","pforeign","ptwd","pp","ppm","pnote","pmemo"].forEach((id2,i)=>$(id2).value=[p.day,p.start,p.end,p.type,p.name,moneyForeign(p),moneyTwd(p),p.payer,p.payMethod||"未定",p.note,p.memo][i]);
+  v21ApplyLockedNameState();
+}
+
+function v16FillPendingSpot(){
+  const s=data.spots.find(x=>x.id==v16PendingSpotId);
+  if(!s)return;
+  $("pday").value=s.day||cur;
+  $("ptype").value=["景點","餐廳","咖啡廳","購物","其他"].includes(s.type)?s.type:"景點";
+  $("pname").value=s.name;
+  $("pnote").value=s.memo;
+  $("pname").readOnly=true;
+  $("pname").classList.add("lockedInput");
+  $("lockedNameHint").style.display="block";
+}
+
+function v21ApplyLockedNameState(){
+  const p=editingPlanId?data.plans.find(x=>x.id==editingPlanId):null;
+  const locked=!!(p?.lockedName || v16PendingSpotId);
+  if($("pname")){
+    $("pname").readOnly=locked;
+    $("pname").classList.toggle("lockedInput",locked);
+  }
+  if($("lockedNameHint")) $("lockedNameHint").style.display=locked?"block":"none";
+}
+
+function budgetRows(){
+  const rows=[];
+  data.expenses.forEach(x=>rows.push(`<tr><td>${esc(x.source||"額外費用")}</td><td>${x.day?dayTitle(x.day):"—"}</td><td>${esc(x.type)}</td><td>${esc(x.name)}</td><td>${esc(travelerName(x.payer))}</td><td>${esc(payMethodLabel(x.payMethod))}</td><td>${fmt(moneyForeign(x))}</td><td>${fmt(moneyTwd(x))}</td><td><button class="small" onclick="editExpense('${x.id}')">編輯</button><button class="small" onclick="delExpense('${x.id}')">刪除</button></td></tr>`));
+
+  data.plans
+    .filter(p=>!(p.sourceType==="hotel" || p.hotelId || (p.type==="住宿" && p.memo==="由住宿資料帶入")))
+    .forEach(p=>rows.push(`<tr><td>行程</td><td>${dayTitle(p.day)}</td><td>${esc(p.type)}</td><td>${esc(p.name)}</td><td>${esc(travelerName(p.payer))}</td><td>${esc(payMethodLabel(p.payMethod))}</td><td>${fmt(moneyForeign(p))}</td><td>${fmt(moneyTwd(p))}</td><td><button class="small" onclick="editPlan('${p.id}')">編輯行程</button></td></tr>`));
+
+  data.conns.filter(c=>Number(c.fareTwd||0)>0||Number(c.fareForeign||0)>0).forEach(c=>rows.push(`<tr><td>交通</td><td>—</td><td>${esc(c.mode)}</td><td>行程間交通</td><td>${esc(travelerName(c.payer))}</td><td>${esc(payMethodLabel(c.payMethod))}</td><td>${fmt(c.fareForeign||0)}</td><td>${fmt(c.fareTwd||0)}</td><td></td></tr>`));
+  return rows.join("")||'<tr><td colspan="9">尚未新增預算</td></tr>';
+}
+
+function renderBudget(){
+  const planTotal=data.plans
+    .filter(p=>!(p.sourceType==="hotel" || p.hotelId || (p.type==="住宿" && p.memo==="由住宿資料帶入")))
+    .reduce((s,x)=>s+moneyTwd(x),0);
+  const expTotal=data.expenses.reduce((s,x)=>s+moneyTwd(x),0);
+  const taxiTotal=data.conns.reduce((s,x)=>s+Number(x.fareTwd||0),0);
+  $("budgetView").innerHTML=`<div class="section"><div><h2>預算總覽</h2><div class="hint">住宿若已從住宿卡片帶入預算，住宿行程節點不會重複列入行程預算。</div></div><button class="iconBtn smallIcon" onclick="clearExpenseForm()">＋</button></div><div class="card"><div class="three"><div><label>費用類型</label><select id="etype"><option>機票</option><option>住宿</option><option>網路</option><option>旅平險</option><option>交通票券</option><option>景點票券</option><option>餐飲</option><option>購物</option><option>其他</option></select></div><div><label>項目</label><input id="ename"></div><div><label>付款人</label><select id="epayer">${optsPayer("未定")}</select></div></div><div class="four"><div><label>${esc(data.trip.currency)} 金額</label><input id="eforeign" type="number" oninput="syncExpenseMoney('f')"></div><div><label>TWD</label><input id="etwd" type="number" oninput="syncExpenseMoney('t')"></div><div><label>付款方式</label><select id="epm">${optsPayMethod("未定")}</select></div><div><label>日期</label><select id="eday"><option value="">不指定日期</option>${optsDays()}</select></div></div><label>備註</label><input id="ememo"><div class="btns"><button class="btn dark" onclick="saveExpenseForm()">${editingExpenseId?"儲存預算":"新增費用"}</button>${editingExpenseId?'<button class="btn soft" onclick="clearExpenseForm()">取消編輯 / 新增</button>':""}<button class="btn blue" onclick="openRateSearch()">查看現在匯率</button></div></div><div class="stats"><div class="stat"><span>額外費用 TWD</span><strong>${fmt(expTotal)}</strong></div><div class="stat"><span>行程 TWD</span><strong>${fmt(planTotal)}</strong></div><div class="stat"><span>計程車 TWD</span><strong>${fmt(taxiTotal)}</strong></div><div class="stat"><span>總 TWD</span><strong>${fmt(expTotal+planTotal+taxiTotal)}</strong></div></div><div class="table"><table><thead><tr><th>來源</th><th>日期</th><th>類型</th><th>項目</th><th>付款人</th><th>付款方式</th><th>${esc(data.trip.currency)}</th><th>TWD</th><th></th></tr></thead><tbody>${budgetRows()}</tbody></table></div>`;
+  if(editingExpenseId)fillExpenseForm(editingExpenseId);
+}
 
 init();
 </script>
@@ -3148,6 +3602,41 @@ init();
       <button class="btn dark" onclick="exportBackup()">先匯出備份</button>
       <button class="btn danger" onclick="confirmDateReset()">我已了解，清空並修改日期</button>
       <button class="btn soft" onclick="cancelDateReset()">取消</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="optionModal" id="flightOptionModal">
+  <div class="optionBox">
+    <h3>✈️ 航班已儲存</h3>
+    <div class="optionIntro">是否要把航班與機場接送加入首尾行程？若已經帶入過，系統不會重複新增。</div>
+    <div class="toggleRow">
+      <div><b>加入首尾行程</b><span>前往機場、搭乘航班、抵達後前往飯店／市區、回程與回家節點。</span></div>
+      <label class="switch"><input id="flightOptionAddPlans" type="checkbox" checked><span class="slider"></span></label>
+    </div>
+    <div class="btns">
+      <button class="btn dark" onclick="confirmFlightOptions()">確認</button>
+      <button class="btn soft" onclick="closeFlightOptions()">先不要</button>
+    </div>
+  </div>
+</div>
+
+<div class="optionModal" id="hotelOptionModal">
+  <div class="optionBox">
+    <h3>🏨 住宿已新增</h3>
+    <div class="optionIntro">你可以選擇要不要把這間住宿同步帶入行程與預算。之後也可以在住宿卡片中再調整。</div>
+    <div class="toggleRow">
+      <div><b>帶入行程</b><span>加入入住、早上從飯店出發、晚上回到飯店等住宿節點。</span></div>
+      <label class="switch"><input id="hotelOptionAddPlans" type="checkbox" checked><span class="slider"></span></label>
+    </div>
+    <div class="toggleRow">
+      <div><b>帶入預算</b><span>新增一筆住宿預算，可稍後補金額與付款方式。</span></div>
+      <label class="switch"><input id="hotelOptionAddBudget" type="checkbox" checked><span class="slider"></span></label>
+    </div>
+    <div class="btns">
+      <button class="btn dark" onclick="confirmHotelOptions()">確認</button>
+      <button class="btn soft" onclick="closeHotelOptions()">先不要</button>
     </div>
   </div>
 </div>
