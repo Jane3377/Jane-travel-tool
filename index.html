@@ -190,6 +190,350 @@ function renderPhotoBook(){
   <div class="bookStyle-${data.meta.bookStyle||"fresh"}"><div class="card"><h2>${esc(data.meta.title)}</h2><div class="box mint">${esc(data.meta.subtitle)}</div></div>${data.days.map(d=>photoBookDay(d)).join("")}</div>`;
 }
 
+
+/* ===== v10 refinements: destination logic, airport presets, hotel itinerary, AI prompt/import ===== */
+const cityMapV10={
+  "韓國":["釜山","首爾","濟州","大邱","仁川"],
+  "日本":["東京","大阪","京都","福岡","札幌","沖繩","名古屋"],
+  "泰國":["曼谷","清邁","普吉"],
+  "美國":["紐約","洛杉磯","舊金山","西雅圖","夏威夷"],
+  "越南":["峴港","河內","胡志明市"],
+  "新加坡":["新加坡"],
+  "香港":["香港"],
+  "歐洲":["奧地利＋捷克","奧地利","捷克","英國","法國","義大利","德國","荷蘭","西班牙"],
+  "英國":["倫敦","愛丁堡","曼徹斯特"]
+};
+const airportMapV10={
+  "釜山":["PUS 金海國際機場"],
+  "首爾":["ICN 仁川國際機場","GMP 金浦國際機場"],
+  "濟州":["CJU 濟州國際機場"],
+  "東京":["NRT 成田國際機場","HND 羽田機場"],
+  "大阪":["KIX 關西國際機場","ITM 大阪伊丹機場"],
+  "京都":["KIX 關西國際機場"],
+  "福岡":["FUK 福岡機場"],
+  "札幌":["CTS 新千歲機場"],
+  "沖繩":["OKA 那霸機場"],
+  "香港":["HKG 香港國際機場"],
+  "新加坡":["SIN 樟宜機場"],
+  "曼谷":["BKK 素萬那普機場","DMK 廊曼機場"],
+  "清邁":["CNX 清邁國際機場"],
+  "普吉":["HKT 普吉國際機場"],
+  "峴港":["DAD 峴港國際機場"],
+  "河內":["HAN 內排國際機場"],
+  "胡志明市":["SGN 新山一國際機場"],
+  "維也納":["VIE 維也納國際機場"],
+  "布拉格":["PRG 布拉格瓦茨拉夫哈維爾機場"],
+  "倫敦":["LHR 希斯洛機場","LGW 蓋威克機場"],
+  "巴黎":["CDG 戴高樂機場","ORY 奧利機場"],
+  "羅馬":["FCO 羅馬菲烏米奇諾機場"],
+  "阿姆斯特丹":["AMS 史基浦機場"],
+  "台北":["TPE 桃園國際機場","TSA 台北松山機場"],
+  "高雄":["KHH 高雄國際機場"],
+  "台中":["RMQ 台中國際機場"]
+};
+const homeAirportsV10=["TPE 桃園國際機場","TSA 台北松山機場","KHH 高雄國際機場","RMQ 台中國際機場"];
+const terminalOptionsV10=["未定","第一航廈","第二航廈","第三航廈","國內線航廈","國際線航廈"];
+
+function countryOptions(){
+  return Object.keys(cityMapV10).map(c=>`<option value="${c}" ${data.trip.country==c?"selected":""}>${c==="歐洲"?"歐洲區域":c}</option>`).join("")+
+    `<option value="其他" ${data.trip.country=="其他"?"selected":""}>其他</option>`;
+}
+function currentCity(){
+  if(data.trip.city)return data.trip.city;
+  const dest=data.trip.dest||"";
+  const list=cityMapV10[data.trip.country]||[];
+  const found=list.find(c=>dest.includes(c));
+  return found || list[0] || "";
+}
+function cityOptions(selected){
+  const list=cityMapV10[$("country")?.value || data.trip.country] || [];
+  return [`<option value="自訂" ${selected && !list.includes(selected)?"selected":""}>自訂 / 多城市</option>`]
+    .concat(list.map(c=>`<option value="${c}" ${selected==c?"selected":""}>${c}</option>`)).join("");
+}
+function destinationName(country,city){
+  if(!country)return city||"";
+  if(country==="香港" && (!city || city==="香港"))return "香港";
+  if(country==="新加坡" && (!city || city==="新加坡"))return "新加坡";
+  if(country==="歐洲")return city ? `歐洲｜${city}` : "歐洲";
+  return [country,city].filter(Boolean).join("");
+}
+function updateDestByCity(){
+  const country=$("country").value;
+  const city=$("citySelect").value==="自訂" ? $("cityCustom").value.trim() : $("citySelect").value;
+  if(currencyMap[country]){
+    $("currency").value=currencyMap[country];
+    if(!$("rateSetup").value || Number($("rateSetup").value)===0)$("rateSetup").value=rateMap[currencyMap[country]]||data.trip.rate;
+  }
+  $("dest").value=destinationName(country,city);
+}
+function refreshCityOptions(){
+  const country=$("country").value;
+  const list=cityMapV10[country]||[];
+  $("citySelect").innerHTML=cityOptions(list[0]||"");
+  $("cityCustom").value="";
+  updateDestByCity();
+}
+function countryChanged(){refreshCityOptions();}
+
+function airportListForCurrentDestination(){
+  const city=currentCity();
+  let list=[];
+  if(city && airportMapV10[city])list=list.concat(airportMapV10[city]);
+  if(data.trip.country==="歐洲"){
+    ["維也納","布拉格","倫敦","巴黎","羅馬","阿姆斯特丹"].forEach(c=>{ if(airportMapV10[c])list=list.concat(airportMapV10[c]); });
+  }
+  return [...new Set(list)];
+}
+function airportPresetSelect(id,targetId,list){
+  return `<select id="${id}" onchange="if(this.value) $('${targetId}').value=this.value"><option value="">快速選機場</option>${list.map(a=>`<option value="${esc(a)}">${esc(a)}</option>`).join("")}<option value="自訂">自訂</option></select>`;
+}
+function terminalSelect(id,value){
+  return `<select id="${id}">${terminalOptionsV10.map(t=>`<option value="${t}" ${value==t?"selected":""}>${t}</option>`).join("")}</select>`;
+}
+function flightForm(k){
+  let f=data.flights[k];
+  const isOut=k==="out";
+  const destAirports=airportListForCurrentDestination();
+  const fromList=isOut?homeAirportsV10:destAirports;
+  const toList=isOut?destAirports:homeAirportsV10;
+  return `<label>航班編號</label><input id="${k}no" value="${esc(f.no)}">
+  <div class="two"><div><label>起飛機場</label>${airportPresetSelect(k+"fromPreset",k+"from",fromList)}<input id="${k}from" value="${esc(f.from)}" style="margin-top:6px"></div><div><label>起飛航廈</label>${terminalSelect(k+"fromTerminal",f.fromTerminal||"未定")}</div></div>
+  <div class="two"><div><label>降落機場</label>${airportPresetSelect(k+"toPreset",k+"to",toList)}<input id="${k}to" value="${esc(f.to)}" style="margin-top:6px"></div><div><label>降落航廈</label>${terminalSelect(k+"toTerminal",f.toTerminal||"未定")}</div></div>
+  <div class="two"><div><label>起飛時間</label><input id="${k}dep" type="datetime-local" value="${f.dep}"></div><div><label>降落時間</label><input id="${k}arr" type="datetime-local" value="${f.arr}"></div></div>
+  <div class="flightMiniTitle">${isOut?"如何抵達出發機場":"如何從旅遊地前往回程機場"}</div>
+  <textarea id="${k}toAirport" placeholder="${isOut?"例：14:00 從家裡出發到桃園機場":"例：從飯店搭地鐵／計程車到機場"}">${esc(f.toAirport||"")}</textarea>
+  <div class="flightMiniTitle">${isOut?"如何從降落機場到旅遊地／飯店":"如何從抵達機場回家"}</div>
+  <textarea id="${k}fromAirport" placeholder="${isOut?"例：抵達後搭輕軌／計程車到飯店":"例：抵達後搭機捷或接送回家"}">${esc(f.fromAirport||"")}</textarea>`;
+}
+function saveFlights(){
+  ["out","back"].forEach(k=>data.flights[k]={
+    no:$(k+"no").value,from:$(k+"from").value,to:$(k+"to").value,
+    fromTerminal:$(k+"fromTerminal").value,toTerminal:$(k+"toTerminal").value,
+    dep:$(k+"dep").value,arr:$(k+"arr").value,
+    toAirport:$(k+"toAirport").value,fromAirport:$(k+"fromAirport").value
+  });
+  save();toast("已儲存航班");
+}
+function saveBasic(){
+  data.trip.country=$("country").value;
+  const selected=$("citySelect").value;
+  data.trip.city=selected==="自訂"?$("cityCustom").value.trim():selected;
+  data.trip.dest=$("dest").value || destinationName(data.trip.country,data.trip.city);
+  data.trip.currency=$("currency").value.toUpperCase();
+  data.trip.start=$("start").value; data.trip.end=$("end").value;
+  data.trip.rate=Number($("rateSetup").value||data.trip.rate||1);
+  data.trip.travelerCount=Number($("travelerCount").value||1);
+  data.trip.travelers=[];
+  for(let i=0;i<data.trip.travelerCount;i++)data.trip.travelers.push($("traveler"+i).value||String.fromCharCode(65+i));
+  data.days=mkDays(data.trip.start,data.trip.end); cur=data.days[0]?.key;
+  save();toast("已儲存旅遊地設定");
+}
+
+function renderTrip(){
+  const h=editingHotelId?data.hotels.find(x=>x.id==editingHotelId):null;
+  const selectedCity=currentCity();
+  const customCity=(cityMapV10[data.trip.country]||[]).includes(selectedCity)?"":selectedCity;
+  $("tripView").innerHTML=`<div class="section"><div><h2>🌏 旅遊地與機酒</h2><div class="hint">先整理旅行地、日期、幣別、航班、住宿。卡片右側箭頭可展開或收合。</div></div></div>
+<details class="card" open><summary>① 🌏 旅遊地與旅伴</summary><div class="detailBody">
+  <div class="three"><div><label>國家 / 區域</label><select id="country" onchange="refreshCityOptions()">${countryOptions()}</select></div><div><label>城市 / 路線</label><select id="citySelect" onchange="updateDestByCity()">${cityOptions(selectedCity)}</select></div><div><label>自訂城市 / 多城市</label><input id="cityCustom" value="${esc(customCity)}" oninput="updateDestByCity()" placeholder="例：釜山＋慶州"></div></div>
+  <div class="three"><div><label>目的地顯示名稱</label><input id="dest" value="${esc(data.trip.dest)}"></div><div><label>幣別</label><input id="currency" value="${esc(data.trip.currency)}"></div><div><label>匯率：1 ${esc(data.trip.currency)} = TWD</label><input id="rateSetup" type="number" step="0.0001" value="${data.trip.rate}"></div></div>
+  <div class="three"><div><label>出發日</label><input id="start" type="date" value="${data.trip.start}"></div><div><label>回程日</label><input id="end" type="date" value="${data.trip.end}"></div><div><label>匯率查詢</label><button class="btn blue compact" onclick="openRateSearch()">查看匯率</button></div></div>
+  <div class="two"><div><label>旅遊人數</label><select id="travelerCount" onchange="previewTravelerCount()">${[1,2,3,4,5,6,7,8].map(n=>`<option value="${n}" ${Number(data.trip.travelerCount)==n?"selected":""}>${n} 人</option>`).join("")}</select></div><div class="hint" style="align-self:end">付款人會依旅伴名稱顯示。</div></div>
+  <div class="grid2" id="travelerBox">${travelerInputs()}</div>
+  <div class="btns"><button class="btn dark" onclick="saveBasic()">儲存旅遊地設定</button></div>
+</div></details>
+
+<details class="card"><summary>② ✈️ 航班與機場接送</summary><div class="detailBody">
+  <div class="grid2"><div class="box blue"><h3>✈️ 去程</h3>${flightForm("out")}</div><div class="box pink"><h3>🏠 回程</h3>${flightForm("back")}</div></div>
+  <div class="btns"><button class="btn dark" onclick="saveFlights()">儲存航班</button><button class="btn soft" onclick="addFlightsToPlans()">帶入首尾行程</button></div>
+  <div class="hint" style="margin-top:8px">航班帶入行程時會以「地點／交通節點」建立卡片，例如出發機場、航班、抵達機場、前往飯店，方便你後續補交通方式。</div>
+</div></details>
+
+<details class="card" open><summary>③ 🏨 住宿</summary><div class="detailBody">
+  <div class="three"><div><label>住宿名稱</label><input id="hname" value="${esc(h?.name||"")}"></div><div><label>入住日</label><select id="hstart">${optsDays(h?.start||"")}</select></div><div><label>退房日</label><select id="hend">${optsDays(h?.end||data.days.at(-1)?.key)}</select></div></div>
+  <label>地址</label><div class="two"><input id="haddr" value="${esc(h?.addr||"")}" placeholder="可手動貼上飯店地址"><button class="btn blue compact" onclick="searchHotelAddress()">搜尋地圖</button></div>
+  <label>備註</label><textarea id="hnote">${esc(h?.note||"")}</textarea>
+  <div class="btns"><button class="btn dark" onclick="saveHotel()">${h?"儲存住宿修改":"新增住宿"}</button><button class="btn soft" onclick="addHotelsToPlans()">帶入住宿行程</button>${h?'<button class="btn soft" onclick="editingHotelId=null;renderTrip()">取消編輯</button>':""}</div>
+  <div class="grid2" style="margin-top:10px">${data.hotels.map(hotelCard).join("")||'<div class="empty">尚未新增住宿</div>'}</div>
+</div></details>`;
+}
+function addFlightPlan(day,start,end,type,name,note){
+  if(!day||!name)return;
+  const exists=data.plans.some(p=>p.day===day && p.name===name && p.start===start);
+  if(exists)return;
+  data.plans.push({id:uid(),day,start:start||"",end:end||start||"",type,name,mode:"foreign",foreign:0,twd:0,payer:"未定",payMethod:"未定",note:note||"",memo:"由航班資料帶入",adjusted:false});
+}
+function dateFromDateTime(dt){return dt?dt.split("T")[0]||"":""}
+function timeFromDateTime(dt){return dt?dt.split("T")[1]||"":""}
+function addFlightsToPlans(){
+  saveFlights();
+  const out=data.flights.out, back=data.flights.back;
+  addFlightPlan(dateFromDateTime(out.dep)||data.trip.start,"14:00",timeFromDateTime(out.dep),"交通",`前往 ${out.from||"出發機場"}`,out.toAirport);
+  addFlightPlan(dateFromDateTime(out.dep)||data.trip.start,timeFromDateTime(out.dep),timeFromDateTime(out.arr),"航班",`搭乘去程航班 ${out.no||""}`,`${out.from||""}${out.fromTerminal?(" "+out.fromTerminal):""} → ${out.to||""}${out.toTerminal?(" "+out.toTerminal):""}`);
+  addFlightPlan(dateFromDateTime(out.arr)||data.trip.start,timeFromDateTime(out.arr),"", "交通",`從 ${out.to||"降落機場"} 前往飯店／市區`,out.fromAirport);
+  addFlightPlan(dateFromDateTime(back.dep)||data.trip.end,"",timeFromDateTime(back.dep),"交通",`從飯店前往 ${back.from||"回程機場"}`,back.toAirport);
+  addFlightPlan(dateFromDateTime(back.dep)||data.trip.end,timeFromDateTime(back.dep),timeFromDateTime(back.arr),"航班",`搭乘回程航班 ${back.no||""}`,`${back.from||""}${back.fromTerminal?(" "+back.fromTerminal):""} → ${back.to||""}${back.toTerminal?(" "+back.toTerminal):""}`);
+  addFlightPlan(dateFromDateTime(back.arr)||data.trip.end,timeFromDateTime(back.arr),"", "交通",`從 ${back.to||"抵達機場"} 回家`,back.fromAirport);
+  save();toast("已把航班與機場接送帶入行程");
+}
+function addHotelPlan(day,start,end,type,name,note){
+  if(!day||!name)return;
+  const exists=data.plans.some(p=>p.day===day && p.name===name && p.start===start);
+  if(exists)return;
+  data.plans.push({id:uid(),day,start,end,type,name,mode:"foreign",foreign:0,twd:0,payer:"未定",payMethod:"未定",note:note||"",memo:"由住宿資料帶入",adjusted:false});
+}
+function datesBetween(start,end){
+  let arr=[],sd=parseLocalDate(start),ed=parseLocalDate(end);
+  for(let d=new Date(sd);d<=ed;d.setDate(d.getDate()+1))arr.push(formatLocalDate(d));
+  return arr;
+}
+function dateBefore(dateStr){
+  let d=parseLocalDate(dateStr); d.setDate(d.getDate()-1); return formatLocalDate(d);
+}
+function addHotelsToPlans(){
+  if(!data.hotels.length)return toast("請先新增住宿");
+  data.hotels.forEach(h=>{
+    addHotelPlan(h.start,"15:00","15:30","住宿",`入住 ${h.name}`,h.addr||h.note||"");
+    datesBetween(h.start,h.end).forEach(day=>{
+      addHotelPlan(day,"09:00","09:10","住宿",`從 ${h.name} 出發`,h.addr||"");
+    });
+    datesBetween(h.start,dateBefore(h.end)).forEach(day=>{
+      addHotelPlan(day,"21:00","21:10","住宿",`回到 ${h.name}`,h.addr||"");
+    });
+  });
+  save();toast("已將住宿出發／回飯店節點帶入行程");
+}
+
+
+/* ===== v10.1 AI itinerary prompt + import, remove sample from side calendar ===== */
+function renderSide(){
+  $("days").innerHTML=data.days.map(d=>{
+    let h=hotelFor(d.key),n=data.plans.filter(p=>p.day==d.key).length;
+    return `<div class="day ${d.key==cur?"active":""}" onclick="cur='${d.key}';go('planner')"><b>${d.title}｜${d.label}</b><span>${n} 行程｜住宿：${h?esc(h.name):"未設定"}</span></div>`;
+  }).join("");
+  const side=document.querySelector(".panel");
+  if(side){
+    side.querySelector(".btns").innerHTML=`<button class="btn pink" onclick="generateAIPrompt()">產出 AI 提示詞</button><label class="btn blue" style="display:inline-block">匯入行程<input type="file" accept=".json,application/json,.txt,text/plain" onchange="importAIItinerary(this.files[0])" style="display:none"></label>`;
+  }
+}
+function aiSchemaText(){
+  return `{
+  "spots": [
+    {
+      "name": "景點或餐廳名稱",
+      "type": "景點/餐廳/咖啡廳/購物/雨天備案/其他",
+      "day": "YYYY-MM-DD，可留空",
+      "addr": "地址或區域",
+      "memo": "注意事項"
+    }
+  ],
+  "plans": [
+    {
+      "day": "YYYY-MM-DD",
+      "start": "HH:MM",
+      "end": "HH:MM",
+      "type": "景點/餐廳/咖啡廳/購物/交通/航班/住宿/其他",
+      "name": "行程卡片名稱，以地點或交通節點為主",
+      "note": "注意事項",
+      "memo": "補充備註",
+      "foreign": 0,
+      "twd": 0,
+      "payer": "未定",
+      "payMethod": "未定"
+    }
+  ]
+}`;
+}
+function generateAIPrompt(){
+  const hotels=data.hotels.map(h=>`${short(h.start)}~${short(h.end)} ${h.name}${h.addr?("，地址/區域："+h.addr):""}`).join("\\n") || "尚未設定住宿";
+  const flights=[
+    data.flights.out.no?`去程 ${data.flights.out.no}：${data.flights.out.from} ${data.flights.out.dep} → ${data.flights.out.to} ${data.flights.out.arr}`:"",
+    data.flights.back.no?`回程 ${data.flights.back.no}：${data.flights.back.from} ${data.flights.back.dep} → ${data.flights.back.to} ${data.flights.back.arr}`:""
+  ].filter(Boolean).join("\\n") || "尚未設定航班";
+  const days=data.days.map(d=>`${d.key}（${d.title}｜${d.label}）`).join("\\n");
+  const prompt=`請你依照以下旅行設定，幫我規劃一份可匯入「旅行小書 HTML 工具」的行程 JSON。
+
+旅行設定：
+- 目的地：${data.trip.dest}
+- 國家/區域：${data.trip.country}
+- 城市/路線：${data.trip.city||""}
+- 日期：${data.trip.start} ～ ${data.trip.end}
+- 幣別：${data.trip.currency}
+- 旅伴：${(data.trip.travelers||[]).join("、")}
+
+旅行日期：
+${days}
+
+航班：
+${flights}
+
+住宿：
+${hotels}
+
+請注意：
+1. 行程卡片名稱請以「地點」或「交通節點」為主，例如「甘川洞文化村」、「從金海機場前往飯店」、「入住城市律動」。
+2. 每天行程不要排太滿，交通與用餐要留緩衝。
+3. 如果有口袋景點，也請放入 spots。
+4. 請只輸出純 JSON，不要 Markdown，不要解釋文字。
+5. JSON 格式必須完全符合以下 schema：
+
+${aiSchemaText()}`;
+  const blob=new Blob([prompt],{type:"text/plain;charset=utf-8"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download=`AI行程提示詞-${data.trip.dest||"travel"}.txt`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  if(navigator.clipboard){navigator.clipboard.writeText(prompt).then(()=>toast("已下載提示詞，也已複製到剪貼簿")).catch(()=>toast("已下載 AI 提示詞"))}
+  else toast("已下載 AI 提示詞");
+}
+function normalizeImportedJsonText(text){
+  let t=text.trim();
+  if(t.startsWith("```")){
+    t=t.replace(/^```json/i,"").replace(/^```/,"").replace(/```$/,"").trim();
+  }
+  const first=t.indexOf("{"), last=t.lastIndexOf("}");
+  if(first>=0&&last>first)t=t.slice(first,last+1);
+  return t;
+}
+function importAIItinerary(file){
+  if(!file)return;
+  const r=new FileReader();
+  r.onload=e=>{
+    try{
+      const obj=JSON.parse(normalizeImportedJsonText(e.target.result));
+      const spots=Array.isArray(obj.spots)?obj.spots:[];
+      const plans=Array.isArray(obj.plans)?obj.plans:(Array.isArray(obj)?obj:[]);
+      spots.forEach(s=>{
+        if(!s.name)return;
+        data.spots.push({id:uid(),name:String(s.name||""),type:String(s.type||"景點"),day:String(s.day||""),addr:String(s.addr||s.address||""),memo:String(s.memo||s.note||"")});
+      });
+      plans.forEach(p=>{
+        if(!p.day||!p.name)return;
+        data.plans.push({
+          id:uid(),day:String(p.day),start:String(p.start||"10:00"),end:String(p.end||"11:00"),
+          type:String(p.type||"景點"),name:String(p.name),mode:"foreign",
+          foreign:Number(p.foreign||0),twd:Number(p.twd||0),
+          payer:String(p.payer||"未定"),payMethod:String(p.payMethod||"未定"),
+          note:String(p.note||""),memo:String(p.memo||"AI 匯入"),adjusted:false
+        });
+      });
+      save();
+      toast(`已匯入 ${plans.length} 個行程、${spots.length} 個口袋景點`);
+    }catch(err){
+      alert("匯入失敗：請確認檔案是純 JSON，且包含 plans 或 spots。");
+    }
+  };
+  r.readAsText(file);
+}
+function renderHelp(){
+  $("helpView").innerHTML=`<div class="section"><div><h2>說明與備份</h2><div class="hint">工具使用方式、資料備份、AI 行程匯入與還原放在這裡。</div></div></div>
+  <div class="card"><h3>AI 行程提示詞與匯入</h3><div class="box mint">可以先按「產出 AI 提示詞」，把下載的文字貼給 AI。AI 回傳 JSON 後，存成 .json 或 .txt，再用「匯入行程」上傳，就會把 plans 匯入行程、spots 匯入口袋景點。</div><div class="btns"><button class="btn pink" onclick="generateAIPrompt()">產出 AI 提示詞</button><label class="btn blue" style="display:inline-block">匯入行程<input type="file" accept=".json,application/json,.txt,text/plain" onchange="importAIItinerary(this.files[0])" style="display:none"></label></div></div>
+  <div class="card"><h3>備份資料</h3><div class="box mint">匯出備份會下載 JSON 檔。匯入備份會覆蓋目前資料。</div><div class="btns"><button class="btn dark" onclick="exportBackup()">匯出備份</button><label class="btn soft" style="display:inline-block">匯入備份<input type="file" accept=".json,application/json" onchange="importBackup(this.files[0])" style="display:none"></label></div></div>
+  <div class="card"><h3>機場與地圖</h3><div class="box blue">選擇國家與城市後，航班欄位會提供常用機場快速選單。飯店與景點的地圖功能目前採用開啟 Google Maps 查詢，再手動貼地址。</div></div>
+  <div class="card"><h3>住宿與航班帶入行程</h3><div class="box pink">航班可以帶入首尾交通節點；住宿可以帶入入住、每日出發、回飯店節點。這些卡片仍可到行程頁編輯時間與內容。</div></div>`;
+}
+
 init();
 </script>
 </body></html>
