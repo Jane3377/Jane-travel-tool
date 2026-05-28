@@ -507,10 +507,179 @@ html, body { max-width: 100%; overflow-x: hidden; }
   }
 }
 
+
+/* ===== v19 modal consistency + hotel actions + prettier PDF book ===== */
+.resetModal,
+.countryResetModal{
+  position:fixed;
+  inset:0;
+  background:rgba(44,38,32,.38);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:16px;
+  z-index:120;
+}
+.resetModal.show,
+.countryResetModal.show{display:flex}
+.resetBox,
+.countryResetBox{
+  width:min(560px,100%);
+  max-height:86vh;
+  overflow:auto;
+  background:rgba(255,255,255,.98);
+  border:1px solid rgba(255,255,255,.9);
+  box-shadow:var(--shadow);
+  border-radius:22px;
+  padding:18px;
+}
+.resetBox h3,
+.countryResetBox h3{margin:0 0 10px}
+.resetWarn{
+  line-height:1.75;
+  color:#4c443d;
+}
+.resetWarn .dangerText{
+  color:#c85b5b;
+  font-weight:950;
+}
+.resetWarn .mark{
+  font-size:18px;
+  margin-right:4px;
+}
+.countryResetBox .box{
+  background:transparent!important;
+  padding:0!important;
+  border-radius:0!important;
+  color:#4c443d;
+}
+.countryResetBox .box.pink{
+  color:#4c443d;
+}
+.countryResetBox .box.pink::before{
+  content:"❗ ";
+  color:#c85b5b;
+  font-weight:950;
+}
+.countryResetBox .box.mint{
+  margin-top:10px!important;
+  color:#c85b5b;
+  font-weight:950;
+}
+.countryResetBox .box.mint::before{
+  content:"建議：";
+}
+.hotelActionState{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-top:8px;
+}
+.hotelActionState .tag{
+  background:#f3eee8;
+  color:#6f6257;
+}
+.tripCoverPreview{
+  width:100%;
+  min-height:160px;
+  border:2px dashed #dacfc3;
+  border-radius:20px;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(135deg,#fffefa,#edf8f3);
+  color:#8b827a;
+  overflow:hidden;
+  margin-top:8px;
+}
+.tripCoverPreview img{
+  width:100%;
+  height:220px;
+  object-fit:cover;
+  display:block;
+}
+.bookOrnament{
+  display:none;
+}
+.printCoverPhoto{
+  width:100%;
+  height:92mm;
+  object-fit:cover;
+  border-radius:24px;
+  margin:12mm 0 10mm;
+}
+.bookStyle-fresh .printCover{
+  background:
+    radial-gradient(circle at 12mm 12mm,rgba(217,239,230,.75),transparent 28mm),
+    linear-gradient(135deg,#fffefa,#f5fbf8);
+  border:1px solid #dcebe3;
+}
+.bookStyle-fun .printCover{
+  background:
+    radial-gradient(circle at 18mm 20mm,rgba(255,210,229,.7) 0 10mm,transparent 11mm),
+    radial-gradient(circle at 160mm 35mm,rgba(255,238,160,.8) 0 12mm,transparent 13mm),
+    linear-gradient(135deg,#fff9d8,#ffeef5,#eaf6ff);
+  border:2px dashed #f0b7c9;
+}
+.bookStyle-diary .printCover{
+  background:
+    linear-gradient(90deg,rgba(255,160,160,.12) 0 1px,transparent 1px 100%),
+    repeating-linear-gradient(#fffdf8 0,#fffdf8 29px,#efe5db 30px);
+  border:1px solid #d8cbbd;
+}
+.bookStyle-fresh .bookOrnament::before{content:"🌿";}
+.bookStyle-fun .bookOrnament::before{content:"✦  ✿  ♡";}
+.bookStyle-diary .bookOrnament::before{content:"DATE  /  MEMO";}
+.bookOrnament{
+  display:inline-block;
+  font-weight:950;
+  color:#8b827a;
+  letter-spacing:1px;
+  margin-bottom:8px;
+}
+@media print{
+  .resetModal,.countryResetModal{display:none!important}
+  .printCover{
+    display:block!important;
+    page-break-after:always;
+    min-height:88vh;
+    padding:18mm 14mm!important;
+    border-radius:22px!important;
+    position:relative;
+  }
+  .printCover h1{
+    font-size:34px!important;
+    line-height:1.15!important;
+  }
+  .printCover .coverSub{
+    max-width:145mm;
+    font-size:14px;
+  }
+  .bookDay{
+    padding:12mm!important;
+    margin-bottom:8mm!important;
+  }
+  .bookDayHeader{
+    border-bottom:1px solid rgba(0,0,0,.08);
+    padding-bottom:5mm;
+  }
+  .bookTimeline{
+    gap:5mm!important;
+  }
+  .bookTimelineItem{
+    grid-template-columns:22mm 1fr!important;
+  }
+  .photoGridPrint{
+    gap:6mm!important;
+  }
+  .photoGridPrint .photo{
+    padding:5mm!important;
+  }
+}
+
 </style>
 </head>
 <body>
-<div class="app"><header><div class="badge">🧳 My Travel Book</div><div class="titleRow"><h1 id="titleText">釜山小旅行手帳</h1><button class="iconBtn" onclick="editTitle()">✎</button></div><div class="subRow"><p class="sub" id="subtitleText">把想去的海邊、巷弄、咖啡香與晚餐清單都收進來，慢慢排成一趟期待出發的旅行。</p><button class="iconBtn" onclick="editSubtitle()">✎</button></div><div class="heroStats"><div><span>目的地</span><strong id="sDest">韓國釜山</strong></div><div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage Version</footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
+<div class="app"><header><div class="badge">🧳 My Travel Book</div><div class="titleRow"><h1 id="titleText">釜山小旅行手帳</h1><button class="iconBtn" onclick="editTitle()">✎</button></div><div class="subRow"><p class="sub" id="subtitleText">把想去的海邊、巷弄、咖啡香與晚餐清單都收進來，慢慢排成一趟期待出發的旅行。</p><button class="iconBtn" onclick="editSubtitle()">✎</button></div><div class="heroStats"><div><span>目的地</span><strong id="sDest">韓國釜山</strong></div><div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v20｜2026-05-29｜Cloudinary照片書／重置保護／住宿操作版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
 <script>
 const views=[["trip","旅遊地"],["planner","行程"],["spots","口袋景點"],["budget","預算"],["packing","行李"],["photoBook","照片書"],["help","說明"]];
 const currencyMap={"韓國":"KRW","日本":"JPY","泰國":"THB","美國":"USD","越南":"VND","新加坡":"SGD","歐洲":"EUR","英國":"GBP","香港":"HKD"};const rateMap={KRW:.023,JPY:.22,THB:.92,USD:31.5,VND:.00125,SGD:24,EUR:34,GBP:39,HKD:4.05};
@@ -2645,6 +2814,292 @@ function photoBookDay(d){
   </div>`;
 }
 
+
+/* ===== v19 overrides: date reset guard, hotel optional actions, budget toggles, trip cover, refined PDF ===== */
+let v19PendingDates = null;
+
+function v19ResetVariableData(){
+  data.flights={out:{},back:{}};
+  data.hotels=[];
+  data.expenses=[];
+  data.spots=[];
+  data.plans=[];
+  data.conns=[];
+  data.photos=[];
+  data.dayCovers={};
+  data.dayCoverMeta={};
+  data.tripCover="";
+  data.tripCoverMeta=null;
+  data.packing=pack0.map(x=>({id:uid(),type:x[0],name:x[1],note:x[2],checked:false}));
+  data.packView="pre";
+}
+
+function cancelDateReset(){
+  v19PendingDates=null;
+  $("dateResetModal").classList.remove("show");
+}
+
+function confirmDateReset(){
+  if(!v19PendingDates)return;
+  data.trip.start=v19PendingDates.start;
+  data.trip.end=v19PendingDates.end;
+  data.days=mkDays(data.trip.start,data.trip.end);
+  v19ResetVariableData();
+  cur=data.days[0]?.key||data.trip.start;
+  v19PendingDates=null;
+  $("dateResetModal").classList.remove("show");
+  save();
+  toast("已清空資料並修改旅行日期");
+}
+
+function saveBasic(){
+  const selectedCountry=$("country").value;
+  if(selectedCountry!==data.trip.country){
+    v18PendingCountry=selectedCountry;
+    $("country").value=data.trip.country;
+    $("countryResetModal").classList.add("show");
+    return;
+  }
+
+  const newStart=$("start").value;
+  const newEnd=$("end").value;
+  if((newStart!==data.trip.start || newEnd!==data.trip.end) && data.days?.length){
+    v19PendingDates={start:newStart,end:newEnd};
+    $("dateResetModal").classList.add("show");
+    return;
+  }
+
+  data.trip.country=$("country").value;
+  const selected = $("citySelect").value;
+  data.trip.city = selected==="自訂" ? $("cityCustom").value.trim() : selected;
+  data.trip.dest = v15DestinationName(data.trip.country, data.trip.city);
+  data.trip.currency=$("currency").value.toUpperCase();
+  data.trip.start=newStart;
+  data.trip.end=newEnd;
+  data.trip.rate=Number($("rateSetup").value||data.trip.rate||1);
+  data.trip.travelerCount=Number($("travelerCount").value||1);
+  data.trip.travelers=[];
+  for(let i=0;i<data.trip.travelerCount;i++) data.trip.travelers.push($("traveler"+i).value||String.fromCharCode(65+i));
+
+  data.days=mkDays(data.trip.start,data.trip.end);
+  v18SortHotels();
+  cur=data.days[0]?.key;
+  silentSave();
+  render();
+  const d=document.querySelectorAll("#tripView details.card")[0];
+  if(d) d.removeAttribute("open");
+  toast("已儲存旅遊地設定");
+}
+
+function confirmCountryReset(){
+  if(!v18PendingCountry)return;
+  const country=v18PendingCountry;
+  const keepMeta = data.meta || {};
+  const keepDates = {start:data.trip.start, end:data.trip.end, travelerCount:data.trip.travelerCount, travelers:[...(data.trip.travelers||["A","B"])]};
+  const t=v18TripDefaultForCountry(country);
+
+  data.meta={...keepMeta};
+  data.trip={
+    ...data.trip,
+    country:t.country,
+    city:t.city,
+    dest:t.dest,
+    currency:t.currency,
+    rate:t.rate,
+    start:keepDates.start,
+    end:keepDates.end,
+    travelerCount:keepDates.travelerCount,
+    travelers:keepDates.travelers
+  };
+  data.days=mkDays(data.trip.start,data.trip.end);
+  v19ResetVariableData();
+  cur=data.days[0]?.key||data.trip.start;
+  v18PendingCountry=null;
+  $("countryResetModal").classList.remove("show");
+  save();
+  toast("已清空資料並切換旅遊國家");
+}
+
+function saveHotel(){
+  if(!$("hname").value)return toast("請輸入住宿名稱");
+  let start=$("hstart").value;
+  let end=$("hend").value;
+  if(start < data.trip.start || start > data.trip.end || end < data.trip.start || end > data.trip.end){
+    return alert("住宿日期必須在旅遊出發日與回程日之間。");
+  }
+  if(end < start){
+    return alert("退房日不可早於入住日。");
+  }
+  const item={name:$("hname").value,start,end,addr:$("haddr").value,note:$("hnote").value};
+  let hotelId=editingHotelId;
+  let isNew=false;
+
+  if(editingHotelId){
+    Object.assign(data.hotels.find(x=>x.id==editingHotelId),item);
+    editingHotelId=null;
+  }else{
+    isNew=true;
+    hotelId=uid();
+    data.hotels.push({id:hotelId,...item});
+  }
+
+  v18SortHotels();
+  v16KeepHotelOpen=true;
+  silentSave();
+  render();
+  v16OpenTripDetail(2);
+
+  if(isNew){
+    setTimeout(()=>{
+      if(confirm("住宿已新增。要把這間住宿帶入行程嗎？")){
+        addHotelPlans(hotelId);
+      }
+      if(confirm("要把這間住宿帶入預算嗎？")){
+        addHotelExpense(hotelId);
+      }
+    },80);
+  }else{
+    toast("已儲存住宿並依入住日排序");
+  }
+}
+
+function hotelHasPlans(id){
+  return data.plans.some(p=>p.hotelId==id);
+}
+function hotelHasExpense(id){
+  return data.expenses.some(e=>e.hotelId==id);
+}
+
+function addHotelPlans(id){
+  const h=data.hotels.find(x=>x.id==id);
+  if(!h)return;
+  v16AddHotelToPlans({...h});
+  data.plans.forEach(p=>{
+    if(p.memo==="由住宿資料帶入" && (p.name.includes(h.name) || p.note===h.addr)) p.hotelId=id;
+  });
+  save();
+  toast("已帶入住宿行程");
+}
+
+function removeHotelPlans(id){
+  data.plans=data.plans.filter(p=>p.hotelId!=id);
+  data.conns=data.conns.filter(c=>data.plans.some(p=>p.id==c.a) && data.plans.some(p=>p.id==c.b));
+  save();
+  toast("已移除住宿行程");
+}
+
+function addHotelExpense(id){
+  const h=data.hotels.find(x=>x.id==id);
+  if(!h)return;
+  if(hotelHasExpense(id))return toast("這間住宿已帶入預算");
+  data.expenses.push({id:uid(),hotelId:id,source:"住宿",type:"住宿",name:`${short(h.start)}~${short(h.end)} ${h.name}`,payer:"未定",payMethod:"未定",day:"",mode:"TWD",foreign:0,twd:0,memo:"由住宿資料帶入，可編輯金額"});
+  save();
+  toast("已帶入住宿預算");
+}
+
+function removeHotelExpense(id){
+  data.expenses=data.expenses.filter(e=>e.hotelId!=id);
+  save();
+  toast("已移除住宿預算");
+}
+
+function hotelCard(h){
+  const hasP=hotelHasPlans(h.id);
+  const hasE=hotelHasExpense(h.id);
+  return `<div class="card"><div class="time">${short(h.start)}→${short(h.end)}</div><div class="place">🏨 ${esc(h.name)}</div><div class="box mint">${esc(h.addr||"尚未填地址")}<br>${esc(h.note||"")}</div>
+  <div class="hotelActionState">${hasP?'<span class="tag">已帶入行程</span>':'<span class="tag">未帶入行程</span>'}${hasE?'<span class="tag">已帶入預算</span>':'<span class="tag">未帶入預算</span>'}</div>
+  <div class="btns">
+    <button class="small" onclick="editHotel('${h.id}')">編輯</button>
+    <button class="small" onclick="map('${encodeURIComponent((h.addr||h.name)+' '+data.trip.dest)}')">地圖</button>
+    ${hasP?`<button class="small" onclick="removeHotelPlans('${h.id}')">移除行程</button>`:`<button class="small" onclick="addHotelPlans('${h.id}')">帶入行程</button>`}
+    ${hasE?`<button class="small" onclick="removeHotelExpense('${h.id}')">移除預算</button>`:`<button class="small" onclick="addHotelExpense('${h.id}')">帶入預算</button>`}
+    <button class="small" onclick="delHotel('${h.id}')">刪除</button>
+  </div></div>`;
+}
+
+function delHotel(id){
+  data.hotels=data.hotels.filter(h=>h.id!=id);
+  data.plans=data.plans.filter(p=>p.hotelId!=id);
+  data.expenses=data.expenses.filter(e=>e.hotelId!=id);
+  save();
+}
+
+async function addTripCover(file){
+  if(!file)return;
+  try{
+    const img = await uploadImageFile(file, {maxWidth:1800, quality:.84});
+    data.tripCover=img.src;
+    data.tripCoverMeta=img;
+    save();
+    toast("旅遊書封面已上傳");
+  }catch(err){
+    setUploadStatus("");
+    alert("封面上傳失敗：" + err.message);
+  }
+}
+
+function renderPhotoBook(){
+  $("photoBookView").innerHTML=`<div class="section"><div><h2>📖 照片旅遊書</h2><div class="hint">照片存在 Cloudinary；匯出 PDF 時會依模板套用旅行書排版。</div></div><button class="btn soft noPrint" onclick="print()">匯出 PDF</button></div>
+  <div class="card noPrint">
+    <label>照片書模板</label>
+    <div class="templateRail">
+      ${templateCard("fresh","🌿 韓系清新","米白淡綠、乾淨圓角")}
+      ${templateCard("fun","🌈 活潑可愛","貼紙感、虛線框、繽紛")}
+      ${templateCard("diary","✎ 手帳日記","紙張格線、手寫感")}
+    </div>
+    <label>整本旅遊書封面照</label>
+    <input type="file" accept="image/*" onchange="addTripCover(this.files[0])">
+    <div class="mini" style="margin-top:6px">建議尺寸：橫式 1600×1000px 以上，或手機照片 4:3／16:9；匯出 PDF 會自動裁切成封面比例。</div>
+    <div class="tripCoverPreview">${data.tripCover?`<img src="${data.tripCover}">`:"尚未上傳整本封面照"}</div>
+    <hr style="border:0;border-top:1px solid var(--line);margin:14px 0">
+    <div class="three compactMobile">
+      <div><label>照片日期</label><select id="phd">${optsDays(cur)}</select></div>
+      <div class="full"><label>照片標題</label><input id="pht"></div>
+    </div>
+    <label>選擇照片</label><input id="phf" type="file" accept="image/*">
+    <div class="mini" style="margin-top:6px">建議尺寸：一般照片 1200×900px 以上；系統會先壓縮再上傳 Cloudinary。</div>
+    <label>照片日記</label><textarea id="phm" placeholder="這天的天氣、心情、最好吃的一餐、最喜歡的瞬間……"></textarea>
+    <div class="btns"><button class="btn dark" onclick="addPhoto()">上傳並加入照片書</button></div>
+    <div class="uploadStatus" id="uploadStatus"></div>
+    <div class="mini" style="margin-top:8px">Cloudinary folder：${CLOUDINARY_CONFIG.folder}｜preset：${CLOUDINARY_CONFIG.uploadPreset}</div>
+  </div>
+  <div class="bookStyle-${data.meta.bookStyle||"fresh"}">
+    <div class="printCover">
+      <span class="bookOrnament"></span>
+      <h1>${esc(data.meta.title)}</h1>
+      <p class="coverSub">${esc(data.meta.subtitle)}</p>
+      ${data.tripCover?`<img class="printCoverPhoto" src="${data.tripCover}">`:""}
+      <div class="coverMeta">
+        <div><span class="mini">目的地</span><br><b>${esc(data.trip.dest)}</b></div>
+        <div><span class="mini">日期</span><br><b>${short(data.trip.start)} - ${short(data.trip.end)}</b></div>
+      </div>
+    </div>
+    <div class="card"><h2>${esc(data.meta.title)}</h2><div class="box mint">${esc(data.meta.subtitle)}</div></div>
+    ${data.days.map(d=>photoBookDay(d)).join("")}
+  </div>`;
+}
+
+function photoBookDay(d){
+  const plans=sortedPlans(d.key);
+  const photos=data.photos.filter(p=>p.day==d.key);
+  const cover=data.dayCovers[d.key];
+  return `<div class="card bookDay">
+    <div class="bookDayHeader">
+      <div><span class="bookOrnament"></span><h2>${d.title}｜${d.label}</h2><div class="hint">本日住宿：${hotelFor(d.key)?.name||"未設定"}</div></div>
+      <span class="bookDayBadge">${plans.length} 個行程｜${photos.length} 張照片</span>
+      <div class="noPrint"><input type="file" accept="image/*" onchange="addDayCover('${d.key}',this.files[0])"><div class="mini">每日封面建議：1600×900px 以上</div></div>
+    </div>
+    ${cover?`<img class="dayCover" src="${cover}">`:`<div class="dayCover" style="display:grid;place-items:center;color:#999">尚未上傳本日封面圖</div>`}
+    <div class="bookTimeline">${plans.map(p=>`<div class="bookTimelineItem"><div class="bookTimelineTime">${esc(p.start||"--:--")}</div><div class="bookTimelineContent"><b>${activityIcon(p.type)} ${esc(p.name)}</b><div class="mini">${esc(p.end?("結束 "+p.end):"")}</div>${p.note?`<div style="margin-top:4px">${esc(p.note)}</div>`:""}</div></div>`).join("")||'<div class="empty">這天還沒有行程</div>'}</div>
+    <div class="photoGridPrint">${photos.map(p=>`<div class="photo"><img src="${p.src}"><h3>${esc(p.title||"照片紀錄")}</h3><p class="mini">${esc(p.memo)}</p><div class="tags">${p.cloudinary?'<span class="tag green">☁️ Cloudinary</span>':''}</div><button class="small noPrint" onclick="delPhoto('${p.id}')">刪除</button></div>`).join("")||""}</div>
+  </div>`;
+}
+
+
+/* ===== Version marker ===== */
+const APP_VERSION = "v20｜2026-05-29｜Cloudinary照片書／重置保護／住宿操作版";
+console.log("My Travel Book", APP_VERSION);
+
 init();
 </script>
 
@@ -2676,6 +3131,23 @@ init();
       <button class="btn dark" onclick="exportBackup()">先匯出備份</button>
       <button class="btn danger" onclick="confirmCountryReset()">我已了解，清空並修改國家</button>
       <button class="btn soft" onclick="cancelCountryReset()">取消</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="resetModal" id="dateResetModal">
+  <div class="resetBox">
+    <h3>⚠️ 修改旅行日期會重置資料</h3>
+    <div class="resetWarn">
+      <p><span class="mark">❗</span>出發日或回程日會影響旅行天數、住宿日期、每日行程與照片書頁面。</p>
+      <p class="dangerText">若確認修改日期，系統會清空目前行程、口袋景點、住宿、預算、照片書與行李勾選，並依新日期重新建立旅程。</p>
+      <p>建議你先匯出備份，再繼續修改日期。</p>
+    </div>
+    <div class="btns">
+      <button class="btn dark" onclick="exportBackup()">先匯出備份</button>
+      <button class="btn danger" onclick="confirmDateReset()">我已了解，清空並修改日期</button>
+      <button class="btn soft" onclick="cancelDateReset()">取消</button>
     </div>
   </div>
 </div>
