@@ -283,6 +283,230 @@ html, body { max-width: 100%; overflow-x: hidden; }
 }
 .uploadStatus.show{display:block}
 
+
+/* ===== v18 print book + country reset modal + hotel/date refinements ===== */
+.countryResetModal{
+  position:fixed;
+  inset:0;
+  background:rgba(44,38,32,.38);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:16px;
+  z-index:120;
+}
+.countryResetModal.show{display:flex}
+.countryResetBox{
+  width:min(560px,100%);
+  max-height:86vh;
+  overflow:auto;
+  background:rgba(255,255,255,.98);
+  border:1px solid rgba(255,255,255,.9);
+  box-shadow:var(--shadow);
+  border-radius:22px;
+  padding:16px;
+}
+.countryResetBox h3{margin-top:0}
+.hotelSortedNote{
+  margin-top:6px;
+  color:var(--muted);
+  font-size:12px;
+}
+.printCover{
+  display:none;
+}
+.bookDayHeader{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  align-items:flex-start;
+  margin-bottom:10px;
+}
+.bookDayBadge{
+  display:inline-flex;
+  align-items:center;
+  border-radius:999px;
+  padding:6px 10px;
+  font-size:12px;
+  font-weight:900;
+  background:#f3eee8;
+  color:#5d554e;
+}
+.bookTimeline{
+  display:grid;
+  gap:8px;
+  margin-top:10px;
+}
+.bookTimelineItem{
+  display:grid;
+  grid-template-columns:78px 1fr;
+  gap:8px;
+  align-items:start;
+  break-inside:avoid;
+}
+.bookTimelineTime{
+  border-radius:999px;
+  background:#f3eee8;
+  color:#5d554e;
+  padding:6px 8px;
+  font-size:12px;
+  font-weight:900;
+  text-align:center;
+}
+.bookTimelineContent{
+  border-radius:16px;
+  padding:10px;
+  background:#eef6fb;
+  border:1px solid rgba(88,115,139,.16);
+}
+.bookTimelineContent b{display:block;margin-bottom:4px}
+.photoGridPrint{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:12px;
+}
+.photoGridPrint .photo{
+  break-inside:avoid;
+}
+.bookStyle-fresh .bookDay{
+  background:linear-gradient(180deg,#fffefa,#f8fbf7);
+  border:1px solid #dcebe3;
+}
+.bookStyle-fresh .bookDayBadge{
+  background:#e8f4ef;
+  color:#4f756a;
+}
+.bookStyle-fresh .bookTimelineContent{
+  background:#f4fbf8;
+  border-color:#cfe4db;
+}
+.bookStyle-fun .bookDay{
+  background:
+    radial-gradient(circle at 20px 20px,rgba(255,204,224,.55) 0 8px,transparent 9px),
+    radial-gradient(circle at calc(100% - 28px) 38px,rgba(255,235,153,.62) 0 10px,transparent 11px),
+    linear-gradient(135deg,#fff9d8,#ffeef5,#eaf6ff);
+  border:2px dashed #f0b7c9;
+}
+.bookStyle-fun .bookDayBadge{
+  background:#fff;
+  color:#91546a;
+  border:2px solid #f0b7c9;
+  box-shadow:0 4px 0 rgba(240,183,201,.18);
+}
+.bookStyle-fun .bookTimelineContent{
+  background:#fff;
+  border:2px solid #ffd8e6;
+  box-shadow:4px 4px 0 rgba(255,203,91,.22);
+}
+.bookStyle-fun .photo{
+  background:#fff;
+  border:2px solid #fff;
+  box-shadow:0 8px 0 rgba(255,203,91,.18);
+  transform:rotate(-.4deg);
+}
+.bookStyle-diary .bookDay{
+  background:
+    linear-gradient(90deg,rgba(255,160,160,.14) 0 1px,transparent 1px 100%),
+    repeating-linear-gradient(#fffdf8 0,#fffdf8 29px,#efe5db 30px);
+  border:1px solid #d8cbbd;
+}
+.bookStyle-diary .bookDayBadge{
+  background:#fffdf8;
+  border:1px dashed #9f8e7d;
+  color:#6f6257;
+}
+.bookStyle-diary .bookTimelineContent{
+  background:rgba(255,255,255,.72);
+  border:1px dashed #b9aa9b;
+}
+.bookStyle-diary .photo{
+  background:#fffaf0;
+  border:1px solid #dfd2c3;
+}
+@media print{
+  @page{size:A4;margin:12mm}
+  body{background:#fff!important;color:#332f2b}
+  .tabs,.mobile,.mobileTopNav,.panel,.btns,.small,.iconBtn,.noPrint,footer,.toast,.aiPromptModal,.countryResetModal{display:none!important}
+  .layout{display:block!important}
+  .main{padding:0!important;box-shadow:none!important;border:0!important;background:#fff!important}
+  .app{max-width:none!important;padding:0!important}
+  header{
+    box-shadow:none!important;
+    border:0!important;
+    border-radius:0!important;
+    background:#fff!important;
+    padding:0 0 10px!important;
+    margin-bottom:10px!important;
+    border-bottom:2px solid #eee!important;
+  }
+  .heroStats{grid-template-columns:1fr 1fr!important}
+  .printCover{
+    display:block;
+    page-break-after:always;
+    min-height:88vh;
+    padding:28mm 12mm;
+    border-radius:18px;
+    background:linear-gradient(135deg,#f8fbf7,#fff8ee);
+    border:1px solid #e9dfd3;
+  }
+  .printCover h1{
+    font-size:34px;
+    margin:0 0 12px;
+  }
+  .printCover .coverSub{
+    color:#6f6962;
+    line-height:1.8;
+    margin:0 0 24px;
+  }
+  .printCover .coverMeta{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-top:18px;
+  }
+  .printCover .coverMeta div{
+    border-radius:18px;
+    background:#fff;
+    border:1px solid #eadfd4;
+    padding:12px;
+  }
+  .card{
+    box-shadow:none!important;
+  }
+  .bookDay{
+    page-break-inside:avoid;
+    break-inside:avoid;
+    border-radius:20px!important;
+    padding:14px!important;
+    margin-bottom:14px!important;
+  }
+  .bookDay h2{
+    margin:0;
+    font-size:22px;
+  }
+  .dayCover{
+    height:72mm!important;
+    object-fit:cover!important;
+    margin:10px 0 12px!important;
+    border-radius:18px!important;
+  }
+  .bookTimelineItem{
+    grid-template-columns:24mm 1fr;
+  }
+  .photoGridPrint{
+    grid-template-columns:1fr 1fr;
+  }
+  .photo img{
+    height:48mm!important;
+    object-fit:cover!important;
+  }
+  .photo h3{
+    margin:8px 0 4px!important;
+    font-size:15px;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -2164,6 +2388,263 @@ function photoBookDay(d){
   </div>`;
 }
 
+
+/* ===== v18 overrides: print photo book, silent plan delete, guarded country change, hotel date/sort ===== */
+let v18PendingCountry = null;
+
+function v18SortHotels(){
+  data.hotels.sort((a,b)=>String(a.start||"").localeCompare(String(b.start||"")) || String(a.end||"").localeCompare(String(b.end||"")));
+}
+
+function v18TripDefaultForCountry(country){
+  const cityMap = (typeof v15CountryCityMaps==="function" ? v15CountryCityMaps().cityMap : {
+    "韓國":["釜山","首爾"],"日本":["東京","大阪"],"香港":["香港"],"新加坡":["新加坡"],"美國":["紐約"]
+  });
+  const city=(cityMap[country]||[""])[0]||"";
+  const currency=(typeof currencyMap!=="undefined" && currencyMap[country]) ? currencyMap[country] : "USD";
+  const rate=(typeof rateMap!=="undefined" && rateMap[currency]) ? rateMap[currency] : 1;
+  const dest=(typeof v15DestinationName==="function") ? v15DestinationName(country,city) : [country,city].filter(Boolean).join("");
+  return {country, city, currency, rate, dest};
+}
+
+function v18ResetTripForCountry(country){
+  const keepMeta = data.meta || {};
+  const keepDates = {start:data.trip.start, end:data.trip.end, travelerCount:data.trip.travelerCount, travelers:[...(data.trip.travelers||["A","B"])]};
+  const t=v18TripDefaultForCountry(country);
+
+  data.meta={...keepMeta};
+  data.trip={
+    ...data.trip,
+    country:t.country,
+    city:t.city,
+    dest:t.dest,
+    currency:t.currency,
+    rate:t.rate,
+    start:keepDates.start,
+    end:keepDates.end,
+    travelerCount:keepDates.travelerCount,
+    travelers:keepDates.travelers
+  };
+  data.days=mkDays(data.trip.start,data.trip.end);
+  data.flights={out:{},back:{}};
+  data.hotels=[];
+  data.expenses=[];
+  data.spots=[];
+  data.plans=[];
+  data.conns=[];
+  data.photos=[];
+  data.dayCovers={};
+  data.dayCoverMeta={};
+  data.packing=pack0.map(x=>({id:uid(),type:x[0],name:x[1],note:x[2],checked:false}));
+  data.packView="pre";
+  cur=data.days[0]?.key||data.trip.start;
+}
+
+function handleCountrySelectChange(){
+  const newCountry=$("country").value;
+  if(newCountry!==data.trip.country){
+    v18PendingCountry=newCountry;
+    $("country").value=data.trip.country;
+    $("countryResetModal").classList.add("show");
+    return;
+  }
+  refreshCityOptions();
+}
+
+function cancelCountryReset(){
+  v18PendingCountry=null;
+  $("countryResetModal").classList.remove("show");
+}
+
+function confirmCountryReset(){
+  if(!v18PendingCountry)return;
+  v18ResetTripForCountry(v18PendingCountry);
+  v18PendingCountry=null;
+  $("countryResetModal").classList.remove("show");
+  save();
+  toast("已清空資料並切換旅遊國家");
+}
+
+function saveBasic(){
+  const selectedCountry=$("country").value;
+  if(selectedCountry!==data.trip.country){
+    v18PendingCountry=selectedCountry;
+    $("country").value=data.trip.country;
+    $("countryResetModal").classList.add("show");
+    return;
+  }
+
+  data.trip.country=$("country").value;
+  const selected = $("citySelect").value;
+  data.trip.city = selected==="自訂" ? $("cityCustom").value.trim() : selected;
+  data.trip.dest = v15DestinationName(data.trip.country, data.trip.city);
+  data.trip.currency=$("currency").value.toUpperCase();
+  data.trip.start=$("start").value;
+  data.trip.end=$("end").value;
+  data.trip.rate=Number($("rateSetup").value||data.trip.rate||1);
+  data.trip.travelerCount=Number($("travelerCount").value||1);
+  data.trip.travelers=[];
+  for(let i=0;i<data.trip.travelerCount;i++) data.trip.travelers.push($("traveler"+i).value||String.fromCharCode(65+i));
+
+  data.days=mkDays(data.trip.start,data.trip.end);
+  data.hotels=data.hotels.map(h=>({
+    ...h,
+    start: h.start < data.trip.start ? data.trip.start : h.start,
+    end: h.end > data.trip.end ? data.trip.end : h.end
+  }));
+  v18SortHotels();
+  cur=data.days[0]?.key;
+  silentSave();
+  render();
+  const d=document.querySelectorAll("#tripView details.card")[0];
+  if(d) d.removeAttribute("open");
+  toast("已儲存旅遊地設定");
+}
+
+function renderTrip(){
+  const h=editingHotelId?data.hotels.find(x=>x.id==editingHotelId):null;
+  const selectedCity=typeof v15CurrentCity==="function" ? v15CurrentCity() : (data.trip.city||"");
+  const mapObj=typeof v15CountryCityMaps==="function" ? v15CountryCityMaps().cityMap : {};
+  const list=mapObj[data.trip.country]||[];
+  const customCity=list.includes(selectedCity)?"":selectedCity;
+  const showCustom=data.trip.country==="其他" || !list.includes(selectedCity);
+  v18SortHotels();
+
+  $("tripView").innerHTML=`<div class="section"><div><h2>🌏 旅遊地與機酒</h2><div class="hint">旅遊國家會影響整份資料，修改國家前會要求確認與備份。</div></div></div>
+
+  <details class="card"><summary>① 🌏 旅遊地與旅伴</summary><div class="detailBody">
+    <div class="three compactMobile">
+      <div><label>國家 / 區域</label><select id="country" onchange="handleCountrySelectChange()">${countryOptions()}</select></div>
+      <div><label>城市 / 路線</label><select id="citySelect" onchange="updateDestByCity()">${v15CityOptions(selectedCity)}</select></div>
+      <div id="customCityBox" class="full" style="display:${showCustom?"block":"none"}"><label>自訂目的地</label><input id="cityCustom" value="${esc(customCity)}" oninput="updateDestByCity()" placeholder="例：釜山＋慶州"></div>
+    </div>
+    <div class="two">
+      <div><label>幣別</label><input id="currency" value="${esc(data.trip.currency)}" oninput="countryChanged()"></div>
+      <div><label id="rateLabel">匯率：1 ${esc(data.trip.currency)} = TWD</label><input id="rateSetup" type="number" step="0.0001" value="${data.trip.rate}"></div>
+    </div>
+    <div class="three compactMobile">
+      <div><label>出發日</label><input id="start" type="date" value="${data.trip.start}"></div>
+      <div><label>回程日</label><input id="end" type="date" value="${data.trip.end}"></div>
+      <div class="full"><label>匯率查詢</label><button class="btn blue compact" onclick="openRateSearch()">查看現在匯率</button></div>
+    </div>
+    <div class="two">
+      <div><label>旅遊人數</label><select id="travelerCount" onchange="previewTravelerCount()">${[1,2,3,4,5,6,7,8].map(n=>`<option value="${n}" ${Number(data.trip.travelerCount)==n?"selected":""}>${n} 人</option>`).join("")}</select></div>
+      <div class="hint" style="align-self:end">目前目的地：${esc(data.trip.dest||"尚未設定")}</div>
+    </div>
+    <div class="grid2" id="travelerBox">${travelerInputs()}</div>
+    <div class="btns"><button class="btn dark" onclick="saveBasic()">儲存旅遊地設定</button></div>
+  </div></details>
+
+  <details class="card"><summary>② ✈️ 航班與機場接送</summary><div class="detailBody">
+    <div class="grid2"><div class="box blue"><h3>去程</h3>${flightForm("out")}</div><div class="box pink"><h3>回程</h3>${flightForm("back")}</div></div>
+    <div class="card" style="box-shadow:none;background:#fffdf8;border:1px solid var(--line);margin-top:10px">
+      <label style="display:flex;gap:8px;align-items:center;margin:0;font-weight:900">
+        <input id="flightAutoAdd" type="checkbox" checked style="width:auto"> 儲存航班後，自動加入首尾行程
+      </label>
+    </div>
+    <div class="btns"><button class="btn dark" onclick="saveFlights()">儲存航班</button></div>
+  </div></details>
+
+  <details class="card" ${v16KeepHotelOpen||editingHotelId?"open":""}><summary>③ 🏨 住宿</summary><div class="detailBody">
+    <div class="three compactMobile">
+      <div class="full"><label>住宿名稱</label><input id="hname" value="${esc(h?.name||"")}"></div>
+      <div><label>入住日</label><input id="hstart" type="date" min="${data.trip.start}" max="${data.trip.end}" value="${h?.start||data.trip.start}"></div>
+      <div><label>退房日</label><input id="hend" type="date" min="${data.trip.start}" max="${data.trip.end}" value="${h?.end||data.trip.end}"></div>
+    </div>
+    <label>地址</label><div class="two"><input id="haddr" value="${esc(h?.addr||"")}" placeholder="可手動貼上飯店地址"><button class="btn blue compact" onclick="searchHotelAddress()">搜尋地圖</button></div>
+    <label>備註</label><textarea id="hnote">${esc(h?.note||"")}</textarea>
+    <div class="btns"><button class="btn dark" onclick="saveHotel()">${h?"儲存住宿修改":"新增住宿"}</button>${h?'<button class="btn soft" onclick="editingHotelId=null;v16KeepHotelOpen=true;renderTrip()">取消編輯</button>':""}</div>
+    <div class="hotelSortedNote">住宿會依入住日自動排序；可選日期已限制在旅遊日期內。</div>
+    <div class="grid2" style="margin-top:10px">${data.hotels.map(hotelCard).join("")||'<div class="empty">尚未新增住宿</div>'}</div>
+  </div></details>`;
+}
+
+function saveHotel(){
+  if(!$("hname").value)return toast("請輸入住宿名稱");
+  let start=$("hstart").value;
+  let end=$("hend").value;
+  if(start < data.trip.start || start > data.trip.end || end < data.trip.start || end > data.trip.end){
+    return alert("住宿日期必須在旅遊出發日與回程日之間。");
+  }
+  if(end < start){
+    return alert("退房日不可早於入住日。");
+  }
+  const item={name:$("hname").value,start,end,addr:$("haddr").value,note:$("hnote").value};
+  let hotelId=editingHotelId;
+
+  if(editingHotelId){
+    Object.assign(data.hotels.find(x=>x.id==editingHotelId),item);
+    editingHotelId=null;
+  }else{
+    hotelId=uid();
+    data.hotels.push({id:hotelId,...item});
+  }
+
+  v18SortHotels();
+  v16AddHotelToPlans({id:hotelId,...item});
+  v16KeepHotelOpen=true;
+  silentSave();
+  render();
+  v16OpenTripDetail(2);
+  toast("已儲存住宿並依入住日排序");
+}
+
+function delPlan(id){
+  data.plans=data.plans.filter(x=>x.id!=id);
+  data.conns=data.conns.filter(c=>c.a!=id&&c.b!=id);
+  data.spots.forEach(s=>{ if(s.planId==id) delete s.planId; });
+  save();
+}
+
+function renderPhotoBook(){
+  $("photoBookView").innerHTML=`<div class="section"><div><h2>📖 照片旅遊書</h2><div class="hint">照片存在 Cloudinary；匯出 PDF 時會依模板套用旅行書排版。</div></div><button class="btn soft noPrint" onclick="print()">匯出 PDF</button></div>
+  <div class="card noPrint">
+    <label>照片書模板</label>
+    <div class="templateRail">
+      ${templateCard("fresh","🌿 韓系清新","米白淡綠、乾淨圓角")}
+      ${templateCard("fun","🌈 活潑可愛","貼紙感、虛線框、繽紛")}
+      ${templateCard("diary","✎ 手帳日記","紙張格線、手寫感")}
+    </div>
+    <div class="three compactMobile">
+      <div><label>照片日期</label><select id="phd">${optsDays(cur)}</select></div>
+      <div class="full"><label>照片標題</label><input id="pht"></div>
+    </div>
+    <label>選擇照片</label><input id="phf" type="file" accept="image/*">
+    <label>照片日記</label><textarea id="phm" placeholder="這天的天氣、心情、最好吃的一餐、最喜歡的瞬間……"></textarea>
+    <div class="btns"><button class="btn dark" onclick="addPhoto()">上傳並加入照片書</button></div>
+    <div class="uploadStatus" id="uploadStatus"></div>
+    <div class="mini" style="margin-top:8px">Cloudinary folder：${CLOUDINARY_CONFIG.folder}｜preset：${CLOUDINARY_CONFIG.uploadPreset}</div>
+  </div>
+  <div class="bookStyle-${data.meta.bookStyle||"fresh"}">
+    <div class="printCover">
+      <h1>${esc(data.meta.title)}</h1>
+      <p class="coverSub">${esc(data.meta.subtitle)}</p>
+      <div class="coverMeta">
+        <div><span class="mini">目的地</span><br><b>${esc(data.trip.dest)}</b></div>
+        <div><span class="mini">日期</span><br><b>${short(data.trip.start)} - ${short(data.trip.end)}</b></div>
+      </div>
+    </div>
+    <div class="card"><h2>${esc(data.meta.title)}</h2><div class="box mint">${esc(data.meta.subtitle)}</div></div>
+    ${data.days.map(d=>photoBookDay(d)).join("")}
+  </div>`;
+}
+
+function photoBookDay(d){
+  const plans=sortedPlans(d.key);
+  const photos=data.photos.filter(p=>p.day==d.key);
+  const cover=data.dayCovers[d.key];
+  return `<div class="card bookDay">
+    <div class="bookDayHeader">
+      <div><h2>${d.title}｜${d.label}</h2><div class="hint">本日住宿：${hotelFor(d.key)?.name||"未設定"}</div></div>
+      <span class="bookDayBadge">${plans.length} 個行程｜${photos.length} 張照片</span>
+      <div class="noPrint"><input type="file" accept="image/*" onchange="addDayCover('${d.key}',this.files[0])"></div>
+    </div>
+    ${cover?`<img class="dayCover" src="${cover}">`:`<div class="dayCover" style="display:grid;place-items:center;color:#999">尚未上傳本日封面圖</div>`}
+    <div class="bookTimeline">${plans.map(p=>`<div class="bookTimelineItem"><div class="bookTimelineTime">${esc(p.start||"--:--")}</div><div class="bookTimelineContent"><b>${activityIcon(p.type)} ${esc(p.name)}</b><div class="mini">${esc(p.end?("結束 "+p.end):"")}</div>${p.note?`<div style="margin-top:4px">${esc(p.note)}</div>`:""}</div></div>`).join("")||'<div class="empty">這天還沒有行程</div>'}</div>
+    <div class="photoGridPrint">${photos.map(p=>`<div class="photo"><img src="${p.src}"><h3>${esc(p.title||"照片紀錄")}</h3><p class="mini">${esc(p.memo)}</p><div class="tags">${p.cloudinary?'<span class="tag green">☁️ Cloudinary</span>':''}</div><button class="small noPrint" onclick="delPhoto('${p.id}')">刪除</button></div>`).join("")||""}</div>
+  </div>`;
+}
+
 init();
 </script>
 
@@ -2177,6 +2658,24 @@ init();
     <div class="btns">
       <button class="btn dark" onclick="copyAIPrompt()">複製提示詞</button>
       <button class="btn soft" onclick="closeAIPrompt()">關閉</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="countryResetModal" id="countryResetModal">
+  <div class="countryResetBox">
+    <h3>⚠️ 修改旅遊國家會重置資料</h3>
+    <div class="box pink">
+      旅遊國家會影響幣別、機場、城市、行程與預算邏輯。若確認修改國家，系統會清空目前行程、口袋景點、住宿、預算、照片書與行李勾選，並回復成新旅程預設資料。
+    </div>
+    <div class="box mint" style="margin-top:10px">
+      建議你先匯出備份，再繼續修改國家。
+    </div>
+    <div class="btns">
+      <button class="btn dark" onclick="exportBackup()">先匯出備份</button>
+      <button class="btn danger" onclick="confirmCountryReset()">我已了解，清空並修改國家</button>
+      <button class="btn soft" onclick="cancelCountryReset()">取消</button>
     </div>
   </div>
 </div>
