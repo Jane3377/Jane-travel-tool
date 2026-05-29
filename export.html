@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#f4f2ee">
-<title>VoyageMemo. PDF 出版頁 v61</title>
+<title>VoyageMemo. PDF 出版頁 v62</title>
 <style>
 :root{
   --bg:#f4f2ee;
@@ -279,6 +279,317 @@ button.soft{background:#fff9ea;color:#6d5a35}
 }
 </style>
 
+
+<style>
+/* ===== v62 export: mobile preview, bigger edit pencil, style themes, version ===== */
+.versionPill{
+  display:inline-flex;
+  align-items:center;
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.78);
+  color:var(--muted);
+  border-radius:999px;
+  padding:5px 9px;
+  font-size:11px;
+  font-weight:850;
+  margin-top:5px;
+}
+.styleSelect{
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.92);
+  color:var(--ink);
+  border-radius:999px;
+  padding:9px 28px 9px 12px;
+  font-weight:900;
+  font-size:13px;
+  box-shadow:0 6px 18px rgba(44,42,37,.05);
+  min-height:38px;
+}
+.editTextBtn{
+  width:38px!important;
+  height:38px!important;
+  min-width:38px!important;
+  border-radius:50%!important;
+  font-size:18px!important;
+  background:rgba(255,255,255,.96)!important;
+  border:1px solid rgba(226,221,213,.9)!important;
+  color:#4a5d4e!important;
+  box-shadow:0 6px 18px rgba(44,42,37,.08)!important;
+  margin-left:7px!important;
+  transform:none!important;
+}
+.editTextBtn:hover{
+  background:#e5ece9!important;
+}
+.editableHeadingLine{
+  align-items:center!important;
+}
+
+/* 風格：清新手帳 classic */
+body[data-export-style="classic"] .a4Page{
+  background:#fffdf8;
+}
+body[data-export-style="classic"] .eyebrow{
+  background:rgba(255,255,255,.82);
+}
+
+/* 風格：精品雜誌 */
+body[data-export-style="magazine"]{
+  --paper:#fbfaf7;
+  --primary:#2f3430;
+  --primarySoft:#ecebe6;
+  --accent:#e9e2d8;
+}
+body[data-export-style="magazine"] .a4Page{
+  background:#fbfaf7;
+}
+body[data-export-style="magazine"] .a4Page::before{
+  border-radius:2mm;
+  border-color:rgba(47,42,37,.18);
+}
+body[data-export-style="magazine"] .a4Page::after{
+  content:"VOYAGEMEMO / EDITORIAL TRAVEL BOOK";
+  letter-spacing:2.4pt;
+}
+body[data-export-style="magazine"] .coverShade{
+  background:linear-gradient(90deg,rgba(251,250,247,.96) 0%,rgba(251,250,247,.78) 36%,rgba(251,250,247,.18) 76%);
+}
+body[data-export-style="magazine"] .coverContent h1,
+body[data-export-style="magazine"] .pageHeader h2{
+  letter-spacing:1.1pt;
+  font-weight:650;
+}
+body[data-export-style="magazine"] .eyebrow,
+body[data-export-style="magazine"] .metaChips span,
+body[data-export-style="magazine"] .infoCard,
+body[data-export-style="magazine"] .photoCard,
+body[data-export-style="magazine"] .miniDay{
+  border-radius:1.8mm;
+}
+body[data-export-style="magazine"] .chapterHero,
+body[data-export-style="magazine"] .photoCard img{
+  border-radius:1.8mm;
+  filter:saturate(.85) contrast(1.04);
+}
+body[data-export-style="magazine"] .photoTags span{
+  background:#efede7;
+  color:#4f4b45;
+}
+
+/* 風格：拍立得回憶 */
+body[data-export-style="polaroid"]{
+  --paper:#fffaf0;
+  --primary:#6d5a35;
+  --primarySoft:#fff3ce;
+}
+body[data-export-style="polaroid"] .a4Page{
+  background:repeating-linear-gradient(#fffaf0 0,#fffaf0 28px,#f1e7d7 29px);
+}
+body[data-export-style="polaroid"] .photoCard{
+  border-radius:2mm;
+  padding:5mm 5mm 10mm;
+  box-shadow:5px 7px 0 rgba(109,90,53,.08);
+  transform:rotate(-.3deg);
+}
+body[data-export-style="polaroid"] .photoCard:nth-child(even){
+  transform:rotate(.4deg);
+}
+body[data-export-style="polaroid"] .photoCard img{
+  border-radius:1mm;
+  height:55mm;
+}
+body[data-export-style="polaroid"] .chapterHero{
+  border:8px solid #fff;
+  box-shadow:0 10px 0 rgba(109,90,53,.06);
+}
+body[data-export-style="polaroid"] .eyebrow{
+  background:#fff;
+  border-style:dashed;
+}
+
+/* 風格：活潑貼紙 */
+body[data-export-style="sticker"]{
+  --paper:#fff9fb;
+  --primary:#8c5363;
+  --primarySoft:#f8dfe8;
+  --accent:#fff0c5;
+}
+body[data-export-style="sticker"] .a4Page{
+  background:
+    radial-gradient(circle at 16mm 18mm,rgba(255,240,197,.72) 0 9mm,transparent 10mm),
+    radial-gradient(circle at 185mm 42mm,rgba(217,239,230,.8) 0 10mm,transparent 11mm),
+    #fff9fb;
+}
+body[data-export-style="sticker"] .a4Page::before{
+  border-style:dashed;
+  border-width:1.5px;
+}
+body[data-export-style="sticker"] .a4Page::after{
+  content:"✦ VoyageMemo. Cute Travel Scrapbook ✦";
+}
+body[data-export-style="sticker"] .eyebrow,
+body[data-export-style="sticker"] .metaChips span,
+body[data-export-style="sticker"] .infoCard,
+body[data-export-style="sticker"] .miniDay,
+body[data-export-style="sticker"] .dayStats,
+body[data-export-style="sticker"] .photoCard{
+  border:2px solid rgba(240,183,201,.72);
+  box-shadow:4px 4px 0 rgba(255,203,91,.18);
+}
+body[data-export-style="sticker"] .photoTags span{
+  background:#fff0c5;
+  color:#7b653b;
+}
+body[data-export-style="sticker"] .coverContent h1::before{
+  content:"✿ ";
+}
+body[data-export-style="sticker"] .coverContent h1::after{
+  content:" ♡";
+}
+
+/* 手機與平板：外層是 PWA 感，A4 預覽自動縮放，不再整頁太寬 */
+.pageFrame{
+  position:relative;
+  display:block;
+  margin:0 auto 20px;
+}
+.pageFrame > .a4Page{
+  transform-origin:top left;
+}
+@media screen and (max-width:980px){
+  .publisherShell{
+    padding:12px 10px 32px!important;
+    max-width:100%!important;
+  }
+  .publisherBar{
+    margin:-12px -10px 12px!important;
+    padding:10px!important;
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:10px!important;
+  }
+  .brand{
+    align-items:flex-start!important;
+  }
+  .brand h1{
+    font-size:17px!important;
+  }
+  .brand p{
+    font-size:11.5px!important;
+  }
+  .actions{
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+    gap:8px!important;
+    width:100%!important;
+  }
+  .actions button,
+  .actions .btnLink,
+  .actions .styleSelect{
+    width:100%!important;
+    justify-content:center!important;
+    text-align:center!important;
+    min-height:42px!important;
+  }
+  .styleSelect{
+    grid-column:1/-1!important;
+  }
+  .statusCard{
+    grid-template-columns:1fr!important;
+    padding:12px!important;
+    border-radius:18px!important;
+  }
+  .bookViewport{
+    grid-template-columns:1fr!important;
+    gap:12px!important;
+  }
+  .pageNav{
+    position:static!important;
+    max-height:none!important;
+    display:flex!important;
+    gap:8px!important;
+    overflow-x:auto!important;
+    padding:10px!important;
+    border-radius:18px!important;
+  }
+  .pageNav h2{
+    display:none!important;
+  }
+  .thumb{
+    flex:0 0 118px!important;
+    min-width:118px!important;
+    margin-bottom:0!important;
+    font-size:11px!important;
+  }
+  .previewStack{
+    display:block!important;
+    width:100%!important;
+    overflow:visible!important;
+    padding-bottom:20px!important;
+  }
+  .editTextBtn{
+    width:44px!important;
+    height:44px!important;
+    min-width:44px!important;
+    font-size:20px!important;
+    margin-left:8px!important;
+  }
+  .editableHeadingLine{
+    gap:4px!important;
+  }
+  .editableHeadingLine h2{
+    max-width:calc(100% - 54px)!important;
+  }
+}
+@media screen and (max-width:620px){
+  .logo{
+    width:34px!important;
+    height:34px!important;
+    font-size:12px!important;
+  }
+  .actions{
+    grid-template-columns:1fr!important;
+  }
+  .editCaptionBox{
+    border-radius:22px 22px 16px 16px!important;
+    width:calc(100vw - 20px)!important;
+    max-height:86vh!important;
+    overflow:auto!important;
+  }
+  .editCaptionActions{
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+  }
+  .editCaptionActions button:last-child{
+    grid-column:1/-1!important;
+  }
+}
+@media print{
+  .pageFrame{
+    width:210mm!important;
+    height:297mm!important;
+    margin:0!important;
+    display:block!important;
+    page-break-after:always!important;
+    break-after:page!important;
+  }
+  .pageFrame:last-child{
+    page-break-after:auto!important;
+    break-after:auto!important;
+  }
+  .pageFrame > .a4Page{
+    transform:none!important;
+    position:relative!important;
+    left:auto!important;
+    top:auto!important;
+  }
+  .versionPill,
+  .styleSelect{
+    display:none!important;
+  }
+}
+</style>
+
 </head>
 <body>
 <div class="publisherShell">
@@ -287,12 +598,18 @@ button.soft{background:#fff9ea;color:#6d5a35}
       <div class="logo">VM</div>
       <div>
         <h1>VoyageMemo. 出版工作台</h1>
-        <p>固定 A4 旅遊小書預覽與 PDF 匯出｜建議用電腦 Chrome 另存 PDF</p>
+        <p>固定 A4 旅遊小書預覽與 PDF 匯出｜建議用電腦 Chrome 另存 PDF</p><span class="versionPill">v62｜PDF 出版頁風格與手機預覽優化版</span>
       </div>
     </div>
     <div class="actions">
       <a class="btnLink" href="index.html">返回編輯器</a>
       <button class="soft" onclick="loadAndRender()">重新載入資料</button>
+      <select id="bookStyleSelect" class="styleSelect" onchange="setExportBookStyle(this.value)" title="旅遊小書風格">
+        <option value="classic">清新手帳</option>
+        <option value="magazine">精品雜誌</option>
+        <option value="polaroid">拍立得回憶</option>
+        <option value="sticker">活潑貼紙</option>
+      </select>
       <button class="dark" onclick="printBook()">匯出 / 另存 PDF</button>
     </div>
   </div>
@@ -684,6 +1001,97 @@ function printBook(){
     setTimeout(activateEditableExport, 80);
   }
 })();
+</script>
+
+
+<script>
+/* ===== v62 export style selector + mobile page scaler ===== */
+const EXPORT_STYLE_KEY = "voyageMemoExportStyle";
+
+function getExportBookStyle(){
+  return localStorage.getItem(EXPORT_STYLE_KEY) || "classic";
+}
+function setExportBookStyle(style){
+  localStorage.setItem(EXPORT_STYLE_KEY, style || "classic");
+  document.body.setAttribute("data-export-style", style || "classic");
+  const sel = document.getElementById("bookStyleSelect");
+  if(sel) sel.value = style || "classic";
+}
+function unwrapPageFrames(){
+  document.querySelectorAll(".pageFrame").forEach(frame=>{
+    const page = frame.querySelector(".a4Page");
+    if(page) frame.parentNode.insertBefore(page, frame);
+    frame.remove();
+  });
+}
+function wrapAndScalePages(){
+  if(window.matchMedia("print").matches) return;
+  const stack = document.getElementById("bookRoot");
+  if(!stack) return;
+
+  unwrapPageFrames();
+
+  const pages = [...stack.querySelectorAll(".a4Page")];
+  if(!pages.length) return;
+
+  const available = Math.max(260, Math.min(window.innerWidth - 24, stack.clientWidth || window.innerWidth - 24));
+  pages.forEach(page=>{
+    const naturalW = page.getBoundingClientRect().width || 794;
+    const naturalH = page.getBoundingClientRect().height || 1123;
+    const scale = Math.min(1, available / naturalW);
+    const frame = document.createElement("div");
+    frame.className = "pageFrame";
+    frame.style.width = `${naturalW * scale}px`;
+    frame.style.height = `${naturalH * scale}px`;
+    page.parentNode.insertBefore(frame, page);
+    frame.appendChild(page);
+    page.style.transform = `scale(${scale})`;
+    page.style.position = "absolute";
+    page.style.left = "0";
+    page.style.top = "0";
+  });
+}
+const __renderThumbsBeforeV62 = renderThumbs;
+renderThumbs = function(){
+  __renderThumbsBeforeV62();
+  wrapAndScalePages();
+};
+const __loadAndRenderBeforeV62 = loadAndRender;
+loadAndRender = function(){
+  __loadAndRenderBeforeV62();
+  setExportBookStyle(getExportBookStyle());
+  const status = document.getElementById("statusText");
+  if(status && !status.dataset.v62){
+    status.dataset.v62 = "1";
+    status.innerHTML += "<br>手機與平板可先預覽排版，但最美的 PDF 建議仍用電腦 Chrome 匯出。";
+  }
+  setTimeout(wrapAndScalePages, 120);
+};
+const __renderCurrentDataOnlyBeforeV62 = renderCurrentDataOnly;
+renderCurrentDataOnly = function(){
+  __renderCurrentDataOnlyBeforeV62();
+  setExportBookStyle(getExportBookStyle());
+  setTimeout(wrapAndScalePages, 80);
+};
+window.addEventListener("resize", ()=>setTimeout(wrapAndScalePages, 120));
+window.addEventListener("beforeprint", ()=>{
+  unwrapPageFrames();
+  document.querySelectorAll(".a4Page").forEach(p=>{
+    p.style.transform="";
+    p.style.position="";
+    p.style.left="";
+    p.style.top="";
+  });
+});
+window.addEventListener("afterprint", ()=>setTimeout(wrapAndScalePages, 120));
+
+setExportBookStyle(getExportBookStyle());
+setTimeout(()=>{
+  const sel = document.getElementById("bookStyleSelect");
+  if(sel) sel.value = getExportBookStyle();
+  if(typeof data !== "undefined" && data) renderCurrentDataOnly();
+  else if(typeof loadAndRender === "function") loadAndRender();
+}, 180);
 </script>
 
 </body>
