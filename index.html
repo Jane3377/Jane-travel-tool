@@ -4756,218 +4756,167 @@ body[data-theme-mode] .btn.pink{
 }
 
 
-/* ===== v51 photo book journal map card only ===== */
-/* 只在照片旅遊書加入手帳感地圖卡，不改資料結構與其他頁面 */
-.journalMapCard{
-  position:relative;
+/* ===== v51-map itinerary OpenStreetMap route card only ===== */
+/* 只新增行程頁今日路線地圖，不改資料結構 */
+.routeMapCard{
   border:1px solid var(--theme-line,#E2DDD5);
-  border-radius:24px;
-  background:
-    linear-gradient(90deg,rgba(74,93,78,.045) 1px,transparent 1px),
-    linear-gradient(0deg,rgba(74,93,78,.04) 1px,transparent 1px),
-    radial-gradient(circle at 18% 22%,rgba(229,236,233,.95),transparent 30%),
-    radial-gradient(circle at 86% 74%,rgba(239,230,230,.9),transparent 34%),
-    #fffdf9;
-  background-size:24px 24px,24px 24px,auto,auto,auto;
+  border-radius:22px;
+  background:rgba(255,255,255,.92);
+  box-shadow:0 12px 32px rgba(44,42,41,.055);
+  padding:12px;
+  margin:0 0 14px;
   overflow:hidden;
-  padding:16px;
-  margin:0 0 18px;
-  box-shadow:0 12px 30px rgba(44,42,41,.045);
 }
-.journalMapCard::before{
-  content:"";
-  position:absolute;
-  inset:10px;
-  border:1px dashed rgba(74,93,78,.16);
-  border-radius:20px;
-  pointer-events:none;
-}
-.journalMapHead{
-  position:relative;
-  z-index:1;
+.routeMapHead{
   display:flex;
-  justify-content:space-between;
   align-items:flex-start;
+  justify-content:space-between;
   gap:10px;
-  margin-bottom:12px;
+  cursor:pointer;
 }
-.journalMapHead h3{
+.routeMapHead h3{
   margin:0;
   font-size:17px;
-  letter-spacing:.4px;
+  line-height:1.25;
 }
-.journalMapHead p{
+.routeMapHead p{
   margin:4px 0 0;
   color:var(--theme-muted,#9A928A);
   font-size:12px;
   line-height:1.45;
 }
-.journalMapBadge{
+.routeMapToggle{
   flex:0 0 auto;
-  display:inline-flex;
-  border-radius:999px;
-  background:rgba(255,255,255,.78);
   border:1px solid var(--theme-line,#E2DDD5);
+  background:var(--theme-primary-weak,#F2F6F4);
   color:var(--theme-primary,#4A5D4E);
-  padding:6px 9px;
+  border-radius:999px;
+  padding:7px 10px;
+  font-size:12px;
+  font-weight:900;
+}
+.routeMapBody{
+  display:none;
+  margin-top:12px;
+}
+.routeMapCard.open .routeMapBody{
+  display:block;
+}
+.routeMapCanvas{
+  height:310px;
+  width:100%;
+  border-radius:18px;
+  overflow:hidden;
+  border:1px solid var(--theme-line,#E2DDD5);
+  background:#F4F2EE;
+}
+.routeMapActions{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:8px;
+  margin:10px 0;
+}
+.routeMapActions .small{
+  border:1px solid var(--theme-line,#E2DDD5);
+  background:#fff;
+  color:var(--theme-ink,#2C2A29);
+  border-radius:999px;
+  padding:7px 10px;
+  font-size:12px;
+  font-weight:900;
+}
+.routeMapStatus{
+  color:var(--theme-muted,#9A928A);
+  font-size:12px;
+  line-height:1.45;
+}
+.routeMapUnfound{
+  display:none;
+  margin-top:10px;
+  border:1px dashed var(--theme-line,#E2DDD5);
+  border-radius:16px;
+  background:#fffdf9;
+  padding:10px;
+}
+.routeMapUnfound.show{
+  display:block;
+}
+.routeMapUnfound b{
+  display:block;
+  font-size:13px;
+  margin-bottom:6px;
+}
+.routeMapUnfound ul{
+  margin:0;
+  padding-left:18px;
+  color:var(--theme-muted,#9A928A);
+  font-size:12px;
+  line-height:1.6;
+}
+.routeMapLegend{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-top:9px;
+}
+.routeMapLegend span{
+  display:inline-flex;
+  align-items:center;
+  border-radius:999px;
+  background:var(--theme-primary-weak,#F2F6F4);
+  color:var(--theme-primary,#4A5D4E);
+  padding:5px 8px;
   font-size:11px;
   font-weight:900;
 }
-.journalMapRoute{
-  position:relative;
-  z-index:1;
-  display:grid;
-  gap:10px;
-  padding:6px 0 2px;
+.leaflet-popup-content{
+  font-family:"PingFang TC","Noto Sans TC","Helvetica Neue",sans-serif;
+  line-height:1.45;
 }
-.journalMapStop{
-  position:relative;
-  display:grid;
-  grid-template-columns:34px minmax(0,1fr);
-  gap:10px;
-  align-items:start;
-}
-.journalMapStop:not(:last-child)::after{
-  content:"";
-  position:absolute;
-  left:16px;
-  top:34px;
-  width:2px;
-  height:calc(100% + 10px);
-  background:repeating-linear-gradient(
-    to bottom,
-    rgba(74,93,78,.34) 0 6px,
-    transparent 6px 11px
-  );
-}
-.journalMapPin{
-  position:relative;
-  z-index:2;
-  width:34px;
-  height:34px;
+.routeMarker{
+  width:28px!important;
+  height:28px!important;
   border-radius:50%;
-  display:grid;
-  place-items:center;
-  background:#fff;
-  border:1px solid var(--theme-line,#E2DDD5);
-  box-shadow:0 6px 16px rgba(44,42,41,.07);
-  color:var(--theme-primary,#4A5D4E);
-  font-weight:950;
+  display:grid!important;
+  place-items:center!important;
+  background:#4A5D4E;
+  color:#fff;
+  border:2px solid #fff;
+  box-shadow:0 4px 12px rgba(0,0,0,.22);
   font-size:12px;
-}
-.journalMapInfo{
-  min-width:0;
-  border-radius:18px;
-  background:rgba(255,255,255,.74);
-  border:1px solid rgba(226,221,213,.78);
-  padding:10px 12px;
-}
-.journalMapInfo b{
-  display:block;
-  font-size:14px;
-  line-height:1.35;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
-}
-.journalMapInfo span{
-  display:block;
-  margin-top:4px;
-  font-size:11px;
-  color:var(--theme-muted,#9A928A);
-  line-height:1.4;
-}
-.journalMapEmpty{
-  position:relative;
-  z-index:1;
-  border:1px dashed rgba(74,93,78,.22);
-  background:rgba(255,255,255,.64);
-  border-radius:18px;
-  padding:18px;
-  text-align:center;
-  color:var(--theme-muted,#9A928A);
-  line-height:1.6;
-}
-.journalMapFooter{
-  position:relative;
-  z-index:1;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-  margin-top:12px;
-  padding-top:10px;
-  border-top:1px dashed rgba(74,93,78,.18);
-  color:var(--theme-muted,#9A928A);
-  font-size:11px;
-}
-.journalMapCompass{
-  width:34px;
-  height:34px;
-  border-radius:50%;
-  display:grid;
-  place-items:center;
-  background:rgba(255,255,255,.75);
-  border:1px solid var(--theme-line,#E2DDD5);
-  color:var(--theme-primary,#4A5D4E);
   font-weight:900;
 }
 @media(max-width:620px){
-  #photoBookView .journalMapCard{
-    padding:13px;
+  .routeMapCard{
+    padding:11px;
     border-radius:20px;
-    margin-bottom:14px;
+    margin-bottom:12px;
   }
-  #photoBookView .journalMapHead{
-    display:block;
-    margin-bottom:10px;
-  }
-  #photoBookView .journalMapBadge{
-    margin-top:8px;
-  }
-  #photoBookView .journalMapInfo{
-    padding:9px 10px;
-  }
-  #photoBookView .journalMapFooter{
+  .routeMapHead{
     display:grid;
     grid-template-columns:1fr auto;
   }
+  .routeMapHead h3{
+    font-size:16px;
+  }
+  .routeMapCanvas{
+    height:275px;
+    border-radius:16px;
+  }
+  .routeMapActions{
+    gap:7px;
+  }
 }
 @media print{
-  .journalMapCard{
-    break-inside:avoid!important;
-    page-break-inside:avoid!important;
-    box-shadow:none!important;
-    padding:5mm!important;
-    margin:0 0 6mm!important;
-    border-radius:8mm!important;
-  }
-  .journalMapHead h3{
-    font-size:12pt!important;
-  }
-  .journalMapHead p,
-  .journalMapInfo span,
-  .journalMapFooter{
-    font-size:8pt!important;
-  }
-  .journalMapInfo b{
-    font-size:9pt!important;
-  }
-  .journalMapRoute{
-    gap:3mm!important;
-  }
-  .journalMapStop{
-    grid-template-columns:10mm 1fr!important;
-    gap:3mm!important;
-  }
-  .journalMapPin{
-    width:9mm!important;
-    height:9mm!important;
-    font-size:7pt!important;
+  .routeMapCard{
+    display:none!important;
   }
 }
 
 </style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 </head>
 <body>
 <div class="app"><header><div class="badge">🧳 VoyageMemo.</div><div class="titleRow"><h1 id="titleText">釜山小旅行手帳</h1><button class="iconBtn" onclick="editTitle()">✎</button></div><div class="subRow"><p class="sub" id="subtitleText">把想去的海邊、巷弄、咖啡香與晚餐清單都收進來，慢慢排成一趟期待出發的旅行。</p><button class="iconBtn" onclick="editSubtitle()">✎</button></div><div class="heroStats"><div><span>目的地</span><strong id="sDest">韓國釜山</strong></div>
@@ -4978,7 +4927,7 @@ body[data-theme-mode] .btn.pink{
   <button class="btn blue compact hidden" id="cloudLoadBtn" onclick="loadFromCloud()">載入雲端</button>
   <button class="btn pink compact hidden" id="cloudSaveBtn" onclick="saveToCloudNow()">立即同步</button>
 </div>
-<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>VoyageMemo.｜LocalStorage + Cloudinary Version<br><strong>版本：v51｜2026-05-29｜照片書手帳地圖足跡版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
+<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>VoyageMemo.｜LocalStorage + Cloudinary Version<br><strong>版本：v51-map｜2026-05-29｜行程頁OpenStreetMap路線版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
 
 <!-- Firebase SDK for cross-device sync -->
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -7402,7 +7351,7 @@ function photoBookDay(d){
 
 
 /* ===== Version marker ===== */
-const APP_VERSION = "v51｜2026-05-29｜照片書手帳地圖足跡版";
+const APP_VERSION = "v51-map｜2026-05-29｜行程頁OpenStreetMap路線版";
 console.log("VoyageMemo.", APP_VERSION);
 
 
@@ -12427,100 +12376,202 @@ function renderPhotoBook(){
 }
 
 
-/* ===== v51 photo book journal map card only ===== */
-function journalMapSubtitle(d, plans){
-  const dest = data.trip.dest || "旅途";
-  if(plans.length){
-    return `${dest}｜依今天行程自動整理的足跡路線`;
-  }
-  return `${dest}｜尚未安排路線，先用照片留下今天的方向`;
+/* ===== v51-map OpenStreetMap / Leaflet itinerary route card ===== */
+/* 不新增原旅行 data 欄位；定位快取獨立存在 localStorage: travelBookMapCache */
+const MAP_CACHE_KEY = "travelBookMapCache";
+let routeMap = null;
+let routeLayer = null;
+let routeMapDay = null;
+
+function mapCacheRead(){
+  try{return JSON.parse(localStorage.getItem(MAP_CACHE_KEY)||"{}");}
+  catch(e){return {};}
 }
+function mapCacheWrite(cache){
+  try{localStorage.setItem(MAP_CACHE_KEY, JSON.stringify(cache));}
+  catch(e){}
+}
+function routeSearchText(plan){
+  const base = [
+    plan.name || "",
+    plan.note || "",
+    data.trip.dest || "",
+    data.trip.country || "",
+    data.trip.city || ""
+  ].filter(Boolean).join(" ");
+  return base.trim();
+}
+function routePlanCandidates(dayKey){
+  return sortedPlans(dayKey)
+    .filter(p => p && p.name && !["航班"].includes(p.type))
+    .slice(0, 10);
+}
+async function geocodeOSM(query){
+  const cache = mapCacheRead();
+  const key = query.toLowerCase().trim();
+  if(cache[key]) return cache[key];
 
-function journalMapHtml(d, plans){
-  const route = (plans||[]).slice(0,7);
-  if(!route.length){
-    return `<div class="journalMapCard">
-      <div class="journalMapHead">
-        <div>
-          <h3>🗺 今日足跡</h3>
-          <p>${esc(journalMapSubtitle(d, route))}</p>
-        </div>
-        <span class="journalMapBadge">Travel Map</span>
-      </div>
-      <div class="journalMapEmpty">這天還沒有正式行程。等你把景點排進行程後，這裡會自動長出手帳感路線。</div>
-      <div class="journalMapFooter"><span>Map journal inspired by OpenStreetMap mood.</span><span class="journalMapCompass">N</span></div>
-    </div>`;
+  const url = "https://nominatim.openstreetmap.org/search?format=json&limit=1&q=" + encodeURIComponent(query);
+  const res = await fetch(url, {headers: {"Accept":"application/json"}});
+  if(!res.ok) throw new Error("OSM 搜尋失敗");
+  const arr = await res.json();
+  if(!arr || !arr[0]) return null;
+
+  const item = {
+    lat: Number(arr[0].lat),
+    lng: Number(arr[0].lon),
+    display: arr[0].display_name || query
+  };
+  cache[key] = item;
+  mapCacheWrite(cache);
+  return item;
+}
+function ensureRouteMap(dayKey){
+  const id = "routeMapCanvas-" + dayKey;
+  if(routeMap && routeMapDay === dayKey){
+    setTimeout(()=>routeMap.invalidateSize(), 80);
+    return routeMap;
+  }
+  if(routeMap){
+    routeMap.remove();
+    routeMap = null;
+    routeLayer = null;
+  }
+  routeMapDay = dayKey;
+  routeMap = L.map(id, {scrollWheelZoom:false, zoomControl:true});
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap'
+  }).addTo(routeMap);
+  routeLayer = L.layerGroup().addTo(routeMap);
+  setTimeout(()=>routeMap.invalidateSize(), 120);
+  return routeMap;
+}
+function routeMarkerIcon(num){
+  return L.divIcon({
+    className:"",
+    html:`<div class="routeMarker">${num}</div>`,
+    iconSize:[28,28],
+    iconAnchor:[14,14],
+    popupAnchor:[0,-14]
+  });
+}
+async function buildRouteMap(dayKey, force=false){
+  const status = $("routeMapStatus-" + dayKey);
+  const unfoundBox = $("routeMapUnfound-" + dayKey);
+  const unfoundList = $("routeMapUnfoundList-" + dayKey);
+  const plans = routePlanCandidates(dayKey);
+
+  if(!plans.length){
+    if(status) status.textContent = "這天還沒有可定位的行程。";
+    return;
   }
 
-  return `<div class="journalMapCard">
-    <div class="journalMapHead">
+  if(status) status.textContent = "正在用 OpenStreetMap 搜尋當天行程位置...";
+  const map = ensureRouteMap(dayKey);
+  routeLayer.clearLayers();
+
+  const found = [];
+  const unfound = [];
+
+  for(let i=0;i<plans.length;i++){
+    const p = plans[i];
+    const q = routeSearchText(p);
+    try{
+      const pos = await geocodeOSM(q);
+      if(pos && Number.isFinite(pos.lat) && Number.isFinite(pos.lng)){
+        found.push({plan:p, pos});
+      }else{
+        unfound.push(p);
+      }
+    }catch(e){
+      unfound.push(p);
+    }
+    // be gentle to public Nominatim
+    await new Promise(r=>setTimeout(r, 180));
+  }
+
+  if(found.length){
+    const latlngs = [];
+    found.forEach((x,idx)=>{
+      const ll = [x.pos.lat, x.pos.lng];
+      latlngs.push(ll);
+      L.marker(ll, {icon:routeMarkerIcon(idx+1)})
+        .bindPopup(`<b>${esc(x.plan.start||"--:--")} ${esc(x.plan.name)}</b><br>${esc(x.plan.type||"行程")}<br><small>${esc(x.pos.display)}</small>`)
+        .addTo(routeLayer);
+    });
+    if(latlngs.length >= 2){
+      L.polyline(latlngs, {weight:3, opacity:.72, dashArray:"7 8"}).addTo(routeLayer);
+    }
+    map.fitBounds(L.latLngBounds(latlngs), {padding:[28,28], maxZoom:14});
+    if(status) status.textContent = `已定位 ${found.length} 個行程，並依時間順序連成今日路線。`;
+  }else{
+    map.setView([35.1796,129.0756], 11);
+    if(status) status.textContent = "目前沒有定位成功的行程，可以補更明確的景點名稱或地址。";
+  }
+
+  if(unfound.length){
+    if(unfoundBox) unfoundBox.classList.add("show");
+    if(unfoundList) unfoundList.innerHTML = unfound.map(p=>`<li>${esc(p.start||"--:--")} ${esc(p.name||"未命名行程")}</li>`).join("");
+  }else{
+    if(unfoundBox) unfoundBox.classList.remove("show");
+    if(unfoundList) unfoundList.innerHTML = "";
+  }
+}
+function toggleRouteMap(dayKey){
+  const card = $("routeMapCard-" + dayKey);
+  if(!card)return;
+  const open = !card.classList.contains("open");
+  card.classList.toggle("open", open);
+  const btn = $("routeMapToggle-" + dayKey);
+  if(btn) btn.textContent = open ? "收合" : "展開";
+  if(open){
+    setTimeout(()=>buildRouteMap(dayKey), 60);
+  }
+}
+function clearRouteMapCacheForDay(dayKey){
+  // 不需要精準刪除，先提供重抓：清空全部地圖快取但不碰旅行 data
+  localStorage.removeItem(MAP_CACHE_KEY);
+  toast("已清除地圖定位快取，請重新產生路線");
+  buildRouteMap(dayKey, true);
+}
+function routeMapHtml(dayKey){
+  const plans = routePlanCandidates(dayKey);
+  return `<div class="routeMapCard" id="routeMapCard-${dayKey}">
+    <div class="routeMapHead" onclick="toggleRouteMap('${dayKey}')">
       <div>
-        <h3>🗺 今日足跡</h3>
-        <p>${esc(journalMapSubtitle(d, route))}</p>
+        <h3>🗺 今日路線地圖</h3>
+        <p>使用 OpenStreetMap 依當天行程名稱搜尋位置，顯示 marker 與順序路線。</p>
       </div>
-      <span class="journalMapBadge">${route.length} stops</span>
+      <button type="button" class="routeMapToggle" id="routeMapToggle-${dayKey}" onclick="event.stopPropagation();toggleRouteMap('${dayKey}')">展開</button>
     </div>
-    <div class="journalMapRoute">
-      ${route.map((p,i)=>`<div class="journalMapStop">
-        <div class="journalMapPin">${i+1}</div>
-        <div class="journalMapInfo">
-          <b>${activityIcon(p.type)} ${esc(p.name||"未命名地點")}</b>
-          <span>${esc(p.start||"--:--")}${p.end?` - ${esc(p.end)}`:""}${p.note?`｜${esc(p.note)}`:""}</span>
-        </div>
-      </div>`).join("")}
+    <div class="routeMapBody">
+      <div class="routeMapCanvas" id="routeMapCanvas-${dayKey}"></div>
+      <div class="routeMapActions">
+        <button class="small" onclick="buildRouteMap('${dayKey}',true)">重新產生路線</button>
+        <button class="small" onclick="clearRouteMapCacheForDay('${dayKey}')">清除地圖快取</button>
+        <span class="routeMapStatus" id="routeMapStatus-${dayKey}">${plans.length?`可定位行程 ${plans.length} 筆，展開後會開始搜尋。`:"這天還沒有可定位的行程。"}</span>
+      </div>
+      <div class="routeMapLegend">${plans.slice(0,6).map((p,i)=>`<span>${i+1}. ${esc(p.name)}</span>`).join("")}</div>
+      <div class="routeMapUnfound" id="routeMapUnfound-${dayKey}">
+        <b>尚未定位成功</b>
+        <ul id="routeMapUnfoundList-${dayKey}"></ul>
+      </div>
     </div>
-    <div class="journalMapFooter"><span>以行程順序生成手帳地圖感；不新增座標欄位。</span><span class="journalMapCompass">N</span></div>
   </div>`;
 }
 
-function storyBookDay(d){
-  const plans=sortedPlans(d.key);
-  const photos=(data.photos||[]).filter(p=>p.day==d.key);
-  const cover=data.dayCovers[d.key] || photos[0]?.src || "";
-  const count=photos.length;
-  const canUpload=count<10;
-  return `<section class="storyDay">
-    <div class="storyDayHeader">
-      <div>
-        <span class="eyebrow">${d.title}</span>
-        <h2>${d.label} 的旅行故事</h2>
-        <p>住宿：${hotelFor(d.key)?.name||"未設定"}。今天收錄 ${plans.length} 個行程與 ${photos.length} 張照片。</p>
-      </div>
-      <div class="bookDayBadge">${plans.length} 行程｜${photos.length} 照片</div>
-    </div>
-    <div class="storyDayHero ${cover?"":"storyInlineEmpty"}">
-      ${cover?`<img src="${cover}">`:`<div><div>尚未上傳本日封面圖</div><label class="photoInlineUpload" style="margin-top:10px">＋ 上傳本日封面<input type="file" accept="image/*" onchange="addDayCover('${d.key}',this.files[0])"></label><div class="photoUploadStatus" id="dayCoverStatus-${d.key}"></div></div>`}
-    </div>
-    ${journalMapHtml(d, plans)}
-    <div class="storyDayBody">
-      <div>
-        <div class="storyTimelineTitle">今天的路線</div>
-        ${storyTimelineHtml(plans)}
-      </div>
-      <div>
-        <div class="storyPhotoUploadRow">
-          <div>
-            <div class="storyPhotosTitle">今日照片日記</div>
-            <div class="storyPhotoLimit">${count}/10 張照片${canUpload?"，可繼續上傳":"，已達上限"}</div>
-          </div>
-        </div>
-        ${canUpload?`<div class="storyPhotoUploadCard noPrint">
-          <div class="storyPhotoQuickFields">
-            <input id="storyPhotoTitle-${d.key}" placeholder="照片標題，例如：海雲台散步">
-            <input id="storyPhotoTags-${d.key}" placeholder="標籤，例如：🌊 海邊 咖啡">
-          </div>
-          <input id="storyPhotoMemo-${d.key}" placeholder="一句照片日記">
-          <label class="photoInlineUpload">
-            ＋ 上傳照片到 ${d.title}
-            <input type="file" accept="image/*" onchange="addPhotoToDay('${d.key}',this.files[0])">
-          </label>
-          <div class="photoUploadStatus" id="storyPhotoStatus-${d.key}"></div>
-        </div>`:""}
-        ${photos.length?`<div class="storyPhotoLayout">${photos.map(storyBookPhotoCard).join("")}</div>`:`<div class="storyEmpty">還沒有照片日記，先上傳幾張今天的代表照片吧。</div>`}
-      </div>
-    </div>
-  </section>`;
-}
+/* 只覆寫行程頁 renderPlanner，插入地圖卡；不更動 data 結構 */
+const __renderPlannerBeforeV51Map = renderPlanner;
+renderPlanner = function(){
+  __renderPlannerBeforeV51Map();
+  const view = $("plannerView");
+  if(!view) return;
+  const heading = view.querySelector(".section");
+  if(heading && !$("routeMapCard-" + cur)){
+    heading.insertAdjacentHTML("afterend", routeMapHtml(cur));
+  }
+};
 
 init();
 initFirebaseSync();
