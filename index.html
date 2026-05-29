@@ -1318,6 +1318,25 @@ textarea{min-height:58px}
   }
 }
 
+
+/* ===== v31 airport / terminal compact UI ===== */
+.airportQuickHint{
+  font-size:11px;
+  color:var(--muted);
+  line-height:1.45;
+  margin-top:4px;
+}
+.terminalPair{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+@media(max-width:620px){
+  .terminalPair{
+    grid-template-columns:1fr;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1329,7 +1348,7 @@ textarea{min-height:58px}
   <button class="btn blue compact hidden" id="cloudLoadBtn" onclick="loadFromCloud()">載入雲端</button>
   <button class="btn pink compact hidden" id="cloudSaveBtn" onclick="saveToCloudNow()">立即同步</button>
 </div>
-<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v30｜2026-05-29｜預算卡片總覽／航班密度優化版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
+<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v31｜2026-05-29｜航班機場航廈選單版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
 
 <!-- Firebase SDK for cross-device sync -->
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -3753,7 +3772,7 @@ function photoBookDay(d){
 
 
 /* ===== Version marker ===== */
-const APP_VERSION = "v30｜2026-05-29｜預算卡片總覽／航班密度優化版";
+const APP_VERSION = "v31｜2026-05-29｜航班機場航廈選單版";
 console.log("My Travel Book", APP_VERSION);
 
 
@@ -6642,6 +6661,272 @@ renderTrip = function(){
   }
   afterRenderFlightForms();
 };
+
+
+/* ===== v31 airport and terminal options for flight segments ===== */
+function airportOptionsList(){
+  return [
+    "台灣｜TPE 桃園國際機場",
+    "台灣｜TSA 台北松山機場",
+    "台灣｜KHH 高雄小港機場",
+    "台灣｜RMQ 台中國際機場",
+    "韓國｜PUS 釜山金海機場",
+    "韓國｜ICN 首爾仁川機場",
+    "韓國｜GMP 首爾金浦機場",
+    "日本｜NRT 東京成田機場",
+    "日本｜HND 東京羽田機場",
+    "日本｜KIX 大阪關西機場",
+    "日本｜FUK 福岡機場",
+    "日本｜CTS 札幌新千歲機場",
+    "日本｜NGO 名古屋中部機場",
+    "香港｜HKG 香港國際機場",
+    "新加坡｜SIN 樟宜機場",
+    "泰國｜BKK 曼谷蘇凡納布機場",
+    "泰國｜DMK 曼谷廊曼機場",
+    "越南｜SGN 胡志明新山一機場",
+    "越南｜HAN 河內內排機場",
+    "馬來西亞｜KUL 吉隆坡國際機場",
+    "菲律賓｜MNL 馬尼拉機場",
+    "澳門｜MFM 澳門國際機場",
+    "中國｜PVG 上海浦東機場",
+    "中國｜SHA 上海虹橋機場",
+    "中國｜PEK 北京首都機場",
+    "中國｜PKX 北京大興機場",
+    "中國｜CAN 廣州白雲機場",
+    "中國｜SZX 深圳寶安機場",
+    "美國｜LAX 洛杉磯機場",
+    "美國｜SFO 舊金山機場",
+    "美國｜JFK 紐約甘迺迪機場",
+    "歐洲｜LHR 倫敦希斯洛機場",
+    "歐洲｜CDG 巴黎戴高樂機場",
+    "歐洲｜FRA 法蘭克福機場",
+    "歐洲｜AMS 阿姆斯特丹史基浦機場",
+    "歐洲｜VIE 維也納機場",
+    "歐洲｜PRG 布拉格機場"
+  ];
+}
+
+function airportDatalistHtml(){
+  return `<datalist id="airportList">${airportOptionsList().map(a=>`<option value="${esc(a)}"></option>`).join("")}</datalist>`;
+}
+
+function terminalOptions(selected=""){
+  const opts=["未定","T1","T2","T3","T4","T5","國際線航廈","國內線航廈","第一航廈","第二航廈","第三航廈","Satellite / 衛星航廈","其他"];
+  const safe = selected || "未定";
+  return opts.map(x=>`<option value="${x}" ${String(safe)===x?"selected":""}>${x}</option>`).join("");
+}
+
+function normalizeFlightObj(f, direction){
+  f = f || {};
+  if(Array.isArray(f.segments) && f.segments.length){
+    const normalizedSegments = f.segments.map(s=>({
+      no:s.no||"",
+      from:s.from||"",
+      to:s.to||"",
+      dep:s.dep||"",
+      arr:s.arr||"",
+      fromTerminal:s.fromTerminal||"",
+      toTerminal:s.toTerminal||""
+    }));
+    return {
+      type: f.type || (normalizedSegments.length > 1 ? "transfer" : "direct"),
+      segments: normalizedSegments,
+      toAirport:f.toAirport||"",
+      fromAirport:f.fromAirport||"",
+      transfer:f.transfer||""
+    };
+  }
+
+  return {
+    type: "direct",
+    segments: [{
+      no:f.no||"",
+      from:f.from||"",
+      to:f.to||"",
+      dep:f.dep||"",
+      arr:f.arr||"",
+      fromTerminal:f.fromTerminal||"",
+      toTerminal:f.toTerminal||""
+    }],
+    toAirport:f.toAirport||f.transfer||"",
+    fromAirport:f.fromAirport||"",
+    transfer:f.transfer||""
+  };
+}
+
+function flightSegmentForm(k, idx, seg){
+  seg = seg || {};
+  const defaultOpen = idx===0 ? "open" : "";
+  return `<details class="segmentBox" id="${k}segBox${idx}" ${defaultOpen}>
+    <summary><div class="segmentTitle">第 ${idx+1} 段航班 <span>${idx===0?"第一段":"第二段／轉機後"}</span></div></summary>
+    <div class="segmentInner">
+      <div class="three compactMobile">
+        <div><label>航班號</label><input id="${k}s${idx}no" value="${esc(seg.no||"")}" placeholder="例：BX794"></div>
+        <div><label>出發地 / 機場</label><input id="${k}s${idx}from" list="airportList" value="${esc(seg.from||"")}" placeholder="可選清單或自行輸入"></div>
+        <div><label>抵達地 / 機場</label><input id="${k}s${idx}to" list="airportList" value="${esc(seg.to||"")}" placeholder="可選清單或自行輸入"></div>
+      </div>
+      <div class="terminalPair">
+        <div><label>出發航廈</label><select id="${k}s${idx}fromTerminal">${terminalOptions(seg.fromTerminal||"未定")}</select></div>
+        <div><label>抵達航廈</label><select id="${k}s${idx}toTerminal">${terminalOptions(seg.toTerminal||"未定")}</select></div>
+      </div>
+      <div class="two">
+        <div><label>起飛時間</label><input id="${k}s${idx}dep" type="datetime-local" value="${seg.dep||""}"></div>
+        <div><label>抵達時間</label><input id="${k}s${idx}arr" type="datetime-local" value="${seg.arr||""}"></div>
+      </div>
+      <div class="airportQuickHint">機場清單已優先放台灣與亞洲常用機場；找不到也可以直接手動輸入。</div>
+    </div>
+  </details>`;
+}
+
+function flightForm(k){
+  const f=normalizeFlightObj(data.flights[k],k);
+  const segs=[f.segments[0]||{}, f.segments[1]||{}];
+  const isOut=k==="out";
+  return `<div class="flightTransferBlock">
+    ${airportDatalistHtml()}
+    <label>航班型態</label>${flightTypeSelect(k,f.type||"direct")}
+    <div class="flightTypeHint">直飛顯示 1 段；轉機固定顯示 2 段。每段航班會各自產生一筆行程。</div>
+    <div id="${k}segmentsWrap">
+      ${flightSegmentForm(k,0,segs[0])}
+      ${flightSegmentForm(k,1,segs[1])}
+    </div>
+    <label>${isOut?"如何抵達出發機場":"如何從旅遊地前往回程機場"}</label>
+    <textarea id="${k}toAirport">${esc(f.toAirport||f.transfer||"")}</textarea>
+    <label>${isOut?"如何從降落機場到旅遊地／飯店":"如何從抵達機場回家"}</label>
+    <textarea id="${k}fromAirport">${esc(f.fromAirport||"")}</textarea>
+  </div>`;
+}
+
+function readFlightForm(k){
+  const type=$(k+"type")?.value || "direct";
+  const count=type==="transfer"?2:1;
+  const segments=[];
+  for(let i=0;i<count;i++){
+    segments.push({
+      no:$(k+"s"+i+"no")?.value||"",
+      from:$(k+"s"+i+"from")?.value||"",
+      to:$(k+"s"+i+"to")?.value||"",
+      dep:$(k+"s"+i+"dep")?.value||"",
+      arr:$(k+"s"+i+"arr")?.value||"",
+      fromTerminal:$(k+"s"+i+"fromTerminal")?.value||"",
+      toTerminal:$(k+"s"+i+"toTerminal")?.value||""
+    });
+  }
+  return {
+    type,
+    segments,
+    toAirport:$(k+"toAirport")?.value||"",
+    fromAirport:$(k+"fromAirport")?.value||"",
+    transfer:$(k+"toAirport")?.value||""
+  };
+}
+
+function terminalNote(s){
+  const fromT=s.fromTerminal && s.fromTerminal!=="未定" ? `出發航廈：${s.fromTerminal}` : "";
+  const toT=s.toTerminal && s.toTerminal!=="未定" ? `抵達航廈：${s.toTerminal}` : "";
+  return [fromT,toT].filter(Boolean).join("｜");
+}
+
+function flightPlanTemplates(){
+  const out=normalizeFlightObj(data.flights.out,"out");
+  const back=normalizeFlightObj(data.flights.back,"back");
+  const templates=[];
+
+  const firstOut=out.segments[0]||{};
+  const lastOut=out.segments[out.segments.length-1]||{};
+  const firstBack=back.segments[0]||{};
+  const lastBack=back.segments[back.segments.length-1]||{};
+
+  templates.push({
+    id:"flight-out-to-airport",
+    source:"flight",
+    sourceType:"flight",
+    lockedName:true,
+    day:String(firstOut.dep||data.trip.start).split("T")[0],
+    start:"14:00",
+    end:v16TimeFromDT(firstOut.dep),
+    type:"交通",
+    name:`前往 ${firstOut.from||"出發機場"}`,
+    note:out.toAirport||"",
+    memo:"由航班資料帶入"
+  });
+
+  out.segments.forEach((s,i)=>{
+    templates.push({
+      id:`flight-out-seg-${i}`,
+      source:"flight",
+      sourceType:"flight",
+      lockedName:true,
+      day:String(s.dep||data.trip.start).split("T")[0],
+      start:v16TimeFromDT(s.dep),
+      end:v16TimeFromDT(s.arr),
+      type:"航班",
+      name:`搭乘去程第 ${i+1} 段 ${s.no||""}`.trim(),
+      note:[`${s.from||""} → ${s.to||""}`, terminalNote(s)].filter(Boolean).join("\n"),
+      memo:"由航班資料帶入"
+    });
+  });
+
+  templates.push({
+    id:"flight-out-arrival-transfer",
+    source:"flight",
+    sourceType:"flight",
+    lockedName:true,
+    day:String(lastOut.arr||data.trip.start).split("T")[0],
+    start:v16TimeFromDT(lastOut.arr),
+    end:"",
+    type:"交通",
+    name:`從 ${lastOut.to||"降落機場"} 前往飯店／市區`,
+    note:out.fromAirport||"",
+    memo:"由航班資料帶入"
+  });
+
+  templates.push({
+    id:"flight-back-to-airport",
+    source:"flight",
+    sourceType:"flight",
+    lockedName:true,
+    day:String(firstBack.dep||data.trip.end).split("T")[0],
+    start:"",
+    end:v16TimeFromDT(firstBack.dep),
+    type:"交通",
+    name:`從飯店前往 ${firstBack.from||"回程機場"}`,
+    note:back.toAirport||"",
+    memo:"由航班資料帶入"
+  });
+
+  back.segments.forEach((s,i)=>{
+    templates.push({
+      id:`flight-back-seg-${i}`,
+      source:"flight",
+      sourceType:"flight",
+      lockedName:true,
+      day:String(s.dep||data.trip.end).split("T")[0],
+      start:v16TimeFromDT(s.dep),
+      end:v16TimeFromDT(s.arr),
+      type:"航班",
+      name:`搭乘回程第 ${i+1} 段 ${s.no||""}`.trim(),
+      note:[`${s.from||""} → ${s.to||""}`, terminalNote(s)].filter(Boolean).join("\n"),
+      memo:"由航班資料帶入"
+    });
+  });
+
+  templates.push({
+    id:"flight-back-home-transfer",
+    source:"flight",
+    sourceType:"flight",
+    lockedName:true,
+    day:String(lastBack.arr||data.trip.end).split("T")[0],
+    start:v16TimeFromDT(lastBack.arr),
+    end:"",
+    type:"交通",
+    name:`從 ${lastBack.to||"抵達機場"} 回家`,
+    note:back.fromAirport||"",
+    memo:"由航班資料帶入"
+  });
+
+  return templates;
+}
 
 init();
 initFirebaseSync();
