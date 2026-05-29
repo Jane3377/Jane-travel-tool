@@ -1741,6 +1741,74 @@ textarea{min-height:58px}
   }
 }
 
+
+/* ===== v38 mobile flight form UI only: select airports + split date/time ===== */
+/* 桌機維持原欄位；手機改用較穩定的 select / date / time 呈現，資料仍存回原欄位結構 */
+.flightMobileOnly{display:none!important}
+.flightDesktopOnly{display:block!important}
+
+@media(max-width:620px){
+  #tripView .flightDense .flightDesktopOnly{display:none!important}
+  #tripView .flightDense .flightMobileOnly{display:block!important}
+
+  #tripView .flightDense .mobileAirportGrid,
+  #tripView .flightDense .mobileTimeGrid{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    gap:6px!important;
+    width:100%!important;
+    max-width:100%!important;
+  }
+
+  #tripView .flightDense .mobileAirportCustom.hidden{
+    display:none!important;
+  }
+
+  #tripView .flightDense .mobileTimePair{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+    gap:6px!important;
+    width:100%!important;
+    max-width:100%!important;
+  }
+
+  #tripView .flightDense .mobileTimePair > div{
+    min-width:0!important;
+  }
+
+  #tripView .flightDense input[type="date"],
+  #tripView .flightDense input[type="time"]{
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    box-sizing:border-box!important;
+    font-size:16px!important;
+    min-height:36px!important;
+    padding:6px 8px!important;
+  }
+
+  #tripView .flightDense select.mobileAirportSelect,
+  #tripView .flightDense select.mobileTerminalSelect{
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    box-sizing:border-box!important;
+    font-size:16px!important;
+    min-height:36px!important;
+    padding:6px 28px 6px 8px!important;
+    background:#fff!important;
+    -webkit-appearance:auto!important;
+    appearance:auto!important;
+  }
+
+  #tripView .flightDense .mobileFieldNote{
+    color:var(--muted);
+    font-size:10.5px;
+    line-height:1.35;
+    margin-top:3px;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1752,7 +1820,7 @@ textarea{min-height:58px}
   <button class="btn blue compact hidden" id="cloudLoadBtn" onclick="loadFromCloud()">載入雲端</button>
   <button class="btn pink compact hidden" id="cloudSaveBtn" onclick="saveToCloudNow()">立即同步</button>
 </div>
-<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v37｜2026-05-29｜手機航班欄位修正版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
+<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v38｜2026-05-29｜手機航班表單呈現修正版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
 
 <!-- Firebase SDK for cross-device sync -->
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -4176,7 +4244,7 @@ function photoBookDay(d){
 
 
 /* ===== Version marker ===== */
-const APP_VERSION = "v37｜2026-05-29｜手機航班欄位修正版";
+const APP_VERSION = "v38｜2026-05-29｜手機航班表單呈現修正版";
 console.log("My Travel Book", APP_VERSION);
 
 
@@ -7877,6 +7945,169 @@ function saveFlights(){
   render();
   v16CollapseTripDetail(1);
   toast("已幫你存好航班囉！");
+}
+
+
+/* ===== v38 mobile-only flight UI helpers; data structure unchanged ===== */
+function v38AirportOptions(){
+  return typeof airportOptionsList==="function" ? airportOptionsList() : [
+    "台灣｜TPE 桃園國際機場","台灣｜TSA 台北松山機場","台灣｜KHH 高雄小港機場",
+    "韓國｜PUS 釜山金海機場","韓國｜ICN 首爾仁川機場",
+    "日本｜NRT 東京成田機場","日本｜HND 東京羽田機場","日本｜KIX 大阪關西機場",
+    "香港｜HKG 香港國際機場","新加坡｜SIN 樟宜機場","其他／手動輸入"
+  ];
+}
+
+function v38AirportSelectValue(val){
+  const list=v38AirportOptions();
+  if(list.includes(val))return val;
+  return val ? "__custom__" : "";
+}
+
+function v38AirportCustomValue(val){
+  const list=v38AirportOptions();
+  return val && !list.includes(val) ? val : "";
+}
+
+function v38AirportSelectHtml(id, val){
+  const selected=v38AirportSelectValue(val);
+  const options=['<option value="">請選擇機場</option>']
+    .concat(v38AirportOptions().map(a=>`<option value="${esc(a)}" ${selected===a?"selected":""}>${esc(a)}</option>`))
+    .concat([`<option value="__custom__" ${selected==="__custom__"?"selected":""}>其他／手動輸入</option>`])
+    .join("");
+  return `<select class="mobileAirportSelect" id="${id}Sel" onchange="v38ToggleAirportCustom('${id}')">${options}</select>
+    <input class="mobileAirportCustom ${selected==="__custom__"?"":"hidden"}" id="${id}Custom" value="${esc(v38AirportCustomValue(val))}" placeholder="手動輸入機場 / 地點">`;
+}
+
+function v38ToggleAirportCustom(id){
+  const sel=$(id+"Sel");
+  const custom=$(id+"Custom");
+  if(!sel || !custom)return;
+  custom.classList.toggle("hidden", sel.value!=="__custom__");
+}
+
+function v38GetAirportValue(id){
+  const sel=$(id+"Sel");
+  const custom=$(id+"Custom");
+  if(!sel)return "";
+  if(sel.value==="__custom__")return custom?.value || "";
+  return sel.value || "";
+}
+
+function v38DatePart(dt){
+  return dt ? String(dt).split("T")[0] : "";
+}
+function v38TimePart(dt){
+  return dt && String(dt).includes("T") ? String(dt).split("T")[1].slice(0,5) : "";
+}
+function v38JoinDateTime(dateId, timeId){
+  const d=$(dateId)?.value || "";
+  const t=$(timeId)?.value || "";
+  return d && t ? `${d}T${t}` : "";
+}
+
+function v38TerminalSelectHtml(id, val){
+  return `<select class="mobileTerminalSelect" id="${id}">${terminalOptions(val||"未定")}</select>`;
+}
+
+function flightSegmentForm(k, idx, seg){
+  seg = seg || {};
+  const defaultOpen = idx===0 ? "open" : "";
+  const fromId=`${k}s${idx}from`;
+  const toId=`${k}s${idx}to`;
+  return `<details class="segmentBox" id="${k}segBox${idx}" ${defaultOpen}>
+    <summary><div class="segmentTitle">第 ${idx+1} 段航班 <span>${idx===0?"第一段":"第二段／轉機後"}</span></div></summary>
+    <div class="segmentInner">
+
+      <div class="flightDesktopOnly">
+        <div class="three compactMobile">
+          <div><label>航班號</label><input id="${k}s${idx}no" value="${esc(seg.no||"")}" placeholder="例：BX794"></div>
+          <div><label>出發地 / 機場</label><input id="${fromId}" list="airportList" value="${esc(seg.from||"")}" placeholder="可選清單或自行輸入"></div>
+          <div><label>抵達地 / 機場</label><input id="${toId}" list="airportList" value="${esc(seg.to||"")}" placeholder="可選清單或自行輸入"></div>
+        </div>
+        <div class="terminalPair">
+          <div><label>出發航廈</label><select id="${k}s${idx}fromTerminal">${terminalOptions(seg.fromTerminal||"未定")}</select></div>
+          <div><label>抵達航廈</label><select id="${k}s${idx}toTerminal">${terminalOptions(seg.toTerminal||"未定")}</select></div>
+        </div>
+        <div class="two">
+          <div><label>起飛時間</label><input id="${k}s${idx}dep" type="datetime-local" value="${seg.dep||""}"></div>
+          <div><label>抵達時間</label><input id="${k}s${idx}arr" type="datetime-local" value="${seg.arr||""}"></div>
+        </div>
+      </div>
+
+      <div class="flightMobileOnly">
+        <div class="mobileAirportGrid">
+          <div><label>航班號</label><input id="${k}s${idx}noM" value="${esc(seg.no||"")}" placeholder="例：BX794"></div>
+          <div><label>出發地 / 機場</label>${v38AirportSelectHtml(`${k}s${idx}fromM`, seg.from||"")}</div>
+          <div><label>抵達地 / 機場</label>${v38AirportSelectHtml(`${k}s${idx}toM`, seg.to||"")}</div>
+          <div><label>出發航廈</label>${v38TerminalSelectHtml(`${k}s${idx}fromTerminalM`, seg.fromTerminal||"未定")}</div>
+          <div><label>抵達航廈</label>${v38TerminalSelectHtml(`${k}s${idx}toTerminalM`, seg.toTerminal||"未定")}</div>
+        </div>
+        <div class="mobileTimeGrid">
+          <div>
+            <label>起飛時間</label>
+            <div class="mobileTimePair">
+              <div><input id="${k}s${idx}depDateM" type="date" value="${v38DatePart(seg.dep)}"></div>
+              <div><input id="${k}s${idx}depTimeM" type="time" value="${v38TimePart(seg.dep)}"></div>
+            </div>
+          </div>
+          <div>
+            <label>抵達時間</label>
+            <div class="mobileTimePair">
+              <div><input id="${k}s${idx}arrDateM" type="date" value="${v38DatePart(seg.arr)}"></div>
+              <div><input id="${k}s${idx}arrTimeM" type="time" value="${v38TimePart(seg.arr)}"></div>
+            </div>
+          </div>
+        </div>
+        <div class="mobileFieldNote">手機版將日期與時間分開填，儲存後仍會寫回原本航班時間欄位。</div>
+      </div>
+
+      <div class="airportQuickHint">台灣與亞洲機場優先列出；找不到可手動輸入。</div>
+    </div>
+  </details>`;
+}
+
+function v38IsMobileFlightUI(){
+  return window.matchMedia && window.matchMedia("(max-width:620px)").matches;
+}
+
+function readFlightForm(k){
+  const type=$(k+"type")?.value || "direct";
+  const count=type==="transfer"?2:1;
+  const segments=[];
+  const mobile=v38IsMobileFlightUI();
+
+  for(let i=0;i<count;i++){
+    if(mobile){
+      segments.push({
+        no:$(k+"s"+i+"noM")?.value||"",
+        from:v38GetAirportValue(`${k}s${i}fromM`),
+        to:v38GetAirportValue(`${k}s${i}toM`),
+        dep:v38JoinDateTime(`${k}s${i}depDateM`,`${k}s${i}depTimeM`),
+        arr:v38JoinDateTime(`${k}s${i}arrDateM`,`${k}s${i}arrTimeM`),
+        fromTerminal:$(k+"s"+i+"fromTerminalM")?.value||"",
+        toTerminal:$(k+"s"+i+"toTerminalM")?.value||""
+      });
+    }else{
+      segments.push({
+        no:$(k+"s"+i+"no")?.value||"",
+        from:$(k+"s"+i+"from")?.value||"",
+        to:$(k+"s"+i+"to")?.value||"",
+        dep:$(k+"s"+i+"dep")?.value||"",
+        arr:$(k+"s"+i+"arr")?.value||"",
+        fromTerminal:$(k+"s"+i+"fromTerminal")?.value||"",
+        toTerminal:$(k+"s"+i+"toTerminal")?.value||""
+      });
+    }
+  }
+
+  return {
+    type,
+    segments,
+    toAirport:$(k+"toAirport")?.value||"",
+    fromAirport:$(k+"fromAirport")?.value||"",
+    transfer:$(k+"toAirport")?.value||""
+  };
 }
 
 init();
