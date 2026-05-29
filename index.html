@@ -1434,6 +1434,123 @@ textarea{min-height:58px}
   }
 }
 
+
+/* ===== v33 responsive budget detail: desktop table + mobile aligned cards ===== */
+.budgetDesktopTable{
+  display:block;
+}
+.budgetMobileCards{
+  display:none;
+}
+.budgetDetailTable{
+  width:100%;
+  min-width:920px;
+}
+.budgetDetailTable th,
+.budgetDetailTable td{
+  vertical-align:middle;
+}
+.budgetDetailTable .num{
+  text-align:right;
+  white-space:nowrap;
+  font-variant-numeric:tabular-nums;
+}
+.budgetDetailTable .ops{
+  white-space:nowrap;
+}
+.budgetMobileList{
+  display:grid;
+  gap:9px;
+}
+.budgetMobileCard{
+  border:1px solid var(--line);
+  border-radius:18px;
+  background:#fffdf9;
+  padding:11px;
+}
+.budgetMobileHead{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:flex-start;
+  padding-bottom:9px;
+  border-bottom:1px solid var(--line);
+}
+.budgetMobileHead b{
+  display:block;
+  font-size:15px;
+  line-height:1.35;
+}
+.budgetMobileHead span{
+  display:block;
+  color:var(--muted);
+  font-size:12px;
+  margin-top:3px;
+}
+.budgetMobileAmount{
+  flex:0 0 auto;
+  font-weight:950;
+  color:#365f54;
+  white-space:nowrap;
+  font-variant-numeric:tabular-nums;
+}
+.budgetMobileGrid{
+  display:grid;
+  grid-template-columns:84px 1fr;
+  gap:0;
+  margin-top:8px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  overflow:hidden;
+}
+.budgetMobileGrid .k,
+.budgetMobileGrid .v{
+  padding:8px 9px;
+  border-bottom:1px solid var(--line);
+  font-size:13px;
+  min-height:34px;
+  display:flex;
+  align-items:center;
+}
+.budgetMobileGrid .k{
+  background:#f7f3ec;
+  color:var(--muted);
+  font-weight:900;
+}
+.budgetMobileGrid .v{
+  background:#fff;
+  justify-content:flex-start;
+  word-break:break-word;
+}
+.budgetMobileGrid .num{
+  justify-content:flex-end;
+  font-variant-numeric:tabular-nums;
+}
+.budgetMobileGrid .k:nth-last-child(2),
+.budgetMobileGrid .v:nth-last-child(1){
+  border-bottom:0;
+}
+.budgetMobileOps{
+  margin-top:9px;
+  display:flex;
+  gap:8px;
+  justify-content:flex-end;
+}
+@media(max-width:620px){
+  .budgetDesktopTable{
+    display:none;
+  }
+  .budgetMobileCards{
+    display:block;
+  }
+  .budgetSummaryGrid{
+    grid-template-columns:1fr 1fr;
+  }
+  .budgetSummaryCard.total{
+    grid-column:1/-1;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1445,7 +1562,7 @@ textarea{min-height:58px}
   <button class="btn blue compact hidden" id="cloudLoadBtn" onclick="loadFromCloud()">載入雲端</button>
   <button class="btn pink compact hidden" id="cloudSaveBtn" onclick="saveToCloudNow()">立即同步</button>
 </div>
-<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v32｜2026-05-29｜航班密度再優化／時差彈性版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
+<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v33｜2026-05-29｜預算桌機表格／手機對齊卡片版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
 
 <!-- Firebase SDK for cross-device sync -->
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -3869,7 +3986,7 @@ function photoBookDay(d){
 
 
 /* ===== Version marker ===== */
-const APP_VERSION = "v32｜2026-05-29｜航班密度再優化／時差彈性版";
+const APP_VERSION = "v33｜2026-05-29｜預算桌機表格／手機對齊卡片版";
 console.log("My Travel Book", APP_VERSION);
 
 
@@ -7126,6 +7243,154 @@ function flightSegmentForm(k, idx, seg){
       <div class="airportQuickHint">台灣與亞洲機場優先列出；找不到可手動輸入。</div>
     </div>
   </details>`;
+}
+
+
+/* ===== v33 budget details: desktop table + aligned mobile cards ===== */
+function budgetAllItems(){
+  const items=[];
+  (data.expenses||[]).forEach(x=>{
+    items.push({
+      id:x.id,
+      source:x.source||"預算",
+      day:x.day||"",
+      type:x.type||"其他",
+      name:x.name||"未命名費用",
+      payer:x.payer||"未定",
+      payMethod:x.payMethod||"未定",
+      foreign:moneyForeign(x),
+      twd:moneyTwd(x),
+      memo:x.memo||"",
+      editable:true,
+      kind:"expense"
+    });
+  });
+  (data.conns||[])
+    .filter(c=>Number(c.fareTwd||0)>0||Number(c.fareForeign||0)>0)
+    .forEach((c,i)=>{
+      items.push({
+        id:"conn-"+i,
+        source:"交通",
+        day:"",
+        type:c.mode||"交通",
+        name:"行程間交通",
+        payer:c.payer||"未定",
+        payMethod:c.payMethod||"未定",
+        foreign:Number(c.fareForeign||0),
+        twd:Number(c.fareTwd||0),
+        memo:"",
+        editable:false,
+        kind:"conn"
+      });
+    });
+  return items;
+}
+
+function budgetTypeSummary(items){
+  const map={};
+  items.forEach(x=>{
+    const amount=Number(x.twd||0);
+    if(amount<=0)return;
+    const type=x.type||"其他";
+    map[type]=(map[type]||0)+amount;
+  });
+  return Object.entries(map)
+    .sort((a,b)=>b[1]-a[1])
+    .map(([type,total])=>({type,total}));
+}
+
+function renderBudgetSummary(items){
+  const groups=budgetTypeSummary(items);
+  const total=items.reduce((s,x)=>s+Number(x.twd||0),0);
+  const groupHtml=groups.map(g=>`<div class="budgetSummaryCard"><b>${esc(g.type)}</b><strong>TWD ${fmt(g.total)}</strong></div>`).join("");
+  return `<div class="budgetSummaryGrid">
+    <div class="budgetSummaryCard total"><b>總費用</b><strong>TWD ${fmt(total)}</strong></div>
+    ${groupHtml || '<div class="budgetSummaryCard"><b>尚未有費用</b><strong>TWD 0</strong></div>'}
+  </div>`;
+}
+
+function budgetDesktopRows(items){
+  if(!items.length)return '<tr><td colspan="9">尚未新增預算</td></tr>';
+  return items.map(x=>`<tr>
+    <td>${esc(x.source)}</td>
+    <td>${x.day?esc(x.day):"—"}</td>
+    <td>${esc(x.type)}</td>
+    <td>${esc(x.name)}</td>
+    <td>${esc(travelerName(x.payer))}</td>
+    <td>${esc(payMethodLabel(x.payMethod))}</td>
+    <td class="num">${fmt(x.foreign)}</td>
+    <td class="num">${fmt(x.twd)}</td>
+    <td class="ops">${x.editable?`<button class="small" onclick="editExpense('${x.id}')">編輯</button><button class="small" onclick="delExpense('${x.id}')">刪除</button>`:""}</td>
+  </tr>`).join("");
+}
+
+function budgetMobileCards(items){
+  if(!items.length)return '<div class="empty">尚未新增預算</div>';
+  return `<div class="budgetMobileList">${items.map(x=>`
+    <div class="budgetMobileCard">
+      <div class="budgetMobileHead">
+        <div><b>${esc(x.name)}</b><span>${esc(x.source)}｜${x.day?esc(x.day):"未指定日期"}</span></div>
+        <div class="budgetMobileAmount">TWD ${fmt(x.twd)}</div>
+      </div>
+      <div class="budgetMobileGrid">
+        <div class="k">來源</div><div class="v">${esc(x.source)}</div>
+        <div class="k">日期</div><div class="v">${x.day?esc(x.day):"—"}</div>
+        <div class="k">類型</div><div class="v">${esc(x.type)}</div>
+        <div class="k">付款人</div><div class="v">${esc(travelerName(x.payer))}</div>
+        <div class="k">付款方式</div><div class="v">${esc(payMethodLabel(x.payMethod))}</div>
+        <div class="k">${esc(data.trip.currency)}</div><div class="v num">${fmt(x.foreign)}</div>
+        <div class="k">TWD</div><div class="v num">${fmt(x.twd)}</div>
+        <div class="k">備註</div><div class="v">${esc(x.memo||"—")}</div>
+      </div>
+      ${x.editable?`<div class="budgetMobileOps"><button class="small" onclick="editExpense('${x.id}')">編輯</button><button class="small" onclick="delExpense('${x.id}')">刪除</button></div>`:""}
+    </div>`).join("")}</div>`;
+}
+
+function budgetDetailsHtml(items){
+  return `<div class="budgetDesktopTable table">
+    <table class="budgetDetailTable">
+      <thead><tr>
+        <th>來源</th>
+        <th>日期</th>
+        <th>類型</th>
+        <th>項目</th>
+        <th>付款人</th>
+        <th>付款方式</th>
+        <th>${esc(data.trip.currency)}</th>
+        <th>TWD</th>
+        <th>操作</th>
+      </tr></thead>
+      <tbody>${budgetDesktopRows(items)}</tbody>
+    </table>
+  </div>
+  <div class="budgetMobileCards">${budgetMobileCards(items)}</div>`;
+}
+
+function renderBudget(){
+  const items=budgetAllItems();
+  $("budgetView").innerHTML=`<div class="section"><div><h2>預算總覽</h2><div class="hint">桌機顯示表格，手機顯示對齊卡片；上方依費用類型自動統計。</div></div><button class="iconBtn smallIcon" onclick="clearExpenseForm()">＋</button></div>
+  ${renderBudgetSummary(items)}
+  <div class="card">
+    <div class="three compactMobile">
+      <div><label>費用類型</label><select id="etype"><option>機票</option><option>住宿</option><option>網路</option><option>旅平險</option><option>交通票券</option><option>景點票券</option><option>餐飲</option><option>購物</option><option>其他</option></select></div>
+      <div><label>項目</label><input id="ename"></div>
+      <div><label>付款人</label><select id="epayer">${optsPayer("未定")}</select></div>
+    </div>
+    <div class="four compactMobile">
+      <div><label>${esc(data.trip.currency)} 金額</label><input id="eforeign" type="number" oninput="syncExpenseMoney('f')"></div>
+      <div><label>TWD</label><input id="etwd" type="number" oninput="syncExpenseMoney('t')"></div>
+      <div><label>付款方式</label><select id="epm">${optsPayMethod("未定")}</select></div>
+      <div><label>付款日</label><input id="eday" type="date"><div class="freeDateHint">付款日可留空，也可以早於出發日。</div></div>
+    </div>
+    <label>備註</label><input id="ememo">
+    <div class="btns">
+      <button class="btn dark" onclick="saveExpenseForm()">${editingExpenseId?"存好預算":"記一筆花費"}</button>
+      ${editingExpenseId?'<button class="btn soft" onclick="clearExpenseForm()">取消編輯 / 新增</button>':""}
+      <button class="btn blue" onclick="openRateSearch()">查一下匯率</button>
+    </div>
+  </div>
+  ${budgetDetailsHtml(items)}`;
+  if(editingExpenseId)fillExpenseForm(editingExpenseId);
 }
 
 init();
