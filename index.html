@@ -4539,6 +4539,108 @@ body[data-theme-mode] .btn.pink{
   }
 }
 
+
+/* ===== v49 photo story direct upload mode only ===== */
+/* 只調整照片書：移除上方編輯/PDF預覽，直接在故事預覽內上傳封面與照片 */
+.photoInlineUpload{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  border-radius:999px;
+  background:rgba(255,255,255,.88);
+  color:var(--theme-primary,#4A5D4E);
+  border:1px solid var(--theme-line,#E2DDD5);
+  padding:8px 12px;
+  font-size:12px;
+  font-weight:900;
+  cursor:pointer;
+  box-shadow:0 8px 20px rgba(44,42,41,.05);
+}
+.photoInlineUpload input{display:none!important}
+.storyInlineEmpty{
+  display:grid;
+  place-items:center;
+  gap:8px;
+  text-align:center;
+  color:var(--theme-muted,#9A928A);
+  background:
+    radial-gradient(circle at 16% 16%,rgba(229,236,233,.9),transparent 32%),
+    radial-gradient(circle at 86% 88%,rgba(239,230,230,.9),transparent 34%),
+    linear-gradient(135deg,#fff,#F8F6F2);
+}
+.storyDayHero.storyInlineEmpty{
+  min-height:190px;
+}
+.storyBookCover.storyInlineEmpty{
+  min-height:420px;
+}
+.storyPhotoUploadRow{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:10px;
+}
+.storyPhotoLimit{
+  color:var(--theme-muted,#9A928A);
+  font-size:12px;
+  line-height:1.4;
+}
+.storyPhotoUploadCard{
+  border:1px dashed var(--theme-line,#E2DDD5);
+  border-radius:16px;
+  background:#fffdf9;
+  padding:12px;
+  display:grid;
+  gap:8px;
+  margin-bottom:10px;
+}
+.storyPhotoQuickFields{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+.storyPhotoQuickFields input{
+  min-height:34px!important;
+  padding:7px 9px!important;
+  font-size:13px!important;
+  border-radius:12px!important;
+}
+.storyPhotoUploadCard .photoInlineUpload{
+  width:100%;
+}
+.storyBookPreview .photoUploadStatus{
+  margin-top:4px;
+}
+@media(max-width:620px){
+  #photoBookView .section{
+    align-items:flex-start!important;
+  }
+  .storyPhotoUploadRow{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:8px;
+  }
+  .storyPhotoQuickFields{
+    grid-template-columns:1fr;
+  }
+  .storyBookCover.storyInlineEmpty{
+    min-height:320px;
+  }
+  .storyDayHero.storyInlineEmpty{
+    min-height:160px;
+  }
+}
+@media print{
+  .photoInlineUpload,
+  .storyPhotoUploadCard,
+  .storyPhotoUploadRow .photoInlineUpload,
+  .photoUploadStatus{
+    display:none!important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -4550,7 +4652,7 @@ body[data-theme-mode] .btn.pink{
   <button class="btn blue compact hidden" id="cloudLoadBtn" onclick="loadFromCloud()">載入雲端</button>
   <button class="btn pink compact hidden" id="cloudSaveBtn" onclick="saveToCloudNow()">立即同步</button>
 </div>
-<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>VoyageMemo.｜LocalStorage + Cloudinary Version<br><strong>版本：v48｜2026-05-29｜VoyageMemo精品照片書版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
+<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>VoyageMemo.｜LocalStorage + Cloudinary Version<br><strong>版本：v49｜2026-05-29｜照片書故事預覽直覺上傳版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
 
 <!-- Firebase SDK for cross-device sync -->
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -6974,7 +7076,7 @@ function photoBookDay(d){
 
 
 /* ===== Version marker ===== */
-const APP_VERSION = "v48｜2026-05-29｜VoyageMemo精品照片書版";
+const APP_VERSION = "v49｜2026-05-29｜照片書故事預覽直覺上傳版";
 console.log("VoyageMemo.", APP_VERSION);
 
 
@@ -11831,6 +11933,142 @@ function exportPhotoBookPDF(){
   }
   alert("已切換到 PDF 預覽模式。建議使用電腦 Chrome 匯出 PDF，會最接近 VoyageMemo. 旅跡手帳的 A4 小冊子排版。");
   print();
+}
+
+
+/* ===== v49 photo book direct story upload only ===== */
+function photoCountForDay(day){
+  return (data.photos||[]).filter(p=>p.day==day).length;
+}
+
+async function addPhotoToDay(day, file){
+  if(!file)return;
+  const count = photoCountForDay(day);
+  if(count >= 10){
+    toast("這天最多上傳 10 張照片");
+    return;
+  }
+  try{
+    setPhotoUploadStatus(`storyPhotoStatus-${day}`, "上傳中...");
+    const img = await uploadImageFileForPhotoBook(file, {maxWidth:1600, quality:.82}, `storyPhotoStatus-${day}`);
+    const title = $(`storyPhotoTitle-${day}`)?.value || "";
+    const tags = $(`storyPhotoTags-${day}`)?.value || "";
+    const memo = $(`storyPhotoMemo-${day}`)?.value || "";
+    data.photos.unshift({
+      id:uid(),
+      day:day,
+      title:title,
+      memo:memo,
+      tags:tags,
+      src:img.src,
+      publicId:img.publicId,
+      cloudinary:true,
+      width:img.width,
+      height:img.height,
+      bytes:img.bytes
+    });
+    save();
+    toast("照片已加入這天的照片日記");
+  }catch(err){
+    setPhotoUploadStatus(`storyPhotoStatus-${day}`, "");
+    alert("照片上傳失敗：" + err.message);
+  }
+}
+
+function storyBookCoverHtml(){
+  const cover=data.tripCover;
+  if(cover){
+    return `<section class="storyBookCover">
+      <img class="storyBookCoverImage" src="${cover}">
+      <div class="storyBookCoverOverlay"></div>
+      <div class="storyBookCoverText">
+        <span class="eyebrow">VOYAGEMEMO.</span>
+        <h1>${esc(data.meta.title)}</h1>
+        <p>${esc(data.meta.subtitle)}</p>
+        <div class="storyBookCoverMeta">
+          <span>目的地：${esc(data.trip.dest||"未設定")}</span>
+          <span>日期：${short(data.trip.start)} - ${short(data.trip.end)}</span>
+          <span>${data.days.length} 天旅行</span>
+        </div>
+      </div>
+    </section>`;
+  }
+  return `<section class="storyBookCover storyInlineEmpty noPrint">
+    <div>
+      <span class="eyebrow">VOYAGEMEMO.</span>
+      <h1>${esc(data.meta.title)}</h1>
+      <p>${esc(data.meta.subtitle)}</p>
+      <div style="margin-top:16px">
+        <label class="photoInlineUpload">
+          ＋ 上傳整本封面
+          <input type="file" accept="image/*" onchange="addTripCover(this.files[0])">
+        </label>
+        <div class="photoUploadStatus" id="coverUploadStatus"></div>
+      </div>
+    </div>
+  </section>`;
+}
+
+function storyBookDay(d){
+  const plans=sortedPlans(d.key);
+  const photos=(data.photos||[]).filter(p=>p.day==d.key);
+  const cover=data.dayCovers[d.key] || photos[0]?.src || "";
+  const count=photos.length;
+  const canUpload=count<10;
+  return `<section class="storyDay">
+    <div class="storyDayHeader">
+      <div>
+        <span class="eyebrow">${d.title}</span>
+        <h2>${d.label} 的旅行故事</h2>
+        <p>住宿：${hotelFor(d.key)?.name||"未設定"}。今天收錄 ${plans.length} 個行程與 ${photos.length} 張照片。</p>
+      </div>
+      <div class="bookDayBadge">${plans.length} 行程｜${photos.length} 照片</div>
+    </div>
+    <div class="storyDayHero ${cover?"":"storyInlineEmpty"}">
+      ${cover?`<img src="${cover}">`:`<div><div>尚未上傳本日封面圖</div><label class="photoInlineUpload" style="margin-top:10px">＋ 上傳本日封面<input type="file" accept="image/*" onchange="addDayCover('${d.key}',this.files[0])"></label><div class="photoUploadStatus" id="dayCoverStatus-${d.key}"></div></div>`}
+    </div>
+    <div class="storyDayBody">
+      <div>
+        <div class="storyTimelineTitle">今天的路線</div>
+        ${storyTimelineHtml(plans)}
+      </div>
+      <div>
+        <div class="storyPhotoUploadRow">
+          <div>
+            <div class="storyPhotosTitle">今日照片日記</div>
+            <div class="storyPhotoLimit">${count}/10 張照片${canUpload?"，可繼續上傳":"，已達上限"}</div>
+          </div>
+        </div>
+        ${canUpload?`<div class="storyPhotoUploadCard noPrint">
+          <div class="storyPhotoQuickFields">
+            <input id="storyPhotoTitle-${d.key}" placeholder="照片標題，例如：海雲台散步">
+            <input id="storyPhotoTags-${d.key}" placeholder="標籤，例如：🌊 海邊 咖啡">
+          </div>
+          <input id="storyPhotoMemo-${d.key}" placeholder="一句照片日記">
+          <label class="photoInlineUpload">
+            ＋ 上傳照片到 ${d.title}
+            <input type="file" accept="image/*" onchange="addPhotoToDay('${d.key}',this.files[0])">
+          </label>
+          <div class="photoUploadStatus" id="storyPhotoStatus-${d.key}"></div>
+        </div>`:""}
+        ${photos.length?`<div class="storyPhotoLayout">${photos.map(storyBookPhotoCard).join("")}</div>`:`<div class="storyEmpty">還沒有照片日記，先上傳幾張今天的代表照片吧。</div>`}
+      </div>
+    </div>
+  </section>`;
+}
+
+function renderPhotoBook(){
+  $("photoBookView").innerHTML=`<div class="section">
+    <div><h2>📖 照片旅遊書</h2><div class="hint">直接在故事預覽中上傳封面與每日照片；每一天最多 10 張照片。</div></div>
+    <button class="btn soft noPrint" onclick="exportPhotoBookPDF()">匯出 PDF</button>
+  </div>
+
+  <div class="storyBookPreview bookStyle-${data.meta.bookStyle||"fresh"}">
+    <div class="storyBook">
+      ${storyBookCoverHtml()}
+      ${data.days.map(storyBookDay).join("")}
+    </div>
+  </div>`;
 }
 
 init();
