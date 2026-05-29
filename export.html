@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#f4f2ee">
-<title>VoyageMemo. PDF 出版頁 v60</title>
+<title>VoyageMemo. PDF 出版頁 v61</title>
 <style>
 :root{
   --bg:#f4f2ee;
@@ -262,6 +262,20 @@ button.soft{background:#fff9ea;color:#6d5a35}
   .pageNav{
     display:none!important;
   }
+}
+</style>
+
+
+<style>
+/* ===== v61 ensure edit pencil visible on export preview ===== */
+.editableHeadingLine .editTextBtn{
+  flex:0 0 auto!important;
+  opacity:1!important;
+  visibility:visible!important;
+  pointer-events:auto!important;
+}
+@media screen{
+  .editTextBtn{display:inline-grid!important}
 }
 </style>
 
@@ -641,6 +655,36 @@ function printBook(){
     <div class="exportNote">這些出版頁文案會儲存在本機 localStorage，不會改動原本行程、照片或旅行資料結構。</div>
   </div>
 </div>
+
+
+<script>
+/* ===== v61 export edit activation fix ===== */
+/* 修正 v60：可編輯函數已定義但第一次渲染太早，導致小鉛筆沒有出現 */
+(function(){
+  function activateEditableExport(){
+    try{
+      if(typeof data !== "undefined" && data){
+        renderCurrentDataOnly();
+      }else if(typeof loadAndRender === "function"){
+        loadAndRender();
+      }
+      const status = document.getElementById("statusText");
+      if(status && !status.dataset.v61){
+        status.dataset.v61 = "1";
+        status.innerHTML += "<br>出版文字可點頁面標題旁的 ✎ 編輯；設定會存在本機，不改原旅行資料。";
+      }
+    }catch(e){
+      console.warn("v61 export editable activation failed", e);
+    }
+  }
+
+  if(document.readyState === "loading"){
+    document.addEventListener("DOMContentLoaded", activateEditableExport);
+  }else{
+    setTimeout(activateEditableExport, 80);
+  }
+})();
+</script>
 
 </body>
 </html>
