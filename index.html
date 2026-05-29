@@ -814,6 +814,74 @@ html, body { max-width: 100%; overflow-x: hidden; }
   margin-top:4px;
 }
 
+
+/* ===== v24 UI micro adjustments ===== */
+.syncBar{
+  padding:7px 9px !important;
+  border-radius:14px !important;
+  gap:6px !important;
+}
+.syncStatus{
+  font-size:12px !important;
+  line-height:1.35 !important;
+  flex:1 1 150px !important;
+}
+.syncStatus b{font-size:12px !important;}
+.syncDot{
+  width:7px !important;
+  height:7px !important;
+}
+.syncBar .btn{
+  padding:6px 9px !important;
+  font-size:12px !important;
+  box-shadow:0 3px 0 rgba(98,143,128,.18),0 7px 14px rgba(88,72,55,.06) !important;
+}
+.flightStatusBox{
+  margin-top:10px;
+  padding:10px;
+  border:1px solid var(--line);
+  border-radius:16px;
+  background:#fffdf8;
+}
+.flightStatusGrid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+.flightStatusItem{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:9px;
+}
+.flightStatusItem b{
+  display:block;
+  font-size:13px;
+  margin-bottom:4px;
+}
+.flightStatusItem span{
+  display:inline-flex;
+  border-radius:999px;
+  padding:4px 8px;
+  font-size:12px;
+  font-weight:900;
+  background:#f3eee8;
+  color:#6f6257;
+}
+.flightStatusItem span.ok{
+  background:#edf8f3;
+  color:#527b70;
+}
+.flightStatusActions{
+  display:flex;
+  gap:7px;
+  flex-wrap:wrap;
+  margin-top:9px;
+}
+@media(max-width:620px){
+  .flightStatusGrid{grid-template-columns:1fr;}
+}
+
 </style>
 </head>
 <body>
@@ -825,7 +893,7 @@ html, body { max-width: 100%; overflow-x: hidden; }
   <button class="btn blue compact hidden" id="cloudLoadBtn" onclick="loadFromCloud()">載入雲端</button>
   <button class="btn pink compact hidden" id="cloudSaveBtn" onclick="saveToCloudNow()">立即同步</button>
 </div>
-<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v23｜2026-05-29｜日期時間驗證／預算自由付款日版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
+<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v24｜2026-05-29｜航班匯入狀態／UI文案微調版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
 
 <!-- Firebase SDK for cross-device sync -->
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -3249,7 +3317,7 @@ function photoBookDay(d){
 
 
 /* ===== Version marker ===== */
-const APP_VERSION = "v23｜2026-05-29｜日期時間驗證／預算自由付款日版";
+const APP_VERSION = "v24｜2026-05-29｜航班匯入狀態／UI文案微調版";
 console.log("My Travel Book", APP_VERSION);
 
 
@@ -4135,6 +4203,226 @@ function budgetRows(){
 
   data.conns.filter(c=>Number(c.fareTwd||0)>0||Number(c.fareForeign||0)>0).forEach(c=>rows.push(`<tr><td>交通</td><td>—</td><td>${esc(c.mode)}</td><td>行程間交通</td><td>${esc(travelerName(c.payer))}</td><td>${esc(payMethodLabel(c.payMethod))}</td><td>${fmt(c.fareForeign||0)}</td><td>${fmt(c.fareTwd||0)}</td><td></td></tr>`));
   return rows.join("")||'<tr><td colspan="9">尚未新增預算</td></tr>';
+}
+
+
+/* ===== v24 overrides: flight import status/actions, smaller sync copy, friendlier labels ===== */
+
+function v24IsFlightPlan(p){
+  return p?.sourceType==="flight" || p?.memo==="由航班資料帶入";
+}
+function flightHasPlans(){
+  return data.plans.some(v24IsFlightPlan);
+}
+function flightHasBudget(){
+  return data.expenses.some(e=>e.sourceType==="flight" || e.source==="航班");
+}
+function removeFlightPlans(){
+  const ids=data.plans.filter(v24IsFlightPlan).map(p=>p.id);
+  data.plans=data.plans.filter(p=>!ids.includes(p.id));
+  data.conns=data.conns.filter(c=>!ids.includes(c.a)&&!ids.includes(c.b));
+  save();
+  toast("已幫你移除航班行程囉！");
+}
+function addFlightBudget(){
+  if(flightHasBudget())return toast("航班預算已經記過囉！");
+  const out=data.flights.out||{}, back=data.flights.back||{};
+  if(out.no){
+    data.expenses.push({id:uid(),sourceType:"flight",source:"航班",type:"機票",name:`去程 ${out.no}`,payer:"未定",payMethod:"未定",day:"",mode:"TWD",foreign:0,twd:0,memo:"由航班資料帶入，可自行補金額"});
+  }
+  if(back.no){
+    data.expenses.push({id:uid(),sourceType:"flight",source:"航班",type:"機票",name:`回程 ${back.no}`,payer:"未定",payMethod:"未定",day:"",mode:"TWD",foreign:0,twd:0,memo:"由航班資料帶入，可自行補金額"});
+  }
+  if(!out.no && !back.no){
+    data.expenses.push({id:uid(),sourceType:"flight",source:"航班",type:"機票",name:"航班機票",payer:"未定",payMethod:"未定",day:"",mode:"TWD",foreign:0,twd:0,memo:"由航班資料帶入，可自行補金額"});
+  }
+  save();
+  toast("已幫你記一筆航班花費！");
+}
+function removeFlightBudget(){
+  data.expenses=data.expenses.filter(e=>!(e.sourceType==="flight" || e.source==="航班"));
+  save();
+  toast("已幫你移除航班預算囉！");
+}
+function flightStatusHtml(){
+  const hasP=flightHasPlans();
+  const hasB=flightHasBudget();
+  return `<div class="flightStatusBox">
+    <div class="flightStatusGrid">
+      <div class="flightStatusItem"><b>行程狀態</b><span class="${hasP?"ok":""}">${hasP?"已匯入行程":"尚未匯入行程"}</span></div>
+      <div class="flightStatusItem"><b>預算狀態</b><span class="${hasB?"ok":""}">${hasB?"已匯入預算":"尚未匯入預算"}</span></div>
+    </div>
+    <div class="flightStatusActions">
+      ${hasP?`<button class="btn soft compact" onclick="removeFlightPlans()">移除航班行程</button>`:`<button class="btn blue compact" onclick="v16AddFlightsToPlans(true)">匯入首尾行程</button>`}
+      ${hasB?`<button class="btn soft compact" onclick="removeFlightBudget()">移除航班預算</button>`:`<button class="btn pink compact" onclick="addFlightBudget()">記一筆航班花費</button>`}
+    </div>
+  </div>`;
+}
+
+function renderTrip(){
+  const h=editingHotelId?data.hotels.find(x=>x.id==editingHotelId):null;
+  const selectedCity=typeof v15CurrentCity==="function" ? v15CurrentCity() : (data.trip.city||"");
+  const mapObj=typeof v15CountryCityMaps==="function" ? v15CountryCityMaps().cityMap : {};
+  const list=mapObj[data.trip.country]||[];
+  const customCity=list.includes(selectedCity)?"":selectedCity;
+  const showCustom=data.trip.country==="其他" || !list.includes(selectedCity);
+  v18SortHotels();
+
+  $("tripView").innerHTML=`<div class="section"><div><h2>🌏 旅遊地與機酒</h2><div class="hint">旅遊國家會影響整份資料，修改國家前會要求確認與備份。</div></div></div>
+
+  <details class="card"><summary>① 🌏 旅遊地與旅伴</summary><div class="detailBody">
+    <div class="three compactMobile">
+      <div><label>國家 / 區域</label><select id="country" onchange="handleCountrySelectChange()">${countryOptions()}</select></div>
+      <div><label>城市 / 路線</label><select id="citySelect" onchange="updateDestByCity()">${v15CityOptions(selectedCity)}</select></div>
+      <div id="customCityBox" class="full" style="display:${showCustom?"block":"none"}"><label>自訂目的地</label><input id="cityCustom" value="${esc(customCity)}" oninput="updateDestByCity()" placeholder="例：釜山＋慶州"></div>
+    </div>
+    <div class="two">
+      <div><label>幣別</label><input id="currency" value="${esc(data.trip.currency)}" oninput="countryChanged()"></div>
+      <div><label id="rateLabel">匯率：1 ${esc(data.trip.currency)} = TWD</label><input id="rateSetup" type="number" step="0.0001" value="${data.trip.rate}"></div>
+    </div>
+    <div class="three compactMobile">
+      <div><label>出發日</label><input id="start" type="date" value="${data.trip.start}"></div>
+      <div><label>回程日</label><input id="end" type="date" value="${data.trip.end}"></div>
+      <div class="full"><label>匯率查詢</label><button class="btn blue compact" onclick="openRateSearch()">查一下匯率</button></div>
+    </div>
+    <div class="two">
+      <div><label>旅遊人數</label><select id="travelerCount" onchange="previewTravelerCount()">${[1,2,3,4,5,6,7,8].map(n=>`<option value="${n}" ${Number(data.trip.travelerCount)==n?"selected":""}>${n} 人</option>`).join("")}</select></div>
+      <div class="hint" style="align-self:end">目前目的地：${esc(data.trip.dest||"尚未設定")}</div>
+    </div>
+    <div class="grid2" id="travelerBox">${travelerInputs()}</div>
+    <div class="btns"><button class="btn dark" onclick="saveBasic()">存好旅遊地設定</button></div>
+  </div></details>
+
+  <details class="card"><summary>② ✈️ 航班與機場接送</summary><div class="detailBody">
+    <div class="grid2"><div class="box blue"><h3>去程</h3>${flightForm("out")}</div><div class="box pink"><h3>回程</h3>${flightForm("back")}</div></div>
+    ${flightStatusHtml()}
+    <div class="btns"><button class="btn dark" onclick="saveFlights()">存好航班設定</button></div>
+  </div></details>
+
+  <details class="card" ${v16KeepHotelOpen||editingHotelId?"open":""}><summary>③ 🏨 住宿</summary><div class="detailBody">
+    <div class="three compactMobile">
+      <div class="full"><label>住宿名稱</label><input id="hname" value="${esc(h?.name||"")}"></div>
+      <div><label>入住日</label><input id="hstart" type="date" min="${data.trip.start}" max="${data.trip.end}" value="${h?.start||data.trip.start}"></div>
+      <div><label>退房日</label><input id="hend" type="date" min="${data.trip.start}" max="${data.trip.end}" value="${h?.end||data.trip.end}"></div>
+    </div>
+    <label>地址</label><div class="two"><input id="haddr" value="${esc(h?.addr||"")}" placeholder="可手動貼上飯店地址"><button class="btn blue compact" onclick="searchHotelAddress()">查地圖</button></div>
+    <label>備註</label><textarea id="hnote">${esc(h?.note||"")}</textarea>
+    <div class="btns"><button class="btn dark" onclick="saveHotel()">${h?"存好住宿修改":"新增住宿"}</button>${h?'<button class="btn soft" onclick="editingHotelId=null;v16KeepHotelOpen=true;renderTrip()">取消編輯</button>':""}</div>
+    <div class="hotelSortedNote">住宿會依入住日自動排序；可選日期已限制在旅遊日期內。</div>
+    <div class="grid2" style="margin-top:10px">${data.hotels.map(hotelCard).join("")||'<div class="empty">還沒有新增住宿</div>'}</div>
+  </div></details>`;
+}
+
+function saveFlights(){
+  if(!v23ValidateFlightTimes())return;
+
+  ["out","back"].forEach(k=>{
+    const transferEl=$(k+"transfer");
+    data.flights[k]={
+      no:$(k+"no").value,
+      from:$(k+"from").value,
+      to:$(k+"to").value,
+      dep:$(k+"dep").value,
+      arr:$(k+"arr").value,
+      transfer:transferEl?transferEl.value:"",
+      toAirport:$(k+"toAirport")?$(k+"toAirport").value:"",
+      fromAirport:$(k+"fromAirport")?$(k+"fromAirport").value:"",
+      fromTerminal:$(k+"fromTerminal")?$(k+"fromTerminal").value:"",
+      toTerminal:$(k+"toTerminal")?$(k+"toTerminal").value:""
+    };
+  });
+  silentSave();
+  render();
+  v16CollapseTripDetail(1);
+  toast("已幫你存好航班囉！");
+}
+
+function saveBasic(){
+  const selectedCountry=$("country").value;
+  if(selectedCountry!==data.trip.country){
+    v18PendingCountry=selectedCountry;
+    $("countryResetModal").classList.add("show");
+    return;
+  }
+
+  const newStart=$("start").value;
+  const newEnd=$("end").value;
+  if((newStart!==data.trip.start || newEnd!==data.trip.end) && data.days?.length){
+    v19PendingDates={start:newStart,end:newEnd};
+    $("dateResetModal").classList.add("show");
+    return;
+  }
+
+  data.trip.country=$("country").value;
+  const selected = $("citySelect").value;
+  data.trip.city = selected==="自訂" ? $("cityCustom").value.trim() : selected;
+  data.trip.dest = v15DestinationName(data.trip.country, data.trip.city);
+  data.trip.currency=$("currency").value.toUpperCase();
+  data.trip.start=newStart;
+  data.trip.end=newEnd;
+  data.trip.rate=Number($("rateSetup").value||data.trip.rate||1);
+  data.trip.travelerCount=Number($("travelerCount").value||1);
+  data.trip.travelers=[];
+  for(let i=0;i<data.trip.travelerCount;i++) data.trip.travelers.push($("traveler"+i).value||String.fromCharCode(65+i));
+
+  data.days=mkDays(data.trip.start,data.trip.end);
+  v18SortHotels();
+  cur=data.days[0]?.key;
+  silentSave();
+  render();
+  const d=document.querySelectorAll("#tripView details.card")[0];
+  if(d) d.removeAttribute("open");
+  toast("已幫你存好囉！");
+}
+
+function saveExpenseForm(){
+  if(!$("ename").value)return toast("請輸入費用項目");
+  const item={source:"額外費用",type:$("etype").value,name:$("ename").value,payer:$("epayer").value,payMethod:$("epm").value,day:$("eday").value,mode:"foreign",foreign:Number($("eforeign").value||0),twd:Number($("etwd").value||0),memo:$("ememo").value};
+  if(editingExpenseId){
+    Object.assign(data.expenses.find(e=>e.id==editingExpenseId),item);
+    editingExpenseId=null;
+  }else{
+    data.expenses.push({id:uid(),...item});
+  }
+  save();
+  toast("已幫你記好這筆花費！");
+}
+
+function renderBudget(){
+  const planTotal=data.plans
+    .filter(p=>!(p.sourceType==="hotel" || p.hotelId || (p.type==="住宿" && p.memo==="由住宿資料帶入")))
+    .reduce((s,x)=>s+moneyTwd(x),0);
+  const expTotal=data.expenses.reduce((s,x)=>s+moneyTwd(x),0);
+  const taxiTotal=data.conns.reduce((s,x)=>s+Number(x.fareTwd||0),0);
+  $("budgetView").innerHTML=`<div class="section"><div><h2>預算總覽</h2><div class="hint">預算付款日可早於出發日或晚於回程日；住宿行程節點不重複列入預算。</div></div><button class="iconBtn smallIcon" onclick="clearExpenseForm()">＋</button></div><div class="card"><div class="three"><div><label>費用類型</label><select id="etype"><option>機票</option><option>住宿</option><option>網路</option><option>旅平險</option><option>交通票券</option><option>景點票券</option><option>餐飲</option><option>購物</option><option>其他</option></select></div><div><label>項目</label><input id="ename"></div><div><label>付款人</label><select id="epayer">${optsPayer("未定")}</select></div></div><div class="four"><div><label>${esc(data.trip.currency)} 金額</label><input id="eforeign" type="number" oninput="syncExpenseMoney('f')"></div><div><label>TWD</label><input id="etwd" type="number" oninput="syncExpenseMoney('t')"></div><div><label>付款方式</label><select id="epm">${optsPayMethod("未定")}</select></div><div><label>付款日</label><input id="eday" type="date"><div class="freeDateHint">付款日可留空，也可以早於出發日。</div></div></div><label>備註</label><input id="ememo"><div class="btns"><button class="btn dark" onclick="saveExpenseForm()">${editingExpenseId?"存好預算":"記一筆花費"}</button>${editingExpenseId?'<button class="btn soft" onclick="clearExpenseForm()">取消編輯 / 新增</button>':""}<button class="btn blue" onclick="openRateSearch()">查一下匯率</button></div></div><div class="stats"><div class="stat"><span>額外費用 TWD</span><strong>${fmt(expTotal)}</strong></div><div class="stat"><span>行程 TWD</span><strong>${fmt(planTotal)}</strong></div><div class="stat"><span>計程車 TWD</span><strong>${fmt(taxiTotal)}</strong></div><div class="stat"><span>總 TWD</span><strong>${fmt(expTotal+planTotal+taxiTotal)}</strong></div></div><div class="table"><table><thead><tr><th>來源</th><th>日期</th><th>類型</th><th>項目</th><th>付款人</th><th>付款方式</th><th>${esc(data.trip.currency)}</th><th>TWD</th><th></th></tr></thead><tbody>${budgetRows()}</tbody></table></div>`;
+  if(editingExpenseId)fillExpenseForm(editingExpenseId);
+}
+
+function setSyncStatus(kind,title,desc){
+  const el=$("syncStatus");
+  if(!el)return;
+  const dotClass = kind==="on"?"on":kind==="warn"?"warn":"off";
+  const shortTitle = String(title||"").replace("已同步雲端","同步好了").replace("同步中","同步中");
+  el.innerHTML = `<span class="syncDot ${dotClass}"></span><b>${esc(shortTitle)}</b>${desc?`<br>${esc(desc)}`:""}`;
+}
+
+async function saveToCloudNow(){
+  if(!fbUser)return toast("請先登入 Google");
+  const email=(fbUser.email||"").toLowerCase();
+  if(email!==ALLOWED_EMAIL)return toast("這個帳號還沒授權同步");
+
+  try{
+    setSyncStatus("warn","同步中","正在存到雲端...");
+    const now=Date.now();
+    lastCloudUpdatedAt = now;
+    const payload = cloudPayload();
+    payload.updatedAtClient = now;
+    await tripDocRef().set(payload,{merge:true});
+    localStorage.setItem("travel_book_v22_cloud_backup", JSON.stringify(data));
+    setSyncStatus("on","同步好了",`${new Date().toLocaleTimeString("zh-TW",{hour:"2-digit",minute:"2-digit"})}`);
+  }catch(err){
+    setSyncStatus("off","同步失敗",err.message || "請檢查 Firestore Rules 與白名單。");
+  }
 }
 
 init();
