@@ -1054,7 +1054,7 @@ html, body { max-width: 100%; overflow-x: hidden; }
   <button class="btn blue compact hidden" id="cloudLoadBtn" onclick="loadFromCloud()">載入雲端</button>
   <button class="btn pink compact hidden" id="cloudSaveBtn" onclick="saveToCloudNow()">立即同步</button>
 </div>
-<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v26｜2026-05-29｜行程簡化／獨立預算／同步狀態版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
+<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v28｜2026-05-29｜行程資料結構重構／來源同步版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
 
 <!-- Firebase SDK for cross-device sync -->
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -3478,7 +3478,7 @@ function photoBookDay(d){
 
 
 /* ===== Version marker ===== */
-const APP_VERSION = "v26｜2026-05-29｜行程簡化／獨立預算／同步狀態版";
+const APP_VERSION = "v28｜2026-05-29｜行程資料結構重構／來源同步版";
 console.log("My Travel Book", APP_VERSION);
 
 
@@ -5031,6 +5031,840 @@ function ensureAccountMenuSyncLine(){
   }
   updateAccountSyncLine();
 }
+
+
+/* ===== v27 type stability + currentDay UX; no new id/source structure ===== */
+let currentDay = cur || data?.days?.[0]?.key || data?.trip?.start || "";
+
+const PLAN_TYPES = ["景點","餐廳","咖啡廳","購物","交通","航班","住宿","雨天備案","其他"];
+
+function normalizePlanType(type){
+  if(!type || type==="undefined" || type==="null") return "其他";
+  const t=String(type).trim();
+  if(!t) return "其他";
+  if(PLAN_TYPES.includes(t)) return t;
+  return "其他";
+}
+
+function budgetTypeFromPlanType(type){
+  const t=normalizePlanType(type);
+  const map={
+    "景點":"景點票券",
+    "餐廳":"餐飲",
+    "咖啡廳":"餐飲",
+    "購物":"購物",
+    "交通":"交通票券",
+    "航班":"機票",
+    "住宿":"住宿",
+    "雨天備案":"其他",
+    "其他":"其他"
+  };
+  return map[t] || "其他";
+}
+
+function normalizeAllPlanTypes(){
+  (data.plans||[]).forEach(p=>{
+    p.type = normalizePlanType(p.type);
+  });
+}
+
+function setCurrentDay(day, options={}){
+  if(day && v23InTripRange(day)){
+    currentDay = day;
+    cur = day;
+  }else if(data.days?.[0]?.key){
+    currentDay = data.days[0].key;
+    cur = currentDay;
+  }
+
+  if(options.render !== false){
+    renderDays();
+    if(view==="planner") renderPlanner({preserveForm: options.preserveForm});
+  }
+}
+
+function getPlanFormDraft(){
+  if(!$("pday")) return null;
+  return {
+    day:$("pday")?.value || currentDay,
+    start:$("ps")?.value || "",
+    end:$("pe")?.value || "",
+    type:normalizePlanType($("ptype")?.value || "景點"),
+    name:$("pname")?.value || "",
+    note:$("pnote")?.value || "",
+    memo:$("pmemo")?.value || ""
+  };
+}
+
+function applyPlanFormDraft(draft){
+  if(!draft || !$("pday")) return;
+  $("pday").value = draft.day || currentDay;
+  $("ps").value = draft.start || "";
+  $("pe").value = draft.end || "";
+  $("ptype").value = normalizePlanType(draft.type);
+  $("pname").value = draft.name || "";
+  $("pnote").value = draft.note || "";
+  $("pmemo").value = draft.memo || "";
+  v21ApplyLockedNameState();
+}
+
+function renderDays(){
+  normalizeAllPlanTypes();
+  $("days").innerHTML=data.days.map(d=>{
+    let h=hotelFor(d.key),n=data.plans.filter(p=>p.day==d.key).length;
+    return `<div class="day ${d.key==currentDay?"active":""}" onclick="setCurrentDay('${d.key}',{preserveForm:true});go('planner')"><b>${d.title}｜${d.label}</b><span>${n} 行程｜住宿：${h?esc(h.name):"未設定"}</span></div>`;
+  }).join("");
+}
+
+function renderSide(){
+  const layout=document.querySelector(".layout");
+  const panel=document.querySelector(".panel");
+  if(layout){
+    layout.classList.toggle("withCalendar", view==="planner");
+    layout.classList.toggle("noCalendar", view!=="planner");
+    if(window.innerWidth>620){
+      layout.style.gridTemplateColumns = view==="planner" ? "280px 1fr" : "1fr";
+    }else{
+      layout.style.gridTemplateColumns = "";
+    }
+  }
+  if(panel) panel.style.display = view==="planner" ? "" : "none";
+  renderDays();
+  const btns = document.querySelector(".panel .btns");
+  if(btns) btns.innerHTML = `<button class="btn danger compact" onclick="clearAllPlans()">清除所有行程</button>`;
+}
+
+function go(v){
+  view=v;
+  views.forEach(x=>$(x[0]+"View").classList.toggle("hidden",x[0]!=v));
+  renderNav();
+  if(v==="planner"){
+    if(!currentDay) currentDay=cur||data.days?.[0]?.key;
+    cur=currentDay;
+  }
+  render();
+  scrollTo(0,0);
+}
+
+function optsPlanTypes(selected="景點"){
+  const safe=normalizePlanType(selected);
+  return PLAN_TYPES.map(t=>`<option value="${t}" ${safe===t?"selected":""}>${t}</option>`).join("");
+}
+
+function createBudgetFromPlanSnapshot(plan){
+  // 不建立關聯 id/sourceId，只複製當下行程文字成一筆可獨立編輯的預算。
+  if(!plan || !plan.name)return;
+  const pType=normalizePlanType(plan.type);
+  data.expenses.push({
+    id:uid(),
+    source:"行程",
+    type:budgetTypeFromPlanType(pType),
+    name:plan.name,
+    payer:"未定",
+    payMethod:"未定",
+    day:plan.day || "",
+    mode:"TWD",
+    foreign:0,
+    twd:0,
+    memo:`由${pType}行程建立，可自行補金額`
+  });
+}
+
+function renderPlanner(options={}){
+  normalizeAllPlanTypes();
+  const draft = options.preserveForm ? getPlanFormDraft() : null;
+  cur=currentDay || cur || data.days?.[0]?.key;
+  normalizePlanTimes(cur);
+  let plans=sortedPlans(cur);
+  $("plannerView").innerHTML=`<div class="section"><div><h2>${dayTitle(cur)}</h2><div class="hint">住宿：${hotelFor(cur)?.name||"未設定"}。行程依開始時間排序。</div></div><button class="iconBtn smallIcon" onclick="clearPlanForm()">＋</button></div>
+  <details class="card" ${(editingPlanId||v16PendingSpotId||draft)?"open":""}><summary>${editingPlanId?"編輯行程":"＋ 新增行程"}</summary><div class="detailBody">
+    <div class="planFormLite">
+      <div class="three compactMobile">
+        <div class="full"><label>日期</label><select id="pday" onchange="handlePlanDayChange(this.value)">${optsDays(cur)}</select></div>
+        <div><label>開始</label><input id="ps" type="time" value="10:00"></div>
+        <div><label>結束</label><input id="pe" type="time" value="11:30"></div>
+      </div>
+      <div><label>分類</label><select id="ptype">${optsPlanTypes("景點")}</select></div>
+      <div><label>行程名稱</label><input id="pname"></div>
+      <div id="lockedNameHint" class="lockedFieldHint" style="display:none">此行程由航班／住宿／口袋景點帶入，名稱不可編輯；備註可以自由修改。</div>
+      <label>注意事項</label><textarea id="pnote"></textarea>
+      <label>備註</label><textarea id="pmemo"></textarea>
+      <div class="planBudgetHint">新增行程時會自動在「預算」建立一筆花費；之後可到預算頁自行編輯或刪除，不會與行程連動。</div>
+      <div class="btns"><button class="btn dark" onclick="savePlanForm()">${editingPlanId?"存好行程":"加入行程"}</button>${editingPlanId||v16PendingSpotId?'<button class="btn soft" onclick="clearPlanForm()">取消編輯 / 新增</button>':""}</div>
+    </div>
+  </div></details>
+  <div id="pcards">${planCards(plans)}</div>`;
+
+  if(editingPlanId) fillPlanForm(editingPlanId);
+  else if(v16PendingSpotId) v16FillPendingSpot();
+  else if(draft) applyPlanFormDraft({...draft, day:cur});
+  else if($("pday")) $("pday").value=cur;
+
+  v21ApplyLockedNameState();
+}
+
+function handlePlanDayChange(day){
+  const draft=getPlanFormDraft();
+  draft.day=day;
+  setCurrentDay(day,{render:false});
+  renderPlanner({preserveForm:true});
+  applyPlanFormDraft(draft);
+}
+
+function fillPlanForm(id){
+  let p=data.plans.find(x=>x.id==id);
+  if(!p)return;
+  p.type=normalizePlanType(p.type);
+  $("pday").value=p.day||currentDay||cur;
+  $("ps").value=p.start||"";
+  $("pe").value=p.end||"";
+  $("ptype").value=p.type;
+  $("pname").value=p.name||"";
+  $("pnote").value=p.note||"";
+  $("pmemo").value=p.memo||"";
+  v21ApplyLockedNameState();
+}
+
+function v16FillPendingSpot(){
+  const s=data.spots.find(x=>x.id==v16PendingSpotId);
+  if(!s)return;
+  const safeType=normalizePlanType(["景點","餐廳","咖啡廳","購物","其他"].includes(s.type)?s.type:"景點");
+  $("pday").value=s.day||currentDay||cur;
+  $("ptype").value=safeType;
+  $("pname").value=s.name;
+  $("pnote").value=s.memo;
+  $("pmemo").value="由口袋景點帶入";
+  $("pname").readOnly=true;
+  $("pname").classList.add("lockedInput");
+  $("lockedNameHint").style.display="block";
+}
+
+function savePlanForm(){
+  if(!$("pname").value)return toast("請輸入行程名稱");
+  if(!v23ValidatePlanForm())return;
+
+  const safeType=normalizePlanType($("ptype").value);
+  let item={
+    day:$("pday").value,
+    start:$("ps").value,
+    end:$("pe").value,
+    type:safeType,
+    name:$("pname").value,
+    mode:"foreign",
+    foreign:0,
+    twd:0,
+    payer:"未定",
+    payMethod:"未定",
+    note:$("pnote").value,
+    memo:$("pmemo").value,
+    adjusted:false
+  };
+  let planId=editingPlanId;
+  let isNew=false;
+
+  if(editingPlanId){
+    const existing=data.plans.find(p=>p.id==editingPlanId);
+    if(existing?.lockedName){
+      item.name=existing.name;
+      item.sourceType=existing.sourceType;
+      item.lockedName=true;
+      if(existing.hotelId)item.hotelId=existing.hotelId;
+    }
+    Object.assign(existing,item);
+    existing.type=normalizePlanType(existing.type);
+    editingPlanId=null;
+  }else{
+    isNew=true;
+    planId=uid();
+    data.plans.push({id:planId,...item});
+  }
+
+  if(v16PendingSpotId){
+    const spot=data.spots.find(s=>s.id==v16PendingSpotId);
+    const p=data.plans.find(x=>x.id==planId);
+    if(spot && p){
+      spot.planId=planId;
+      p.sourceType="spot";
+      p.lockedName=true;
+      p.name=spot.name;
+      p.type=normalizePlanType(p.type || spot.type || "景點");
+      p.memo=p.memo || "由口袋景點帶入";
+    }
+    v16PendingSpotId=null;
+  }
+
+  const savedPlan=data.plans.find(x=>x.id==planId);
+  if(isNew && savedPlan){
+    savedPlan.type=normalizePlanType(savedPlan.type);
+    createBudgetFromPlanSnapshot(savedPlan);
+  }
+
+  setCurrentDay(item.day,{render:false});
+  save();
+  toast(isNew ? "行程加好了，也幫你先記一筆花費！" : "已幫你存好行程囉！");
+}
+
+function planCards(plans){
+  normalizeAllPlanTypes();
+  if(!plans.length)return`<div class="empty">這天還沒有行程</div>`;
+  let html="";
+  plans.forEach((p,i)=>{
+    p.type=normalizePlanType(p.type);
+    if(i>0)html+=connHtml(plans[i-1],p);
+    html+=`<div class="card plan"><div class="section"><div><div class="time">${p.start||"--:--"}-${p.end||"--:--"}</div><div class="place">${activityIcon(p.type)} ${esc(p.name)}</div><div class="tags planCardMeta"><span class="tag">${esc(p.type)}</span>${p.sourceType?`<span class="tag blue">${p.sourceType==="flight"?"航班帶入":p.sourceType==="hotel"?"住宿帶入":p.sourceType==="spot"?"口袋景點帶入":"來源帶入"}</span>`:""}${p.adjusted?'<span class="tag green">已依交通調整</span>':""}</div></div><div><button class="small" onclick="map('${encodeURIComponent(p.name+' '+data.trip.dest)}')">地圖</button><button class="small" onclick="editPlan('${p.id}')">編輯</button><button class="small" onclick="delPlan('${p.id}')">刪除</button></div></div><div class="grid2"><div class="box pink"><b>注意</b><br>${esc(p.note||"")}</div><div class="box blue"><b>備註</b><br>${esc(p.memo||"")}</div></div></div>`;
+  });
+  return html;
+}
+
+function v16AddPlanNode(item){
+  if(!item.day||!item.name)return null;
+  item.type=normalizePlanType(item.type);
+  if(v16PlanExists(item.day,item.name,item.start)) return null;
+  const plan={id:uid(),mode:"foreign",foreign:0,twd:0,payer:"未定",payMethod:"未定",note:"",memo:"",adjusted:false,...item};
+  plan.type=normalizePlanType(plan.type);
+  data.plans.push(plan);
+  createBudgetFromPlanSnapshot(plan);
+  return plan.id;
+}
+
+function clearPlanForm(){
+  editingPlanId=null;
+  v16PendingSpotId=null;
+  renderPlanner();
+}
+
+function v23ValidatePlanForm(){
+  const day=$("pday")?.value || "";
+  const start=$("ps")?.value || "";
+  const end=$("pe")?.value || "";
+  const type=normalizePlanType($("ptype")?.value || "其他");
+
+  if(!v23InTripRange(day)){
+    alert(`行程日期必須在旅遊日期區間內：${data.trip.start} ～ ${data.trip.end}`);
+    return false;
+  }
+
+  const flexibleTypes=["交通","航班","住宿"];
+  if(!flexibleTypes.includes(type)){
+    if(!start || !end){
+      alert("景點／餐廳／購物等一般行程需填寫開始與結束時間。");
+      return false;
+    }
+  }
+
+  if(start && end){
+    const s=v23TimeToMin(start), e=v23TimeToMin(end);
+    if(e<s){
+      alert("行程結束時間不可早於開始時間。");
+      return false;
+    }
+  }
+  return true;
+}
+
+function useSpot(id){
+  let s=data.spots.find(x=>x.id==id);
+  if(!s)return;
+  setCurrentDay(s.day||currentDay||cur,{render:false});
+  v16PendingSpotId=id;
+  editingPlanId=null;
+  go("planner");
+  setTimeout(()=>{
+    const form=document.querySelector("#plannerView details.card");
+    if(form)form.setAttribute("open","");
+    v16FillPendingSpot();
+    scrollTo(0,0);
+  },80);
+}
+
+function saveSpot(){
+  if(!$("sn").value)return toast("請輸入名稱");
+  const item={name:$("sn").value,type:normalizePlanType($("st").value),day:$("sd").value,addr:$("sa").value,memo:$("sm").value};
+  let id=editingSpotId;
+  let spot;
+
+  if(id){
+    spot=data.spots.find(x=>x.id==id);
+    Object.assign(spot,item);
+    editingSpotId=null;
+  }else{
+    id=uid();
+    spot={id,...item,source:"手動"};
+    data.spots.push(spot);
+  }
+
+  if($("sToPlan").value==="yes"){
+    const day=item.day||currentDay||cur;
+    const planId=uid();
+    const p={id:planId,sourceType:"spot",lockedName:true,day,start:$("sStart").value,end:$("sEnd").value,type:normalizePlanType(item.type),name:item.name,mode:"foreign",foreign:0,twd:0,payer:"未定",payMethod:"未定",note:item.memo,memo:"由口袋景點帶入",adjusted:false};
+    data.plans.push(p);
+    createBudgetFromPlanSnapshot(p);
+    spot.planId=planId;
+  }
+  save();
+}
+
+function render(){
+  normalizeAllPlanTypes();
+  if(!currentDay) currentDay=cur||data.days?.[0]?.key||data.trip?.start;
+  cur=currentDay;
+  renderHead();renderSide();renderTrip();renderPlanner();renderSpots();renderBudget();renderPacking();renderPhotoBook();renderHelp();
+}
+
+
+/* ===== v28 data structure refactor: plan id/source + flight/hotel upsert sync ===== */
+/*
+新行程資料結構：
+{
+  id: "唯一值，可為 uid() 或系統產生的穩定 key",
+  source: "manual" | "flight" | "hotel",
+  sourceType: "舊版相容欄位，保留不破壞既有 UI",
+  day, start, end, type, name, note, memo, ...
+}
+
+同步規則：
+- flight 來源行程使用固定 id，例如 flight-out-airport、flight-out-plane。
+- hotel 來源行程使用 hotel.id + 日期 + 節點，例如 hotel-{hotelId}-morning-{date}。
+- 再次匯入或修改來源資料時，用 id 找到既有行程並更新，不新增重複行程。
+- 舊資料若沒有 id/source，normalize 時補上 id，source 預設 manual。
+*/
+
+function v28PlanId(prefix, parts){
+  return [prefix].concat(parts||[]).map(x=>String(x||"").replace(/[^\w\u4e00-\u9fa5-]/g,"-")).join("-");
+}
+
+function v28NormalizeSourceFromLegacy(p){
+  if(p.source) return p.source;
+  if(p.sourceType==="flight" || p.memo==="由航班資料帶入") return "flight";
+  if(p.sourceType==="hotel" || p.hotelId || p.memo==="由住宿資料帶入") return "hotel";
+  return "manual";
+}
+
+function v28NormalizePlans(){
+  const seen = new Set();
+  (data.plans||[]).forEach((p, idx)=>{
+    if(!p.id){
+      p.id = uid();
+    }
+    if(seen.has(p.id)){
+      p.id = uid();
+    }
+    seen.add(p.id);
+    p.source = v28NormalizeSourceFromLegacy(p);
+    if(!p.sourceType && p.source!=="manual") p.sourceType = p.source;
+    if(!p.type || p.type==="undefined") p.type = normalizePlanType ? normalizePlanType(p.type) : "其他";
+  });
+}
+
+function v28UpsertPlan(plan){
+  if(!plan || !plan.id) return null;
+  plan.type = normalizePlanType ? normalizePlanType(plan.type) : (plan.type || "其他");
+  plan.source = plan.source || "manual";
+  if(plan.source !== "manual") plan.sourceType = plan.source;
+  const existing = data.plans.find(p=>p.id===plan.id);
+  if(existing){
+    // 保留使用者可編輯欄位：note/memo 若既有有內容，優先保留；來源資料只更新核心資訊。
+    const keepNote = existing.note;
+    const keepMemo = existing.memo;
+    Object.assign(existing, plan);
+    if(keepNote && keepNote !== plan.note) existing.note = keepNote;
+    if(keepMemo && keepMemo !== plan.memo) existing.memo = keepMemo;
+    existing.source = plan.source;
+    existing.sourceType = plan.sourceType || plan.source;
+    existing.lockedName = plan.lockedName ?? existing.lockedName;
+    return existing.id;
+  }else{
+    const newPlan = {
+      mode:"foreign",
+      foreign:0,
+      twd:0,
+      payer:"未定",
+      payMethod:"未定",
+      note:"",
+      memo:"",
+      adjusted:false,
+      ...plan
+    };
+    data.plans.push(newPlan);
+    if(typeof createBudgetFromPlanSnapshot==="function"){
+      createBudgetFromPlanSnapshot(newPlan);
+    }
+    return newPlan.id;
+  }
+}
+
+function v28DeletePlansBySource(source, predicate){
+  const removedIds = data.plans
+    .filter(p=>p.source===source && (!predicate || predicate(p)))
+    .map(p=>p.id);
+  data.plans = data.plans.filter(p=>!removedIds.includes(p.id));
+  data.conns = (data.conns||[]).filter(c=>!removedIds.includes(c.a) && !removedIds.includes(c.b));
+}
+
+function v24IsFlightPlan(p){
+  return p?.source==="flight" || p?.sourceType==="flight" || p?.memo==="由航班資料帶入";
+}
+
+function flightHasPlans(){
+  v28NormalizePlans();
+  return data.plans.some(v24IsFlightPlan);
+}
+
+function flightPlanTemplates(){
+  const out=data.flights.out||{}, back=data.flights.back||{};
+  const outDepDay=v16DateFromDT(out.dep)||data.trip.start;
+  const outArrDay=v16DateFromDT(out.arr)||outDepDay;
+  const backDepDay=v16DateFromDT(back.dep)||data.trip.end;
+  const backArrDay=v16DateFromDT(back.arr)||backDepDay;
+
+  return [
+    {
+      id:"flight-out-to-airport",
+      source:"flight",
+      sourceType:"flight",
+      lockedName:true,
+      day:outDepDay,
+      start:"14:00",
+      end:v16TimeFromDT(out.dep),
+      type:"交通",
+      name:`前往 ${out.from||"出發機場"}`,
+      note:out.toAirport||out.transfer||"",
+      memo:"由航班資料帶入"
+    },
+    {
+      id:"flight-out-plane",
+      source:"flight",
+      sourceType:"flight",
+      lockedName:true,
+      day:outDepDay,
+      start:v16TimeFromDT(out.dep),
+      end:v16TimeFromDT(out.arr),
+      type:"航班",
+      name:`搭乘去程航班 ${out.no||""}`.trim() || "搭乘去程航班",
+      note:`${out.from||""} → ${out.to||""}`,
+      memo:"由航班資料帶入"
+    },
+    {
+      id:"flight-out-arrival-transfer",
+      source:"flight",
+      sourceType:"flight",
+      lockedName:true,
+      day:outArrDay,
+      start:v16TimeFromDT(out.arr),
+      end:"",
+      type:"交通",
+      name:`從 ${out.to||"降落機場"} 前往飯店／市區`,
+      note:out.fromAirport||"",
+      memo:"由航班資料帶入"
+    },
+    {
+      id:"flight-back-to-airport",
+      source:"flight",
+      sourceType:"flight",
+      lockedName:true,
+      day:backDepDay,
+      start:"",
+      end:v16TimeFromDT(back.dep),
+      type:"交通",
+      name:`從飯店前往 ${back.from||"回程機場"}`,
+      note:back.toAirport||back.transfer||"",
+      memo:"由航班資料帶入"
+    },
+    {
+      id:"flight-back-plane",
+      source:"flight",
+      sourceType:"flight",
+      lockedName:true,
+      day:backDepDay,
+      start:v16TimeFromDT(back.dep),
+      end:v16TimeFromDT(back.arr),
+      type:"航班",
+      name:`搭乘回程航班 ${back.no||""}`.trim() || "搭乘回程航班",
+      note:`${back.from||""} → ${back.to||""}`,
+      memo:"由航班資料帶入"
+    },
+    {
+      id:"flight-back-home-transfer",
+      source:"flight",
+      sourceType:"flight",
+      lockedName:true,
+      day:backArrDay,
+      start:v16TimeFromDT(back.arr),
+      end:"",
+      type:"交通",
+      name:`從 ${back.to||"抵達機場"} 回家`,
+      note:back.fromAirport||"",
+      memo:"由航班資料帶入"
+    }
+  ];
+}
+
+function v16AddFlightsToPlans(doRender=true){
+  v28NormalizePlans();
+  flightPlanTemplates().forEach(p=>v28UpsertPlan(p));
+  if(doRender) save();
+}
+
+function removeFlightPlans(){
+  v28DeletePlansBySource("flight");
+  save();
+  toast("已幫你移除航班行程囉！");
+}
+
+function saveFlights(){
+  if(!v23ValidateFlightTimes())return;
+
+  ["out","back"].forEach(k=>{
+    const transferEl=$(k+"transfer");
+    data.flights[k]={
+      no:$(k+"no").value,
+      from:$(k+"from").value,
+      to:$(k+"to").value,
+      dep:$(k+"dep").value,
+      arr:$(k+"arr").value,
+      transfer:transferEl?transferEl.value:"",
+      toAirport:$(k+"toAirport")?$(k+"toAirport").value:"",
+      fromAirport:$(k+"fromAirport")?$(k+"fromAirport").value:"",
+      fromTerminal:$(k+"fromTerminal")?$(k+"fromTerminal").value:"",
+      toTerminal:$(k+"toTerminal")?$(k+"toTerminal").value:""
+    };
+  });
+
+  // 若航班行程已匯入，修改航班時直接更新既有行程，不新增重複資料。
+  if(flightHasPlans()){
+    flightPlanTemplates().forEach(p=>v28UpsertPlan(p));
+  }
+
+  silentSave();
+  render();
+  v16CollapseTripDetail(1);
+  toast("已幫你存好航班囉！");
+}
+
+function hotelPlanTemplates(h){
+  if(!h || !h.id || !h.start || !h.end || !h.name) return [];
+  const arr = [];
+  arr.push({
+    id:v28PlanId("hotel",[h.id,"checkin",h.start]),
+    source:"hotel",
+    sourceType:"hotel",
+    hotelId:h.id,
+    lockedName:true,
+    day:h.start,
+    start:"15:00",
+    end:"15:30",
+    type:"住宿",
+    name:`入住 ${h.name}`,
+    note:h.addr||h.note||"",
+    memo:"由住宿資料帶入"
+  });
+
+  v16DateRange(v16DateAdd(h.start,1), h.end).forEach(day=>{
+    arr.push({
+      id:v28PlanId("hotel",[h.id,"morning",day]),
+      source:"hotel",
+      sourceType:"hotel",
+      hotelId:h.id,
+      lockedName:true,
+      day,
+      start:"09:00",
+      end:"09:10",
+      type:"住宿",
+      name:`從 ${h.name} 出發`,
+      note:h.addr||"",
+      memo:"由住宿資料帶入"
+    });
+  });
+
+  v16DateRange(h.start, v16DateAdd(h.end,-1)).forEach(day=>{
+    arr.push({
+      id:v28PlanId("hotel",[h.id,"night",day]),
+      source:"hotel",
+      sourceType:"hotel",
+      hotelId:h.id,
+      lockedName:true,
+      day,
+      start:"21:00",
+      end:"21:10",
+      type:"住宿",
+      name:`回到 ${h.name}`,
+      note:h.addr||"",
+      memo:"由住宿資料帶入"
+    });
+  });
+  return arr;
+}
+
+function hotelHasPlans(id){
+  v28NormalizePlans();
+  return data.plans.some(p=>p.source==="hotel" && p.hotelId==id);
+}
+
+function addHotelPlans(id){
+  const h=data.hotels.find(x=>x.id==id);
+  if(!h)return;
+  v28NormalizePlans();
+  // 先移除這間住宿舊節點，再以新版住宿日期重建，避免改日期後殘留舊節點。
+  v28DeletePlansBySource("hotel", p=>p.hotelId==id);
+  hotelPlanTemplates(h).forEach(p=>v28UpsertPlan(p));
+  save();
+  toast("已幫你同步住宿行程！");
+}
+
+function removeHotelPlans(id){
+  v28DeletePlansBySource("hotel", p=>p.hotelId==id);
+  save();
+  toast("已移除住宿行程");
+}
+
+function saveHotel(){
+  if(!$("hname").value)return toast("請輸入住宿名稱");
+  let start=$("hstart").value;
+  let end=$("hend").value;
+  if(!v23ValidateHotelDates(start,end))return;
+
+  const item={name:$("hname").value,start,end,addr:$("haddr").value,note:$("hnote").value};
+  let hotelId=editingHotelId;
+  let isNew=false;
+
+  if(editingHotelId){
+    Object.assign(data.hotels.find(x=>x.id==editingHotelId),item);
+    editingHotelId=null;
+  }else{
+    isNew=true;
+    hotelId=uid();
+    data.hotels.push({id:hotelId,...item});
+  }
+
+  v18SortHotels();
+
+  // 若此住宿行程已匯入，修改住宿時同步更新既有行程，不新增重複資料。
+  if(!isNew && hotelHasPlans(hotelId)){
+    addHotelPlans(hotelId);
+  }else{
+    v16KeepHotelOpen=true;
+    silentSave();
+    render();
+  }
+
+  v16OpenTripDetail(2);
+
+  if(isNew){
+    v21PendingHotelId=hotelId;
+    $("hotelOptionModal").classList.add("show");
+  }else{
+    toast("已幫你存好住宿囉！");
+  }
+}
+
+function delHotel(id){
+  data.hotels=data.hotels.filter(h=>h.id!=id);
+  // 刪除住宿時，自動刪除對應住宿行程。
+  v28DeletePlansBySource("hotel", p=>p.hotelId==id);
+  // 預算暫時維持獨立，不自動刪，避免誤刪已修改金額的花費。
+  save();
+}
+
+function savePlanForm(){
+  if(!$("pname").value)return toast("請輸入行程名稱");
+  if(!v23ValidatePlanForm())return;
+
+  const safeType=normalizePlanType($("ptype").value);
+  let item={
+    day:$("pday").value,
+    start:$("ps").value,
+    end:$("pe").value,
+    type:safeType,
+    name:$("pname").value,
+    source:"manual",
+    mode:"foreign",
+    foreign:0,
+    twd:0,
+    payer:"未定",
+    payMethod:"未定",
+    note:$("pnote").value,
+    memo:$("pmemo").value,
+    adjusted:false
+  };
+  let planId=editingPlanId;
+  let isNew=false;
+
+  if(editingPlanId){
+    const existing=data.plans.find(p=>p.id==editingPlanId);
+    if(existing?.lockedName){
+      item.name=existing.name;
+      item.source=existing.source || v28NormalizeSourceFromLegacy(existing);
+      item.sourceType=existing.sourceType;
+      item.lockedName=true;
+      if(existing.hotelId)item.hotelId=existing.hotelId;
+    }
+    Object.assign(existing,item);
+    existing.type=normalizePlanType(existing.type);
+    editingPlanId=null;
+  }else{
+    isNew=true;
+    planId=uid();
+    data.plans.push({id:planId,...item});
+  }
+
+  if(v16PendingSpotId){
+    const spot=data.spots.find(s=>s.id==v16PendingSpotId);
+    const p=data.plans.find(x=>x.id==planId);
+    if(spot && p){
+      spot.planId=planId;
+      p.source="manual";
+      p.sourceType="spot";
+      p.lockedName=true;
+      p.name=spot.name;
+      p.type=normalizePlanType(p.type || spot.type || "景點");
+      p.memo=p.memo || "由口袋景點帶入";
+    }
+    v16PendingSpotId=null;
+  }
+
+  const savedPlan=data.plans.find(x=>x.id==planId);
+  if(isNew && savedPlan){
+    savedPlan.type=normalizePlanType(savedPlan.type);
+    createBudgetFromPlanSnapshot(savedPlan);
+  }
+
+  setCurrentDay(item.day,{render:false});
+  save();
+  toast(isNew ? "行程加好了，也幫你先記一筆花費！" : "已幫你存好行程囉！");
+}
+
+function render(){
+  v28NormalizePlans();
+  normalizeAllPlanTypes();
+  if(!currentDay) currentDay=cur||data.days?.[0]?.key||data.trip?.start;
+  cur=currentDay;
+  renderHead();renderSide();renderTrip();renderPlanner();renderSpots();renderBudget();renderPacking();renderPhotoBook();renderHelp();
+}
+
+/* ===== v28 reference examples for future maintenance =====
+新的資料結構：
+plan = {
+  id: "flight-out-plane",
+  source: "flight",
+  sourceType: "flight", // 舊 UI 相容
+  day: "2026-06-04",
+  start: "16:00",
+  end: "19:00",
+  type: "航班",
+  name: "搭乘去程航班 BXxxx",
+  note: "TPE → PUS",
+  memo: "由航班資料帶入"
+}
+
+更新邏輯：
+v28UpsertPlan(plan)
+- 有相同 plan.id：更新既有行程
+- 沒有相同 plan.id：新增行程
+
+刪除流程：
+v28DeletePlansBySource("flight")
+v28DeletePlansBySource("hotel", p => p.hotelId == hotelId)
+*/
 
 init();
 initFirebaseSync();
