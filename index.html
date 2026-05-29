@@ -1923,6 +1923,120 @@ textarea{min-height:58px}
   }
 }
 
+
+/* ===== v41 mobile-only flight datetime app-like row ===== */
+/* 只改手機版航班時間呈現，不改桌機、不改資料結構 */
+@media(max-width:620px){
+  #tripView .flightDense .mobileTimeGrid{
+    gap:8px!important;
+  }
+
+  #tripView .flightDense .mobileTimeBlock{
+    border:1px solid var(--line);
+    border-radius:16px;
+    background:#fffdf9;
+    padding:9px 10px 10px;
+    width:100%;
+    max-width:100%;
+  }
+
+  #tripView .flightDense .mobileTimeTitle{
+    font-size:12px;
+    font-weight:950;
+    color:var(--ink);
+    margin-bottom:7px;
+    line-height:1.2;
+  }
+
+  #tripView .flightDense .mobileTimePair{
+    display:grid!important;
+    grid-template-columns:minmax(0,1.18fr) minmax(0,.82fr)!important;
+    gap:7px!important;
+    width:100%!important;
+    max-width:100%!important;
+    align-items:center!important;
+  }
+
+  #tripView .flightDense .mobileTimePair > div{
+    min-width:0!important;
+    width:100%!important;
+    max-width:100%!important;
+  }
+
+  #tripView .flightDense .mobileTimePair > div::before{
+    display:none!important;
+    content:none!important;
+  }
+
+  #tripView .flightDense .mobileTimeField{
+    position:relative;
+    display:flex;
+    align-items:center;
+    gap:4px;
+    min-width:0;
+    width:100%;
+    max-width:100%;
+    background:#f7f3ec;
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:5px 8px;
+    min-height:36px;
+    overflow:hidden;
+  }
+
+  #tripView .flightDense .mobileTimeIcon{
+    flex:0 0 auto;
+    font-size:13px;
+    line-height:1;
+    opacity:.82;
+  }
+
+  #tripView .flightDense .mobileTimeField input[type="date"],
+  #tripView .flightDense .mobileTimeField input[type="time"]{
+    border:0!important;
+    background:transparent!important;
+    display:block!important;
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    box-sizing:border-box!important;
+    min-height:26px!important;
+    height:26px!important;
+    padding:0!important;
+    margin:0!important;
+    border-radius:0!important;
+    color:var(--ink)!important;
+    font-size:13px!important;
+    line-height:1!important;
+    overflow:hidden!important;
+    -webkit-appearance:none!important;
+    appearance:none!important;
+  }
+
+  #tripView .flightDense .mobileTimeField input[type="time"]{
+    text-align:center!important;
+    font-size:14px!important;
+  }
+
+  #tripView .flightDense .mobileTimeField input[type="date"]::-webkit-date-and-time-value,
+  #tripView .flightDense .mobileTimeField input[type="time"]::-webkit-date-and-time-value{
+    text-align:left;
+    max-width:100%;
+    padding:0;
+    margin:0;
+  }
+
+  #tripView .flightDense .mobileTimeField input[type="time"]::-webkit-date-and-time-value{
+    text-align:center;
+  }
+
+  #tripView .flightDense .mobileFieldNote{
+    margin-top:5px!important;
+    font-size:10.5px!important;
+    line-height:1.35!important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1934,7 +2048,7 @@ textarea{min-height:58px}
   <button class="btn blue compact hidden" id="cloudLoadBtn" onclick="loadFromCloud()">載入雲端</button>
   <button class="btn pink compact hidden" id="cloudSaveBtn" onclick="saveToCloudNow()">立即同步</button>
 </div>
-<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v40｜2026-05-29｜手機航班日期時間欄位修正版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
+<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v41｜2026-05-29｜手機航班時間App欄位版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
 
 <!-- Firebase SDK for cross-device sync -->
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -4358,7 +4472,7 @@ function photoBookDay(d){
 
 
 /* ===== Version marker ===== */
-const APP_VERSION = "v40｜2026-05-29｜手機航班日期時間欄位修正版";
+const APP_VERSION = "v41｜2026-05-29｜手機航班時間App欄位版";
 console.log("My Travel Book", APP_VERSION);
 
 
@@ -8535,6 +8649,67 @@ function saveFlights(){
   render();
   v16CollapseTripDetail(1);
   toast(alreadyHasPlans ? "已存好航班，並更新行程囉！" : "已幫你存好航班囉！");
+}
+
+
+/* ===== v41 override mobile flight datetime markup only ===== */
+function flightSegmentForm(k, idx, seg){
+  seg = seg || {};
+  const defaultOpen = idx===0 ? "open" : "";
+  const fromId=`${k}s${idx}from`;
+  const toId=`${k}s${idx}to`;
+  return `<details class="segmentBox" id="${k}segBox${idx}" ${defaultOpen}>
+    <summary><div class="segmentTitle">第 ${idx+1} 段航班 <span>${idx===0?"第一段":"第二段／轉機後"}</span></div></summary>
+    <div class="segmentInner">
+
+      <div class="flightDesktopOnly">
+        <div class="three compactMobile">
+          <div><label>航班號</label><input id="${k}s${idx}no" value="${esc(seg.no||"")}" placeholder="例：BX794"></div>
+          <div><label>出發地 / 機場</label><input id="${fromId}" list="airportList" value="${esc(seg.from||"")}" placeholder="可選清單或自行輸入"></div>
+          <div><label>抵達地 / 機場</label><input id="${toId}" list="airportList" value="${esc(seg.to||"")}" placeholder="可選清單或自行輸入"></div>
+        </div>
+        <div class="terminalPair">
+          <div><label>出發航廈</label><select id="${k}s${idx}fromTerminal">${terminalOptions(seg.fromTerminal||"未定")}</select></div>
+          <div><label>抵達航廈</label><select id="${k}s${idx}toTerminal">${terminalOptions(seg.toTerminal||"未定")}</select></div>
+        </div>
+        <div class="two">
+          <div><label>起飛時間</label><input id="${k}s${idx}dep" type="datetime-local" value="${seg.dep||""}"></div>
+          <div><label>抵達時間</label><input id="${k}s${idx}arr" type="datetime-local" value="${seg.arr||""}"></div>
+        </div>
+      </div>
+
+      <div class="flightMobileOnly">
+        <div class="mobileAirportGrid">
+          <div><label>航班號</label><input id="${k}s${idx}noM" value="${esc(seg.no||"")}" placeholder="例：BX794"></div>
+          <div><label>出發地 / 機場</label>${v38AirportSelectHtml(`${k}s${idx}fromM`, seg.from||"")}</div>
+          <div><label>抵達地 / 機場</label>${v38AirportSelectHtml(`${k}s${idx}toM`, seg.to||"")}</div>
+          <div><label>出發航廈</label>${v38TerminalSelectHtml(`${k}s${idx}fromTerminalM`, seg.fromTerminal||"未定")}</div>
+          <div><label>抵達航廈</label>${v38TerminalSelectHtml(`${k}s${idx}toTerminalM`, seg.toTerminal||"未定")}</div>
+        </div>
+
+        <div class="mobileTimeGrid">
+          <div class="mobileTimeBlock">
+            <div class="mobileTimeTitle">起飛</div>
+            <div class="mobileTimePair">
+              <div class="mobileTimeField"><span class="mobileTimeIcon">📅</span><input id="${k}s${idx}depDateM" type="date" value="${v38DatePart(seg.dep)}"></div>
+              <div class="mobileTimeField"><span class="mobileTimeIcon">🕒</span><input id="${k}s${idx}depTimeM" type="time" value="${v38TimePart(seg.dep)}"></div>
+            </div>
+          </div>
+          <div class="mobileTimeBlock">
+            <div class="mobileTimeTitle">抵達</div>
+            <div class="mobileTimePair">
+              <div class="mobileTimeField"><span class="mobileTimeIcon">📅</span><input id="${k}s${idx}arrDateM" type="date" value="${v38DatePart(seg.arr)}"></div>
+              <div class="mobileTimeField"><span class="mobileTimeIcon">🕒</span><input id="${k}s${idx}arrTimeM" type="time" value="${v38TimePart(seg.arr)}"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mobileFieldNote">手機版分開填日期與時間，儲存後仍會寫回原本航班時間欄位。</div>
+      </div>
+
+      <div class="airportQuickHint">台灣與亞洲機場優先列出；找不到可手動輸入。</div>
+    </div>
+  </details>`;
 }
 
 init();
