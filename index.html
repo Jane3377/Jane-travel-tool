@@ -3763,6 +3763,243 @@ body[data-card-style] .storyPanel{
   .themeWidget{display:none!important}
 }
 
+
+/* ===== v47 mobile photo book compact fix only ===== */
+/* 只調整照片旅遊書手機版，不改資料結構、不影響其他頁籤 */
+@media(max-width:620px){
+  #photoBookView,
+  #photoBookView *{
+    box-sizing:border-box;
+  }
+
+  #photoBookView{
+    overflow-x:hidden;
+  }
+
+  /* 照片書區塊在手機上不要像桌機大卡片那麼高 */
+  #photoBookView .storyPanel{
+    padding:12px !important;
+    border-radius:18px !important;
+    margin-bottom:10px !important;
+    overflow:hidden !important;
+  }
+
+  #photoBookView .storyPanelHead{
+    gap:6px !important;
+    margin-bottom:8px !important;
+  }
+
+  #photoBookView .storyPanelHead h3{
+    font-size:18px !important;
+    line-height:1.25 !important;
+  }
+
+  #photoBookView .storyPanelHead p{
+    font-size:12px !important;
+    line-height:1.45 !important;
+    margin-top:4px !important;
+  }
+
+  /* 模板選項避免撐太寬 */
+  #photoBookView .templateRail{
+    gap:8px !important;
+    padding:2px 0 8px !important;
+    overflow-x:auto !important;
+  }
+
+  #photoBookView .templateCard{
+    flex:0 0 138px !important;
+    min-width:138px !important;
+    padding:10px !important;
+    border-radius:16px !important;
+  }
+
+  #photoBookView .templateCard b{
+    font-size:13px !important;
+  }
+
+  #photoBookView .templateCard .mini{
+    font-size:11px !important;
+    line-height:1.35 !important;
+  }
+
+  /* 整本封面預覽：原本太高，手機改為較扁的橫式預覽 */
+  #photoBookView .storyCoverPreview{
+    aspect-ratio:16/8.6 !important;
+    min-height:0 !important;
+    height:auto !important;
+    max-height:210px !important;
+    border-radius:18px !important;
+    margin-top:8px !important;
+  }
+
+  #photoBookView .storyCoverPreview img{
+    width:100% !important;
+    height:100% !important;
+    object-fit:cover !important;
+  }
+
+  /* 每日封面管理：手機單欄但縮小卡片與縮圖高度 */
+  #photoBookView .dayCoverManager{
+    grid-template-columns:1fr !important;
+    gap:9px !important;
+  }
+
+  #photoBookView .dayCoverTile{
+    display:grid !important;
+    grid-template-columns:96px minmax(0,1fr) !important;
+    align-items:stretch !important;
+    border-radius:16px !important;
+    overflow:hidden !important;
+  }
+
+  #photoBookView .dayCoverThumb{
+    height:100% !important;
+    min-height:92px !important;
+    width:96px !important;
+    font-size:12px !important;
+    line-height:1.35 !important;
+  }
+
+  #photoBookView .dayCoverTileBody{
+    padding:9px 10px !important;
+    min-width:0 !important;
+  }
+
+  #photoBookView .dayCoverTileBody b{
+    font-size:13px !important;
+    line-height:1.25 !important;
+  }
+
+  #photoBookView .dayCoverTileBody span{
+    font-size:11px !important;
+  }
+
+  #photoBookView .dayCoverUploadLabel{
+    padding:6px 9px !important;
+    font-size:11px !important;
+    margin-top:7px !important;
+  }
+
+  /* 照片日記表單手機單欄、減少高度 */
+  #photoBookView .storyPhotoEditorGrid{
+    grid-template-columns:1fr !important;
+    gap:7px !important;
+  }
+
+  #photoBookView input,
+  #photoBookView select,
+  #photoBookView textarea{
+    min-height:36px !important;
+    padding:7px 9px !important;
+    font-size:14px !important;
+    border-radius:12px !important;
+  }
+
+  #photoBookView textarea{
+    min-height:72px !important;
+  }
+
+  /* 故事預覽手機版縮短每一天的大封面，避免下方卡片太巨大 */
+  #photoBookView .storyBook{
+    border-radius:20px !important;
+    overflow:hidden !important;
+  }
+
+  #photoBookView .storyBookCover{
+    min-height:320px !important;
+    padding:18px !important;
+  }
+
+  #photoBookView .storyBookCoverText h1{
+    font-size:28px !important;
+  }
+
+  #photoBookView .storyDay{
+    padding:16px !important;
+  }
+
+  #photoBookView .storyDayHeader{
+    gap:6px !important;
+    margin-bottom:10px !important;
+  }
+
+  #photoBookView .storyDayHeader h2{
+    font-size:21px !important;
+  }
+
+  #photoBookView .storyDayHero{
+    aspect-ratio:16/8.8 !important;
+    min-height:0 !important;
+    height:auto !important;
+    max-height:190px !important;
+    border-radius:18px !important;
+    margin-bottom:12px !important;
+  }
+
+  #photoBookView .storyPhotoLayout{
+    grid-template-columns:1fr !important;
+    gap:9px !important;
+  }
+
+  #photoBookView .storyPhotoCard{
+    border-radius:18px !important;
+  }
+
+  #photoBookView .storyPhotoImage,
+  #photoBookView .storyPhotoCard.featured .storyPhotoImage{
+    aspect-ratio:16/9 !important;
+    height:auto !important;
+  }
+
+  #photoBookView .storyPhotoText{
+    padding:9px 10px !important;
+  }
+
+  /* PDF 預覽在手機上不要撐爆版面，改成可橫向滑的 A4 預覽 */
+  #photoBookView .pdfPreviewWrap{
+    overflow-x:auto !important;
+    display:grid !important;
+    justify-items:start !important;
+    gap:14px !important;
+    padding:6px 0 14px !important;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  #photoBookView .pdfPage{
+    width:680px !important;
+    min-height:962px !important;
+    border-radius:8px !important;
+  }
+
+  #photoBookView .pdfPageInner{
+    padding:40px 36px !important;
+  }
+
+  #photoBookView .pdfCoverImage,
+  #photoBookView .pdfCoverEmpty{
+    height:330px !important;
+  }
+
+  #photoBookView .pdfDayHero{
+    height:190px !important;
+  }
+
+  #photoBookView .pdfPhotoImage{
+    height:138px !important;
+  }
+
+  #photoBookView .pdfPhoto.featured .pdfPhotoImage{
+    height:200px !important;
+  }
+
+  #photoBookView .pdfPreviewHint{
+    font-size:12px !important;
+    line-height:1.5 !important;
+    padding:9px 10px !important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -3774,7 +4011,7 @@ body[data-card-style] .storyPanel{
   <button class="btn blue compact hidden" id="cloudLoadBtn" onclick="loadFromCloud()">載入雲端</button>
   <button class="btn pink compact hidden" id="cloudSaveBtn" onclick="saveToCloudNow()">立即同步</button>
 </div>
-<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v46｜2026-05-29｜網站主題切換版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
+<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v47｜2026-05-29｜照片書手機版卡片優化版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
 
 <!-- Firebase SDK for cross-device sync -->
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -6198,7 +6435,7 @@ function photoBookDay(d){
 
 
 /* ===== Version marker ===== */
-const APP_VERSION = "v46｜2026-05-29｜網站主題切換版";
+const APP_VERSION = "v47｜2026-05-29｜照片書手機版卡片優化版";
 console.log("My Travel Book", APP_VERSION);
 
 
