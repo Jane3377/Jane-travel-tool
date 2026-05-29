@@ -5216,6 +5216,39 @@ body[data-theme-mode] .btn.pink{
   }
 }
 
+
+/* ===== v54 optional plan address field + OSM targeting ===== */
+/* 最小資料擴充：僅新增行程 address 選填欄位；不改預算、照片書、航班/住宿關聯 */
+.planAddressHint{
+  color:var(--theme-muted,#9A928A);
+  font-size:12px;
+  line-height:1.45;
+  margin-top:5px;
+}
+.itineraryAddressPill{
+  display:inline-flex;
+  align-items:center;
+  border-radius:999px;
+  padding:4px 7px;
+  font-size:11px;
+  font-weight:850;
+  line-height:1;
+  background:#fff;
+  color:var(--theme-primary,#4A5D4E);
+  border:1px solid color-mix(in srgb,var(--theme-primary-soft,#E5ECE9) 60%, var(--theme-line,#E2DDD5) 40%);
+}
+.routeMapAddressHint{
+  color:var(--theme-muted,#9A928A);
+  font-size:11px;
+  line-height:1.45;
+  margin-top:5px;
+}
+@media(max-width:620px){
+  .planAddressHint{
+    font-size:11.5px;
+  }
+}
+
 </style>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
@@ -5229,7 +5262,7 @@ body[data-theme-mode] .btn.pink{
   <button class="btn blue compact hidden" id="cloudLoadBtn" onclick="loadFromCloud()">載入雲端</button>
   <button class="btn pink compact hidden" id="cloudSaveBtn" onclick="saveToCloudNow()">立即同步</button>
 </div>
-<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>VoyageMemo.｜LocalStorage + Cloudinary Version<br><strong>版本：v52｜2026-05-29｜精品行程時間軸版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
+<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>VoyageMemo.｜LocalStorage + Cloudinary Version<br><strong>版本：v54｜2026-05-29｜行程地址欄位與OSM定位優化版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
 
 <!-- Firebase SDK for cross-device sync -->
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -7653,7 +7686,7 @@ function photoBookDay(d){
 
 
 /* ===== Version marker ===== */
-const APP_VERSION = "v52｜2026-05-29｜精品行程時間軸版";
+const APP_VERSION = "v54｜2026-05-29｜行程地址欄位與OSM定位優化版";
 console.log("VoyageMemo.", APP_VERSION);
 
 
@@ -12927,6 +12960,42 @@ function planCards(plans){
   return html;
 }
 
+
+/* ===== v53 remove timeline map pin icon only ===== */
+/* 只移除行程標題前的 📍 視覺圖示，不動資料結構與 CRUD 邏輯 */
+function premiumPlanCard(p){
+  const t = itineraryTimeText(p);
+  return `<div class="itineraryItem" data-id="${p.id}">
+    <div class="itineraryDotWrap"><span class="itineraryDot"></span></div>
+    <article class="itineraryCard">
+      <div class="itineraryTop">
+        <div class="itineraryTimeBlock">
+          <span class="itineraryTime">${esc(t.start)}</span>
+          ${t.end?`<span class="itineraryEndTime">至 ${esc(t.end)}</span>`:""}
+        </div>
+        <div class="itineraryTitleBlock">
+          <div class="itineraryTitleLine">
+            <h3 class="itineraryTitle">${activityIcon(p.type)} ${esc(p.name)}</h3>
+          </div>
+          <div class="itineraryMeta">
+            <span class="itineraryTypePill">${esc(p.type||"其他")}</span>
+            <span class="itinerarySourcePill">${esc(itinerarySourceText(p))}</span>
+            ${p.adjusted?'<span class="itineraryTypePill">已依交通調整</span>':""}
+            ${moneyForeign(p)||moneyTwd(p)?`<span class="itinerarySourcePill">${esc(data.trip.currency)} ${fmt(moneyForeign(p))}｜TWD ${fmt(moneyTwd(p))}</span>`:""}
+          </div>
+          ${p.note?`<div class="itineraryNote"><b>注意：</b>${esc(p.note)}</div>`:""}
+          ${p.memo?`<div class="itineraryNote"><b>備註：</b>${esc(p.memo)}</div>`:""}
+        </div>
+        <div class="itineraryActions">
+          <button class="small" onclick="routeCurrent('${encodeURIComponent((p.name||"")+" "+(data.trip.dest||""))}')">地圖</button>
+          <button class="small" onclick="editPlan('${p.id}')">編輯</button>
+          <button class="small" onclick="delPlan('${p.id}')">刪除</button>
+        </div>
+      </div>
+    </article>
+  </div>`;
+}
+
 const __renderPlannerBeforeV51Map = renderPlanner;
 renderPlanner = function(){
   __renderPlannerBeforeV51Map();
@@ -12937,6 +13006,280 @@ renderPlanner = function(){
     heading.insertAdjacentHTML("afterend", routeMapHtml(cur));
   }
 };
+
+
+/* ===== v54 optional address field for itinerary + OSM priority search ===== */
+/*
+資料結構最小擴充：
+plan.address = ""  // 選填；舊資料沒有 address 時自動視為空字串
+
+設計原則：
+- 不改預算資料結構，行程建立預算時不帶 address
+- 不改照片書顯示，照片書不顯示 address
+- 航班 / 住宿自動帶入行程 address 預設留空
+- 口袋景點排入行程時，可用既有 addr 帶入 plan.address，提升地圖定位準確度
+- OSM / 未來 Google Maps 都可優先使用 address
+*/
+
+function v54EnsurePlanAddress(){
+  (data.plans||[]).forEach(p=>{
+    if(typeof p.address === "undefined") p.address = "";
+  });
+}
+
+const __v28NormalizePlansBeforeV54 = v28NormalizePlans;
+v28NormalizePlans = function(){
+  __v28NormalizePlansBeforeV54();
+  v54EnsurePlanAddress();
+};
+
+const __v28UpsertPlanBeforeV54 = v28UpsertPlan;
+v28UpsertPlan = function(plan){
+  if(plan){
+    if(plan.source==="flight" || plan.source==="hotel"){
+      plan.address = "";
+    }else if(typeof plan.address === "undefined"){
+      plan.address = "";
+    }
+  }
+  return __v28UpsertPlanBeforeV54(plan);
+};
+
+function getPlanFormDraft(){
+  if(!$("pday")) return null;
+  return {
+    day:$("pday")?.value || currentDay,
+    start:$("ps")?.value || "",
+    end:$("pe")?.value || "",
+    type:normalizePlanType($("ptype")?.value || "景點"),
+    name:$("pname")?.value || "",
+    address:$("paddress")?.value || "",
+    note:$("pnote")?.value || "",
+    memo:$("pmemo")?.value || ""
+  };
+}
+
+function applyPlanFormDraft(draft){
+  if(!draft || !$("pday")) return;
+  $("pday").value = draft.day || currentDay;
+  $("ps").value = draft.start || "";
+  $("pe").value = draft.end || "";
+  $("ptype").value = normalizePlanType(draft.type);
+  $("pname").value = draft.name || "";
+  if($("paddress")) $("paddress").value = draft.address || "";
+  $("pnote").value = draft.note || "";
+  $("pmemo").value = draft.memo || "";
+  v21ApplyLockedNameState();
+}
+
+function renderPlanner(options={}){
+  v28NormalizePlans();
+  normalizeAllPlanTypes();
+  const draft = options.preserveForm ? getPlanFormDraft() : null;
+  cur=currentDay || cur || data.days?.[0]?.key;
+  normalizePlanTimes(cur);
+  let plans=sortedPlans(cur);
+  $("plannerView").innerHTML=`<div class="section"><div><h2>${dayTitle(cur)}</h2><div class="hint">住宿：${hotelFor(cur)?.name||"未設定"}。行程依開始時間排序。</div></div><button class="iconBtn smallIcon" onclick="clearPlanForm()">＋</button></div>
+  ${typeof routeMapHtml==="function" ? routeMapHtml(cur) : ""}
+  <details class="card" ${(editingPlanId||v16PendingSpotId||draft)?"open":""}><summary>${editingPlanId?"編輯行程":"＋ 新增行程"}</summary><div class="detailBody">
+    <div class="planFormLite">
+      <div class="three compactMobile">
+        <div class="full"><label>日期</label><select id="pday" onchange="handlePlanDayChange(this.value)">${optsDays(cur)}</select></div>
+        <div><label>開始</label><input id="ps" type="time" value="10:00"></div>
+        <div><label>結束</label><input id="pe" type="time" value="11:30"></div>
+      </div>
+      <div><label>分類</label><select id="ptype">${optsPlanTypes("景點")}</select></div>
+      <div><label>行程名稱</label><input id="pname"></div>
+      <div id="lockedNameHint" class="lockedFieldHint" style="display:none">此行程由航班／住宿／口袋景點帶入，名稱不可編輯；備註可以自由修改。</div>
+      <div>
+        <label>地址 / 地圖定位資訊（選填）</label>
+        <input id="paddress" placeholder="例：Haeundae Beach, Busan 或 韓國釜山海雲台">
+        <div class="planAddressHint">用於 OpenStreetMap 定位；可留空。未來若改接 Google Maps API 也能沿用這個欄位。</div>
+      </div>
+      <label>注意事項</label><textarea id="pnote"></textarea>
+      <label>備註</label><textarea id="pmemo"></textarea>
+      <div class="planBudgetHint">新增行程時會自動在「預算」建立一筆花費；地址不會帶入預算或照片書。</div>
+      <div class="btns"><button class="btn dark" onclick="savePlanForm()">${editingPlanId?"存好行程":"加入行程"}</button>${editingPlanId||v16PendingSpotId?'<button class="btn soft" onclick="clearPlanForm()">取消編輯 / 新增</button>':""}</div>
+    </div>
+  </div></details>
+  <div id="pcards">${planCards(plans)}</div>`;
+
+  if(editingPlanId) fillPlanForm(editingPlanId);
+  else if(v16PendingSpotId) v16FillPendingSpot();
+  else if(draft) applyPlanFormDraft({...draft, day:cur});
+  else if($("pday")) $("pday").value=cur;
+
+  v21ApplyLockedNameState();
+}
+
+function fillPlanForm(id){
+  let p=data.plans.find(x=>x.id==id);
+  if(!p)return;
+  p.type=normalizePlanType(p.type);
+  if(typeof p.address === "undefined") p.address = "";
+  $("pday").value=p.day||currentDay||cur;
+  $("ps").value=p.start||"";
+  $("pe").value=p.end||"";
+  $("ptype").value=p.type;
+  $("pname").value=p.name||"";
+  if($("paddress")) $("paddress").value=p.address||"";
+  $("pnote").value=p.note||"";
+  $("pmemo").value=p.memo||"";
+  v21ApplyLockedNameState();
+}
+
+function v16FillPendingSpot(){
+  const s=data.spots.find(x=>x.id==v16PendingSpotId);
+  if(!s)return;
+  const safeType=normalizePlanType(["景點","餐廳","咖啡廳","購物","其他"].includes(s.type)?s.type:"景點");
+  $("pday").value=s.day||currentDay||cur;
+  $("ptype").value=safeType;
+  $("pname").value=s.name;
+  if($("paddress")) $("paddress").value=s.addr||"";
+  $("pnote").value=s.memo;
+  $("pmemo").value="由口袋景點帶入";
+  $("pname").readOnly=true;
+  $("pname").classList.add("lockedInput");
+  $("lockedNameHint").style.display="block";
+}
+
+function savePlanForm(){
+  if(!$("pname").value)return toast("請輸入行程名稱");
+  if(!v23ValidatePlanForm())return;
+
+  const safeType=normalizePlanType($("ptype").value);
+  let item={
+    day:$("pday").value,
+    start:$("ps").value,
+    end:$("pe").value,
+    type:safeType,
+    name:$("pname").value,
+    address:$("paddress")?.value || "",
+    source:"manual",
+    mode:"foreign",
+    foreign:0,
+    twd:0,
+    payer:"未定",
+    payMethod:"未定",
+    note:$("pnote").value,
+    memo:$("pmemo").value,
+    adjusted:false
+  };
+  let planId=editingPlanId;
+  let isNew=false;
+
+  if(editingPlanId){
+    const existing=data.plans.find(p=>p.id==editingPlanId);
+    if(existing?.lockedName){
+      item.name=existing.name;
+      item.source=existing.source || v28NormalizeSourceFromLegacy(existing);
+      item.sourceType=existing.sourceType;
+      item.lockedName=true;
+      if(existing.hotelId)item.hotelId=existing.hotelId;
+
+      // 航班 / 住宿自動帶入的行程地址維持空白，避免和來源資料混淆
+      if(item.source==="flight" || item.source==="hotel"){
+        item.address="";
+      }
+    }
+    Object.assign(existing,item);
+    existing.type=normalizePlanType(existing.type);
+    if(typeof existing.address === "undefined") existing.address="";
+    editingPlanId=null;
+  }else{
+    isNew=true;
+    planId=uid();
+    data.plans.push({id:planId,...item});
+  }
+
+  if(v16PendingSpotId){
+    const spot=data.spots.find(s=>s.id==v16PendingSpotId);
+    const p=data.plans.find(x=>x.id==planId);
+    if(spot && p){
+      spot.planId=planId;
+      p.source="manual";
+      p.sourceType="spot";
+      p.lockedName=true;
+      p.name=spot.name;
+      p.type=normalizePlanType(p.type || spot.type || "景點");
+      p.address=spot.addr||p.address||"";
+      p.memo=p.memo || "由口袋景點帶入";
+    }
+    v16PendingSpotId=null;
+  }
+
+  const savedPlan=data.plans.find(x=>x.id==planId);
+  if(isNew && savedPlan){
+    savedPlan.type=normalizePlanType(savedPlan.type);
+    if(typeof savedPlan.address === "undefined") savedPlan.address="";
+    createBudgetFromPlanSnapshot(savedPlan); // 預算函數不使用 address
+  }
+
+  setCurrentDay(item.day,{render:false});
+  save();
+  toast(isNew ? "行程加好了，也幫你先記一筆花費！" : "已幫你存好行程囉！");
+}
+
+function itineraryMapQuery(p){
+  const primary = (p.address || "").trim();
+  if(primary) return [primary, data.trip.dest, data.trip.country].filter(Boolean).join(" ");
+  return [(p.name||""), data.trip.dest, data.trip.country].filter(Boolean).join(" ");
+}
+
+function routeSearchText(plan){
+  const address = (plan.address || "").trim();
+  if(address){
+    return [address, data.trip.dest || "", data.trip.country || ""].filter(Boolean).join(" ").trim();
+  }
+  return [
+    plan.name || "",
+    plan.note || "",
+    data.trip.dest || "",
+    data.trip.country || "",
+    data.trip.city || ""
+  ].filter(Boolean).join(" ").trim();
+}
+
+function premiumPlanCard(p){
+  const t = itineraryTimeText(p);
+  const mapQuery = itineraryMapQuery(p);
+  return `<div class="itineraryItem" data-id="${p.id}">
+    <div class="itineraryDotWrap"><span class="itineraryDot"></span></div>
+    <article class="itineraryCard">
+      <div class="itineraryTop">
+        <div class="itineraryTimeBlock">
+          <span class="itineraryTime">${esc(t.start)}</span>
+          ${t.end?`<span class="itineraryEndTime">至 ${esc(t.end)}</span>`:""}
+        </div>
+        <div class="itineraryTitleBlock">
+          <div class="itineraryTitleLine">
+            <h3 class="itineraryTitle">${activityIcon(p.type)} ${esc(p.name)}</h3>
+          </div>
+          <div class="itineraryMeta">
+            <span class="itineraryTypePill">${esc(p.type||"其他")}</span>
+            <span class="itinerarySourcePill">${esc(itinerarySourceText(p))}</span>
+            ${p.address?'<span class="itineraryAddressPill">已填地址</span>':""}
+            ${p.adjusted?'<span class="itineraryTypePill">已依交通調整</span>':""}
+            ${moneyForeign(p)||moneyTwd(p)?`<span class="itinerarySourcePill">${esc(data.trip.currency)} ${fmt(moneyForeign(p))}｜TWD ${fmt(moneyTwd(p))}</span>`:""}
+          </div>
+          ${p.note?`<div class="itineraryNote"><b>注意：</b>${esc(p.note)}</div>`:""}
+          ${p.memo?`<div class="itineraryNote"><b>備註：</b>${esc(p.memo)}</div>`:""}
+        </div>
+        <div class="itineraryActions">
+          <button class="small" onclick="routeCurrent('${encodeURIComponent(mapQuery)}')">地圖</button>
+          <button class="small" onclick="editPlan('${p.id}')">編輯</button>
+          <button class="small" onclick="delPlan('${p.id}')">刪除</button>
+        </div>
+      </div>
+    </article>
+  </div>`;
+}
+
+function routePlanCandidates(dayKey){
+  return sortedPlans(dayKey)
+    .filter(p => p && p.name && !["航班"].includes(p.type))
+    .slice(0, 10);
+}
 
 init();
 initFirebaseSync();
