@@ -1843,6 +1843,86 @@ textarea{min-height:58px}
   color:#6f6257;
 }
 
+
+/* ===== v40 mobile-only flight date/time field visual fix ===== */
+/* 只修手機版航班起飛/抵達的日期時間欄位呈現，不改資料結構與邏輯 */
+@media(max-width:620px){
+  #tripView .flightDense .mobileTimeGrid{
+    gap:8px!important;
+  }
+
+  #tripView .flightDense .mobileTimePair{
+    display:grid!important;
+    grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr)!important;
+    gap:8px!important;
+    width:100%!important;
+    max-width:100%!important;
+    align-items:end!important;
+  }
+
+  #tripView .flightDense .mobileTimePair > div{
+    min-width:0!important;
+    width:100%!important;
+    max-width:100%!important;
+    position:relative!important;
+  }
+
+  #tripView .flightDense .mobileTimePair > div::before{
+    display:block;
+    background:#f3eee8;
+    color:#7b726a;
+    border:1px solid var(--line);
+    border-bottom:0;
+    border-radius:12px 12px 0 0;
+    padding:5px 8px 3px;
+    font-size:11px;
+    font-weight:950;
+    line-height:1.1;
+  }
+
+  #tripView .flightDense .mobileTimePair > div:first-child::before{
+    content:"日期";
+  }
+
+  #tripView .flightDense .mobileTimePair > div:last-child::before{
+    content:"時間";
+  }
+
+  #tripView .flightDense .mobileTimePair input[type="date"],
+  #tripView .flightDense .mobileTimePair input[type="time"]{
+    display:block!important;
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    box-sizing:border-box!important;
+    border-radius:0 0 12px 12px!important;
+    min-height:38px!important;
+    height:38px!important;
+    padding:6px 8px!important;
+    font-size:15px!important;
+    background:#fffdf9!important;
+    overflow:hidden!important;
+  }
+
+  #tripView .flightDense .mobileTimePair input[type="date"]{
+    font-size:14px!important;
+  }
+
+  #tripView .flightDense .mobileTimePair input[type="time"]{
+    text-align:center!important;
+  }
+
+  #tripView .flightDense .mobileTimePair input[type="date"]::-webkit-date-and-time-value,
+  #tripView .flightDense .mobileTimePair input[type="time"]::-webkit-date-and-time-value{
+    text-align:left;
+    max-width:100%;
+  }
+
+  #tripView .flightDense .mobileTimePair input[type="time"]::-webkit-date-and-time-value{
+    text-align:center;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1854,7 +1934,7 @@ textarea{min-height:58px}
   <button class="btn blue compact hidden" id="cloudLoadBtn" onclick="loadFromCloud()">載入雲端</button>
   <button class="btn pink compact hidden" id="cloudSaveBtn" onclick="saveToCloudNow()">立即同步</button>
 </div>
-<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v39｜2026-05-29｜航班儲存流程與行程時間修正版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
+<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v40｜2026-05-29｜手機航班日期時間欄位修正版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
 
 <!-- Firebase SDK for cross-device sync -->
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -4278,7 +4358,7 @@ function photoBookDay(d){
 
 
 /* ===== Version marker ===== */
-const APP_VERSION = "v39｜2026-05-29｜航班儲存流程與行程時間修正版";
+const APP_VERSION = "v40｜2026-05-29｜手機航班日期時間欄位修正版";
 console.log("My Travel Book", APP_VERSION);
 
 
