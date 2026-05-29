@@ -1043,6 +1043,45 @@ html, body { max-width: 100%; overflow-x: hidden; }
   margin-top:6px;
 }
 
+
+/* ===== v29 flight transfer UI ===== */
+.segmentBox{
+  border:1px solid var(--line);
+  border-radius:16px;
+  background:#fffdf8;
+  padding:10px;
+  margin-top:10px;
+}
+.segmentTitle{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px;
+  font-weight:950;
+  margin-bottom:6px;
+}
+.segmentTitle span{
+  display:inline-flex;
+  border-radius:999px;
+  background:#eef8f3;
+  color:#527b70;
+  padding:4px 8px;
+  font-size:12px;
+}
+.flightTypeHint{
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.55;
+  margin-top:6px;
+}
+@media(max-width:620px){
+  .segmentBox .two,
+  .segmentBox .three,
+  .segmentBox .four{
+    grid-template-columns:1fr;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1054,7 +1093,7 @@ html, body { max-width: 100%; overflow-x: hidden; }
   <button class="btn blue compact hidden" id="cloudLoadBtn" onclick="loadFromCloud()">載入雲端</button>
   <button class="btn pink compact hidden" id="cloudSaveBtn" onclick="saveToCloudNow()">立即同步</button>
 </div>
-<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v28｜2026-05-29｜行程資料結構重構／來源同步版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
+<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v29｜2026-05-29｜轉機航班／分段行程同步版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
 
 <!-- Firebase SDK for cross-device sync -->
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -3478,7 +3517,7 @@ function photoBookDay(d){
 
 
 /* ===== Version marker ===== */
-const APP_VERSION = "v28｜2026-05-29｜行程資料結構重構／來源同步版";
+const APP_VERSION = "v29｜2026-05-29｜轉機航班／分段行程同步版";
 console.log("My Travel Book", APP_VERSION);
 
 
@@ -5865,6 +5904,397 @@ v28UpsertPlan(plan)
 v28DeletePlansBySource("flight")
 v28DeletePlansBySource("hotel", p => p.hotelId == hotelId)
 */
+
+
+/* ===== v29 flight transfer support: type + segments ===== */
+/*
+新航班資料結構：
+data.flights.out / data.flights.back = {
+  type: "direct" | "transfer",
+  segments: [
+    { no, from, to, dep, arr },
+    { no, from, to, dep, arr } // transfer 時固定 2 段
+  ],
+  toAirport, fromAirport, transfer
+}
+
+UI 表單設計：
+- 去程、回程各有「直飛 / 轉機」選項
+- direct 顯示 1 段航班欄位
+- transfer 顯示 2 段航班欄位
+- 每段都有航班號、出發地、抵達地、起飛時間、抵達時間
+
+行程生成邏輯：
+- 每一段航班產生一筆 source=flight 的行程
+- id 固定：flight-out-seg-0、flight-out-seg-1、flight-back-seg-0...
+- 重新儲存航班時，用 id 更新既有行程，不重複新增
+*/
+
+function normalizeFlightObj(f, direction){
+  f = f || {};
+  if(Array.isArray(f.segments) && f.segments.length){
+    return {
+      type: f.type || (f.segments.length > 1 ? "transfer" : "direct"),
+      segments: f.segments.map(s=>({
+        no:s.no||"",
+        from:s.from||"",
+        to:s.to||"",
+        dep:s.dep||"",
+        arr:s.arr||""
+      })),
+      toAirport:f.toAirport||"",
+      fromAirport:f.fromAirport||"",
+      transfer:f.transfer||""
+    };
+  }
+
+  // 舊資料向下相容：把原本 no/from/to/dep/arr 轉成 segments[0]
+  return {
+    type: "direct",
+    segments: [{
+      no:f.no||"",
+      from:f.from||"",
+      to:f.to||"",
+      dep:f.dep||"",
+      arr:f.arr||""
+    }],
+    toAirport:f.toAirport||f.transfer||"",
+    fromAirport:f.fromAirport||"",
+    transfer:f.transfer||""
+  };
+}
+
+function getFlightSegmentCount(k){
+  const sel=$(k+"type");
+  if(sel)return sel.value==="transfer"?2:1;
+  const f=normalizeFlightObj(data.flights[k],k);
+  return f.type==="transfer"?2:1;
+}
+
+function flightTypeSelect(k, selected){
+  return `<select id="${k}type" onchange="toggleFlightSegments('${k}')">
+    <option value="direct" ${selected==="direct"?"selected":""}>直飛</option>
+    <option value="transfer" ${selected==="transfer"?"selected":""}>轉機</option>
+  </select>`;
+}
+
+function flightSegmentForm(k, idx, seg){
+  seg = seg || {};
+  return `<div class="segmentBox" id="${k}segBox${idx}">
+    <div class="segmentTitle">第 ${idx+1} 段航班 <span>${idx===0?"第一段":"第二段 / 轉機後"}</span></div>
+    <div class="three compactMobile">
+      <div><label>航班號</label><input id="${k}s${idx}no" value="${esc(seg.no||"")}" placeholder="例：BX794"></div>
+      <div><label>出發地 / 機場</label><input id="${k}s${idx}from" value="${esc(seg.from||"")}" placeholder="例：TPE 桃園"></div>
+      <div><label>抵達地 / 機場</label><input id="${k}s${idx}to" value="${esc(seg.to||"")}" placeholder="例：PUS 金海"></div>
+    </div>
+    <div class="two">
+      <div><label>起飛時間</label><input id="${k}s${idx}dep" type="datetime-local" value="${seg.dep||""}"></div>
+      <div><label>抵達時間</label><input id="${k}s${idx}arr" type="datetime-local" value="${seg.arr||""}"></div>
+    </div>
+  </div>`;
+}
+
+function flightForm(k){
+  const f=normalizeFlightObj(data.flights[k],k);
+  const segs=[f.segments[0]||{}, f.segments[1]||{}];
+  const isOut=k==="out";
+  return `<div><label>航班型態</label>${flightTypeSelect(k,f.type||"direct")}<div class="flightTypeHint">直飛顯示 1 段；轉機固定顯示 2 段。每段航班都會各自產生一筆行程。</div></div>
+  <div id="${k}segmentsWrap">
+    ${flightSegmentForm(k,0,segs[0])}
+    ${flightSegmentForm(k,1,segs[1])}
+  </div>
+  <label>${isOut?"如何抵達出發機場":"如何從旅遊地前往回程機場"}</label>
+  <textarea id="${k}toAirport">${esc(f.toAirport||f.transfer||"")}</textarea>
+  <label>${isOut?"如何從降落機場到旅遊地／飯店":"如何從抵達機場回家"}</label>
+  <textarea id="${k}fromAirport">${esc(f.fromAirport||"")}</textarea>
+  <script>setTimeout(()=>toggleFlightSegments('${k}'),0)</script>`;
+}
+
+function toggleFlightSegments(k){
+  const count=getFlightSegmentCount(k);
+  const box1=$(k+"segBox1");
+  if(box1) box1.style.display = count===2 ? "block" : "none";
+}
+
+function readFlightForm(k){
+  const type=$(k+"type")?.value || "direct";
+  const count=type==="transfer"?2:1;
+  const segments=[];
+  for(let i=0;i<count;i++){
+    segments.push({
+      no:$(k+"s"+i+"no")?.value||"",
+      from:$(k+"s"+i+"from")?.value||"",
+      to:$(k+"s"+i+"to")?.value||"",
+      dep:$(k+"s"+i+"dep")?.value||"",
+      arr:$(k+"s"+i+"arr")?.value||""
+    });
+  }
+  return {
+    type,
+    segments,
+    toAirport:$(k+"toAirport")?.value||"",
+    fromAirport:$(k+"fromAirport")?.value||"",
+    transfer:$(k+"toAirport")?.value||""
+  };
+}
+
+function validateFlightSegments(){
+  const out=readFlightForm("out");
+  const back=readFlightForm("back");
+  const all=[
+    ...out.segments.map((s,i)=>({dir:"去程",idx:i+1,...s})),
+    ...back.segments.map((s,i)=>({dir:"回程",idx:i+1,...s}))
+  ];
+
+  for(const s of all){
+    const missing=[];
+    if(!s.no)missing.push("航班號");
+    if(!s.from)missing.push("出發地");
+    if(!s.to)missing.push("抵達地");
+    if(!s.dep)missing.push("起飛時間");
+    if(!s.arr)missing.push("抵達時間");
+    if(missing.length){
+      alert(`${s.dir}第 ${s.idx} 段請填完整：${missing.join("、")}`);
+      return false;
+    }
+    const dep=v23ParseDateTime(s.dep), arr=v23ParseDateTime(s.arr);
+    if(!(dep<arr)){
+      alert(`${s.dir}第 ${s.idx} 段的抵達時間需晚於起飛時間。`);
+      return false;
+    }
+    const depDay=String(s.dep).split("T")[0], arrDay=String(s.arr).split("T")[0];
+    if(!v23InTripRange(depDay) || !v23InTripRange(arrDay)){
+      alert(`${s.dir}第 ${s.idx} 段航班日期需落在旅遊日期區間內：${data.trip.start} ～ ${data.trip.end}`);
+      return false;
+    }
+  }
+
+  for(let i=1;i<all.length;i++){
+    const prevArr=v23ParseDateTime(all[i-1].arr);
+    const curDep=v23ParseDateTime(all[i].dep);
+    if(!(prevArr<curDep)){
+      alert("請確認航班時間順序：每一段航班的起飛時間都必須晚於上一段的抵達時間。");
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function saveFlights(){
+  if(!validateFlightSegments())return;
+  data.flights.out=readFlightForm("out");
+  data.flights.back=readFlightForm("back");
+
+  if(flightHasPlans()){
+    syncFlightPlans();
+  }
+
+  silentSave();
+  render();
+  v16CollapseTripDetail(1);
+  toast("已幫你存好航班囉！");
+}
+
+function flightPlanTemplates(){
+  const out=normalizeFlightObj(data.flights.out,"out");
+  const back=normalizeFlightObj(data.flights.back,"back");
+  const templates=[];
+
+  const firstOut=out.segments[0]||{};
+  const lastOut=out.segments[out.segments.length-1]||{};
+  const firstBack=back.segments[0]||{};
+  const lastBack=back.segments[back.segments.length-1]||{};
+
+  templates.push({
+    id:"flight-out-to-airport",
+    source:"flight",
+    sourceType:"flight",
+    lockedName:true,
+    day:String(firstOut.dep||data.trip.start).split("T")[0],
+    start:"14:00",
+    end:v16TimeFromDT(firstOut.dep),
+    type:"交通",
+    name:`前往 ${firstOut.from||"出發機場"}`,
+    note:out.toAirport||"",
+    memo:"由航班資料帶入"
+  });
+
+  out.segments.forEach((s,i)=>{
+    templates.push({
+      id:`flight-out-seg-${i}`,
+      source:"flight",
+      sourceType:"flight",
+      lockedName:true,
+      day:String(s.dep||data.trip.start).split("T")[0],
+      start:v16TimeFromDT(s.dep),
+      end:v16TimeFromDT(s.arr),
+      type:"航班",
+      name:`搭乘去程第 ${i+1} 段 ${s.no||""}`.trim(),
+      note:`${s.from||""} → ${s.to||""}`,
+      memo:"由航班資料帶入"
+    });
+  });
+
+  templates.push({
+    id:"flight-out-arrival-transfer",
+    source:"flight",
+    sourceType:"flight",
+    lockedName:true,
+    day:String(lastOut.arr||data.trip.start).split("T")[0],
+    start:v16TimeFromDT(lastOut.arr),
+    end:"",
+    type:"交通",
+    name:`從 ${lastOut.to||"降落機場"} 前往飯店／市區`,
+    note:out.fromAirport||"",
+    memo:"由航班資料帶入"
+  });
+
+  templates.push({
+    id:"flight-back-to-airport",
+    source:"flight",
+    sourceType:"flight",
+    lockedName:true,
+    day:String(firstBack.dep||data.trip.end).split("T")[0],
+    start:"",
+    end:v16TimeFromDT(firstBack.dep),
+    type:"交通",
+    name:`從飯店前往 ${firstBack.from||"回程機場"}`,
+    note:back.toAirport||"",
+    memo:"由航班資料帶入"
+  });
+
+  back.segments.forEach((s,i)=>{
+    templates.push({
+      id:`flight-back-seg-${i}`,
+      source:"flight",
+      sourceType:"flight",
+      lockedName:true,
+      day:String(s.dep||data.trip.end).split("T")[0],
+      start:v16TimeFromDT(s.dep),
+      end:v16TimeFromDT(s.arr),
+      type:"航班",
+      name:`搭乘回程第 ${i+1} 段 ${s.no||""}`.trim(),
+      note:`${s.from||""} → ${s.to||""}`,
+      memo:"由航班資料帶入"
+    });
+  });
+
+  templates.push({
+    id:"flight-back-home-transfer",
+    source:"flight",
+    sourceType:"flight",
+    lockedName:true,
+    day:String(lastBack.arr||data.trip.end).split("T")[0],
+    start:v16TimeFromDT(lastBack.arr),
+    end:"",
+    type:"交通",
+    name:`從 ${lastBack.to||"抵達機場"} 回家`,
+    note:back.fromAirport||"",
+    memo:"由航班資料帶入"
+  });
+
+  return templates;
+}
+
+function syncFlightPlans(){
+  v28NormalizePlans();
+  const templates=flightPlanTemplates();
+  const keepIds=templates.map(p=>p.id);
+  // 若從轉機改回直飛，刪除不再存在的 flight segment，避免殘留第二段。
+  data.plans=data.plans.filter(p=>p.source!=="flight" || keepIds.includes(p.id));
+  data.conns=(data.conns||[]).filter(c=>data.plans.some(p=>p.id===c.a)&&data.plans.some(p=>p.id===c.b));
+  templates.forEach(p=>v28UpsertPlan(p));
+}
+
+function v16AddFlightsToPlans(doRender=true){
+  syncFlightPlans();
+  if(doRender) save();
+}
+
+function flightHasBudget(){
+  return data.expenses.some(e=>e.sourceType==="flight" || e.source==="航班");
+}
+
+function addFlightBudget(){
+  if(flightHasBudget())return toast("航班預算已經記過囉！");
+  const out=normalizeFlightObj(data.flights.out,"out");
+  const back=normalizeFlightObj(data.flights.back,"back");
+  const outNos=out.segments.map(s=>s.no).filter(Boolean).join("＋");
+  const backNos=back.segments.map(s=>s.no).filter(Boolean).join("＋");
+  const label=[outNos?`去程 ${outNos}`:"", backNos?`回程 ${backNos}`:""].filter(Boolean).join("／");
+
+  data.expenses.push({
+    id:uid(),
+    sourceType:"flight",
+    source:"航班",
+    type:"機票",
+    name: label ? `來回機票（${label}）` : "來回機票",
+    payer:"未定",
+    payMethod:"未定",
+    day:"",
+    mode:"TWD",
+    foreign:0,
+    twd:0,
+    memo:"由航班資料帶入，可自行補金額"
+  });
+  save();
+  toast("已幫你記一筆來回機票！");
+}
+
+function renderTrip(){
+  const h=editingHotelId?data.hotels.find(x=>x.id==editingHotelId):null;
+  const selectedCity=typeof v15CurrentCity==="function" ? v15CurrentCity() : (data.trip.city||"");
+  const mapObj=typeof v15CountryCityMaps==="function" ? v15CountryCityMaps().cityMap : {};
+  const list=mapObj[data.trip.country]||[];
+  const customCity=list.includes(selectedCity)?"":selectedCity;
+  const showCustom=data.trip.country==="其他" || !list.includes(selectedCity);
+  v18SortHotels();
+
+  $("tripView").innerHTML=`<div class="section"><div><h2>🌏 旅遊地與機酒</h2><div class="hint">旅遊國家會影響整份資料，修改國家前會要求確認與備份。</div></div></div>
+
+  <details class="card"><summary>① 🌏 旅遊地與旅伴</summary><div class="detailBody">
+    <div class="three compactMobile">
+      <div><label>國家 / 區域</label><select id="country" onchange="handleCountrySelectChange()">${countryOptions()}</select></div>
+      <div><label>城市 / 路線</label><select id="citySelect" onchange="updateDestByCity()">${v15CityOptions(selectedCity)}</select></div>
+      <div id="customCityBox" class="full" style="display:${showCustom?"block":"none"}"><label>自訂目的地</label><input id="cityCustom" value="${esc(customCity)}" oninput="updateDestByCity()" placeholder="例：釜山＋慶州"></div>
+    </div>
+    <div class="two">
+      <div><label>幣別</label><input id="currency" value="${esc(data.trip.currency)}" oninput="countryChanged()"></div>
+      <div><label id="rateLabel">匯率：1 ${esc(data.trip.currency)} = TWD</label><input id="rateSetup" type="number" step="0.0001" value="${data.trip.rate}"></div>
+    </div>
+    <div class="three compactMobile">
+      <div><label>出發日</label><input id="start" type="date" value="${data.trip.start}"></div>
+      <div><label>回程日</label><input id="end" type="date" value="${data.trip.end}"></div>
+      <div class="full"><label>匯率查詢</label><button class="btn blue compact" onclick="openRateSearch()">查一下匯率</button></div>
+    </div>
+    <div class="two">
+      <div><label>旅遊人數</label><select id="travelerCount" onchange="previewTravelerCount()">${[1,2,3,4,5,6,7,8].map(n=>`<option value="${n}" ${Number(data.trip.travelerCount)==n?"selected":""}>${n} 人</option>`).join("")}</select></div>
+      <div class="hint" style="align-self:end">目前目的地：${esc(data.trip.dest||"尚未設定")}</div>
+    </div>
+    <div class="grid2" id="travelerBox">${travelerInputs()}</div>
+    <div class="btns"><button class="btn dark" onclick="saveBasic()">存好旅遊地設定</button></div>
+  </div></details>
+
+  <details class="card"><summary>② ✈️ 航班與機場接送</summary><div class="detailBody">
+    <div class="grid2"><div class="box blue"><h3>去程</h3>${flightForm("out")}</div><div class="box pink"><h3>回程</h3>${flightForm("back")}</div></div>
+    ${flightStatusHtml()}
+    <div class="btns"><button class="btn dark" onclick="saveFlights()">存好航班設定</button></div>
+  </div></details>
+
+  <details class="card" ${v16KeepHotelOpen||editingHotelId?"open":""}><summary>③ 🏨 住宿</summary><div class="detailBody">
+    <div class="three compactMobile">
+      <div class="full"><label>住宿名稱</label><input id="hname" value="${esc(h?.name||"")}"></div>
+      <div><label>入住日</label><input id="hstart" type="date" min="${data.trip.start}" max="${data.trip.end}" value="${h?.start||data.trip.start}"></div>
+      <div><label>退房日</label><input id="hend" type="date" min="${data.trip.start}" max="${data.trip.end}" value="${h?.end||data.trip.end}"></div>
+    </div>
+    <label>地址</label><div class="two"><input id="haddr" value="${esc(h?.addr||"")}" placeholder="可手動貼上飯店地址"><button class="btn blue compact" onclick="searchHotelAddress()">查地圖</button></div>
+    <label>備註</label><textarea id="hnote">${esc(h?.note||"")}</textarea>
+    <div class="btns"><button class="btn dark" onclick="saveHotel()">${h?"存好住宿修改":"新增住宿"}</button>${h?'<button class="btn soft" onclick="editingHotelId=null;v16KeepHotelOpen=true;renderTrip()">取消編輯</button>':""}</div>
+    <div class="hotelSortedNote">住宿會依入住日自動排序；可選日期已限制在旅遊日期內。</div>
+    <div class="grid2" style="margin-top:10px">${data.hotels.map(hotelCard).join("")||'<div class="empty">還沒有新增住宿</div>'}</div>
+  </div></details>`;
+}
 
 init();
 initFirebaseSync();
