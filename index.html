@@ -1005,6 +1005,44 @@ html, body { max-width: 100%; overflow-x: hidden; }
   .accountWidget,.syncMini{display:none!important}
 }
 
+
+/* ===== v26 itinerary/budget simplification + account sync line ===== */
+.accountSyncLine{
+  padding:7px 9px 8px;
+  margin:0 0 5px;
+  border-bottom:1px solid var(--line);
+  color:var(--muted);
+  font-size:11px;
+  line-height:1.35;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.accountSyncLine .dot{
+  display:inline-block;
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:#cfc7bd;
+  margin-right:5px;
+}
+.accountSyncLine .dot.syncing{background:#d99a5f}
+.accountSyncLine .dot.success{background:#65a88e}
+.accountSyncLine .dot.error{background:#c85b5b}
+.planBudgetHint{
+  margin-top:6px;
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.5;
+}
+.planFormLite{
+  display:grid;
+  gap:8px;
+}
+.planCardMeta{
+  margin-top:6px;
+}
+
 </style>
 </head>
 <body>
@@ -1016,7 +1054,7 @@ html, body { max-width: 100%; overflow-x: hidden; }
   <button class="btn blue compact hidden" id="cloudLoadBtn" onclick="loadFromCloud()">載入雲端</button>
   <button class="btn pink compact hidden" id="cloudSaveBtn" onclick="saveToCloudNow()">立即同步</button>
 </div>
-<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v25｜2026-05-29｜右上角登入選單／航班來回機票版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
+<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v26｜2026-05-29｜行程簡化／獨立預算／同步狀態版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
 
 <!-- Firebase SDK for cross-device sync -->
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -3440,7 +3478,7 @@ function photoBookDay(d){
 
 
 /* ===== Version marker ===== */
-const APP_VERSION = "v25｜2026-05-29｜右上角登入選單／航班來回機票版";
+const APP_VERSION = "v26｜2026-05-29｜行程簡化／獨立預算／同步狀態版";
 console.log("My Travel Book", APP_VERSION);
 
 
@@ -4686,6 +4724,313 @@ initFirebaseSync = function(){
   renderAccountWidget(null);
   __oldInitFirebaseSync_v25();
 };
+
+
+/* ===== v26 overrides: remove plan money/payer, independent budget, account sync state ===== */
+let syncStatus = "idle";
+let lastSyncTime = null;
+
+function syncStatusText(){
+  if(syncStatus==="syncing") return "同步中";
+  if(syncStatus==="success") return lastSyncTime ? `已同步 ${lastSyncTime}` : "已同步";
+  if(syncStatus==="error") return "同步失敗";
+  return "尚未同步";
+}
+
+function updateAccountSyncLine(){
+  const el=$("accountSyncLine");
+  if(!el)return;
+  const dotClass = syncStatus==="syncing" ? "syncing" : syncStatus==="success" ? "success" : syncStatus==="error" ? "error" : "";
+  el.innerHTML = `<span class="dot ${dotClass}"></span>${esc(syncStatusText())}`;
+}
+
+function renderAccountWidget(user){
+  const logged=!!user;
+  const avatar=$("accountAvatar");
+  const label=$("accountLabel");
+  const name=$("accountName");
+  const email=$("accountEmail");
+  if(!avatar)return;
+
+  if(logged){
+    if(user.photoURL){
+      avatar.innerHTML=`<img src="${user.photoURL}" alt="avatar">`;
+    }else{
+      avatar.textContent=initialsFromUser(user);
+    }
+    if(label)label.textContent="已登入";
+    if(name)name.textContent=user.displayName || "Google 帳號";
+    if(email)email.textContent=user.email || "";
+  }else{
+    avatar.textContent="登入";
+    if(label)label.textContent="Google 登入";
+    if(name)name.textContent="尚未登入";
+    if(email)email.textContent="登入後可跨裝置同步";
+    syncStatus="idle";
+    lastSyncTime=null;
+  }
+
+  ["menuLoad","menuSave","menuLogout"].forEach(id=>{
+    if($(id))$(id).style.display=logged?"block":"none";
+  });
+  if($("menuLogin"))$("menuLogin").style.display=logged?"none":"block";
+  updateAccountSyncLine();
+}
+
+function setSyncStatus(kind,title,desc){
+  const t=String(title||"");
+  if(kind==="warn" || t.includes("同步中")){
+    syncStatus="syncing";
+    showSyncMini("同步中...");
+  }else if(kind==="on" || t.includes("已同步") || t.includes("同步好了") || t.includes("已載入") || t.includes("已建立")){
+    syncStatus="success";
+    lastSyncTime=new Date().toLocaleTimeString("zh-TW",{hour:"2-digit",minute:"2-digit"});
+    if(t.includes("已載入")) showSyncMini("已載入雲端");
+    else showSyncMini("已同步");
+  }else if(kind==="off" || t.includes("失敗") || t.includes("尚未授權")){
+    syncStatus="error";
+    showSyncMini(t || "同步失敗");
+  }
+  updateAccountSyncLine();
+
+  const el=$("syncStatus");
+  if(el){
+    const dotClass = kind==="on"?"on":kind==="warn"?"warn":"off";
+    el.innerHTML = `<span class="syncDot ${dotClass}"></span><b>${esc(title||"")}</b>${desc?`<br>${esc(desc)}`:""}`;
+  }
+}
+
+function ensureAccountMenuSyncLine(){
+  const menu=$("accountMenu");
+  if(menu && !$("accountSyncLine")){
+    const who=menu.querySelector(".who");
+    if(who){
+      who.insertAdjacentHTML("afterend", `<div class="accountSyncLine" id="accountSyncLine"><span class="dot"></span>尚未同步</div>`);
+    }
+  }
+  updateAccountSyncLine();
+}
+
+const __oldToggleAccountMenu_v26 = toggleAccountMenu;
+toggleAccountMenu = function(){
+  ensureAccountMenuSyncLine();
+  __oldToggleAccountMenu_v26();
+};
+
+function createBudgetFromPlanSnapshot(plan){
+  // 不建立關聯 id/sourceId，只複製當下行程文字成一筆可獨立編輯的預算。
+  if(!plan || !plan.name)return;
+  data.expenses.push({
+    id:uid(),
+    source:"行程",
+    type:plan.type || "其他",
+    name:plan.name,
+    payer:"未定",
+    payMethod:"未定",
+    day:plan.day || "",
+    mode:"TWD",
+    foreign:0,
+    twd:0,
+    memo:"由行程建立，可自行補金額"
+  });
+}
+
+function renderPlanner(){
+  normalizePlanTimes(cur);
+  let plans=sortedPlans(cur);
+  $("plannerView").innerHTML=`<div class="section"><div><h2>${dayTitle(cur)}</h2><div class="hint">住宿：${hotelFor(cur)?.name||"未設定"}。行程依開始時間排序。</div></div><button class="iconBtn smallIcon" onclick="clearPlanForm()">＋</button></div>
+  <details class="card" ${editingPlanId||v16PendingSpotId?"open":""}><summary>${editingPlanId?"編輯行程":"＋ 新增行程"}</summary><div class="detailBody">
+    <div class="planFormLite">
+      <div class="three compactMobile">
+        <div class="full"><label>日期</label><select id="pday" onchange="cur=this.value; renderPlanner();">${optsDays(cur)}</select></div>
+        <div><label>開始</label><input id="ps" type="time" value="10:00"></div>
+        <div><label>結束</label><input id="pe" type="time" value="11:30"></div>
+      </div>
+      <div><label>分類</label><select id="ptype"><option>景點</option><option>餐廳</option><option>咖啡廳</option><option>購物</option><option>交通</option><option>航班</option><option>住宿</option><option>其他</option></select></div>
+      <div><label>行程名稱</label><input id="pname"></div>
+      <div id="lockedNameHint" class="lockedFieldHint" style="display:none">此行程由航班／住宿／口袋景點帶入，名稱不可編輯；備註可以自由修改。</div>
+      <label>注意事項</label><textarea id="pnote"></textarea>
+      <label>備註</label><textarea id="pmemo"></textarea>
+      <div class="planBudgetHint">新增行程時會自動在「預算」建立一筆花費；之後可到預算頁自行編輯或刪除，不會與行程連動。</div>
+      <div class="btns"><button class="btn dark" onclick="savePlanForm()">${editingPlanId?"存好行程":"加入行程"}</button>${editingPlanId||v16PendingSpotId?'<button class="btn soft" onclick="clearPlanForm()">取消編輯 / 新增</button>':""}</div>
+    </div>
+  </div></details>
+  <div id="pcards">${planCards(plans)}</div>`;
+  if(editingPlanId) fillPlanForm(editingPlanId);
+  if(v16PendingSpotId) v16FillPendingSpot();
+  v21ApplyLockedNameState();
+}
+
+function fillPlanForm(id){
+  let p=data.plans.find(x=>x.id==id);
+  if(!p)return;
+  $("pday").value=p.day||cur;
+  $("ps").value=p.start||"";
+  $("pe").value=p.end||"";
+  $("ptype").value=p.type||"景點";
+  $("pname").value=p.name||"";
+  $("pnote").value=p.note||"";
+  $("pmemo").value=p.memo||"";
+  v21ApplyLockedNameState();
+}
+
+function v16FillPendingSpot(){
+  const s=data.spots.find(x=>x.id==v16PendingSpotId);
+  if(!s)return;
+  $("pday").value=s.day||cur;
+  $("ptype").value=["景點","餐廳","咖啡廳","購物","其他"].includes(s.type)?s.type:"景點";
+  $("pname").value=s.name;
+  $("pnote").value=s.memo;
+  $("pmemo").value="由口袋景點帶入";
+  $("pname").readOnly=true;
+  $("pname").classList.add("lockedInput");
+  $("lockedNameHint").style.display="block";
+}
+
+function v23ValidatePlanForm(){
+  const day=$("pday")?.value || "";
+  const start=$("ps")?.value || "";
+  const end=$("pe")?.value || "";
+  const type=$("ptype")?.value || "";
+
+  if(!v23InTripRange(day)){
+    alert(`行程日期必須在旅遊日期區間內：${data.trip.start} ～ ${data.trip.end}`);
+    return false;
+  }
+
+  const flexibleTypes=["交通","航班","住宿"];
+  if(!flexibleTypes.includes(type)){
+    if(!start || !end){
+      alert("景點／餐廳／購物等一般行程需填寫開始與結束時間。");
+      return false;
+    }
+  }
+
+  if(start && end){
+    const s=v23TimeToMin(start), e=v23TimeToMin(end);
+    if(e<s){
+      alert("行程結束時間不可早於開始時間。");
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function savePlanForm(){
+  if(!$("pname").value)return toast("請輸入行程名稱");
+  if(!v23ValidatePlanForm())return;
+
+  let item={
+    day:$("pday").value,
+    start:$("ps").value,
+    end:$("pe").value,
+    type:$("ptype").value,
+    name:$("pname").value,
+    mode:"foreign",
+    foreign:0,
+    twd:0,
+    payer:"未定",
+    payMethod:"未定",
+    note:$("pnote").value,
+    memo:$("pmemo").value,
+    adjusted:false
+  };
+  let planId=editingPlanId;
+  let isNew=false;
+
+  if(editingPlanId){
+    const existing=data.plans.find(p=>p.id==editingPlanId);
+    if(existing?.lockedName){
+      item.name=existing.name;
+      item.sourceType=existing.sourceType;
+      item.lockedName=true;
+      if(existing.hotelId)item.hotelId=existing.hotelId;
+    }
+    Object.assign(existing,item);
+    editingPlanId=null;
+  }else{
+    isNew=true;
+    planId=uid();
+    data.plans.push({id:planId,...item});
+  }
+
+  if(v16PendingSpotId){
+    const spot=data.spots.find(s=>s.id==v16PendingSpotId);
+    const p=data.plans.find(x=>x.id==planId);
+    if(spot && p){
+      spot.planId=planId;
+      p.sourceType="spot";
+      p.lockedName=true;
+      p.name=spot.name;
+      p.memo=p.memo || "由口袋景點帶入";
+    }
+    v16PendingSpotId=null;
+  }
+
+  const savedPlan=data.plans.find(x=>x.id==planId);
+  if(isNew && savedPlan){
+    createBudgetFromPlanSnapshot(savedPlan);
+  }
+
+  cur=item.day;
+  save();
+  toast(isNew ? "行程加好了，也幫你先記一筆花費！" : "已幫你存好行程囉！");
+}
+
+function planCards(plans){
+  if(!plans.length)return`<div class="empty">這天還沒有行程</div>`;
+  let html="";
+  plans.forEach((p,i)=>{
+    if(i>0)html+=connHtml(plans[i-1],p);
+    html+=`<div class="card plan"><div class="section"><div><div class="time">${p.start||"--:--"}-${p.end||"--:--"}</div><div class="place">${activityIcon(p.type)} ${esc(p.name)}</div><div class="tags planCardMeta"><span class="tag">${esc(p.type)}</span>${p.sourceType?`<span class="tag blue">${p.sourceType==="flight"?"航班帶入":p.sourceType==="hotel"?"住宿帶入":p.sourceType==="spot"?"口袋景點帶入":"來源帶入"}</span>`:""}${p.adjusted?'<span class="tag green">已依交通調整</span>':""}</div></div><div><button class="small" onclick="map('${encodeURIComponent(p.name+' '+data.trip.dest)}')">地圖</button><button class="small" onclick="editPlan('${p.id}')">編輯</button><button class="small" onclick="delPlan('${p.id}')">刪除</button></div></div><div class="grid2"><div class="box pink"><b>注意</b><br>${esc(p.note||"")}</div><div class="box blue"><b>備註</b><br>${esc(p.memo||"")}</div></div></div>`;
+  });
+  return html;
+}
+
+function v16AddPlanNode(item){
+  if(!item.day||!item.name)return null;
+  if(v16PlanExists(item.day,item.name,item.start)) return null;
+  const plan={id:uid(),mode:"foreign",foreign:0,twd:0,payer:"未定",payMethod:"未定",note:"",memo:"",adjusted:false,...item};
+  data.plans.push(plan);
+  // 自動產生的航班/住宿行程也建立一筆可獨立刪改的預算；不建立關聯。
+  createBudgetFromPlanSnapshot(plan);
+  return plan.id;
+}
+
+function delPlan(id){
+  // 暫時不做來源同步刪除，也不連動預算。
+  data.plans=data.plans.filter(x=>x.id!=id);
+  data.conns=data.conns.filter(c=>c.a!=id&&c.b!=id);
+  save();
+}
+
+function budgetRows(){
+  const rows=[];
+  data.expenses.forEach(x=>rows.push(`<tr><td>${esc(x.source||"額外費用")}</td><td>${x.day?esc(x.day):"—"}</td><td>${esc(x.type)}</td><td>${esc(x.name)}</td><td>${esc(travelerName(x.payer))}</td><td>${esc(payMethodLabel(x.payMethod))}</td><td>${fmt(moneyForeign(x))}</td><td>${fmt(moneyTwd(x))}</td><td><button class="small" onclick="editExpense('${x.id}')">編輯</button><button class="small" onclick="delExpense('${x.id}')">刪除</button></td></tr>`));
+
+  data.conns.filter(c=>Number(c.fareTwd||0)>0||Number(c.fareForeign||0)>0).forEach(c=>rows.push(`<tr><td>交通</td><td>—</td><td>${esc(c.mode)}</td><td>行程間交通</td><td>${esc(travelerName(c.payer))}</td><td>${esc(payMethodLabel(c.payMethod))}</td><td>${fmt(c.fareForeign||0)}</td><td>${fmt(c.fareTwd||0)}</td><td></td></tr>`));
+  return rows.join("")||'<tr><td colspan="9">尚未新增預算</td></tr>';
+}
+
+function renderBudget(){
+  const expTotal=data.expenses.reduce((s,x)=>s+moneyTwd(x),0);
+  const taxiTotal=data.conns.reduce((s,x)=>s+Number(x.fareTwd||0),0);
+  $("budgetView").innerHTML=`<div class="section"><div><h2>預算總覽</h2><div class="hint">行程新增時會先幫你建立一筆預算；預算可獨立編輯或刪除，暫時不與行程連動。</div></div><button class="iconBtn smallIcon" onclick="clearExpenseForm()">＋</button></div><div class="card"><div class="three"><div><label>費用類型</label><select id="etype"><option>機票</option><option>住宿</option><option>網路</option><option>旅平險</option><option>交通票券</option><option>景點票券</option><option>餐飲</option><option>購物</option><option>其他</option></select></div><div><label>項目</label><input id="ename"></div><div><label>付款人</label><select id="epayer">${optsPayer("未定")}</select></div></div><div class="four"><div><label>${esc(data.trip.currency)} 金額</label><input id="eforeign" type="number" oninput="syncExpenseMoney('f')"></div><div><label>TWD</label><input id="etwd" type="number" oninput="syncExpenseMoney('t')"></div><div><label>付款方式</label><select id="epm">${optsPayMethod("未定")}</select></div><div><label>付款日</label><input id="eday" type="date"><div class="freeDateHint">付款日可留空，也可以早於出發日。</div></div></div><label>備註</label><input id="ememo"><div class="btns"><button class="btn dark" onclick="saveExpenseForm()">${editingExpenseId?"存好預算":"記一筆花費"}</button>${editingExpenseId?'<button class="btn soft" onclick="clearExpenseForm()">取消編輯 / 新增</button>':""}<button class="btn blue" onclick="openRateSearch()">查一下匯率</button></div></div><div class="stats"><div class="stat"><span>預算 TWD</span><strong>${fmt(expTotal)}</strong></div><div class="stat"><span>計程車 TWD</span><strong>${fmt(taxiTotal)}</strong></div><div class="stat"><span>總 TWD</span><strong>${fmt(expTotal+taxiTotal)}</strong></div></div><div class="table"><table><thead><tr><th>來源</th><th>日期</th><th>類型</th><th>項目</th><th>付款人</th><th>付款方式</th><th>${esc(data.trip.currency)}</th><th>TWD</th><th></th></tr></thead><tbody>${budgetRows()}</tbody></table></div>`;
+  if(editingExpenseId)fillExpenseForm(editingExpenseId);
+}
+
+const __oldEnsureAccountMenuSyncLine_v26 = ensureAccountMenuSyncLine || function(){};
+function ensureAccountMenuSyncLine(){
+  const menu=$("accountMenu");
+  if(menu && !$("accountSyncLine")){
+    const who=menu.querySelector(".who");
+    if(who){
+      who.insertAdjacentHTML("afterend", `<div class="accountSyncLine" id="accountSyncLine"><span class="dot"></span>尚未同步</div>`);
+    }
+  }
+  updateAccountSyncLine();
+}
 
 init();
 initFirebaseSync();
