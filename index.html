@@ -4914,6 +4914,308 @@ body[data-theme-mode] .btn.pink{
   }
 }
 
+
+/* ===== v52 premium itinerary timeline UI only ===== */
+/* 只美化行程頁的每日行程清單，不改資料結構與核心 CRUD 邏輯 */
+.itineraryTimeline{
+  position:relative;
+  display:grid;
+  gap:10px;
+  padding:4px 0 4px 0;
+}
+
+.itineraryTimeline::before{
+  content:"";
+  position:absolute;
+  left:17px;
+  top:10px;
+  bottom:10px;
+  width:1px;
+  background:linear-gradient(
+    to bottom,
+    transparent,
+    color-mix(in srgb,var(--theme-primary,#4A5D4E) 34%, transparent),
+    color-mix(in srgb,var(--theme-primary,#4A5D4E) 34%, transparent),
+    transparent
+  );
+}
+
+.itineraryItem{
+  position:relative;
+  display:grid;
+  grid-template-columns:36px minmax(0,1fr);
+  gap:10px;
+  align-items:start;
+}
+
+.itineraryDotWrap{
+  position:relative;
+  display:flex;
+  justify-content:center;
+  padding-top:12px;
+  z-index:2;
+}
+
+.itineraryDot{
+  width:13px;
+  height:13px;
+  border-radius:50%;
+  background:var(--theme-card,#fffdfa);
+  border:2px solid var(--theme-primary,#4A5D4E);
+  box-shadow:0 0 0 4px color-mix(in srgb,var(--theme-primary-weak,#F2F6F4) 85%, transparent);
+  transition:background .22s ease, transform .22s ease, box-shadow .22s ease;
+}
+
+.itineraryItem:hover .itineraryDot{
+  background:var(--theme-primary,#4A5D4E);
+  transform:scale(1.08);
+  box-shadow:0 0 0 5px color-mix(in srgb,var(--theme-primary-soft,#E5ECE9) 78%, transparent);
+}
+
+.itineraryCard{
+  position:relative;
+  border:1px solid var(--theme-line,#E2DDD5);
+  background:color-mix(in srgb,var(--theme-card,#fffdfa) 96%, var(--theme-primary-weak,#F2F6F4) 4%);
+  border-radius:18px;
+  padding:12px 12px 11px;
+  box-shadow:0 8px 24px rgba(44,42,41,.035);
+  transition:transform .22s ease, box-shadow .22s ease, background .22s ease, border-color .22s ease;
+  overflow:hidden;
+}
+
+.itineraryItem:hover .itineraryCard{
+  transform:translateY(-1px);
+  background:color-mix(in srgb,var(--theme-primary-weak,#F2F6F4) 40%, var(--theme-card,#fffdfa) 60%);
+  border-color:color-mix(in srgb,var(--theme-primary,#4A5D4E) 22%, var(--theme-line,#E2DDD5) 78%);
+  box-shadow:0 14px 34px rgba(44,42,41,.065);
+}
+
+.itineraryTop{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  gap:10px;
+  align-items:start;
+}
+
+.itineraryTimeBlock{
+  min-width:58px;
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+  align-items:flex-start;
+}
+
+.itineraryTime{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:999px;
+  background:var(--theme-primary-weak,#F2F6F4);
+  color:var(--theme-primary,#4A5D4E);
+  border:1px solid color-mix(in srgb,var(--theme-primary-soft,#E5ECE9) 70%, var(--theme-line,#E2DDD5) 30%);
+  padding:5px 8px;
+  font-size:12px;
+  font-weight:850;
+  letter-spacing:.2px;
+  line-height:1;
+  white-space:nowrap;
+}
+
+.itineraryEndTime{
+  color:var(--theme-muted,#9A928A);
+  font-size:10.5px;
+  font-weight:750;
+  padding-left:3px;
+}
+
+.itineraryTitleBlock{
+  min-width:0;
+}
+
+.itineraryTitleLine{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  min-width:0;
+}
+
+.itineraryMapIcon{
+  flex:0 0 auto;
+  width:23px;
+  height:23px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  background:#fff;
+  border:1px solid var(--theme-line,#E2DDD5);
+  color:var(--theme-primary,#4A5D4E);
+  font-size:12px;
+}
+
+.itineraryTitle{
+  margin:0;
+  font-size:16px;
+  line-height:1.35;
+  font-weight:760;
+  color:var(--theme-ink,#2C2A29);
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.itineraryMeta{
+  margin-top:5px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px;
+}
+
+.itineraryTypePill,
+.itinerarySourcePill{
+  display:inline-flex;
+  align-items:center;
+  border-radius:999px;
+  padding:4px 7px;
+  font-size:11px;
+  font-weight:850;
+  line-height:1;
+}
+
+.itineraryTypePill{
+  background:var(--theme-primary-weak,#F2F6F4);
+  color:var(--theme-primary,#4A5D4E);
+}
+
+.itinerarySourcePill{
+  background:#fff;
+  color:var(--theme-muted,#9A928A);
+  border:1px solid var(--theme-line,#E2DDD5);
+}
+
+.itineraryNote{
+  margin-top:8px;
+  color:var(--theme-muted,#9A928A);
+  font-size:12px;
+  line-height:1.55;
+  white-space:pre-wrap;
+}
+
+.itineraryActions{
+  display:flex;
+  align-items:center;
+  gap:4px;
+  opacity:0;
+  transform:translateY(-2px);
+  transition:opacity .2s ease, transform .2s ease;
+}
+
+.itineraryItem:hover .itineraryActions,
+.itineraryCard:focus-within .itineraryActions{
+  opacity:1;
+  transform:translateY(0);
+}
+
+.itineraryActions .small{
+  border:1px solid var(--theme-line,#E2DDD5);
+  background:rgba(255,255,255,.88);
+  color:var(--theme-muted,#9A928A);
+  border-radius:999px;
+  padding:5px 8px;
+  font-size:11px;
+  font-weight:850;
+}
+
+.itineraryActions .small:hover{
+  color:var(--theme-ink,#2C2A29);
+  border-color:var(--theme-primary-soft,#E5ECE9);
+}
+
+.itineraryLocked{
+  color:var(--theme-muted,#9A928A);
+  font-size:11px;
+  font-weight:850;
+}
+
+.itineraryEmpty{
+  border:1px dashed var(--theme-line,#E2DDD5);
+  background:color-mix(in srgb,var(--theme-card,#fffdfa) 85%, var(--theme-primary-weak,#F2F6F4) 15%);
+  border-radius:18px;
+  padding:20px;
+  text-align:center;
+  color:var(--theme-muted,#9A928A);
+}
+
+@media(max-width:620px){
+  .itineraryTimeline{
+    gap:9px;
+  }
+  .itineraryTimeline::before{
+    left:14px;
+  }
+  .itineraryItem{
+    grid-template-columns:30px minmax(0,1fr);
+    gap:8px;
+  }
+  .itineraryDotWrap{
+    padding-top:13px;
+  }
+  .itineraryDot{
+    width:11px;
+    height:11px;
+  }
+  .itineraryCard{
+    padding:11px;
+    border-radius:16px;
+  }
+  .itineraryTop{
+    grid-template-columns:1fr auto;
+    gap:8px;
+  }
+  .itineraryTimeBlock{
+    grid-column:1/-1;
+    flex-direction:row;
+    align-items:center;
+    min-width:0;
+  }
+  .itineraryTitleBlock{
+    grid-column:1/2;
+  }
+  .itineraryActions{
+    grid-column:2/3;
+    opacity:1;
+    transform:none;
+    align-self:start;
+  }
+  .itineraryTitle{
+    font-size:15px;
+    white-space:normal;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+  }
+  .itineraryNote{
+    font-size:12px;
+  }
+}
+
+@media print{
+  .itineraryTimeline::before,
+  .itineraryDotWrap{
+    display:none!important;
+  }
+  .itineraryItem{
+    display:block!important;
+  }
+  .itineraryCard{
+    box-shadow:none!important;
+    break-inside:avoid!important;
+    page-break-inside:avoid!important;
+  }
+  .itineraryActions{
+    display:none!important;
+  }
+}
+
 </style>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
@@ -4927,7 +5229,7 @@ body[data-theme-mode] .btn.pink{
   <button class="btn blue compact hidden" id="cloudLoadBtn" onclick="loadFromCloud()">載入雲端</button>
   <button class="btn pink compact hidden" id="cloudSaveBtn" onclick="saveToCloudNow()">立即同步</button>
 </div>
-<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>VoyageMemo.｜LocalStorage + Cloudinary Version<br><strong>版本：v51-map｜2026-05-29｜行程頁OpenStreetMap路線版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
+<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>VoyageMemo.｜LocalStorage + Cloudinary Version<br><strong>版本：v52｜2026-05-29｜精品行程時間軸版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
 
 <!-- Firebase SDK for cross-device sync -->
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -7351,7 +7653,7 @@ function photoBookDay(d){
 
 
 /* ===== Version marker ===== */
-const APP_VERSION = "v51-map｜2026-05-29｜行程頁OpenStreetMap路線版";
+const APP_VERSION = "v52｜2026-05-29｜精品行程時間軸版";
 console.log("VoyageMemo.", APP_VERSION);
 
 
@@ -12562,6 +12864,69 @@ function routeMapHtml(dayKey){
 }
 
 /* 只覆寫行程頁 renderPlanner，插入地圖卡；不更動 data 結構 */
+
+/* ===== v52 premium itinerary timeline rendering only ===== */
+/* 只覆寫每日行程清單的 HTML 渲染；不更動 CRUD 函數、不更動資料結構 */
+
+function itineraryTimeText(p){
+  const s = p.start || "--:--";
+  const e = p.end || "";
+  return {start:s, end:e};
+}
+
+function itinerarySourceText(p){
+  if(p.source==="flight" || p.sourceType==="flight") return "航班帶入";
+  if(p.source==="hotel" || p.sourceType==="hotel") return "住宿帶入";
+  if(p.source==="spot" || p.sourceType==="spot") return "口袋景點";
+  return "手動行程";
+}
+
+function premiumPlanCard(p){
+  const t = itineraryTimeText(p);
+  const locked = p.lockedName || p.source==="flight" || p.source==="hotel";
+  return `<div class="itineraryItem" data-id="${p.id}">
+    <div class="itineraryDotWrap"><span class="itineraryDot"></span></div>
+    <article class="itineraryCard">
+      <div class="itineraryTop">
+        <div class="itineraryTimeBlock">
+          <span class="itineraryTime">${esc(t.start)}</span>
+          ${t.end?`<span class="itineraryEndTime">至 ${esc(t.end)}</span>`:""}
+        </div>
+        <div class="itineraryTitleBlock">
+          <div class="itineraryTitleLine">
+            <span class="itineraryMapIcon" title="預留地圖定位">📍</span>
+            <h3 class="itineraryTitle">${activityIcon(p.type)} ${esc(p.name)}</h3>
+          </div>
+          <div class="itineraryMeta">
+            <span class="itineraryTypePill">${esc(p.type||"其他")}</span>
+            <span class="itinerarySourcePill">${esc(itinerarySourceText(p))}</span>
+            ${p.adjusted?'<span class="itineraryTypePill">已依交通調整</span>':""}
+            ${moneyForeign(p)||moneyTwd(p)?`<span class="itinerarySourcePill">${esc(data.trip.currency)} ${fmt(moneyForeign(p))}｜TWD ${fmt(moneyTwd(p))}</span>`:""}
+          </div>
+          ${p.note?`<div class="itineraryNote"><b>注意：</b>${esc(p.note)}</div>`:""}
+          ${p.memo?`<div class="itineraryNote"><b>備註：</b>${esc(p.memo)}</div>`:""}
+        </div>
+        <div class="itineraryActions">
+          <button class="small" onclick="routeCurrent('${encodeURIComponent((p.name||"")+" "+(data.trip.dest||""))}')">地圖</button>
+          <button class="small" onclick="editPlan('${p.id}')">編輯</button>
+          <button class="small" onclick="delPlan('${p.id}')">刪除</button>
+        </div>
+      </div>
+    </article>
+  </div>`;
+}
+
+function planCards(plans){
+  if(!plans.length) return '<div class="itineraryEmpty">這天還沒有行程，新增第一個景點後就會形成時間軸。</div>';
+  let html='<div class="itineraryTimeline">';
+  plans.forEach((p,i)=>{
+    if(i>0) html += connHtml(plans[i-1],p);
+    html += premiumPlanCard(p);
+  });
+  html += '</div>';
+  return html;
+}
+
 const __renderPlannerBeforeV51Map = renderPlanner;
 renderPlanner = function(){
   __renderPlannerBeforeV51Map();
