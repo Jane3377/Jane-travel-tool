@@ -1337,6 +1337,103 @@ textarea{min-height:58px}
   }
 }
 
+
+/* ===== v32 flight compact spacing + timezone date flexibility ===== */
+.flightDense{
+  --flight-field-gap:6px;
+  --flight-label-gap:3px;
+}
+.flightDense .detailBody{
+  padding:0 10px 10px !important;
+}
+.flightDense .grid2{
+  gap:8px !important;
+}
+.flightDense .box{
+  padding:8px !important;
+  border-radius:14px !important;
+}
+.flightDense h3{
+  margin:0 0 5px !important;
+  font-size:15px !important;
+}
+.flightDense label{
+  margin:5px 0 var(--flight-label-gap) !important;
+  font-size:12px !important;
+  line-height:1.2 !important;
+}
+.flightDense input,
+.flightDense select,
+.flightDense textarea{
+  min-height:34px !important;
+  padding:6px 8px !important;
+  font-size:13px !important;
+  border-radius:11px !important;
+}
+.flightDense textarea{
+  min-height:42px !important;
+}
+.flightDense .flightTransferBlock{
+  margin-top:6px !important;
+}
+.flightDense .flightTransferBlock + .flightTransferBlock{
+  margin-top:10px !important;
+}
+.flightDense .flightTypeHint,
+.flightDense .airportQuickHint{
+  margin-top:3px !important;
+  font-size:10.5px !important;
+  line-height:1.35 !important;
+}
+.flightDense .segmentBox{
+  margin-top:6px !important;
+  border-radius:13px !important;
+}
+.flightDense .segmentBox summary{
+  padding:7px 9px !important;
+}
+.flightDense .segmentInner{
+  padding:0 8px 8px !important;
+}
+.flightDense .segmentTitle{
+  font-size:13px !important;
+}
+.flightDense .segmentTitle span{
+  padding:2px 6px !important;
+  font-size:10.5px !important;
+}
+.flightDense .two,
+.flightDense .three,
+.flightDense .four,
+.flightDense .terminalPair{
+  gap:6px !important;
+}
+.flightDense .terminalPair{
+  margin-top:2px !important;
+}
+.flightDateFlexHint{
+  font-size:10.5px;
+  color:var(--muted);
+  line-height:1.35;
+  margin-top:4px;
+}
+@media(max-width:620px){
+  .flightDense .detailBody{
+    padding:0 9px 9px !important;
+  }
+  .flightDense .box{
+    padding:8px !important;
+  }
+  .flightDense .grid2{
+    gap:7px !important;
+  }
+  .flightDense input,
+  .flightDense select,
+  .flightDense textarea{
+    min-height:34px !important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1348,7 +1445,7 @@ textarea{min-height:58px}
   <button class="btn blue compact hidden" id="cloudLoadBtn" onclick="loadFromCloud()">載入雲端</button>
   <button class="btn pink compact hidden" id="cloudSaveBtn" onclick="saveToCloudNow()">立即同步</button>
 </div>
-<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v31｜2026-05-29｜航班機場航廈選單版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
+<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v32｜2026-05-29｜航班密度再優化／時差彈性版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
 
 <!-- Firebase SDK for cross-device sync -->
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -3772,7 +3869,7 @@ function photoBookDay(d){
 
 
 /* ===== Version marker ===== */
-const APP_VERSION = "v31｜2026-05-29｜航班機場航廈選單版";
+const APP_VERSION = "v32｜2026-05-29｜航班密度再優化／時差彈性版";
 console.log("My Travel Book", APP_VERSION);
 
 
@@ -6926,6 +7023,109 @@ function flightPlanTemplates(){
   });
 
   return templates;
+}
+
+
+/* ===== v32 overrides: compact flight copy + flexible flight date range ===== */
+function v32DateAdd(dateStr, days){
+  const d=parseLocalDate(dateStr);
+  d.setDate(d.getDate()+days);
+  return formatLocalDate(d);
+}
+function v32InFlightDateRange(dateStr){
+  const d=v23ParseDateOnly(dateStr);
+  const s=v23ParseDateOnly(v32DateAdd(data.trip.start,-3));
+  const e=v23ParseDateOnly(v32DateAdd(data.trip.end,3));
+  return d!==null && s!==null && e!==null && d>=s && d<=e;
+}
+function v32FlightDateRangeText(){
+  return `${v32DateAdd(data.trip.start,-3)} ～ ${v32DateAdd(data.trip.end,3)}`;
+}
+
+function flightForm(k){
+  const f=normalizeFlightObj(data.flights[k],k);
+  const segs=[f.segments[0]||{}, f.segments[1]||{}];
+  const isOut=k==="out";
+  return `<div class="flightTransferBlock">
+    ${airportDatalistHtml()}
+    <label>航班型態</label>${flightTypeSelect(k,f.type||"direct")}
+    <div class="flightTypeHint">直飛 1 段，轉機 2 段；航班日期允許落在出發日前 3 天～回程日後 3 天。</div>
+    <div id="${k}segmentsWrap">
+      ${flightSegmentForm(k,0,segs[0])}
+      ${flightSegmentForm(k,1,segs[1])}
+    </div>
+    <label>${isOut?"抵達出發機場方式":"前往回程機場方式"}</label>
+    <textarea id="${k}toAirport" placeholder="${isOut?"例：14:00 從家出發，搭機捷到桃園機場":"例：從飯店搭地鐵／計程車到機場"}">${esc(f.toAirport||f.transfer||"")}</textarea>
+    <label>${isOut?"降落後到市區／飯店":"抵達後回家方式"}</label>
+    <textarea id="${k}fromAirport" placeholder="${isOut?"例：金海機場搭輕軌轉地鐵到飯店":"例：抵達桃園後搭機捷／接送回家"}">${esc(f.fromAirport||"")}</textarea>
+  </div>`;
+}
+
+function validateFlightSegments(){
+  const out=readFlightForm("out");
+  const back=readFlightForm("back");
+  const all=[
+    ...out.segments.map((s,i)=>({dir:"去程",idx:i+1,...s})),
+    ...back.segments.map((s,i)=>({dir:"回程",idx:i+1,...s}))
+  ];
+
+  for(const s of all){
+    const missing=[];
+    if(!s.no)missing.push("航班號");
+    if(!s.from)missing.push("出發地");
+    if(!s.to)missing.push("抵達地");
+    if(!s.dep)missing.push("起飛時間");
+    if(!s.arr)missing.push("抵達時間");
+    if(missing.length){
+      alert(`${s.dir}第 ${s.idx} 段請填完整：${missing.join("、")}`);
+      return false;
+    }
+    const dep=v23ParseDateTime(s.dep), arr=v23ParseDateTime(s.arr);
+    if(!(dep<arr)){
+      alert(`${s.dir}第 ${s.idx} 段的抵達時間需晚於起飛時間。`);
+      return false;
+    }
+    const depDay=String(s.dep).split("T")[0], arrDay=String(s.arr).split("T")[0];
+    if(!v32InFlightDateRange(depDay) || !v32InFlightDateRange(arrDay)){
+      alert(`${s.dir}第 ${s.idx} 段航班日期可填：${v32FlightDateRangeText()}\n\n這個範圍比旅行日期前後各多 3 天，用來支援跨時區與跨日航班。`);
+      return false;
+    }
+  }
+
+  for(let i=1;i<all.length;i++){
+    const prevArr=v23ParseDateTime(all[i-1].arr);
+    const curDep=v23ParseDateTime(all[i].dep);
+    if(!(prevArr<curDep)){
+      alert("請確認航班時間順序：每一段航班的起飛時間都必須晚於上一段的抵達時間。");
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function flightSegmentForm(k, idx, seg){
+  seg = seg || {};
+  const defaultOpen = idx===0 ? "open" : "";
+  return `<details class="segmentBox" id="${k}segBox${idx}" ${defaultOpen}>
+    <summary><div class="segmentTitle">第 ${idx+1} 段航班 <span>${idx===0?"第一段":"第二段／轉機後"}</span></div></summary>
+    <div class="segmentInner">
+      <div class="three compactMobile">
+        <div><label>航班號</label><input id="${k}s${idx}no" value="${esc(seg.no||"")}" placeholder="例：BX794"></div>
+        <div><label>出發地 / 機場</label><input id="${k}s${idx}from" list="airportList" value="${esc(seg.from||"")}" placeholder="可選或輸入"></div>
+        <div><label>抵達地 / 機場</label><input id="${k}s${idx}to" list="airportList" value="${esc(seg.to||"")}" placeholder="可選或輸入"></div>
+      </div>
+      <div class="terminalPair">
+        <div><label>出發航廈</label><select id="${k}s${idx}fromTerminal">${terminalOptions(seg.fromTerminal||"未定")}</select></div>
+        <div><label>抵達航廈</label><select id="${k}s${idx}toTerminal">${terminalOptions(seg.toTerminal||"未定")}</select></div>
+      </div>
+      <div class="two">
+        <div><label>起飛時間</label><input id="${k}s${idx}dep" type="datetime-local" value="${seg.dep||""}"></div>
+        <div><label>抵達時間</label><input id="${k}s${idx}arr" type="datetime-local" value="${seg.arr||""}"></div>
+      </div>
+      <div class="airportQuickHint">台灣與亞洲機場優先列出；找不到可手動輸入。</div>
+    </div>
+  </details>`;
 }
 
 init();
