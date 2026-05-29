@@ -1655,6 +1655,92 @@ textarea{min-height:58px}
   }
 }
 
+
+/* ===== v37 mobile-only flight field overflow/dropdown fix ===== */
+/* 只修手機版航班區，不影響桌機版與資料結構 */
+@media(max-width:620px){
+  #tripView .flightDense,
+  #tripView .flightDense *{
+    box-sizing:border-box !important;
+  }
+
+  #tripView .flightDense{
+    overflow:hidden !important;
+  }
+
+  #tripView .flightDense .box,
+  #tripView .flightDense .segmentBox,
+  #tripView .flightDense .segmentInner{
+    width:100% !important;
+    max-width:100% !important;
+    overflow:hidden !important;
+  }
+
+  #tripView .flightDense .grid2,
+  #tripView .flightDense .two,
+  #tripView .flightDense .three,
+  #tripView .flightDense .four,
+  #tripView .flightDense .terminalPair,
+  #tripView .flightDense .three.compactMobile,
+  #tripView .flightDense .four.compactMobile{
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) !important;
+    gap:6px !important;
+    width:100% !important;
+    max-width:100% !important;
+  }
+
+  #tripView .flightDense .grid2 > *,
+  #tripView .flightDense .two > *,
+  #tripView .flightDense .three > *,
+  #tripView .flightDense .four > *,
+  #tripView .flightDense .terminalPair > *{
+    min-width:0 !important;
+    width:100% !important;
+    max-width:100% !important;
+  }
+
+  #tripView .flightDense input,
+  #tripView .flightDense select,
+  #tripView .flightDense textarea{
+    display:block !important;
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    box-sizing:border-box !important;
+    -webkit-appearance:auto !important;
+    appearance:auto !important;
+    font-size:16px !important;
+  }
+
+  #tripView .flightDense input[type="datetime-local"]{
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    overflow:hidden !important;
+    padding:6px 7px !important;
+  }
+
+  #tripView .flightDense input[type="datetime-local"]::-webkit-date-and-time-value{
+    text-align:left;
+    max-width:100%;
+  }
+
+  #tripView .flightDense select{
+    padding-right:26px !important;
+    background-color:#fff !important;
+  }
+
+  #tripView .flightDense input[list]{
+    padding-right:8px !important;
+  }
+
+  #tripView .flightDense .segmentBox summary{
+    width:100% !important;
+    max-width:100% !important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1666,7 +1752,7 @@ textarea{min-height:58px}
   <button class="btn blue compact hidden" id="cloudLoadBtn" onclick="loadFromCloud()">載入雲端</button>
   <button class="btn pink compact hidden" id="cloudSaveBtn" onclick="saveToCloudNow()">立即同步</button>
 </div>
-<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v36｜2026-05-29｜航班帶入行程日期時間修正版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
+<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v37｜2026-05-29｜手機航班欄位修正版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
 
 <!-- Firebase SDK for cross-device sync -->
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -4090,7 +4176,7 @@ function photoBookDay(d){
 
 
 /* ===== Version marker ===== */
-const APP_VERSION = "v36｜2026-05-29｜航班帶入行程日期時間修正版";
+const APP_VERSION = "v37｜2026-05-29｜手機航班欄位修正版";
 console.log("My Travel Book", APP_VERSION);
 
 
