@@ -1551,6 +1551,110 @@ textarea{min-height:58px}
   }
 }
 
+
+/* ===== v35 flight card spacing fix only ===== */
+/* 只針對旅遊地 > 航班與機場接送，避免 .box 的 white-space:pre-wrap 造成大片空白 */
+.flightDense .box{
+  white-space:normal !important;
+  line-height:1.35 !important;
+  padding:8px 10px !important;
+  border-radius:14px !important;
+}
+.flightDense .box h3{
+  margin:0 0 6px !important;
+  font-size:15px !important;
+  line-height:1.25 !important;
+}
+.flightDense .flightTransferBlock{
+  margin:0 !important;
+}
+.flightDense label{
+  margin:6px 0 3px !important;
+  font-size:12px !important;
+  line-height:1.2 !important;
+}
+.flightDense input,
+.flightDense select,
+.flightDense textarea{
+  min-height:34px !important;
+  padding:6px 8px !important;
+  font-size:13px !important;
+  border-radius:11px !important;
+  line-height:1.25 !important;
+}
+.flightDense textarea{
+  min-height:40px !important;
+}
+.flightDense .grid2{
+  gap:8px !important;
+}
+.flightDense .two,
+.flightDense .three,
+.flightDense .four,
+.flightDense .terminalPair{
+  gap:6px !important;
+}
+.flightDense .flightTypeHint,
+.flightDense .airportQuickHint{
+  margin:3px 0 5px !important;
+  font-size:10.5px !important;
+  line-height:1.35 !important;
+}
+.flightDense .segmentBox{
+  margin:6px 0 !important;
+  border-radius:13px !important;
+  background:#fffdf8 !important;
+}
+.flightDense .segmentBox summary{
+  padding:7px 9px !important;
+  min-height:auto !important;
+}
+.flightDense .segmentInner{
+  padding:0 8px 8px !important;
+}
+.flightDense .segmentTitle{
+  margin:0 !important;
+  font-size:13px !important;
+  line-height:1.25 !important;
+}
+.flightDense .segmentTitle span{
+  padding:2px 6px !important;
+  font-size:10.5px !important;
+}
+.flightDense .terminalPair{
+  margin-top:2px !important;
+}
+.flightDense .btns{
+  margin-top:8px !important;
+}
+.flightDense .flightStatusBox{
+  margin-top:8px !important;
+  padding:8px !important;
+}
+
+/* 平板/桌機：保留雙欄，但降低高度 */
+@media(min-width:621px){
+  .flightDense .box{
+    min-height:0 !important;
+  }
+}
+
+/* 手機：維持單欄，不橫向捲動 */
+@media(max-width:620px){
+  .flightDense .grid2,
+  .flightDense .two,
+  .flightDense .three,
+  .flightDense .four,
+  .flightDense .terminalPair,
+  .flightDense .three.compactMobile,
+  .flightDense .four.compactMobile{
+    grid-template-columns:1fr !important;
+  }
+  .flightDense .box{
+    padding:8px !important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1562,7 +1666,7 @@ textarea{min-height:58px}
   <button class="btn blue compact hidden" id="cloudLoadBtn" onclick="loadFromCloud()">載入雲端</button>
   <button class="btn pink compact hidden" id="cloudSaveBtn" onclick="saveToCloudNow()">立即同步</button>
 </div>
-<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v34｜2026-05-29｜預算來源修正／中國城市版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
+<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v35｜2026-05-29｜航班接送UI間距修正版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
 
 <!-- Firebase SDK for cross-device sync -->
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -3986,7 +4090,7 @@ function photoBookDay(d){
 
 
 /* ===== Version marker ===== */
-const APP_VERSION = "v34｜2026-05-29｜預算來源修正／中國城市版";
+const APP_VERSION = "v35｜2026-05-29｜航班接送UI間距修正版";
 console.log("My Travel Book", APP_VERSION);
 
 
