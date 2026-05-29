@@ -2208,6 +2208,433 @@ textarea{min-height:58px}
   }
 }
 
+
+/* ===== v43 photo story book redesign only ===== */
+.photoBookEditor{
+  display:grid;
+  gap:12px;
+}
+.storyPanel{
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.94);
+  border-radius:22px;
+  padding:14px;
+  box-shadow:0 10px 28px rgba(88,72,55,.05);
+}
+.storyPanelHead{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:10px;
+}
+.storyPanelHead h3{
+  margin:0;
+  font-size:18px;
+}
+.storyPanelHead p{
+  margin:4px 0 0;
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.55;
+}
+.storyCoverPreview{
+  width:100%;
+  aspect-ratio:16/9;
+  border-radius:24px;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 18px 18px,rgba(217,239,230,.8),transparent 70px),
+    linear-gradient(135deg,#fffefa,#edf8f3);
+  border:1px solid var(--line);
+  display:grid;
+  place-items:center;
+  color:var(--muted);
+  margin-top:10px;
+}
+.storyCoverPreview img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+.dayCoverManager{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:10px;
+}
+.dayCoverTile{
+  border:1px solid var(--line);
+  border-radius:18px;
+  background:#fffdf9;
+  overflow:hidden;
+}
+.dayCoverThumb{
+  height:112px;
+  background:linear-gradient(135deg,#fffefa,#fbedf2);
+  display:grid;
+  place-items:center;
+  color:var(--muted);
+  overflow:hidden;
+}
+.dayCoverThumb img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+.dayCoverTileBody{
+  padding:10px;
+}
+.dayCoverTileBody b{
+  display:block;
+  font-size:14px;
+  margin-bottom:3px;
+}
+.dayCoverTileBody span{
+  color:var(--muted);
+  font-size:12px;
+}
+.dayCoverUploadLabel{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:999px;
+  background:#edf8f3;
+  color:#527b70;
+  padding:7px 10px;
+  font-size:12px;
+  font-weight:950;
+  cursor:pointer;
+  margin-top:8px;
+}
+.storyUploadNote{
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.5;
+  margin-top:6px;
+}
+.storyPhotoEditorGrid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+}
+.storyBookPreview{
+  margin-top:14px;
+}
+.storyBook{
+  background:#fffdf8;
+  border:1px solid var(--line);
+  border-radius:28px;
+  overflow:hidden;
+}
+.storyBookCover{
+  position:relative;
+  padding:28px;
+  min-height:460px;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-end;
+  background:
+    radial-gradient(circle at 16% 10%,rgba(217,239,230,.9),transparent 34%),
+    radial-gradient(circle at 86% 4%,rgba(248,223,232,.9),transparent 28%),
+    linear-gradient(135deg,#fffefa,#f7f3ec);
+}
+.storyBookCoverImage{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  opacity:.92;
+}
+.storyBookCoverOverlay{
+  position:absolute;
+  inset:0;
+  background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,253,248,.88));
+}
+.storyBookCoverText{
+  position:relative;
+  z-index:1;
+  max-width:720px;
+}
+.storyBookCoverText .eyebrow,
+.storyDay .eyebrow{
+  display:inline-flex;
+  border-radius:999px;
+  background:rgba(255,255,255,.82);
+  border:1px solid rgba(234,223,212,.9);
+  padding:6px 11px;
+  color:#527b70;
+  font-weight:950;
+  font-size:12px;
+  margin-bottom:10px;
+}
+.storyBookCoverText h1{
+  font-size:42px;
+  margin:0 0 10px;
+  line-height:1.1;
+  letter-spacing:-1.2px;
+}
+.storyBookCoverText p{
+  margin:0;
+  color:#6f6962;
+  line-height:1.75;
+}
+.storyBookCoverMeta{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:16px;
+}
+.storyBookCoverMeta span{
+  border-radius:999px;
+  background:rgba(255,255,255,.78);
+  border:1px solid rgba(234,223,212,.9);
+  padding:7px 10px;
+  font-size:12px;
+  font-weight:900;
+}
+.storyDay{
+  padding:28px;
+  border-top:1px solid var(--line);
+  background:#fffdf8;
+}
+.storyDayHeader{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 160px;
+  gap:14px;
+  align-items:end;
+  margin-bottom:16px;
+}
+.storyDayHeader h2{
+  margin:0 0 6px;
+  font-size:28px;
+}
+.storyDayHeader p{
+  margin:0;
+  color:var(--muted);
+  line-height:1.6;
+}
+.storyDayHero{
+  width:100%;
+  aspect-ratio:16/8.2;
+  border-radius:26px;
+  overflow:hidden;
+  background:linear-gradient(135deg,#edf8f3,#fbedf2);
+  margin-bottom:18px;
+}
+.storyDayHero img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+.storyDayHero.emptyHero{
+  display:grid;
+  place-items:center;
+  color:var(--muted);
+  border:1px dashed #d8cfc6;
+}
+.storyDayBody{
+  display:grid;
+  grid-template-columns:1fr 1.25fr;
+  gap:18px;
+  align-items:start;
+}
+.storyTimeline{
+  display:grid;
+  gap:8px;
+}
+.storyTimelineTitle,
+.storyPhotosTitle{
+  font-size:14px;
+  font-weight:950;
+  color:#5d554e;
+  margin-bottom:8px;
+}
+.storyTimelineItem{
+  display:grid;
+  grid-template-columns:58px 1fr;
+  gap:8px;
+  align-items:start;
+}
+.storyTimelineTime{
+  border-radius:999px;
+  background:#f3eee8;
+  padding:6px 8px;
+  text-align:center;
+  font-size:11px;
+  font-weight:950;
+  color:#6f6257;
+}
+.storyTimelineContent{
+  border-left:3px solid #d9efe6;
+  padding:2px 0 8px 10px;
+}
+.storyTimelineContent b{
+  display:block;
+  line-height:1.35;
+}
+.storyTimelineContent span{
+  display:block;
+  margin-top:3px;
+  font-size:12px;
+  color:var(--muted);
+  line-height:1.55;
+}
+.storyPhotoLayout{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.storyPhotoCard{
+  border-radius:22px;
+  overflow:hidden;
+  background:#fff;
+  border:1px solid var(--line);
+  box-shadow:0 8px 20px rgba(88,72,55,.05);
+}
+.storyPhotoCard.featured{
+  grid-column:1/-1;
+}
+.storyPhotoImage{
+  width:100%;
+  aspect-ratio:4/3;
+  background:#f7f3ec;
+  overflow:hidden;
+}
+.storyPhotoCard.featured .storyPhotoImage{
+  aspect-ratio:16/8.6;
+}
+.storyPhotoImage img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+.storyPhotoText{
+  padding:10px 11px 12px;
+}
+.storyPhotoText h3{
+  margin:0 0 5px;
+  font-size:15px;
+}
+.storyPhotoText p{
+  margin:5px 0 0;
+  font-size:12px;
+  color:var(--muted);
+  line-height:1.6;
+}
+.storyTags{
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px;
+}
+.storyTag{
+  display:inline-flex;
+  border-radius:999px;
+  background:#edf8f3;
+  color:#527b70;
+  padding:4px 8px;
+  font-size:11px;
+  font-weight:950;
+}
+.storyEmpty{
+  border:1px dashed #d8cfc6;
+  border-radius:20px;
+  padding:18px;
+  color:var(--muted);
+  text-align:center;
+  background:#fffefa;
+}
+@media(max-width:620px){
+  .storyPanel{padding:12px;border-radius:20px}
+  .storyPanelHead{display:block}
+  .storyPhotoEditorGrid{grid-template-columns:1fr}
+  .dayCoverManager{grid-template-columns:1fr}
+  .storyBookCover{min-height:360px;padding:20px}
+  .storyBookCoverText h1{font-size:31px}
+  .storyDay{padding:18px}
+  .storyDayHeader{grid-template-columns:1fr}
+  .storyDayHeader h2{font-size:24px}
+  .storyDayBody{grid-template-columns:1fr}
+  .storyPhotoLayout{grid-template-columns:1fr}
+}
+@media print{
+  .storyPanel.noPrint,.photoBookEditor.noPrint{display:none!important}
+  .storyBookPreview{margin:0!important}
+  .storyBook{
+    border:0!important;
+    border-radius:0!important;
+    background:#fff!important;
+    overflow:visible!important;
+  }
+  .storyBookCover{
+    page-break-after:always;
+    break-after:page;
+    min-height:260mm!important;
+    border-radius:0!important;
+    padding:22mm!important;
+    overflow:hidden!important;
+  }
+  .storyBookCoverText h1{
+    font-size:34px!important;
+  }
+  .storyDay{
+    page-break-before:always;
+    break-before:page;
+    border-top:0!important;
+    padding:12mm 10mm!important;
+    min-height:260mm;
+    background:#fff!important;
+  }
+  .storyDayHeader,
+  .storyDayHero,
+  .storyTimelineItem,
+  .storyPhotoCard{
+    break-inside:avoid;
+    page-break-inside:avoid;
+  }
+  .storyDayHero{
+    height:62mm!important;
+    aspect-ratio:auto!important;
+    border-radius:16px!important;
+    margin-bottom:8mm!important;
+  }
+  .storyDayBody{
+    grid-template-columns:1fr!important;
+    gap:7mm!important;
+  }
+  .storyTimeline{
+    gap:3mm!important;
+  }
+  .storyPhotoLayout{
+    grid-template-columns:1fr 1fr!important;
+    gap:5mm!important;
+  }
+  .storyPhotoCard.featured{
+    grid-column:1/-1!important;
+  }
+  .storyPhotoImage,
+  .storyPhotoCard.featured .storyPhotoImage{
+    height:45mm!important;
+    aspect-ratio:auto!important;
+  }
+  .storyPhotoText{
+    padding:4mm!important;
+  }
+  .storyPhotoText p{
+    font-size:10.5px!important;
+    line-height:1.45!important;
+  }
+  .storyBookCoverMeta span,
+  .storyTag{
+    print-color-adjust:exact;
+    -webkit-print-color-adjust:exact;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -2219,7 +2646,7 @@ textarea{min-height:58px}
   <button class="btn blue compact hidden" id="cloudLoadBtn" onclick="loadFromCloud()">載入雲端</button>
   <button class="btn pink compact hidden" id="cloudSaveBtn" onclick="saveToCloudNow()">立即同步</button>
 </div>
-<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v42｜2026-05-29｜照片旅遊書封面與日記優化版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
+<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v43｜2026-05-29｜照片旅遊書故事排版版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
 
 <!-- Firebase SDK for cross-device sync -->
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -4643,7 +5070,7 @@ function photoBookDay(d){
 
 
 /* ===== Version marker ===== */
-const APP_VERSION = "v42｜2026-05-29｜照片旅遊書封面與日記優化版";
+const APP_VERSION = "v43｜2026-05-29｜照片旅遊書故事排版版";
 console.log("My Travel Book", APP_VERSION);
 
 
@@ -9068,6 +9495,159 @@ function photoBookDay(d){
           <button class="small noPrint" onclick="delPhoto('${p.id}')">刪除</button>
         </div>
       </div>`).join("")||""}</div>
+  </div>`;
+}
+
+
+/* ===== v43 photo travel book story redesign only ===== */
+function exportPhotoBookPDF(){
+  alert("匯出 PDF 建議使用電腦下載或列印，版面會比較穩定。這版已改成故事書列印版面，會盡量避免照片與段落被切頁。");
+  print();
+}
+
+function storyTagsHtml(tags){
+  const raw=String(tags||"").trim();
+  if(!raw)return "";
+  return `<div class="storyTags">${raw.split(/[,\s，、]+/).filter(Boolean).map(t=>`<span class="storyTag">${esc(t)}</span>`).join("")}</div>`;
+}
+
+function dayCoverManagerHtml(){
+  return `<div class="dayCoverManager">${data.days.map(d=>{
+    const cover=data.dayCovers[d.key];
+    return `<div class="dayCoverTile">
+      <div class="dayCoverThumb">${cover?`<img src="${cover}">`:`${d.title}<br>${d.label}`}</div>
+      <div class="dayCoverTileBody">
+        <b>${d.title}｜${d.label}</b>
+        <span>${cover?"已設定每日封面":"尚未設定每日封面"}</span><br>
+        <label class="dayCoverUploadLabel">
+          ${cover?"更換封面":"上傳封面"}
+          <input type="file" accept="image/*" onchange="addDayCover('${d.key}',this.files[0])" style="display:none">
+        </label>
+        <div class="photoUploadStatus" id="dayCoverStatus-${d.key}"></div>
+      </div>
+    </div>`;
+  }).join("")}</div>`;
+}
+
+function storyBookPhotoCard(p, idx){
+  return `<div class="storyPhotoCard ${idx===0?"featured":""}">
+    <div class="storyPhotoImage"><img src="${p.src}"></div>
+    <div class="storyPhotoText">
+      <h3>${esc(p.title||"照片紀錄")}</h3>
+      ${storyTagsHtml(p.tags)}
+      <p>${esc(p.memo||"")}</p>
+      <button class="small noPrint" onclick="delPhoto('${p.id}')">刪除</button>
+    </div>
+  </div>`;
+}
+
+function storyTimelineHtml(plans){
+  if(!plans.length)return `<div class="storyEmpty">這天還沒有安排正式行程，可以先用照片記錄旅途。</div>`;
+  return `<div class="storyTimeline">${plans.map(p=>`
+    <div class="storyTimelineItem">
+      <div class="storyTimelineTime">${esc(p.start||"--:--")}</div>
+      <div class="storyTimelineContent">
+        <b>${activityIcon(p.type)} ${esc(p.name)}</b>
+        <span>${esc(p.end?`至 ${p.end}`:"")} ${p.note?`｜${p.note}`:""}</span>
+      </div>
+    </div>`).join("")}</div>`;
+}
+
+function storyBookDay(d){
+  const plans=sortedPlans(d.key);
+  const photos=data.photos.filter(p=>p.day==d.key);
+  const cover=data.dayCovers[d.key] || photos[0]?.src || "";
+  return `<section class="storyDay">
+    <div class="storyDayHeader">
+      <div>
+        <span class="eyebrow">${d.title}</span>
+        <h2>${d.label} 的旅行故事</h2>
+        <p>住宿：${hotelFor(d.key)?.name||"未設定"}。今天收錄 ${plans.length} 個行程與 ${photos.length} 張照片。</p>
+      </div>
+      <div class="bookDayBadge">${plans.length} 行程｜${photos.length} 照片</div>
+    </div>
+    <div class="storyDayHero ${cover?"":"emptyHero"}">${cover?`<img src="${cover}">`:"尚未上傳本日封面圖"}</div>
+    <div class="storyDayBody">
+      <div>
+        <div class="storyTimelineTitle">今天的路線</div>
+        ${storyTimelineHtml(plans)}
+      </div>
+      <div>
+        <div class="storyPhotosTitle">今日照片日記</div>
+        ${photos.length?`<div class="storyPhotoLayout">${photos.map(storyBookPhotoCard).join("")}</div>`:`<div class="storyEmpty">還沒有照片日記，先上傳幾張今天的代表照片吧。</div>`}
+      </div>
+    </div>
+  </section>`;
+}
+
+function renderPhotoBook(){
+  const cover=data.tripCover;
+  $("photoBookView").innerHTML=`<div class="section">
+    <div><h2>📖 照片旅遊書</h2><div class="hint">把封面、每日封面、行程與照片日記整合成一本故事感旅行書。</div></div>
+    <button class="btn soft noPrint" onclick="exportPhotoBookPDF()">匯出 PDF</button>
+  </div>
+
+  <div class="photoBookEditor noPrint">
+    <div class="storyPanel">
+      <div class="storyPanelHead">
+        <div><h3>① 旅遊書封面</h3><p>整本旅遊書的主視覺，建議使用橫式照片。</p></div>
+        <span class="tag green">整本封面</span>
+      </div>
+      <div class="templateRail">
+        ${templateCard("fresh","🌿 韓系清新","米白淡綠、乾淨圓角")}
+        ${templateCard("fun","🌈 活潑可愛","貼紙感、虛線框、繽紛")}
+        ${templateCard("diary","✎ 手帳日記","紙張格線、手寫感")}
+      </div>
+      <label>選擇旅遊書封面照片</label>
+      <input type="file" accept="image/*" onchange="addTripCover(this.files[0])">
+      <div class="storyUploadNote">建議尺寸：橫式 1600×1000px 以上。匯出 PDF 時會固定比例，不會再讓封面過度放大。</div>
+      <div class="photoUploadStatus" id="coverUploadStatus"></div>
+      <div class="storyCoverPreview">${cover?`<img src="${cover}">`:"尚未上傳旅遊書封面"}</div>
+    </div>
+
+    <div class="storyPanel">
+      <div class="storyPanelHead">
+        <div><h3>② 每日封面</h3><p>每一天章節的代表照片，讓 PDF 看起來更像一本旅遊書。</p></div>
+        <span class="tag blue">Day Cover</span>
+      </div>
+      ${dayCoverManagerHtml()}
+    </div>
+
+    <div class="storyPanel">
+      <div class="storyPanelHead">
+        <div><h3>③ 照片日記</h3><p>照片會依日期自動收進每一天故事；橫圖效果最好，也可加入 emoji 或標籤。</p></div>
+        <span class="tag pink">Photo Diary</span>
+      </div>
+      <div class="storyPhotoEditorGrid">
+        <div><label>照片日期</label><select id="phd">${optsDays(cur)}</select></div>
+        <div><label>照片標題</label><input id="pht" placeholder="例：海雲台散步"></div>
+        <div><label>自訂標籤</label><input id="phtag" placeholder="例：🌊 海邊 咖啡"></div>
+      </div>
+      <label>選擇照片</label><input id="phf" type="file" accept="image/*">
+      <label>照片日記</label><textarea id="phm" placeholder="這天的天氣、心情、最好吃的一餐、最喜歡的瞬間……"></textarea>
+      <div class="btns"><button class="btn dark" onclick="addPhoto()">上傳並加入照片日記</button></div>
+      <div class="photoUploadStatus" id="photoUploadStatus"></div>
+    </div>
+  </div>
+
+  <div class="storyBookPreview bookStyle-${data.meta.bookStyle||"fresh"}">
+    <div class="storyBook">
+      <section class="storyBookCover">
+        ${cover?`<img class="storyBookCoverImage" src="${cover}">`:""}
+        <div class="storyBookCoverOverlay"></div>
+        <div class="storyBookCoverText">
+          <span class="eyebrow">MY TRAVEL BOOK</span>
+          <h1>${esc(data.meta.title)}</h1>
+          <p>${esc(data.meta.subtitle)}</p>
+          <div class="storyBookCoverMeta">
+            <span>目的地：${esc(data.trip.dest||"未設定")}</span>
+            <span>日期：${short(data.trip.start)} - ${short(data.trip.end)}</span>
+            <span>${data.days.length} 天旅行</span>
+          </div>
+        </div>
+      </section>
+      ${data.days.map(storyBookDay).join("")}
+    </div>
   </div>`;
 }
 
