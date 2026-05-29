@@ -882,6 +882,129 @@ html, body { max-width: 100%; overflow-x: hidden; }
   .flightStatusGrid{grid-template-columns:1fr;}
 }
 
+
+/* ===== v25 account avatar menu + compact sync ===== */
+.syncBar{
+  display:none !important;
+}
+.accountWidget{
+  position:fixed;
+  top:calc(10px + env(safe-area-inset-top, 0px));
+  right:12px;
+  z-index:140;
+}
+.accountBtn{
+  border:1px solid rgba(255,255,255,.9);
+  background:rgba(255,255,255,.92);
+  backdrop-filter:blur(10px);
+  box-shadow:0 8px 22px rgba(88,72,55,.12);
+  border-radius:999px;
+  padding:5px;
+  min-width:42px;
+  height:42px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  font-weight:950;
+  color:var(--ink);
+}
+.accountAvatar{
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(135deg,#d9efe6,#f8dfe8);
+  color:#4f756a;
+  overflow:hidden;
+  font-size:13px;
+}
+.accountAvatar img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+.accountLabel{
+  display:none;
+  padding-right:6px;
+  font-size:12px;
+}
+.accountMenu{
+  position:absolute;
+  top:50px;
+  right:0;
+  width:178px;
+  background:rgba(255,255,255,.98);
+  border:1px solid var(--line);
+  border-radius:18px;
+  box-shadow:0 12px 34px rgba(88,72,55,.16);
+  padding:8px;
+  display:none;
+}
+.accountMenu.show{
+  display:block;
+}
+.accountMenu .who{
+  padding:8px 9px 9px;
+  border-bottom:1px solid var(--line);
+  margin-bottom:5px;
+}
+.accountMenu .who b{
+  display:block;
+  font-size:13px;
+}
+.accountMenu .who span{
+  display:block;
+  font-size:11px;
+  color:var(--muted);
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.accountMenu button{
+  width:100%;
+  border:0;
+  background:transparent;
+  text-align:left;
+  padding:9px 10px;
+  border-radius:12px;
+  font-weight:900;
+  color:var(--ink);
+}
+.accountMenu button:hover{
+  background:#f7f3ec;
+}
+.syncMini{
+  position:fixed;
+  top:calc(58px + env(safe-area-inset-top, 0px));
+  right:12px;
+  max-width:210px;
+  z-index:139;
+  background:rgba(56,51,47,.9);
+  color:#fff;
+  border-radius:999px;
+  padding:7px 11px;
+  font-size:12px;
+  font-weight:900;
+  box-shadow:0 8px 22px rgba(56,51,47,.18);
+  opacity:0;
+  transform:translateY(-4px);
+  transition:.18s;
+  pointer-events:none;
+}
+.syncMini.show{
+  opacity:1;
+  transform:translateY(0);
+}
+@media(min-width:760px){
+  .accountLabel{display:inline-block}
+  .accountBtn{padding-right:8px}
+}
+@media print{
+  .accountWidget,.syncMini{display:none!important}
+}
+
 </style>
 </head>
 <body>
@@ -893,7 +1016,7 @@ html, body { max-width: 100%; overflow-x: hidden; }
   <button class="btn blue compact hidden" id="cloudLoadBtn" onclick="loadFromCloud()">載入雲端</button>
   <button class="btn pink compact hidden" id="cloudSaveBtn" onclick="saveToCloudNow()">立即同步</button>
 </div>
-<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v24｜2026-05-29｜航班匯入狀態／UI文案微調版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
+<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v25｜2026-05-29｜右上角登入選單／航班來回機票版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
 
 <!-- Firebase SDK for cross-device sync -->
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -3317,7 +3440,7 @@ function photoBookDay(d){
 
 
 /* ===== Version marker ===== */
-const APP_VERSION = "v24｜2026-05-29｜航班匯入狀態／UI文案微調版";
+const APP_VERSION = "v25｜2026-05-29｜右上角登入選單／航班來回機票版";
 console.log("My Travel Book", APP_VERSION);
 
 
@@ -4425,6 +4548,145 @@ async function saveToCloudNow(){
   }
 }
 
+
+/* ===== v25 overrides: account avatar menu, mini sync status, round-trip flight budget ===== */
+function toggleAccountMenu(){
+  $("accountMenu")?.classList.toggle("show");
+}
+function closeAccountMenu(){
+  $("accountMenu")?.classList.remove("show");
+}
+document.addEventListener("click", function(e){
+  const w=$("accountWidget");
+  if(w && !w.contains(e.target)) closeAccountMenu();
+});
+
+function initialsFromUser(user){
+  const name=user?.displayName || user?.email || "登入";
+  if(!user)return "登入";
+  const parts=name.split(/\s+/).filter(Boolean);
+  if(parts.length>=2)return (parts[0][0]+parts[1][0]).toUpperCase();
+  return name.slice(0,2).toUpperCase();
+}
+
+function renderAccountWidget(user){
+  const logged=!!user;
+  const avatar=$("accountAvatar");
+  const label=$("accountLabel");
+  const name=$("accountName");
+  const email=$("accountEmail");
+  if(!avatar)return;
+
+  if(logged){
+    if(user.photoURL){
+      avatar.innerHTML=`<img src="${user.photoURL}" alt="avatar">`;
+    }else{
+      avatar.textContent=initialsFromUser(user);
+    }
+    if(label)label.textContent="已登入";
+    if(name)name.textContent=user.displayName || "Google 帳號";
+    if(email)email.textContent=user.email || "";
+  }else{
+    avatar.textContent="登入";
+    if(label)label.textContent="Google 登入";
+    if(name)name.textContent="尚未登入";
+    if(email)email.textContent="登入後可跨裝置同步";
+  }
+
+  ["menuLoad","menuSave","menuLogout"].forEach(id=>{
+    if($(id))$(id).style.display=logged?"block":"none";
+  });
+  if($("menuLogin"))$("menuLogin").style.display=logged?"none":"block";
+}
+
+function updateAuthButtons(isIn){
+  // v25: 舊版同步卡片已隱藏，改由右上角頭像選單控制。
+  renderAccountWidget(fbUser);
+}
+
+function showSyncMini(text){
+  const el=$("syncMini");
+  if(!el)return;
+  el.textContent=text||"已同步";
+  el.classList.add("show");
+  clearTimeout(window.__syncMiniTimer);
+  window.__syncMiniTimer=setTimeout(()=>el.classList.remove("show"),1600);
+}
+
+function setSyncStatus(kind,title,desc){
+  const t=String(title||"");
+  if(t.includes("已同步") || t.includes("同步好了")){
+    showSyncMini("已同步");
+  }else if(t.includes("同步中")){
+    showSyncMini("同步中...");
+  }else if(t.includes("已載入")){
+    showSyncMini("已載入雲端");
+  }else if(t.includes("已建立")){
+    showSyncMini("已建立雲端資料");
+  }else if(t.includes("失敗") || kind==="off"){
+    showSyncMini(t || "同步異常");
+  }
+  // 保留舊 syncStatus 的文字更新，雖然卡片已隱藏，避免其他流程依賴。
+  const el=$("syncStatus");
+  if(el){
+    const dotClass = kind==="on"?"on":kind==="warn"?"warn":"off";
+    el.innerHTML = `<span class="syncDot ${dotClass}"></span><b>${esc(title||"")}</b>${desc?`<br>${esc(desc)}`:""}`;
+  }
+}
+
+function addFlightBudget(){
+  if(flightHasBudget())return toast("航班預算已經記過囉！");
+  const out=data.flights.out||{}, back=data.flights.back||{};
+  const label=[
+    out.no?`去程 ${out.no}`:"",
+    back.no?`回程 ${back.no}`:""
+  ].filter(Boolean).join("／");
+
+  data.expenses.push({
+    id:uid(),
+    sourceType:"flight",
+    source:"航班",
+    type:"機票",
+    name: label ? `來回機票（${label}）` : "來回機票",
+    payer:"未定",
+    payMethod:"未定",
+    day:"",
+    mode:"TWD",
+    foreign:0,
+    twd:0,
+    memo:"由航班資料帶入，可自行補金額"
+  });
+  save();
+  toast("已幫你記一筆來回機票！");
+}
+
+function removeFlightBudget(){
+  data.expenses=data.expenses.filter(e=>!(e.sourceType==="flight" || e.source==="航班"));
+  save();
+  toast("已幫你移除航班預算囉！");
+}
+
+function flightStatusHtml(){
+  const hasP=flightHasPlans();
+  const hasB=flightHasBudget();
+  return `<div class="flightStatusBox">
+    <div class="flightStatusGrid">
+      <div class="flightStatusItem"><b>行程狀態</b><span class="${hasP?"ok":""}">${hasP?"已匯入行程":"尚未匯入行程"}</span></div>
+      <div class="flightStatusItem"><b>預算狀態</b><span class="${hasB?"ok":""}">${hasB?"已匯入預算":"尚未匯入預算"}</span></div>
+    </div>
+    <div class="flightStatusActions">
+      ${hasP?`<button class="btn soft compact" onclick="removeFlightPlans()">移除航班行程</button>`:`<button class="btn blue compact" onclick="v16AddFlightsToPlans(true)">匯入首尾行程</button>`}
+      ${hasB?`<button class="btn soft compact" onclick="removeFlightBudget()">移除航班預算</button>`:`<button class="btn pink compact" onclick="addFlightBudget()">記一筆來回機票</button>`}
+    </div>
+  </div>`;
+}
+
+const __oldInitFirebaseSync_v25 = initFirebaseSync;
+initFirebaseSync = function(){
+  renderAccountWidget(null);
+  __oldInitFirebaseSync_v25();
+};
+
 init();
 initFirebaseSync();
 </script>
@@ -4512,5 +4774,21 @@ initFirebaseSync();
     </div>
   </div>
 </div>
+
+
+<div class="accountWidget noPrint" id="accountWidget">
+  <button class="accountBtn" id="accountBtn" onclick="toggleAccountMenu()" title="帳號與同步">
+    <span class="accountAvatar" id="accountAvatar">登入</span>
+    <span class="accountLabel" id="accountLabel">Google 登入</span>
+  </button>
+  <div class="accountMenu" id="accountMenu">
+    <div class="who"><b id="accountName">尚未登入</b><span id="accountEmail">登入後可跨裝置同步</span></div>
+    <button id="menuLogin" onclick="firebaseSignIn(); closeAccountMenu()">Google 登入</button>
+    <button id="menuLoad" onclick="loadFromCloud(); closeAccountMenu()" style="display:none">載入雲端</button>
+    <button id="menuSave" onclick="saveToCloudNow(); closeAccountMenu()" style="display:none">立即同步</button>
+    <button id="menuLogout" onclick="firebaseSignOut(); closeAccountMenu()" style="display:none">登出</button>
+  </div>
+</div>
+<div class="syncMini noPrint" id="syncMini">已同步</div>
 
 </body></html>
