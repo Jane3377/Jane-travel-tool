@@ -758,10 +758,65 @@ html, body { max-width: 100%; overflow-x: hidden; }
   color:#7a716a!important;
 }
 
+
+/* ===== v22 Firebase sync UI ===== */
+.syncBar{
+  margin-top:12px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  align-items:center;
+  padding:10px;
+  border-radius:18px;
+  background:rgba(255,255,255,.82);
+  border:1px solid var(--line);
+}
+.syncStatus{
+  flex:1 1 180px;
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.45;
+}
+.syncStatus b{color:var(--ink)}
+.syncDot{
+  display:inline-block;
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:#cfc7bd;
+  margin-right:6px;
+}
+.syncDot.on{background:#65a88e}
+.syncDot.warn{background:#d99a5f}
+.syncDot.off{background:#c85b5b}
+.cloudHint{
+  margin-top:8px;
+  font-size:12px;
+  color:var(--muted);
+}
+@media(max-width:620px){
+  .syncBar{display:grid;grid-template-columns:1fr}
+  .syncBar .btn{width:100%}
+}
+
 </style>
 </head>
 <body>
-<div class="app"><header><div class="badge">🧳 My Travel Book</div><div class="titleRow"><h1 id="titleText">釜山小旅行手帳</h1><button class="iconBtn" onclick="editTitle()">✎</button></div><div class="subRow"><p class="sub" id="subtitleText">把想去的海邊、巷弄、咖啡香與晚餐清單都收進來，慢慢排成一趟期待出發的旅行。</p><button class="iconBtn" onclick="editSubtitle()">✎</button></div><div class="heroStats"><div><span>目的地</span><strong id="sDest">韓國釜山</strong></div><div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v21｜2026-05-29｜儲存時重置確認／航班住宿彈窗／來源行程鎖定版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
+<div class="app"><header><div class="badge">🧳 My Travel Book</div><div class="titleRow"><h1 id="titleText">釜山小旅行手帳</h1><button class="iconBtn" onclick="editTitle()">✎</button></div><div class="subRow"><p class="sub" id="subtitleText">把想去的海邊、巷弄、咖啡香與晚餐清單都收進來，慢慢排成一趟期待出發的旅行。</p><button class="iconBtn" onclick="editSubtitle()">✎</button></div><div class="heroStats"><div><span>目的地</span><strong id="sDest">韓國釜山</strong></div>
+<div class="syncBar noPrint">
+  <div class="syncStatus" id="syncStatus"><span class="syncDot off"></span><b>尚未登入</b><br>登入 Google 後可跨裝置同步。</div>
+  <button class="btn dark compact" id="loginBtn" onclick="firebaseSignIn()">Google 登入</button>
+  <button class="btn soft compact hidden" id="logoutBtn" onclick="firebaseSignOut()">登出</button>
+  <button class="btn blue compact hidden" id="cloudLoadBtn" onclick="loadFromCloud()">載入雲端</button>
+  <button class="btn pink compact hidden" id="cloudSaveBtn" onclick="saveToCloudNow()">立即同步</button>
+</div>
+<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v22｜2026-05-29｜Firebase單人跨裝置同步版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
+
+<!-- Firebase SDK for cross-device sync -->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+
 <script>
 const views=[["trip","旅遊地"],["planner","行程"],["spots","口袋景點"],["budget","預算"],["packing","行李"],["photoBook","照片書"],["help","說明"]];
 const currencyMap={"韓國":"KRW","日本":"JPY","泰國":"THB","美國":"USD","越南":"VND","新加坡":"SGD","歐洲":"EUR","英國":"GBP","香港":"HKD"};const rateMap={KRW:.023,JPY:.22,THB:.92,USD:31.5,VND:.00125,SGD:24,EUR:34,GBP:39,HKD:4.05};
@@ -3179,7 +3234,7 @@ function photoBookDay(d){
 
 
 /* ===== Version marker ===== */
-const APP_VERSION = "v21｜2026-05-29｜儲存時重置確認／航班住宿彈窗／來源行程鎖定版";
+const APP_VERSION = "v22｜2026-05-29｜Firebase單人跨裝置同步版";
 console.log("My Travel Book", APP_VERSION);
 
 
@@ -3554,7 +3609,233 @@ function renderBudget(){
   if(editingExpenseId)fillExpenseForm(editingExpenseId);
 }
 
+
+/* ===== v22 Firebase single-user cross-device sync ===== */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyDVmuktIzd29IqgOum2KOchgFZi0ofn4tY",
+  authDomain: "travel-tool-50e41.firebaseapp.com",
+  projectId: "travel-tool-50e41",
+  storageBucket: "travel-tool-50e41.firebasestorage.app",
+  messagingSenderId: "3477916876",
+  appId: "1:3477916876:web:141919efd392b6b5a60669",
+  measurementId: "G-FT2Y6WL5D5"
+};
+
+const ALLOWED_EMAIL = "jan33772001@gmail.com";
+const CLOUD_TRIP_ID = "main";
+
+let fbApp = null;
+let fbAuth = null;
+let fbDb = null;
+let fbUser = null;
+let cloudReady = false;
+let cloudSaveTimer = null;
+let suppressCloudSave = false;
+let cloudUnsub = null;
+let lastCloudUpdatedAt = 0;
+
+function initFirebaseSync(){
+  if(!window.firebase){
+    setSyncStatus("off","Firebase SDK 尚未載入","請確認網路連線或 GitHub Pages 是否可載入 Firebase CDN。");
+    return;
+  }
+
+  if(!firebase.apps.length){
+    fbApp = firebase.initializeApp(FIREBASE_CONFIG);
+  }else{
+    fbApp = firebase.app();
+  }
+
+  fbAuth = firebase.auth();
+  fbDb = firebase.firestore();
+
+  fbAuth.onAuthStateChanged(async user=>{
+    fbUser = user || null;
+    cloudReady = false;
+
+    if(cloudUnsub){
+      cloudUnsub();
+      cloudUnsub = null;
+    }
+
+    if(!user){
+      updateAuthButtons(false);
+      setSyncStatus("off","尚未登入","登入 Google 後可跨裝置同步。");
+      return;
+    }
+
+    updateAuthButtons(true);
+
+    const email = (user.email || "").toLowerCase();
+    if(email !== ALLOWED_EMAIL){
+      setSyncStatus("off","此 Google 帳號尚未授權",`${email} 不在白名單中。請登出後改用授權帳號。`);
+      return;
+    }
+
+    setSyncStatus("warn","登入成功，檢查雲端資料中",email);
+
+    try{
+      await firstCloudLoadOrCreate();
+      cloudReady = true;
+      listenCloudChanges();
+      scheduleCloudSave();
+    }catch(err){
+      cloudReady = false;
+      setSyncStatus("off","雲端同步失敗",err.message || "請檢查 Firestore Rules、白名單 email 與網路。");
+    }
+  });
+}
+
+function updateAuthButtons(isIn){
+  $("loginBtn")?.classList.toggle("hidden", isIn);
+  $("logoutBtn")?.classList.toggle("hidden", !isIn);
+  $("cloudLoadBtn")?.classList.toggle("hidden", !isIn);
+  $("cloudSaveBtn")?.classList.toggle("hidden", !isIn);
+}
+
+function setSyncStatus(kind,title,desc){
+  const el=$("syncStatus");
+  if(!el)return;
+  const dotClass = kind==="on"?"on":kind==="warn"?"warn":"off";
+  el.innerHTML = `<span class="syncDot ${dotClass}"></span><b>${esc(title||"")}</b><br>${esc(desc||"")}`;
+}
+
+function tripDocRef(){
+  if(!fbUser) throw new Error("尚未登入");
+  return fbDb.collection("users").doc(fbUser.uid).collection("trips").doc(CLOUD_TRIP_ID);
+}
+
+function firebaseSignIn(){
+  if(!fbAuth)return toast("Firebase 尚未初始化");
+  const provider = new firebase.auth.GoogleAuthProvider();
+  fbAuth.signInWithPopup(provider).catch(err=>{
+    alert("登入失敗：" + err.message + "\n\n若你在 GitHub Pages 遇到授權問題，請確認 Firebase Auth 的 Authorized domains 已加入你的 GitHub Pages 網域。");
+  });
+}
+
+function firebaseSignOut(){
+  if(fbAuth) fbAuth.signOut();
+}
+
+function cloudPayload(){
+  return {
+    appVersion: typeof APP_VERSION !== "undefined" ? APP_VERSION : "unknown",
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAtClient: Date.now(),
+    ownerEmail: fbUser?.email || "",
+    data: JSON.parse(JSON.stringify(data))
+  };
+}
+
+async function firstCloudLoadOrCreate(){
+  const ref=tripDocRef();
+  const snap=await ref.get();
+
+  if(snap.exists){
+    const doc=snap.data();
+    if(doc?.data){
+      suppressCloudSave = true;
+      data = doc.data;
+      if(!data.days?.length && data.trip?.start && data.trip?.end) data.days = mkDays(data.trip.start,data.trip.end);
+      cur = data.days?.[0]?.key || data.trip?.start || cur;
+      localStorage.setItem("travel_book_v12", JSON.stringify(data));
+      localStorage.setItem("travel_book_v22_cloud_backup", JSON.stringify(data));
+      render();
+      suppressCloudSave = false;
+      lastCloudUpdatedAt = doc.updatedAtClient || 0;
+      setSyncStatus("on","已載入雲端資料",`登入：${fbUser.email}`);
+      return;
+    }
+  }
+
+  await ref.set(cloudPayload(), {merge:true});
+  setSyncStatus("on","已建立雲端資料",`登入：${fbUser.email}`);
+}
+
+function listenCloudChanges(){
+  const ref=tripDocRef();
+  cloudUnsub = ref.onSnapshot(snap=>{
+    if(!snap.exists || !snap.data()?.data || !cloudReady)return;
+    const doc=snap.data();
+    const remoteUpdated = doc.updatedAtClient || 0;
+    if(remoteUpdated && remoteUpdated > lastCloudUpdatedAt + 5000){
+      lastCloudUpdatedAt = remoteUpdated;
+      setSyncStatus("warn","雲端有較新的資料","可按「載入雲端」更新此裝置。");
+    }
+  }, err=>{
+    setSyncStatus("off","雲端監聽失敗",err.message);
+  });
+}
+
+function scheduleCloudSave(){
+  if(suppressCloudSave || !cloudReady || !fbUser)return;
+  clearTimeout(cloudSaveTimer);
+  cloudSaveTimer=setTimeout(saveToCloudNow,900);
+}
+
+async function saveToCloudNow(){
+  if(!fbUser)return toast("請先登入 Google");
+  const email=(fbUser.email||"").toLowerCase();
+  if(email!==ALLOWED_EMAIL)return toast("此帳號尚未授權同步");
+
+  try{
+    setSyncStatus("warn","同步中","正在儲存到 Firestore...");
+    const now=Date.now();
+    lastCloudUpdatedAt = now;
+    const payload = cloudPayload();
+    payload.updatedAtClient = now;
+    await tripDocRef().set(payload,{merge:true});
+    localStorage.setItem("travel_book_v22_cloud_backup", JSON.stringify(data));
+    setSyncStatus("on","已同步雲端",`最後同步：${new Date().toLocaleTimeString("zh-TW",{hour:"2-digit",minute:"2-digit"})}`);
+  }catch(err){
+    setSyncStatus("off","同步失敗",err.message || "請檢查 Firestore Rules 與白名單。");
+  }
+}
+
+async function loadFromCloud(){
+  if(!fbUser)return toast("請先登入 Google");
+  if(!confirm("載入雲端資料會覆蓋目前此裝置上的資料。建議先到「說明」匯出備份。確定載入嗎？"))return;
+
+  try{
+    const snap=await tripDocRef().get();
+    if(!snap.exists || !snap.data()?.data)return toast("雲端目前沒有資料");
+    suppressCloudSave = true;
+    data=snap.data().data;
+    if(!data.days?.length && data.trip?.start && data.trip?.end)data.days=mkDays(data.trip.start,data.trip.end);
+    cur=data.days?.[0]?.key||data.trip?.start||cur;
+    localStorage.setItem("travel_book_v12",JSON.stringify(data));
+    render();
+    suppressCloudSave = false;
+    setSyncStatus("on","已載入雲端資料",`登入：${fbUser.email}`);
+  }catch(err){
+    suppressCloudSave=false;
+    setSyncStatus("off","載入雲端失敗",err.message);
+  }
+}
+
+const originalSaveForFirebase = save;
+save = function(){
+  localStorage.setItem("travel_book_v12", JSON.stringify(data));
+  render();
+  scheduleCloudSave();
+};
+
+const originalSilentSaveForFirebase = silentSave;
+silentSave = function(){
+  localStorage.setItem("travel_book_v12", JSON.stringify(data));
+  scheduleCloudSave();
+};
+
+const originalRenderHelpForFirebase = renderHelp;
+renderHelp = function(){
+  $("helpView").innerHTML=`<div class="section"><div><h2>說明與備份</h2><div class="hint">資料備份、Cloudinary 照片、Firebase 跨裝置同步。</div></div></div>
+  <div class="card"><h3>Firebase 跨裝置同步</h3><div class="box mint">登入授權 Google 帳號後，旅遊資料會同步到 Firestore。照片本體仍存在 Cloudinary，Firestore 只保存圖片網址與旅行資料。</div><div class="btns"><button class="btn dark" onclick="saveToCloudNow()">立即同步到雲端</button><button class="btn blue" onclick="loadFromCloud()">載入雲端資料</button></div><div class="cloudHint">目前授權 email：${ALLOWED_EMAIL}</div></div>
+  <div class="card"><h3>AI 口袋景點</h3><div class="box mint">在「景點」頁按 AI 景點提示詞，複製給 AI。AI 回傳純 JSON 後，存成 .txt 或 .json，再匯入口袋景點。</div></div>
+  <div class="card"><h3>備份資料</h3><div class="box blue">匯出備份會下載 JSON。匯入備份會覆蓋目前資料。若要修改國家或日期，建議先匯出備份。</div><div class="btns"><button class="btn dark" onclick="exportBackup()">匯出備份</button><label class="btn soft" style="display:inline-block">匯入備份<input type="file" accept=".json,application/json" onchange="importBackup(this.files[0])" style="display:none"></label></div></div>`;
+};
+
 init();
+initFirebaseSync();
 </script>
 
 <div class="aiPromptModal" id="aiPromptModal">
