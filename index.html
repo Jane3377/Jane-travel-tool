@@ -5249,6 +5249,13 @@ body[data-theme-mode] .btn.pink{
   }
 }
 
+
+/* ===== v55 map pause, keep address field only ===== */
+/* 暫停今日路線地圖顯示；保留 address 欄位與未來地圖串接彈性 */
+.routeMapCard{
+  display:none!important;
+}
+
 </style>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
@@ -5262,7 +5269,7 @@ body[data-theme-mode] .btn.pink{
   <button class="btn blue compact hidden" id="cloudLoadBtn" onclick="loadFromCloud()">載入雲端</button>
   <button class="btn pink compact hidden" id="cloudSaveBtn" onclick="saveToCloudNow()">立即同步</button>
 </div>
-<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>VoyageMemo.｜LocalStorage + Cloudinary Version<br><strong>版本：v54｜2026-05-29｜行程地址欄位與OSM定位優化版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
+<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>VoyageMemo.｜LocalStorage + Cloudinary Version<br><strong>版本：v55｜2026-05-29｜保留地址欄位暫停地圖版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
 
 <!-- Firebase SDK for cross-device sync -->
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -7686,7 +7693,7 @@ function photoBookDay(d){
 
 
 /* ===== Version marker ===== */
-const APP_VERSION = "v54｜2026-05-29｜行程地址欄位與OSM定位優化版";
+const APP_VERSION = "v55｜2026-05-29｜保留地址欄位暫停地圖版";
 console.log("VoyageMemo.", APP_VERSION);
 
 
@@ -13279,6 +13286,64 @@ function routePlanCandidates(dayKey){
   return sortedPlans(dayKey)
     .filter(p => p && p.name && !["航班"].includes(p.type))
     .slice(0, 10);
+}
+
+
+/* ===== v55 pause map UI, keep address field and future map flexibility ===== */
+/*
+保留：
+- plan.address 選填欄位
+- 舊資料相容：沒有 address 視為空字串
+- OSM / Geoapify / Google Maps 未來可沿用 address
+
+暫停：
+- 今日路線地圖 UI
+- 自動地圖定位
+- API Key 相關功能
+
+不變：
+- 行程新增 / 編輯 / 刪除核心流程
+- 預算資料結構與自動建立預算
+- 照片書顯示
+- 航班 / 住宿 / 口袋景點既有關聯邏輯
+*/
+function renderPlanner(options={}){
+  v28NormalizePlans();
+  normalizeAllPlanTypes();
+  const draft = options.preserveForm ? getPlanFormDraft() : null;
+  cur=currentDay || cur || data.days?.[0]?.key;
+  normalizePlanTimes(cur);
+  let plans=sortedPlans(cur);
+  $("plannerView").innerHTML=`<div class="section"><div><h2>${dayTitle(cur)}</h2><div class="hint">住宿：${hotelFor(cur)?.name||"未設定"}。行程依開始時間排序。</div></div><button class="iconBtn smallIcon" onclick="clearPlanForm()">＋</button></div>
+  <details class="card" ${(editingPlanId||v16PendingSpotId||draft)?"open":""}><summary>${editingPlanId?"編輯行程":"＋ 新增行程"}</summary><div class="detailBody">
+    <div class="planFormLite">
+      <div class="three compactMobile">
+        <div class="full"><label>日期</label><select id="pday" onchange="handlePlanDayChange(this.value)">${optsDays(cur)}</select></div>
+        <div><label>開始</label><input id="ps" type="time" value="10:00"></div>
+        <div><label>結束</label><input id="pe" type="time" value="11:30"></div>
+      </div>
+      <div><label>分類</label><select id="ptype">${optsPlanTypes("景點")}</select></div>
+      <div><label>行程名稱</label><input id="pname"></div>
+      <div id="lockedNameHint" class="lockedFieldHint" style="display:none">此行程由航班／住宿／口袋景點帶入，名稱不可編輯；備註可以自由修改。</div>
+      <div>
+        <label>地址 / 地圖定位資訊（選填）</label>
+        <input id="paddress" placeholder="例：Haeundae Beach, Busan 或 韓國釜山海雲台">
+        <div class="planAddressHint">此欄位先保留作為未來地圖串接使用；目前不會自動呼叫地圖 API，也不會帶入預算或照片書。</div>
+      </div>
+      <label>注意事項</label><textarea id="pnote"></textarea>
+      <label>備註</label><textarea id="pmemo"></textarea>
+      <div class="planBudgetHint">新增行程時會自動在「預算」建立一筆花費；地址不會帶入預算或照片書。</div>
+      <div class="btns"><button class="btn dark" onclick="savePlanForm()">${editingPlanId?"存好行程":"加入行程"}</button>${editingPlanId||v16PendingSpotId?'<button class="btn soft" onclick="clearPlanForm()">取消編輯 / 新增</button>':""}</div>
+    </div>
+  </div></details>
+  <div id="pcards">${planCards(plans)}</div>`;
+
+  if(editingPlanId) fillPlanForm(editingPlanId);
+  else if(v16PendingSpotId) v16FillPendingSpot();
+  else if(draft) applyPlanFormDraft({...draft, day:cur});
+  else if($("pday")) $("pday").value=cur;
+
+  v21ApplyLockedNameState();
 }
 
 init();
