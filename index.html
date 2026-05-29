@@ -1666,7 +1666,7 @@ textarea{min-height:58px}
   <button class="btn blue compact hidden" id="cloudLoadBtn" onclick="loadFromCloud()">載入雲端</button>
   <button class="btn pink compact hidden" id="cloudSaveBtn" onclick="saveToCloudNow()">立即同步</button>
 </div>
-<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v35｜2026-05-29｜航班接送UI間距修正版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
+<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v36｜2026-05-29｜航班帶入行程日期時間修正版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
 
 <!-- Firebase SDK for cross-device sync -->
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -4090,7 +4090,7 @@ function photoBookDay(d){
 
 
 /* ===== Version marker ===== */
-const APP_VERSION = "v35｜2026-05-29｜航班接送UI間距修正版";
+const APP_VERSION = "v36｜2026-05-29｜航班帶入行程日期時間修正版";
 console.log("My Travel Book", APP_VERSION);
 
 
@@ -7637,6 +7637,160 @@ function countryChanged(){
     const destInput=$("dest");
     if(destInput)destInput.value=dest;
   }
+}
+
+
+/* ===== v36 fix flight-to-plan date/time + cleaner direct flight labels ===== */
+/* 只修航班帶入行程邏輯，不改資料結構 */
+
+function v36DateFromDT(dt, fallback){
+  if(!dt)return fallback || data.trip.start;
+  return String(dt).split("T")[0] || fallback || data.trip.start;
+}
+function v36TimeFromDT(dt){
+  if(!dt)return "";
+  const part = String(dt).split("T")[1] || "";
+  return part.slice(0,5);
+}
+function v36FlightName(direction, idx, segCount, no){
+  const isOut = direction === "out";
+  if(segCount <= 1){
+    return isOut ? `搭乘去程飛機${no ? " " + no : ""}` : `搭乘回程飛機${no ? " " + no : ""}`;
+  }
+  return isOut ? `搭乘去程第 ${idx+1} 段飛機${no ? " " + no : ""}` : `搭乘回程第 ${idx+1} 段飛機${no ? " " + no : ""}`;
+}
+
+function flightPlanTemplates(){
+  const out=normalizeFlightObj(data.flights.out,"out");
+  const back=normalizeFlightObj(data.flights.back,"back");
+  const templates=[];
+
+  const outSegs=(out.segments && out.segments.length ? out.segments : [{}]);
+  const backSegs=(back.segments && back.segments.length ? back.segments : [{}]);
+  const firstOut=outSegs[0]||{};
+  const lastOut=outSegs[outSegs.length-1]||{};
+  const firstBack=backSegs[0]||{};
+  const lastBack=backSegs[backSegs.length-1]||{};
+
+  templates.push({
+    id:"flight-out-to-airport",
+    source:"flight",
+    sourceType:"flight",
+    lockedName:true,
+    day:v36DateFromDT(firstOut.dep, data.trip.start),
+    start:"",
+    end:v36TimeFromDT(firstOut.dep),
+    type:"交通",
+    name:`出發去 ${firstOut.from||"機場"}`,
+    note:out.toAirport||"",
+    memo:"由航班資料帶入"
+  });
+
+  outSegs.forEach((s,i)=>{
+    templates.push({
+      id:`flight-out-seg-${i}`,
+      source:"flight",
+      sourceType:"flight",
+      lockedName:true,
+      day:v36DateFromDT(s.dep, data.trip.start),
+      start:v36TimeFromDT(s.dep),
+      end:v36TimeFromDT(s.arr),
+      type:"航班",
+      name:v36FlightName("out", i, outSegs.length, s.no||""),
+      note:[`${s.from||""} → ${s.to||""}`, terminalNote(s)].filter(Boolean).join("\n"),
+      memo:"由航班資料帶入"
+    });
+  });
+
+  templates.push({
+    id:"flight-out-arrival-transfer",
+    source:"flight",
+    sourceType:"flight",
+    lockedName:true,
+    day:v36DateFromDT(lastOut.arr, data.trip.start),
+    start:v36TimeFromDT(lastOut.arr),
+    end:"",
+    type:"交通",
+    name:`從 ${lastOut.to||"抵達機場"} 前往市區／飯店`,
+    note:out.fromAirport||"",
+    memo:"由航班資料帶入"
+  });
+
+  templates.push({
+    id:"flight-back-to-airport",
+    source:"flight",
+    sourceType:"flight",
+    lockedName:true,
+    day:v36DateFromDT(firstBack.dep, data.trip.end),
+    start:"",
+    end:v36TimeFromDT(firstBack.dep),
+    type:"交通",
+    name:`從飯店前往 ${firstBack.from||"回程機場"}`,
+    note:back.toAirport||"",
+    memo:"由航班資料帶入"
+  });
+
+  backSegs.forEach((s,i)=>{
+    templates.push({
+      id:`flight-back-seg-${i}`,
+      source:"flight",
+      sourceType:"flight",
+      lockedName:true,
+      day:v36DateFromDT(s.dep, data.trip.end),
+      start:v36TimeFromDT(s.dep),
+      end:v36TimeFromDT(s.arr),
+      type:"航班",
+      name:v36FlightName("back", i, backSegs.length, s.no||""),
+      note:[`${s.from||""} → ${s.to||""}`, terminalNote(s)].filter(Boolean).join("\n"),
+      memo:"由航班資料帶入"
+    });
+  });
+
+  templates.push({
+    id:"flight-back-home-transfer",
+    source:"flight",
+    sourceType:"flight",
+    lockedName:true,
+    day:v36DateFromDT(lastBack.arr, data.trip.end),
+    start:v36TimeFromDT(lastBack.arr),
+    end:"",
+    type:"交通",
+    name:`從 ${lastBack.to||"抵達機場"} 回家`,
+    note:back.fromAirport||"",
+    memo:"由航班資料帶入"
+  });
+
+  return templates;
+}
+
+function syncFlightPlans(){
+  v28NormalizePlans();
+  const templates=flightPlanTemplates();
+  const keepIds=templates.map(p=>p.id);
+  data.plans=data.plans.filter(p=>p.source!=="flight" || keepIds.includes(p.id));
+  data.conns=(data.conns||[]).filter(c=>data.plans.some(p=>p.id===c.a)&&data.plans.some(p=>p.id===c.b));
+  templates.forEach(p=>v28UpsertPlan(p));
+}
+
+function v16AddFlightsToPlans(doRender=true){
+  syncFlightPlans();
+  if(doRender) save();
+  toast("已幫你把航班帶入行程囉！");
+}
+
+function saveFlights(){
+  if(!validateFlightSegments())return;
+  data.flights.out=readFlightForm("out");
+  data.flights.back=readFlightForm("back");
+
+  if(flightHasPlans()){
+    syncFlightPlans();
+  }
+
+  silentSave();
+  render();
+  v16CollapseTripDetail(1);
+  toast("已幫你存好航班囉！");
 }
 
 init();
