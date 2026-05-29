@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#d9efe6">
-<title>旅行小書</title>
+<title>VoyageMemo. 旅跡手帳</title>
 <style>
 :root{--bg:#f7f3ec;--card:#fffdfa;--ink:#3f3a35;--muted:#8b827a;--line:#eadfd4;--mint:#d9efe6;--mint2:#b9dccc;--dark:#628f80;--blue:#e3f0fa;--pink:#f8dfe8;--yellow:#fff0c5;--green:#edf8f3;--shadow:0 16px 40px rgba(88,72,55,.08);--r:22px}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 0 0,#e1f2ec,transparent 34%),radial-gradient(circle at 100% 0,#fde4ec,transparent 30%),linear-gradient(#fbf7f1,#f7f3ec);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif}.app{max-width:1160px;margin:auto;padding:14px 14px 86px}header,.panel,.main,.card{background:rgba(255,255,255,.92);border:1px solid rgba(255,255,255,.84);box-shadow:var(--shadow);border-radius:var(--r)}header{padding:18px}.badge{display:inline-flex;align-items:center;gap:6px;background:var(--mint);color:#41675d;border-radius:999px;padding:7px 12px;font-weight:900;font-size:13px;margin-bottom:10px}.titleRow{display:flex;align-items:center;gap:8px}h1{margin:0;font-size:32px;line-height:1.15;letter-spacing:-1px}.subRow{display:flex;align-items:flex-start;gap:7px;margin:10px 0 14px}.sub{color:var(--muted);line-height:1.65;font-size:15px;margin:0;flex:1}.iconBtn{border:0;background:#f3eee8;color:#5d554e;border-radius:50%;width:32px;height:32px;font-size:16px;font-weight:900;display:grid;place-items:center;flex:0 0 auto}.iconBtn.smallIcon{width:30px;height:30px;font-size:14px}.heroStats{display:grid;grid-template-columns:1fr 1fr;gap:9px}.heroStats div{background:#fff;border:1px solid var(--line);border-radius:17px;padding:11px}.heroStats span{display:block;color:var(--muted);font-size:12px;margin-bottom:4px}.heroStats strong{font-size:16px}.tabs{display:flex;gap:9px;flex-wrap:wrap;margin:14px 0}.tab{border:0;background:#fff;border-radius:999px;padding:10px 13px;font-weight:900;color:var(--ink);box-shadow:0 8px 20px rgba(88,72,55,.06)}.tab.active{background:var(--ink);color:#fff}.layout{display:grid;grid-template-columns:300px 1fr;gap:14px;align-items:start}.panel{padding:14px;position:static}.main{padding:14px}.section{display:flex;justify-content:space-between;gap:12px;margin-bottom:12px}.section h2,.section h3{margin:0}.hint,.mini{color:var(--muted);font-size:13px;line-height:1.55}label{display:block;margin:9px 0 5px;font-size:13px;font-weight:900}input,select,textarea{width:100%;border:1px solid var(--line);border-radius:14px;background:#fffdf9;padding:10px 11px;font-size:15px;color:var(--ink)}textarea{min-height:66px;resize:vertical}.two{display:grid;grid-template-columns:1fr 1fr;gap:9px}.three{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.four{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:11px}.btn{
   border:1px solid rgba(255,255,255,.78);
@@ -4000,10 +4000,549 @@ body[data-card-style] .storyPanel{
   }
 }
 
+
+/* ===== v48 boutique visual + photo book premium PDF refinement ===== */
+/*
+v48 設計原則：
+- 不更動 data / localStorage 旅行資料結構
+- 不更動 Firebase / Cloudinary / 行程 / 航班 / 住宿 / 預算關聯
+- 僅以 CSS 視覺層與照片書 PDF 呈現覆蓋
+*/
+
+/* 1) 精品感低飽和主題重調 */
+body[data-theme-palette="seoul"]{
+  --theme-primary:#4A5D4E;
+  --theme-primary-soft:#E5ECE9;
+  --theme-primary-weak:#F2F6F4;
+  --theme-accent:#EFE6E6;
+  --theme-bg:#F4F2EE;
+  --theme-card:#FFFFFF;
+  --theme-ink:#2C2A29;
+  --theme-muted:#9A928A;
+  --theme-line:#E2DDD5;
+  --theme-shadow:0 18px 44px rgba(44,42,41,.055);
+}
+body[data-theme-palette="ocean"]{
+  --theme-primary:#405A6B;
+  --theme-primary-soft:#E2EBF0;
+  --theme-primary-weak:#F3F7F8;
+  --theme-accent:#E6E0DA;
+  --theme-bg:#F3F6F6;
+  --theme-card:#FFFFFF;
+  --theme-ink:#263238;
+  --theme-muted:#8B969C;
+  --theme-line:#DDE5E8;
+  --theme-shadow:0 18px 44px rgba(38,50,56,.06);
+}
+body[data-theme-palette="latte"]{
+  --theme-primary:#7B634F;
+  --theme-primary-soft:#ECE3D8;
+  --theme-primary-weak:#F8F3ED;
+  --theme-accent:#EADDD2;
+  --theme-bg:#F5F0EA;
+  --theme-card:#FFFFFF;
+  --theme-ink:#302A25;
+  --theme-muted:#95877B;
+  --theme-line:#E4D9CE;
+  --theme-shadow:0 18px 44px rgba(72,52,36,.06);
+}
+
+/* 2) 全站質感微調：字重降噪、按鈕去卡通化 */
+body[data-theme-mode]{
+  font-family:"PingFang TC","Noto Sans TC","Helvetica Neue",-apple-system,BlinkMacSystemFont,sans-serif;
+}
+body[data-theme-mode] h1,
+body[data-theme-mode] h2,
+body[data-theme-mode] h3,
+body[data-theme-mode] .place{
+  letter-spacing:.35px;
+  font-weight:720;
+}
+body[data-theme-mode] .badge,
+body[data-theme-mode] .tag,
+body[data-theme-mode] .time,
+body[data-theme-mode] .bookDayBadge,
+body[data-theme-mode] .pdfDayBadge{
+  font-weight:760;
+  letter-spacing:.15px;
+}
+body[data-theme-mode] .btn{
+  border:1px solid var(--theme-line)!important;
+  background:var(--theme-card)!important;
+  color:var(--theme-ink)!important;
+  box-shadow:0 6px 18px rgba(44,42,41,.045)!important;
+  border-radius:11px!important;
+  transition:transform .22s ease, background .22s ease, color .22s ease, box-shadow .22s ease;
+}
+body[data-theme-mode] .btn:hover{
+  background:var(--theme-ink)!important;
+  color:var(--theme-card)!important;
+  transform:translateY(-1px);
+}
+body[data-theme-mode] .btn:active{
+  transform:translateY(1px);
+  box-shadow:0 3px 10px rgba(44,42,41,.04)!important;
+}
+body[data-theme-mode] .btn.dark{
+  background:var(--theme-ink)!important;
+  color:var(--theme-card)!important;
+}
+body[data-theme-mode] .btn.soft,
+body[data-theme-mode] .btn.blue,
+body[data-theme-mode] .btn.pink{
+  background:var(--theme-primary-weak)!important;
+  color:var(--theme-primary)!important;
+}
+
+/* 3) 照片旅遊書：網頁端更像精裝雜誌 / 手帳 */
+#photoBookView .storyBook{
+  border:1px solid var(--theme-line, #E2DDD5)!important;
+  background:#fff!important;
+  box-shadow:0 24px 70px rgba(44,42,41,.07)!important;
+}
+#photoBookView .storyBookCover{
+  background:#fff!important;
+  border-bottom:1px solid var(--theme-line, #E2DDD5)!important;
+}
+#photoBookView .storyBookCoverText .eyebrow,
+#photoBookView .storyDay .eyebrow,
+#photoBookView .pdfCoverLabel{
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  background:var(--theme-primary-weak, #F2F6F4)!important;
+  color:var(--theme-primary, #4A5D4E)!important;
+  border-color:var(--theme-line, #E2DDD5)!important;
+}
+#photoBookView .storyBookCoverText h1,
+#photoBookView .pdfCoverTitle{
+  font-family:"Noto Serif TC","Songti TC","PingFang TC",serif;
+  font-weight:600!important;
+  letter-spacing:.65px!important;
+}
+#photoBookView .storyBookCoverText p,
+#photoBookView .storyDayHeader p,
+#photoBookView .pdfCoverSub{
+  color:var(--theme-muted, #9A928A)!important;
+}
+
+/* 4) 照片卡：文青拍立得 / 藝廊感 */
+#photoBookView .storyPhotoCard,
+#photoBookView .igPhotoCard{
+  background:#fff!important;
+  border:1px solid #F0EDE7!important;
+  padding:10px 10px 20px!important;
+  box-shadow:0 10px 26px rgba(44,42,41,.045)!important;
+  border-radius:6px!important;
+  transition:transform .35s cubic-bezier(.16,1,.3,1), box-shadow .25s ease;
+}
+#photoBookView .storyPhotoCard:hover,
+#photoBookView .igPhotoCard:hover{
+  transform:translateY(-3px) rotate(.25deg);
+  box-shadow:0 16px 36px rgba(44,42,41,.07)!important;
+}
+#photoBookView .storyPhotoImage,
+#photoBookView .igPhotoFrame{
+  border-radius:3px!important;
+  overflow:hidden!important;
+  background:#F4F2EE!important;
+}
+#photoBookView .storyPhotoImage img,
+#photoBookView .igPhotoFrame img,
+#photoBookView .dayCover img,
+#photoBookView .storyDayHero img{
+  filter:contrast(1.02) saturate(.96) brightness(1.01);
+}
+#photoBookView .storyPhotoText,
+#photoBookView .igPhotoBody{
+  padding:11px 4px 0!important;
+}
+#photoBookView .storyPhotoText h3,
+#photoBookView .igPhotoBody h3{
+  font-weight:680!important;
+  letter-spacing:.2px!important;
+}
+
+/* 5) PDF 預覽：精品 A4 感提升 */
+#photoBookView .pdfPage{
+  border:1px solid #E6E0D8!important;
+  box-shadow:0 20px 55px rgba(44,42,41,.11)!important;
+  border-radius:4px!important;
+}
+#photoBookView .pdfCoverPage{
+  background:#fff!important;
+}
+#photoBookView .pdfCoverImage,
+#photoBookView .pdfDayHero,
+#photoBookView .pdfPhotoImage{
+  filter:contrast(1.02) saturate(.96) brightness(1.01);
+}
+#photoBookView .pdfCoverMeta div,
+#photoBookView .pdfPhoto{
+  border-color:#E8E1D8!important;
+  background:#fff!important;
+}
+
+/* 6) 強化 PDF 硬頁列印引擎 */
+@media print{
+  @page{
+    size:A4 portrait;
+    margin:0;
+  }
+
+  html,body{
+    width:210mm!important;
+    min-width:210mm!important;
+    background:#fff!important;
+    color:#2C2A29!important;
+    -webkit-print-color-adjust:exact!important;
+    print-color-adjust:exact!important;
+  }
+
+  .noPrint,
+  .btns,
+  button,
+  .iconBtn,
+  .photoBookModeSwitch,
+  .pdfPreviewHint,
+  header,
+  .tabs,
+  .mobile,
+  .mobileTopNav,
+  .panel,
+  footer,
+  .accountWidget,
+  .syncMini,
+  .themeWidget,
+  .photoBookEditor,
+  .storyPanel{
+    display:none!important;
+  }
+
+  .app,
+  .layout,
+  .main,
+  #photoBookView,
+  .storyBookPreview,
+  .pdfPreviewWrap{
+    display:block!important;
+    width:210mm!important;
+    max-width:210mm!important;
+    margin:0!important;
+    padding:0!important;
+    background:#fff!important;
+    box-shadow:none!important;
+    border:0!important;
+    overflow:visible!important;
+  }
+
+  #tripView,
+  #plannerView,
+  #spotsView,
+  #budgetView,
+  #packingView,
+  #helpView,
+  #photoBookView > .section,
+  .storyBookPreview .storyBook{
+    display:none!important;
+  }
+
+  .storyBookPreview{
+    margin:0!important;
+  }
+
+  .storyBookPreview .pdfPreviewWrap{
+    display:block!important;
+  }
+
+  .pdfPage{
+    width:210mm!important;
+    height:297mm!important;
+    min-height:297mm!important;
+    max-height:297mm!important;
+    margin:0!important;
+    padding:0!important;
+    border:0!important;
+    border-radius:0!important;
+    box-shadow:none!important;
+    page-break-before:always!important;
+    page-break-after:always!important;
+    page-break-inside:avoid!important;
+    break-before:page!important;
+    break-after:page!important;
+    break-inside:avoid!important;
+    overflow:hidden!important;
+    position:relative!important;
+    background:#fff!important;
+  }
+
+  .pdfPage:first-child{
+    page-break-before:auto!important;
+    break-before:auto!important;
+  }
+
+  .pdfPageInner{
+    width:210mm!important;
+    height:297mm!important;
+    max-height:297mm!important;
+    box-sizing:border-box!important;
+    padding:23mm 18mm 20mm!important;
+    overflow:hidden!important;
+    position:relative!important;
+  }
+
+  .pdfPage:not(.pdfCoverPage)::before{
+    content:"VOYAGEMEMO.  |  JOURNEY MEMO";
+    position:absolute;
+    top:11mm;
+    left:18mm;
+    right:18mm;
+    font-size:7.5pt;
+    letter-spacing:1.8px;
+    color:#9A928A;
+    border-bottom:1px solid #E2DDD5;
+    padding-bottom:3.5mm;
+    z-index:5;
+  }
+
+  .pdfPage:not(.pdfCoverPage)::after{
+    content:"Every corner of the world has its own magic.";
+    position:absolute;
+    bottom:9mm;
+    right:18mm;
+    font-size:7pt;
+    font-style:italic;
+    color:#B9B0A7;
+    z-index:5;
+  }
+
+  .pdfCoverPage .pdfPageInner{
+    padding:24mm 18mm 18mm!important;
+  }
+
+  .pdfCoverLabel{
+    font-size:8pt!important;
+    letter-spacing:1.8px!important;
+    padding:5px 10px!important;
+    margin-bottom:8mm!important;
+  }
+
+  .pdfCoverTitle{
+    font-size:28pt!important;
+    line-height:1.1!important;
+    margin:0 0 4mm!important;
+    max-width:160mm!important;
+  }
+
+  .pdfCoverSub{
+    font-size:10.5pt!important;
+    line-height:1.7!important;
+    max-width:160mm!important;
+    margin:0 0 8mm!important;
+  }
+
+  .pdfCoverImage,
+  .pdfCoverEmpty{
+    width:100%!important;
+    height:108mm!important;
+    border-radius:10mm!important;
+    margin:0 0 9mm!important;
+    object-fit:cover!important;
+    page-break-inside:avoid!important;
+    break-inside:avoid!important;
+  }
+
+  .pdfCoverMeta{
+    display:grid!important;
+    grid-template-columns:1fr 1fr 1fr!important;
+    gap:5mm!important;
+  }
+
+  .pdfCoverMeta div{
+    border:1px solid #E2DDD5!important;
+    border-radius:5mm!important;
+    padding:6mm 5mm!important;
+    page-break-inside:avoid!important;
+    break-inside:avoid!important;
+  }
+
+  .pdfCoverMeta span{
+    font-size:7.5pt!important;
+  }
+
+  .pdfCoverMeta b{
+    font-size:9.5pt!important;
+  }
+
+  .pdfDayTop{
+    display:grid!important;
+    grid-template-columns:1fr auto!important;
+    gap:6mm!important;
+    align-items:end!important;
+    margin:4mm 0 6mm!important;
+    padding-bottom:4mm!important;
+    border-bottom:1px solid #E2DDD5!important;
+    page-break-inside:avoid!important;
+    break-inside:avoid!important;
+  }
+
+  .pdfDayTop .eyebrow{
+    font-size:7.5pt!important;
+    padding:4px 9px!important;
+    margin-bottom:3mm!important;
+  }
+
+  .pdfDayTop h2{
+    font-size:19pt!important;
+    line-height:1.15!important;
+    margin:0 0 2mm!important;
+  }
+
+  .pdfDayTop p{
+    font-size:8.5pt!important;
+    line-height:1.45!important;
+    margin:0!important;
+  }
+
+  .pdfDayBadge{
+    font-size:8pt!important;
+    padding:5px 9px!important;
+    white-space:nowrap!important;
+  }
+
+  .pdfDayHero{
+    width:100%!important;
+    height:56mm!important;
+    border-radius:7mm!important;
+    margin:0 0 6mm!important;
+    page-break-inside:avoid!important;
+    break-inside:avoid!important;
+    overflow:hidden!important;
+  }
+
+  .pdfSectionTitle{
+    font-size:10pt!important;
+    margin:0 0 3mm!important;
+    page-break-after:avoid!important;
+    break-after:avoid!important;
+  }
+
+  .pdfTimeline{
+    display:grid!important;
+    gap:2.2mm!important;
+    margin:0 0 6mm!important;
+    max-height:50mm!important;
+    overflow:hidden!important;
+  }
+
+  .pdfTimelineItem{
+    display:grid!important;
+    grid-template-columns:19mm 1fr!important;
+    gap:3mm!important;
+    page-break-inside:avoid!important;
+    break-inside:avoid!important;
+  }
+
+  .pdfTimelineTime{
+    font-size:7.5pt!important;
+    padding:3px 5px!important;
+  }
+
+  .pdfTimelineContent{
+    padding:0 0 2mm 3mm!important;
+    border-left:2px solid #D7E5DE!important;
+  }
+
+  .pdfTimelineContent b{
+    font-size:8.7pt!important;
+    line-height:1.3!important;
+  }
+
+  .pdfTimelineContent span{
+    font-size:7.4pt!important;
+    line-height:1.35!important;
+    margin-top:.8mm!important;
+  }
+
+  .pdfPhotos{
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+    gap:4mm!important;
+  }
+
+  .pdfPhoto{
+    border:1px solid #E8E1D8!important;
+    border-radius:4mm!important;
+    overflow:hidden!important;
+    page-break-inside:avoid!important;
+    break-inside:avoid!important;
+    background:#fff!important;
+  }
+
+  .pdfPhoto.featured{
+    grid-column:1/-1!important;
+  }
+
+  .pdfPhotoImage{
+    height:35mm!important;
+    overflow:hidden!important;
+  }
+
+  .pdfPhoto.featured .pdfPhotoImage{
+    height:48mm!important;
+  }
+
+  .pdfPhotoText{
+    padding:3mm!important;
+  }
+
+  .pdfPhotoText h3{
+    font-size:8.5pt!important;
+    line-height:1.3!important;
+    margin:0 0 1.2mm!important;
+  }
+
+  .pdfPhotoText p{
+    font-size:7.2pt!important;
+    line-height:1.35!important;
+    max-height:13mm!important;
+    overflow:hidden!important;
+    margin:1.2mm 0 0!important;
+  }
+
+  .pdfTags{
+    gap:1mm!important;
+  }
+
+  .pdfTag{
+    font-size:6.6pt!important;
+    padding:1.2px 5px!important;
+  }
+
+  .pdfEmpty{
+    border:1px dashed #D8CFC6!important;
+    border-radius:6mm!important;
+    padding:8mm!important;
+    font-size:9pt!important;
+    page-break-inside:avoid!important;
+    break-inside:avoid!important;
+  }
+}
+
+/* 手機版維持可讀但精品一點 */
+@media(max-width:620px){
+  #photoBookView .storyPhotoCard,
+  #photoBookView .igPhotoCard{
+    padding:8px 8px 16px!important;
+  }
+  #photoBookView .storyBookCoverText h1{
+    font-size:30px!important;
+  }
+}
+
 </style>
 </head>
 <body>
-<div class="app"><header><div class="badge">🧳 My Travel Book</div><div class="titleRow"><h1 id="titleText">釜山小旅行手帳</h1><button class="iconBtn" onclick="editTitle()">✎</button></div><div class="subRow"><p class="sub" id="subtitleText">把想去的海邊、巷弄、咖啡香與晚餐清單都收進來，慢慢排成一趟期待出發的旅行。</p><button class="iconBtn" onclick="editSubtitle()">✎</button></div><div class="heroStats"><div><span>目的地</span><strong id="sDest">韓國釜山</strong></div>
+<div class="app"><header><div class="badge">🧳 VoyageMemo.</div><div class="titleRow"><h1 id="titleText">釜山小旅行手帳</h1><button class="iconBtn" onclick="editTitle()">✎</button></div><div class="subRow"><p class="sub" id="subtitleText">把想去的海邊、巷弄、咖啡香與晚餐清單都收進來，慢慢排成一趟期待出發的旅行。</p><button class="iconBtn" onclick="editSubtitle()">✎</button></div><div class="heroStats"><div><span>目的地</span><strong id="sDest">韓國釜山</strong></div>
 <div class="syncBar noPrint">
   <div class="syncStatus" id="syncStatus"><span class="syncDot off"></span><b>尚未登入</b><br>登入 Google 後可跨裝置同步。</div>
   <button class="btn dark compact" id="loginBtn" onclick="firebaseSignIn()">Google 登入</button>
@@ -4011,7 +4550,7 @@ body[data-card-style] .storyPanel{
   <button class="btn blue compact hidden" id="cloudLoadBtn" onclick="loadFromCloud()">載入雲端</button>
   <button class="btn pink compact hidden" id="cloudSaveBtn" onclick="saveToCloudNow()">立即同步</button>
 </div>
-<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v47｜2026-05-29｜照片書手機版卡片優化版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
+<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>VoyageMemo.｜LocalStorage + Cloudinary Version<br><strong>版本：v48｜2026-05-29｜VoyageMemo精品照片書版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
 
 <!-- Firebase SDK for cross-device sync -->
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -4029,7 +4568,7 @@ function mkDays(s,e){let a=[];if(!s||!e)return a;let sd=parseLocalDate(s),ed=par
 function loadData(){try{const s=JSON.parse(localStorage.getItem("travel_book_v8"))||JSON.parse(localStorage.getItem("travel_book_v7"))||{};let d=structuredClone(base);Object.assign(d,s);d.meta={...base.meta,...(s.meta||{})};d.trip={...base.trip,...(s.trip||{})};if(!d.trip.travelers){d.trip.travelers=[d.trip.a||"A",d.trip.b||"B"];d.trip.travelerCount=d.trip.travelers.length}d.flights={out:{...base.flights.out,...(s.flights?.out||{})},back:{...base.flights.back,...(s.flights?.back||{})}};if(!d.days?.length)d.days=mkDays(d.trip.start,d.trip.end);if(!d.packing?.length)d.packing=base.packing;if(!d.expenses)d.expenses=[];if(!d.dayCovers)d.dayCovers={};return d}catch(e){let d=structuredClone(base);d.days=mkDays(d.trip.start,d.trip.end);return d}}
 function save(){localStorage.setItem("travel_book_v8",JSON.stringify(data));render()}function silentSave(){localStorage.setItem("travel_book_v8",JSON.stringify(data))}function travelerName(v){if(v==="共同"||v==="未定")return v;return data.trip.travelers[Number(v)]||v||"未定"}function dayTitle(k){let d=data.days.find(x=>x.key==k);return d?`${d.title}｜${d.label}`:k}function hotelFor(k){return data.hotels.find(h=>k>=h.start&&k<=h.end)}function moneyTwd(item){return item.mode==="TWD"?Number(item.twd||0):Math.round(Number(item.foreign||0)*Number(data.trip.rate||0))}function moneyForeign(item){return item.mode==="TWD"?Math.round(Number(item.twd||0)/Number(data.trip.rate||1)):Number(item.foreign||0)}function payMethodLabel(v){return v==="cash"?"現金":v==="card"?"刷卡":v==="transfer"?"轉帳":v||"未定"}
 function init(){renderNav();render()}function renderNav(){$("tabs").innerHTML=views.map(v=>`<button class="tab ${v[0]==view?"active":""}" onclick="go('${v[0]}')">${v[1]}</button>`).join("");$("mobile").innerHTML=[["trip","旅遊地"],["planner","行程"],["spots","景點"],["budget","預算"],["photoBook","照片書"]].map(v=>`<button class="nav ${v[0]==view?"active":""}" onclick="go('${v[0]}')">${v[1]}</button>`).join("")}function go(v){view=v;views.forEach(x=>$(x[0]+"View").classList.toggle("hidden",x[0]!=v));renderNav();render();scrollTo(0,0)}
-function render(){renderHead();renderSide();renderTrip();renderPlanner();renderSpots();renderBudget();renderPacking();renderPhotoBook();renderHelp()}function renderHead(){$("titleText").textContent=data.meta.title||"我的旅行小書";document.title=data.meta.title||"我的旅行小書";$("subtitleText").textContent=data.meta.subtitle||base.meta.subtitle;$("sDest").textContent=data.trip.dest||"未設定";$("sDate").textContent=data.trip.start?`${short(data.trip.start)}-${short(data.trip.end)}`:"未設定"}function editTitle(){const v=prompt("請輸入旅行手帳標題",data.meta.title||"我的旅行小書");if(v!==null&&v.trim()){data.meta.title=v.trim();save()}}function editSubtitle(){const v=prompt("請輸入副標文字",data.meta.subtitle||base.meta.subtitle);if(v!==null&&v.trim()){data.meta.subtitle=v.trim();save()}}
+function render(){renderHead();renderSide();renderTrip();renderPlanner();renderSpots();renderBudget();renderPacking();renderPhotoBook();renderHelp()}function renderHead(){$("titleText").textContent=data.meta.title||"我的旅跡手帳";document.title=data.meta.title||"我的旅跡手帳";$("subtitleText").textContent=data.meta.subtitle||base.meta.subtitle;$("sDest").textContent=data.trip.dest||"未設定";$("sDate").textContent=data.trip.start?`${short(data.trip.start)}-${short(data.trip.end)}`:"未設定"}function editTitle(){const v=prompt("請輸入旅行手帳標題",data.meta.title||"我的旅跡手帳");if(v!==null&&v.trim()){data.meta.title=v.trim();save()}}function editSubtitle(){const v=prompt("請輸入副標文字",data.meta.subtitle||base.meta.subtitle);if(v!==null&&v.trim()){data.meta.subtitle=v.trim();save()}}
 function renderSide(){$("days").innerHTML=data.days.map(d=>{let h=hotelFor(d.key),n=data.plans.filter(p=>p.day==d.key).length;return `<div class="day ${d.key==cur?"active":""}" onclick="cur='${d.key}';go('planner')"><b>${d.title}｜${d.label}</b><span>${n} 行程｜住宿：${h?esc(h.name):"未設定"}</span></div>`}).join("")}function optsDays(selected=""){return data.days.map(d=>`<option value="${d.key}" ${d.key==selected?"selected":""}>${d.label} ${d.title}</option>`).join("")}function optsPayer(selected="未定"){let opts=data.trip.travelers.map((n,i)=>[String(i),n]);opts.push(["共同","共同"],["未定","未定"]);return opts.map(x=>`<option value="${x[0]}" ${String(x[0])===String(selected)?"selected":""}>${esc(x[1])}</option>`).join("")}function optsPayMethod(selected="未定"){return [["cash","現金"],["card","刷卡"],["transfer","轉帳"],["未定","未定"]].map(x=>`<option value="${x[0]}" ${x[0]==selected?"selected":""}>${x[1]}</option>`).join("")}function countryOptions(){return Object.keys(currencyMap).map(c=>`<option value="${c}" ${data.trip.country==c?"selected":""}>${c}</option>`).join("")+`<option value="其他" ${data.trip.country=="其他"?"selected":""}>其他</option>`}
 function travelerInputs(){let out="";for(let i=0;i<Number(data.trip.travelerCount||1);i++)out+=`<div><label>旅伴 ${String.fromCharCode(65+i)} 名稱</label><input id="traveler${i}" value="${esc(data.trip.travelers[i]||String.fromCharCode(65+i))}"></div>`;return out}
 function renderTrip(){const h=editingHotelId?data.hotels.find(x=>x.id==editingHotelId):null;$("tripView").innerHTML=`<div class="section"><div><h2>旅遊地與機酒</h2><div class="hint">先整理旅行地、日期、幣別、航班、住宿。卡片右側箭頭可展開或收合。</div></div></div><details class="card" open><summary>① 旅遊地與旅伴</summary><div class="detailBody"><div class="three"><div><label>國家</label><select id="country" onchange="countryChanged()">${countryOptions()}</select></div><div><label>目的地 / 城市</label><input id="dest" value="${esc(data.trip.dest)}"></div><div><label>幣別</label><input id="currency" value="${esc(data.trip.currency)}"></div></div><div class="three"><div><label>出發日</label><input id="start" type="date" value="${data.trip.start}"></div><div><label>回程日</label><input id="end" type="date" value="${data.trip.end}"></div><div><label>匯率：1 ${esc(data.trip.currency)} = TWD</label><input id="rateSetup" type="number" step="0.0001" value="${data.trip.rate}"></div></div><div class="two"><div><label>旅遊人數</label><select id="travelerCount" onchange="previewTravelerCount()">${[1,2,3,4,5,6,7,8].map(n=>`<option value="${n}" ${Number(data.trip.travelerCount)==n?"selected":""}>${n} 人</option>`).join("")}</select></div><div><label>匯率查詢</label><button class="btn blue" style="width:100%" onclick="openRateSearch()">查看現在匯率</button></div></div><div class="grid2" id="travelerBox">${travelerInputs()}</div><div class="btns"><button class="btn dark" onclick="saveBasic()">儲存旅遊地設定</button></div></div></details><details class="card"><summary>② 航班與機場接送</summary><div class="detailBody"><div class="grid2"><div class="box blue"><h3>去程</h3>${flightForm("out")}</div><div class="box pink"><h3>回程</h3>${flightForm("back")}</div></div><div class="btns"><button class="btn dark" onclick="saveFlights()">儲存航班</button></div></div></details><details class="card" open><summary>③ 住宿</summary><div class="detailBody"><div class="three"><div><label>住宿名稱</label><input id="hname" value="${esc(h?.name||"")}"></div><div><label>入住日</label><select id="hstart">${optsDays(h?.start||"")}</select></div><div><label>退房日</label><select id="hend">${optsDays(h?.end||data.days.at(-1)?.key)}</select></div></div><label>地址</label><div class="two"><input id="haddr" value="${esc(h?.addr||"")}" placeholder="可手動貼上飯店地址"><button class="btn blue" onclick="searchHotelAddress()">搜尋地圖</button></div><label>備註</label><textarea id="hnote">${esc(h?.note||"")}</textarea><div class="btns"><button class="btn dark" onclick="saveHotel()">${h?"儲存住宿修改":"新增住宿"}</button>${h?'<button class="btn soft" onclick="editingHotelId=null;renderTrip()">取消編輯</button>':""}</div><div class="grid2" style="margin-top:10px">${data.hotels.map(hotelCard).join("")||'<div class="empty">尚未新增住宿</div>'}</div></div></details>`}
@@ -4458,7 +4997,7 @@ function generateAIPrompt(){
     data.flights.back.no?`回程 ${data.flights.back.no}：${data.flights.back.from} ${data.flights.back.dep} → ${data.flights.back.to} ${data.flights.back.arr}`:""
   ].filter(Boolean).join("\\n") || "尚未設定航班";
   const days=data.days.map(d=>`${d.key}（${d.title}｜${d.label}）`).join("\\n");
-  const prompt=`請你依照以下旅行設定，幫我規劃一份可匯入「旅行小書 HTML 工具」的行程 JSON。
+  const prompt=`請你依照以下旅行設定，幫我規劃一份可匯入「旅跡手帳 HTML 工具」的行程 JSON。
 
 旅行設定：
 - 目的地：${data.trip.dest}
@@ -4685,7 +5224,7 @@ function spotsPromptSchema(){
 function generateSpotAIPrompt(){
   const days=data.days.map(d=>`${d.key}（${d.title}｜${d.label}）`).join("\\n");
   const hotels=data.hotels.map(h=>`${short(h.start)}~${short(h.end)} ${h.name}${h.addr?("，地址/區域："+h.addr):""}`).join("\\n") || "尚未設定住宿";
-  const prompt=`請依照以下旅行設定，幫我產出可匯入「旅行小書 HTML 工具」的口袋景點 TXT/JSON 檔內容。
+  const prompt=`請依照以下旅行設定，幫我產出可匯入「旅跡手帳 HTML 工具」的口袋景點 TXT/JSON 檔內容。
 
 旅行設定：
 - 目的地：${data.trip.dest}
@@ -4892,7 +5431,7 @@ function renderPlanner(){
 function finalSpotPromptText(){
   const days=data.days.map(d=>`${d.key}（${d.title}｜${d.label}）`).join("\n");
   const hotels=data.hotels.map(h=>`${short(h.start)}~${short(h.end)} ${h.name}${h.addr?("，地址/區域："+h.addr):""}`).join("\n")||"尚未設定住宿";
-  return `請依照以下旅行設定，幫我產出可匯入「旅行小書 HTML 工具」的口袋景點資料。
+  return `請依照以下旅行設定，幫我產出可匯入「旅跡手帳 HTML 工具」的口袋景點資料。
 
 旅行設定：
 - 目的地：${data.trip.dest}
@@ -5256,7 +5795,7 @@ function spotsPromptSchema(){
 function buildSpotPrompt(){
   const days=data.days.map(d=>`${d.key}（${d.title}｜${d.label}）`).join("\\n");
   const hotels=data.hotels.map(h=>`${short(h.start)}~${short(h.end)} ${h.name}${h.addr?("，地址/區域："+h.addr):""}`).join("\\n") || "尚未設定住宿";
-  return `請依照以下旅行設定，幫我產出可匯入「旅行小書 HTML 工具」的口袋景點 TXT/JSON 檔內容。
+  return `請依照以下旅行設定，幫我產出可匯入「旅跡手帳 HTML 工具」的口袋景點 TXT/JSON 檔內容。
 
 旅行設定：
 - 目的地：${data.trip.dest}
@@ -6435,8 +6974,8 @@ function photoBookDay(d){
 
 
 /* ===== Version marker ===== */
-const APP_VERSION = "v47｜2026-05-29｜照片書手機版卡片優化版";
-console.log("My Travel Book", APP_VERSION);
+const APP_VERSION = "v48｜2026-05-29｜VoyageMemo精品照片書版";
+console.log("VoyageMemo.", APP_VERSION);
 
 
 /* ===== v21 overrides: country reset on save, option modals, locked names, budget exclusion ===== */
@@ -11282,6 +11821,17 @@ init = function(){
   __initBeforeV46();
   injectThemeWidget();
 };
+
+
+/* ===== v48 brand wording + boutique PDF export hint only ===== */
+function exportPhotoBookPDF(){
+  if(typeof photoBookMode !== "undefined" && photoBookMode !== "pdf"){
+    photoBookMode = "pdf";
+    renderPhotoBook();
+  }
+  alert("已切換到 PDF 預覽模式。建議使用電腦 Chrome 匯出 PDF，會最接近 VoyageMemo. 旅跡手帳的 A4 小冊子排版。");
+  print();
+}
 
 init();
 initFirebaseSync();
