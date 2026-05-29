@@ -3471,6 +3471,298 @@ textarea{min-height:58px}
   }
 }
 
+
+/* ===== v46 theme switcher UI layer only ===== */
+/*
+主題結構設計：
+- 不寫入旅行資料 data，不改原資料結構
+- 使用 body 的 data-theme-mode / data-theme-palette / data-card-style 控制 UI
+- 使用 CSS variables 覆蓋主色、邊框、卡片樣式
+- 設定存放於 localStorage key: travelBookThemePrefs
+*/
+:root{
+  --theme-primary:#628f80;
+  --theme-primary-soft:#d9efe6;
+  --theme-primary-weak:#edf8f3;
+  --theme-accent:#f8dfe8;
+  --theme-bg:#f7f3ec;
+  --theme-card:#fffdfa;
+  --theme-ink:#3f3a35;
+  --theme-muted:#8b827a;
+  --theme-line:#eadfd4;
+  --theme-shadow:0 16px 40px rgba(88,72,55,.08);
+}
+
+body{
+  transition:background .25s ease,color .2s ease;
+}
+
+/* 色系：韓系清新 */
+body[data-theme-palette="seoul"]{
+  --theme-primary:#628f80;
+  --theme-primary-soft:#d9efe6;
+  --theme-primary-weak:#edf8f3;
+  --theme-accent:#f8dfe8;
+  --theme-bg:#f7f3ec;
+  --theme-card:#fffdfa;
+  --theme-ink:#3f3a35;
+  --theme-muted:#8b827a;
+  --theme-line:#eadfd4;
+  --theme-shadow:0 16px 40px rgba(88,72,55,.08);
+}
+
+/* 色系：海邊藍 */
+body[data-theme-palette="ocean"]{
+  --theme-primary:#4f82a8;
+  --theme-primary-soft:#dceefa;
+  --theme-primary-weak:#edf7fd;
+  --theme-accent:#d9efe6;
+  --theme-bg:#f1f7fa;
+  --theme-card:#fbfdff;
+  --theme-ink:#303b43;
+  --theme-muted:#71818c;
+  --theme-line:#d9e7ef;
+  --theme-shadow:0 16px 40px rgba(54,86,108,.10);
+}
+
+/* 色系：奶茶暖色 */
+body[data-theme-palette="latte"]{
+  --theme-primary:#a57855;
+  --theme-primary-soft:#f2dfca;
+  --theme-primary-weak:#fff5e9;
+  --theme-accent:#ffe3cc;
+  --theme-bg:#f8f0e7;
+  --theme-card:#fffaf4;
+  --theme-ink:#44362d;
+  --theme-muted:#8d7968;
+  --theme-line:#ead9c8;
+  --theme-shadow:0 16px 40px rgba(106,75,48,.10);
+}
+
+/* 深色模式覆蓋 */
+body[data-theme-mode="dark"]{
+  --theme-bg:#191b1d;
+  --theme-card:#24272a;
+  --theme-ink:#f6f1e9;
+  --theme-muted:#b9b0a7;
+  --theme-line:#3b4044;
+  --theme-shadow:0 18px 44px rgba(0,0,0,.34);
+}
+body[data-theme-mode="dark"][data-theme-palette="seoul"]{
+  --theme-primary:#8ec8b5;
+  --theme-primary-soft:#29453c;
+  --theme-primary-weak:#213831;
+  --theme-accent:#4d303b;
+}
+body[data-theme-mode="dark"][data-theme-palette="ocean"]{
+  --theme-primary:#8bc6ee;
+  --theme-primary-soft:#273f52;
+  --theme-primary-weak:#203443;
+  --theme-accent:#263f3a;
+}
+body[data-theme-mode="dark"][data-theme-palette="latte"]{
+  --theme-primary:#e2b083;
+  --theme-primary-soft:#4b3828;
+  --theme-primary-weak:#3b2e23;
+  --theme-accent:#52362a;
+}
+
+/* 將既有 UI 套用主題變數：只覆蓋視覺，不改功能 */
+body[data-theme-mode],
+body[data-theme-palette]{
+  background:
+    radial-gradient(circle at 0 0,var(--theme-primary-soft),transparent 34%),
+    radial-gradient(circle at 100% 0,var(--theme-accent),transparent 30%),
+    linear-gradient(var(--theme-card),var(--theme-bg)) !important;
+  color:var(--theme-ink) !important;
+}
+body[data-theme-mode] header,
+body[data-theme-mode] .panel,
+body[data-theme-mode] .main,
+body[data-theme-mode] .card,
+body[data-theme-mode] .storyPanel,
+body[data-theme-mode] .photoBookSectionCard{
+  background:color-mix(in srgb, var(--theme-card) 92%, transparent) !important;
+  border-color:color-mix(in srgb, var(--theme-line) 88%, transparent) !important;
+  box-shadow:var(--theme-shadow) !important;
+  color:var(--theme-ink) !important;
+}
+body[data-theme-mode] input,
+body[data-theme-mode] select,
+body[data-theme-mode] textarea{
+  background:color-mix(in srgb, var(--theme-card) 96%, #fff 4%) !important;
+  color:var(--theme-ink) !important;
+  border-color:var(--theme-line) !important;
+}
+body[data-theme-mode] .sub,
+body[data-theme-mode] .hint,
+body[data-theme-mode] .mini,
+body[data-theme-mode] .accountMenu .who span{
+  color:var(--theme-muted) !important;
+}
+body[data-theme-mode] .badge,
+body[data-theme-mode] .tag.green,
+body[data-theme-mode] .flightStatusSaved,
+body[data-theme-mode] .storyTag,
+body[data-theme-mode] .pdfTag,
+body[data-theme-mode] .igTag{
+  background:var(--theme-primary-weak) !important;
+  color:var(--theme-primary) !important;
+}
+body[data-theme-mode] .tab.active,
+body[data-theme-mode] .mobileTopNav .nav.active,
+body[data-theme-mode] .photoBookModeSwitch button.active{
+  background:var(--theme-ink) !important;
+  color:var(--theme-card) !important;
+}
+body[data-theme-mode] .btn{
+  background:linear-gradient(180deg,var(--theme-primary-weak),var(--theme-primary-soft)) !important;
+  color:var(--theme-primary) !important;
+}
+body[data-theme-mode] .btn.dark{
+  background:linear-gradient(180deg,color-mix(in srgb,var(--theme-ink) 78%,#fff 22%),var(--theme-ink)) !important;
+  color:var(--theme-card) !important;
+}
+body[data-theme-mode] .day.active{
+  background:var(--theme-primary-weak) !important;
+  border-color:var(--theme-primary-soft) !important;
+}
+body[data-theme-mode] .plan{
+  border-left-color:var(--theme-primary-soft) !important;
+}
+body[data-theme-mode] .time,
+body[data-theme-mode] .bookDayBadge,
+body[data-theme-mode] .pdfDayBadge,
+body[data-theme-mode] .storyTimelineTime,
+body[data-theme-mode] .pdfTimelineTime{
+  background:color-mix(in srgb,var(--theme-line) 55%,var(--theme-card) 45%) !important;
+  color:var(--theme-muted) !important;
+}
+body[data-theme-mode] .box,
+body[data-theme-mode] .stat,
+body[data-theme-mode] .budgetSummaryCard,
+body[data-theme-mode] .budgetMobileCard,
+body[data-theme-mode] .day,
+body[data-theme-mode] .photo,
+body[data-theme-mode] .storyPhotoCard,
+body[data-theme-mode] .pdfPhoto{
+  background:color-mix(in srgb,var(--theme-card) 96%,var(--theme-primary-weak) 4%) !important;
+  border-color:var(--theme-line) !important;
+  color:var(--theme-ink) !important;
+}
+body[data-theme-mode="dark"] img{
+  filter:saturate(.96) brightness(.92);
+}
+body[data-theme-mode="dark"] .storyBook,
+body[data-theme-mode="dark"] .pdfPage{
+  background:#fff !important;
+  color:#332f2b !important;
+}
+
+/* 卡片樣式：柔和 / 線框 / 立體 */
+body[data-card-style="soft"]{
+  --theme-card-radius:22px;
+}
+body[data-card-style="outline"] header,
+body[data-card-style="outline"] .panel,
+body[data-card-style="outline"] .main,
+body[data-card-style="outline"] .card,
+body[data-card-style="outline"] .storyPanel{
+  box-shadow:none !important;
+  border:1.5px solid var(--theme-line) !important;
+}
+body[data-card-style="solid"] header,
+body[data-card-style="solid"] .panel,
+body[data-card-style="solid"] .main,
+body[data-card-style="solid"] .card,
+body[data-card-style="solid"] .storyPanel{
+  box-shadow:0 8px 0 color-mix(in srgb,var(--theme-primary) 14%, transparent), var(--theme-shadow) !important;
+  border:1px solid color-mix(in srgb,var(--theme-primary-soft) 65%,var(--theme-line) 35%) !important;
+}
+body[data-card-style] header,
+body[data-card-style] .panel,
+body[data-card-style] .main,
+body[data-card-style] .card,
+body[data-card-style] .storyPanel{
+  border-radius:var(--theme-card-radius,22px) !important;
+}
+
+/* 主題切換器 */
+.themeWidget{
+  margin-top:12px;
+  border:1px solid var(--theme-line, var(--line));
+  border-radius:18px;
+  background:color-mix(in srgb,var(--theme-card,#fffdfa) 92%, transparent);
+  padding:10px;
+}
+.themeWidgetHead{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+.themeWidgetHead b{
+  font-size:13px;
+}
+.themeToggleBtn{
+  border:0;
+  background:var(--theme-primary-weak,#edf8f3);
+  color:var(--theme-primary,#628f80);
+  border-radius:999px;
+  padding:7px 10px;
+  font-size:12px;
+  font-weight:950;
+}
+.themeControls{
+  display:none;
+  margin-top:10px;
+  gap:8px;
+}
+.themeWidget.open .themeControls{
+  display:grid;
+}
+.themeControls label{
+  margin:0 0 4px;
+  font-size:11px;
+}
+.themeControls select{
+  min-height:34px;
+  padding:6px 8px;
+  font-size:13px;
+}
+.themeSwatches{
+  display:flex;
+  gap:6px;
+  margin-top:7px;
+}
+.themeSwatch{
+  width:22px;
+  height:22px;
+  border-radius:50%;
+  border:2px solid #fff;
+  box-shadow:0 0 0 1px var(--theme-line,#eadfd4);
+}
+.themeSwatch.seoul{background:linear-gradient(135deg,#d9efe6,#f8dfe8)}
+.themeSwatch.ocean{background:linear-gradient(135deg,#dceefa,#4f82a8)}
+.themeSwatch.latte{background:linear-gradient(135deg,#f2dfca,#a57855)}
+@media(max-width:620px){
+  .themeWidget{
+    padding:9px;
+    margin-top:10px;
+  }
+  .themeControls{
+    grid-template-columns:1fr;
+  }
+}
+@media(min-width:621px){
+  .themeControls{
+    grid-template-columns:1fr 1fr 1fr;
+  }
+}
+@media print{
+  .themeWidget{display:none!important}
+}
+
 </style>
 </head>
 <body>
@@ -3482,7 +3774,7 @@ textarea{min-height:58px}
   <button class="btn blue compact hidden" id="cloudLoadBtn" onclick="loadFromCloud()">載入雲端</button>
   <button class="btn pink compact hidden" id="cloudSaveBtn" onclick="saveToCloudNow()">立即同步</button>
 </div>
-<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v45｜2026-05-29｜照片旅遊書PDF預覽模式版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
+<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v46｜2026-05-29｜網站主題切換版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
 
 <!-- Firebase SDK for cross-device sync -->
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -5906,7 +6198,7 @@ function photoBookDay(d){
 
 
 /* ===== Version marker ===== */
-const APP_VERSION = "v45｜2026-05-29｜照片旅遊書PDF預覽模式版";
+const APP_VERSION = "v46｜2026-05-29｜網站主題切換版";
 console.log("My Travel Book", APP_VERSION);
 
 
@@ -10610,6 +10902,148 @@ renderPhotoBook = function(){
     if(oldWrap) oldWrap.remove();
     preview.insertAdjacentHTML("afterbegin", pdfPreviewHtml());
   }
+};
+
+
+/* ===== v46 theme switcher: UI-only settings, no travel data structure changes ===== */
+/*
+theme config 範例：
+const THEME_CONFIG = {
+  modes: {
+    light: { label: "淺色" },
+    dark: { label: "深色" }
+  },
+  palettes: {
+    seoul: { label: "韓系清新", primary:"#628f80", line:"#eadfd4", card:"#fffdfa" },
+    ocean: { label: "海邊藍", primary:"#4f82a8", line:"#d9e7ef", card:"#fbfdff" },
+    latte: { label: "奶茶暖色", primary:"#a57855", line:"#ead9c8", card:"#fffaf4" }
+  },
+  cardStyles: {
+    soft: { label:"柔和卡片" },
+    outline: { label:"清爽線框" },
+    solid: { label:"立體卡片" }
+  }
+};
+*/
+
+const THEME_CONFIG = {
+  modes: {
+    light: { label: "淺色" },
+    dark: { label: "深色" }
+  },
+  palettes: {
+    seoul: { label: "韓系清新", primary:"#628f80", line:"#eadfd4", card:"#fffdfa" },
+    ocean: { label: "海邊藍", primary:"#4f82a8", line:"#d9e7ef", card:"#fbfdff" },
+    latte: { label: "奶茶暖色", primary:"#a57855", line:"#ead9c8", card:"#fffaf4" }
+  },
+  cardStyles: {
+    soft: { label:"柔和卡片" },
+    outline: { label:"清爽線框" },
+    solid: { label:"立體卡片" }
+  }
+};
+
+const THEME_STORAGE_KEY = "travelBookThemePrefs";
+
+function getThemePrefs(){
+  try{
+    return JSON.parse(localStorage.getItem(THEME_STORAGE_KEY) || "{}");
+  }catch(e){
+    return {};
+  }
+}
+
+function saveThemePrefs(prefs){
+  localStorage.setItem(THEME_STORAGE_KEY, JSON.stringify(prefs));
+}
+
+function applyThemePrefs(prefs=getThemePrefs()){
+  const safe = {
+    mode: THEME_CONFIG.modes[prefs.mode] ? prefs.mode : "light",
+    palette: THEME_CONFIG.palettes[prefs.palette] ? prefs.palette : "seoul",
+    cardStyle: THEME_CONFIG.cardStyles[prefs.cardStyle] ? prefs.cardStyle : "soft"
+  };
+  document.body.setAttribute("data-theme-mode", safe.mode);
+  document.body.setAttribute("data-theme-palette", safe.palette);
+  document.body.setAttribute("data-card-style", safe.cardStyle);
+  return safe;
+}
+
+function setThemePrefs(partial){
+  const current = applyThemePrefs(getThemePrefs());
+  const next = {...current, ...partial};
+  saveThemePrefs(next);
+  applyThemePrefs(next);
+  renderThemeWidgetState();
+  toast("主題已套用");
+}
+
+function themeOptions(obj, selected){
+  return Object.entries(obj).map(([key,val])=>`<option value="${key}" ${key===selected?"selected":""}>${val.label}</option>`).join("");
+}
+
+function toggleThemeWidget(){
+  const el=$("themeWidget");
+  if(el)el.classList.toggle("open");
+}
+
+function renderThemeWidget(){
+  const prefs = applyThemePrefs(getThemePrefs());
+  return `<div class="themeWidget noPrint" id="themeWidget">
+    <div class="themeWidgetHead">
+      <div>
+        <b>🎨 主題切換</b>
+        <div class="mini">只套用 UI 外觀，不影響旅行資料。</div>
+      </div>
+      <button class="themeToggleBtn" onclick="toggleThemeWidget()">調整</button>
+    </div>
+    <div class="themeSwatches">
+      <span class="themeSwatch seoul"></span>
+      <span class="themeSwatch ocean"></span>
+      <span class="themeSwatch latte"></span>
+    </div>
+    <div class="themeControls">
+      <div>
+        <label>明暗模式</label>
+        <select id="themeModeSelect" onchange="setThemePrefs({mode:this.value})">${themeOptions(THEME_CONFIG.modes,prefs.mode)}</select>
+      </div>
+      <div>
+        <label>色系風格</label>
+        <select id="themePaletteSelect" onchange="setThemePrefs({palette:this.value})">${themeOptions(THEME_CONFIG.palettes,prefs.palette)}</select>
+      </div>
+      <div>
+        <label>卡片樣式</label>
+        <select id="themeCardStyleSelect" onchange="setThemePrefs({cardStyle:this.value})">${themeOptions(THEME_CONFIG.cardStyles,prefs.cardStyle)}</select>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderThemeWidgetState(){
+  const prefs = applyThemePrefs(getThemePrefs());
+  if($("themeModeSelect")) $("themeModeSelect").value = prefs.mode;
+  if($("themePaletteSelect")) $("themePaletteSelect").value = prefs.palette;
+  if($("themeCardStyleSelect")) $("themeCardStyleSelect").value = prefs.cardStyle;
+}
+
+function injectThemeWidget(){
+  const header=document.querySelector("header");
+  if(!header || $("themeWidget"))return;
+  header.insertAdjacentHTML("beforeend", renderThemeWidget());
+  renderThemeWidgetState();
+}
+
+const __renderHeadBeforeV46 = renderHead;
+renderHead = function(){
+  __renderHeadBeforeV46();
+  injectThemeWidget();
+};
+
+const __initBeforeV46 = init;
+init = function(){
+  applyThemePrefs(getThemePrefs());
+  __initBeforeV46();
+  injectThemeWidget();
 };
 
 init();
