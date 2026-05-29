@@ -5269,7 +5269,7 @@ body[data-theme-mode] .btn.pink{
   <button class="btn blue compact hidden" id="cloudLoadBtn" onclick="loadFromCloud()">載入雲端</button>
   <button class="btn pink compact hidden" id="cloudSaveBtn" onclick="saveToCloudNow()">立即同步</button>
 </div>
-<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>VoyageMemo.｜LocalStorage + Cloudinary Version<br><strong>版本：v57｜2026-05-29｜照片旅遊書預覽與彈窗編輯版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
+<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>VoyageMemo.｜LocalStorage + Cloudinary Version<br><strong>版本：v58｜2026-05-29｜照片旅遊書PDF專用A4版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
 
 <!-- Firebase SDK for cross-device sync -->
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -7693,7 +7693,7 @@ function photoBookDay(d){
 
 
 /* ===== Version marker ===== */
-const APP_VERSION = "v57｜2026-05-29｜照片旅遊書預覽與彈窗編輯版";
+const APP_VERSION = "v58｜2026-05-29｜照片旅遊書PDF專用A4版";
 console.log("VoyageMemo.", APP_VERSION);
 
 
@@ -14136,6 +14136,693 @@ function renderPhotoBook(){
 try{
   if(typeof tab !== 'undefined' && tab === 'photoBook') renderPhotoBook();
 }catch(e){}
+</script>
+
+
+<style>
+/* ===== v58 PDF-only travel book engine ===== */
+/* 只影響照片旅遊書匯出 PDF；螢幕版故事預覽不變 */
+#pdfBookPrintMount{
+  display:none;
+}
+
+@media print{
+  @page{
+    size:A4 portrait;
+    margin:0;
+  }
+
+  body.printPhotoBook{
+    background:#fff!important;
+    width:210mm!important;
+    min-width:210mm!important;
+    margin:0!important;
+    padding:0!important;
+    -webkit-print-color-adjust:exact!important;
+    print-color-adjust:exact!important;
+  }
+
+  body.printPhotoBook > *:not(#pdfBookPrintMount){
+    display:none!important;
+  }
+
+  body.printPhotoBook #pdfBookPrintMount{
+    display:block!important;
+  }
+
+  #pdfBookPrintMount,
+  #pdfBookPrintMount *{
+    box-sizing:border-box!important;
+    -webkit-print-color-adjust:exact!important;
+    print-color-adjust:exact!important;
+  }
+
+  .pdfBook{
+    width:210mm!important;
+    margin:0!important;
+    padding:0!important;
+    background:#fff!important;
+    color:#2f2a25!important;
+    font-family:"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif!important;
+  }
+
+  .pdfPage{
+    width:210mm!important;
+    height:297mm!important;
+    max-height:297mm!important;
+    overflow:hidden!important;
+    page-break-after:always!important;
+    break-after:page!important;
+    page-break-inside:avoid!important;
+    break-inside:avoid!important;
+    position:relative!important;
+    padding:18mm 17mm!important;
+    background:#fffdf8!important;
+  }
+
+  .pdfPage:last-child{
+    page-break-after:auto!important;
+    break-after:auto!important;
+  }
+
+  .pdfPage::before{
+    content:"";
+    position:absolute;
+    inset:8mm;
+    border:1px solid rgba(226,221,213,.75);
+    border-radius:9mm;
+    pointer-events:none;
+  }
+
+  .pdfPage::after{
+    content:"VOYAGEMEMO. 旅跡手帳";
+    position:absolute;
+    bottom:8mm;
+    left:17mm;
+    right:17mm;
+    padding-top:3mm;
+    border-top:1px solid rgba(226,221,213,.75);
+    font-size:7pt;
+    letter-spacing:1.6pt;
+    color:#9a928a;
+    text-align:right;
+  }
+
+  .pdfCover{
+    padding:0!important;
+    background:#f4f2ee!important;
+  }
+
+  .pdfCoverPhoto{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    filter:saturate(.95) contrast(1.02);
+  }
+
+  .pdfCoverShade{
+    position:absolute;
+    inset:0;
+    background:
+      linear-gradient(90deg,rgba(255,253,248,.92) 0%,rgba(255,253,248,.72) 38%,rgba(255,253,248,.24) 78%),
+      linear-gradient(180deg,rgba(255,255,255,.1),rgba(47,42,37,.16));
+  }
+
+  .pdfCoverContent{
+    position:relative;
+    z-index:2;
+    width:112mm;
+    height:100%;
+    padding:28mm 0 22mm 20mm;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+  }
+
+  .pdfEyebrow{
+    display:inline-flex;
+    align-items:center;
+    width:max-content;
+    max-width:100%;
+    padding:5mm 7mm;
+    border-radius:999px;
+    background:rgba(255,255,255,.82);
+    border:1px solid rgba(226,221,213,.9);
+    color:#6d6258;
+    letter-spacing:4pt;
+    font-size:9pt;
+    font-weight:800;
+    text-transform:uppercase;
+  }
+
+  .pdfCover h1{
+    margin:10mm 0 6mm!important;
+    font-size:34pt!important;
+    line-height:1.12!important;
+    letter-spacing:-.5pt!important;
+    color:#2f2a25!important;
+  }
+
+  .pdfCoverSub{
+    display:block;
+    padding:6mm 7mm;
+    border-radius:8mm;
+    background:rgba(255,255,255,.78);
+    border:1px solid rgba(226,221,213,.7);
+    color:#6d6258!important;
+    font-size:12pt!important;
+    line-height:1.85!important;
+  }
+
+  .pdfMetaChips{
+    display:flex;
+    flex-wrap:wrap;
+    gap:4mm;
+    margin-top:10mm;
+  }
+
+  .pdfMetaChips span{
+    display:inline-flex;
+    border-radius:999px;
+    background:rgba(255,255,255,.84);
+    border:1px solid rgba(226,221,213,.75);
+    padding:4mm 5mm;
+    font-size:9pt;
+    color:#2f2a25;
+    font-weight:700;
+  }
+
+  .pdfPageHeader{
+    position:relative;
+    z-index:2;
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:10mm;
+    padding-bottom:6mm;
+    border-bottom:1px solid rgba(226,221,213,.85);
+    margin-bottom:8mm;
+  }
+
+  .pdfPageHeader .pdfEyebrow{
+    padding:3mm 5mm;
+    font-size:7pt;
+    letter-spacing:2pt;
+  }
+
+  .pdfPageHeader h2{
+    margin:4mm 0 0!important;
+    font-size:25pt!important;
+    line-height:1.18!important;
+    color:#2f2a25!important;
+  }
+
+  .pdfPageHeader p{
+    margin:3mm 0 0!important;
+    color:#8b827a!important;
+    font-size:10pt!important;
+    line-height:1.65!important;
+  }
+
+  .pdfPageNo{
+    flex:0 0 auto;
+    font-size:9pt;
+    color:#9a928a;
+    letter-spacing:1pt;
+    margin-top:3mm;
+  }
+
+  .pdfOverviewGrid{
+    position:relative;
+    z-index:2;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:5mm;
+    margin-bottom:8mm;
+  }
+
+  .pdfInfoCard{
+    border:1px solid rgba(226,221,213,.88);
+    background:rgba(255,255,255,.74);
+    border-radius:6mm;
+    padding:6mm;
+  }
+
+  .pdfInfoCard span{
+    display:block;
+    color:#9a928a;
+    font-size:8pt;
+    letter-spacing:1pt;
+    text-transform:uppercase;
+    margin-bottom:2mm;
+  }
+
+  .pdfInfoCard b{
+    display:block;
+    font-size:14pt;
+    line-height:1.35;
+    color:#2f2a25;
+  }
+
+  .pdfMiniDays{
+    position:relative;
+    z-index:2;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:4mm;
+  }
+
+  .pdfMiniDay{
+    border:1px solid rgba(226,221,213,.8);
+    border-radius:5mm;
+    padding:4mm;
+    background:#fff;
+    min-height:24mm;
+  }
+
+  .pdfMiniDay b{
+    display:block;
+    font-size:10pt;
+    color:#2f2a25;
+    margin-bottom:2mm;
+  }
+
+  .pdfMiniDay span{
+    display:block;
+    font-size:8pt;
+    line-height:1.5;
+    color:#8b827a;
+  }
+
+  .pdfChapterHero{
+    position:relative;
+    z-index:2;
+    height:83mm;
+    border-radius:8mm;
+    overflow:hidden;
+    margin-bottom:7mm;
+    background:linear-gradient(135deg,#edf8f3,#fbedf2);
+    border:1px solid rgba(226,221,213,.8);
+  }
+
+  .pdfChapterHero img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+  }
+
+  .pdfChapterHero.empty{
+    display:grid;
+    place-items:center;
+    color:#9a928a;
+    font-size:12pt;
+  }
+
+  .pdfDaySummary{
+    position:relative;
+    z-index:2;
+    display:grid;
+    grid-template-columns:45mm 1fr;
+    gap:6mm;
+    align-items:start;
+  }
+
+  .pdfDayStats{
+    border-radius:7mm;
+    background:#eaf4ef;
+    padding:6mm;
+    border:1px solid rgba(207,228,219,.9);
+  }
+
+  .pdfDayStats b{
+    display:block;
+    font-size:18pt;
+    color:#4a5d4e;
+  }
+
+  .pdfDayStats span{
+    display:block;
+    margin-top:2mm;
+    font-size:8pt;
+    color:#6d7b73;
+    line-height:1.55;
+  }
+
+  .pdfTimeline{
+    display:grid;
+    gap:3mm;
+    max-height:92mm;
+    overflow:hidden;
+  }
+
+  .pdfTimelineItem{
+    display:grid;
+    grid-template-columns:22mm 1fr;
+    gap:4mm;
+    break-inside:avoid;
+    page-break-inside:avoid;
+  }
+
+  .pdfTime{
+    border-radius:999px;
+    background:#f3eee8;
+    color:#6d6258;
+    padding:2.4mm 2mm;
+    height:max-content;
+    text-align:center;
+    font-size:8pt;
+    font-weight:800;
+  }
+
+  .pdfTimelineText{
+    border-left:1px solid rgba(98,143,128,.32);
+    padding:0 0 2mm 4mm;
+  }
+
+  .pdfTimelineText b{
+    display:block;
+    font-size:10pt;
+    line-height:1.35;
+    color:#2f2a25;
+  }
+
+  .pdfTimelineText span{
+    display:block;
+    margin-top:1mm;
+    font-size:8pt;
+    line-height:1.5;
+    color:#8b827a;
+  }
+
+  .pdfPhotoGrid{
+    position:relative;
+    z-index:2;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:6mm;
+  }
+
+  .pdfPhotoCard{
+    break-inside:avoid;
+    page-break-inside:avoid;
+    border:1px solid rgba(226,221,213,.88);
+    background:#fff;
+    border-radius:5mm;
+    padding:4mm;
+    min-height:94mm;
+    overflow:hidden;
+  }
+
+  .pdfPhotoCard img{
+    width:100%;
+    height:58mm;
+    object-fit:cover;
+    display:block;
+    border-radius:3mm;
+    margin-bottom:3mm;
+  }
+
+  .pdfPhotoCard h3{
+    margin:0 0 2mm!important;
+    font-size:11pt!important;
+    line-height:1.35!important;
+    color:#2f2a25!important;
+  }
+
+  .pdfPhotoTags{
+    display:flex;
+    flex-wrap:wrap;
+    gap:2mm;
+    margin-bottom:2mm;
+  }
+
+  .pdfPhotoTags span{
+    display:inline-flex;
+    border-radius:999px;
+    background:#edf8f3;
+    color:#527b70;
+    padding:1.5mm 2.5mm;
+    font-size:7pt;
+    font-weight:700;
+  }
+
+  .pdfPhotoCard p{
+    margin:0!important;
+    font-size:8.5pt!important;
+    line-height:1.55!important;
+    color:#6d6258!important;
+  }
+
+  .pdfEmptyBox{
+    position:relative;
+    z-index:2;
+    border:1px dashed rgba(154,146,138,.65);
+    background:rgba(255,255,255,.55);
+    border-radius:7mm;
+    min-height:96mm;
+    display:grid;
+    place-items:center;
+    text-align:center;
+    color:#9a928a;
+    font-size:11pt;
+    line-height:1.8;
+  }
+
+  .pdfEnding{
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    text-align:center;
+    background:
+      radial-gradient(circle at 20% 20%,rgba(217,239,230,.9),transparent 42%),
+      radial-gradient(circle at 80% 70%,rgba(248,223,232,.82),transparent 45%),
+      #fffdf8!important;
+  }
+
+  .pdfEnding h2{
+    position:relative;
+    z-index:2;
+    margin:0!important;
+    font-size:30pt!important;
+    line-height:1.18!important;
+  }
+
+  .pdfEnding p{
+    position:relative;
+    z-index:2;
+    width:128mm;
+    margin:8mm auto 0!important;
+    color:#6d6258!important;
+    font-size:12pt!important;
+    line-height:1.9!important;
+  }
+
+  .pdfEndingMark{
+    position:relative;
+    z-index:2;
+    margin:12mm auto 0;
+    display:inline-flex;
+    width:max-content;
+    padding:5mm 8mm;
+    border-radius:999px;
+    border:1px solid rgba(226,221,213,.8);
+    background:rgba(255,255,255,.72);
+    color:#4a5d4e;
+    letter-spacing:2pt;
+    font-size:9pt;
+    font-weight:800;
+  }
+}
+</style>
+
+
+<script>
+/* ===== v58 PDF-only travel book engine ===== */
+/* 不改照片書資料，只在匯出 PDF 時產生 print-only A4 DOM */
+
+function pdfEsc(v){
+  return String(v ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+function pdfPlain(v, fallback="未設定"){
+  const s = String(v ?? "").trim();
+  return s || fallback;
+}
+
+function pdfTags(tags){
+  const raw = String(tags||"").trim();
+  if(!raw) return "";
+  return `<div class="pdfPhotoTags">${raw.split(/[,\\s，、]+/).filter(Boolean).slice(0,5).map(t=>`<span>${pdfEsc(t)}</span>`).join("")}</div>`;
+}
+
+function pdfPhotoChunks(photos, size=4){
+  const out=[];
+  for(let i=0;i<photos.length;i+=size) out.push(photos.slice(i,i+size));
+  return out.length ? out : [[]];
+}
+
+function pdfCoverPage(){
+  const cover = data.tripCover || "";
+  const fallbackCover = (data.photos||[])[0]?.src || "";
+  const img = cover || fallbackCover;
+  return `<section class="pdfPage pdfCover">
+    ${img ? `<img class="pdfCoverPhoto" src="${img}">` : ""}
+    <div class="pdfCoverShade"></div>
+    <div class="pdfCoverContent">
+      <span class="pdfEyebrow">VOYAGEMEMO</span>
+      <h1>${pdfEsc(data.meta.title || "我的旅行手帳")}</h1>
+      <div class="pdfCoverSub">${pdfEsc(data.meta.subtitle || "把想去的地方、走過的路與照片，整理成一本旅行書。")}</div>
+      <div class="pdfMetaChips">
+        <span>目的地：${pdfEsc(data.trip.dest || "未設定")}</span>
+        <span>日期：${pdfEsc(short(data.trip.start))} - ${pdfEsc(short(data.trip.end))}</span>
+        <span>${(data.days||[]).length} 天旅行</span>
+      </div>
+    </div>
+  </section>`;
+}
+
+function pdfOverviewPage(){
+  const totalPlans = (data.plans||[]).length;
+  const totalPhotos = (data.photos||[]).length;
+  const totalHotels = (data.hotels||[]).length;
+  return `<section class="pdfPage">
+    <div class="pdfPageHeader">
+      <div>
+        <span class="pdfEyebrow">TRIP OVERVIEW</span>
+        <h2>旅行總覽</h2>
+        <p>用一頁整理這趟旅程的日期、目的地與每日章節。</p>
+      </div>
+      <div class="pdfPageNo">PAGE 02</div>
+    </div>
+    <div class="pdfOverviewGrid">
+      <div class="pdfInfoCard"><span>Destination</span><b>${pdfEsc(data.trip.dest || "未設定")}</b></div>
+      <div class="pdfInfoCard"><span>Date</span><b>${pdfEsc(short(data.trip.start))} - ${pdfEsc(short(data.trip.end))}</b></div>
+      <div class="pdfInfoCard"><span>Itinerary</span><b>${totalPlans} 個行程</b></div>
+      <div class="pdfInfoCard"><span>Memory</span><b>${totalPhotos} 張照片｜${totalHotels} 筆住宿</b></div>
+    </div>
+    <div class="pdfMiniDays">
+      ${(data.days||[]).map(d=>{
+        const plans = sortedPlans(d.key);
+        const photos = (data.photos||[]).filter(p=>p.day==d.key);
+        const hotel = hotelFor(d.key)?.name || "未設定住宿";
+        return `<div class="pdfMiniDay">
+          <b>${pdfEsc(d.title)}｜${pdfEsc(d.label)}</b>
+          <span>${pdfEsc(hotel)}</span>
+          <span>${plans.length} 個行程・${photos.length} 張照片</span>
+        </div>`;
+      }).join("")}
+    </div>
+  </section>`;
+}
+
+function pdfDayChapterPage(d, pageNo){
+  const plans = sortedPlans(d.key);
+  const photos = (data.photos||[]).filter(p=>p.day==d.key);
+  const cover = data.dayCovers?.[d.key] || photos[0]?.src || "";
+  const hotel = hotelFor(d.key)?.name || "未設定";
+  return `<section class="pdfPage">
+    <div class="pdfPageHeader">
+      <div>
+        <span class="pdfEyebrow">${pdfEsc(d.title)}</span>
+        <h2>${pdfEsc(d.label)} 的旅行故事</h2>
+        <p>住宿：${pdfEsc(hotel)}。今天收錄 ${plans.length} 個行程與 ${photos.length} 張照片。</p>
+      </div>
+      <div class="pdfPageNo">PAGE ${String(pageNo).padStart(2,"0")}</div>
+    </div>
+    <div class="pdfChapterHero ${cover ? "" : "empty"}">
+      ${cover ? `<img src="${cover}">` : "尚未上傳本日封面"}
+    </div>
+    <div class="pdfDaySummary">
+      <div class="pdfDayStats">
+        <b>${plans.length}</b>
+        <span>今日行程</span>
+        <b style="margin-top:7mm">${photos.length}</b>
+        <span>今日照片</span>
+      </div>
+      <div class="pdfTimeline">
+        ${plans.length ? plans.slice(0,9).map(p=>`<div class="pdfTimelineItem">
+          <div class="pdfTime">${pdfEsc(p.start || "--:--")}</div>
+          <div class="pdfTimelineText">
+            <b>${activityIcon(p.type)} ${pdfEsc(p.name || "未命名行程")}</b>
+            <span>${p.end ? `至 ${pdfEsc(p.end)}` : ""}${p.note ? `｜${pdfEsc(p.note)}` : ""}</span>
+          </div>
+        </div>`).join("") : `<div class="pdfEmptyBox">這天還沒有正式行程。<br>可以用照片留下旅行的空白與自由。</div>`}
+      </div>
+    </div>
+  </section>`;
+}
+
+function pdfDayPhotoPages(d, startPageNo){
+  const photos = (data.photos||[]).filter(p=>p.day==d.key);
+  const chunks = pdfPhotoChunks(photos, 4);
+  return chunks.map((chunk, idx)=>`<section class="pdfPage">
+    <div class="pdfPageHeader">
+      <div>
+        <span class="pdfEyebrow">${pdfEsc(d.title)} PHOTO DIARY</span>
+        <h2>今日照片日記${chunks.length>1 ? ` ${idx+1}/${chunks.length}` : ""}</h2>
+        <p>${pdfEsc(d.label)} 的畫面、心情與小片段。</p>
+      </div>
+      <div class="pdfPageNo">PAGE ${String(startPageNo + idx).padStart(2,"0")}</div>
+    </div>
+    ${chunk.length ? `<div class="pdfPhotoGrid">
+      ${chunk.map(p=>`<div class="pdfPhotoCard">
+        <img src="${p.src}">
+        <h3>${pdfEsc(p.title || "照片紀錄")}</h3>
+        ${pdfTags(p.tags)}
+        <p>${pdfEsc(p.memo || " ")}</p>
+      </div>`).join("")}
+    </div>` : `<div class="pdfEmptyBox">這一天還沒有照片日記。<br>等你補上照片後，這裡會變成專屬的回憶頁。</div>`}
+  </section>`).join("");
+}
+
+function pdfEndingPage(pageNo){
+  return `<section class="pdfPage pdfEnding">
+    <h2>旅程，會被好好收藏。</h2>
+    <p>那些走過的路、吃過的飯、偶然遇見的風景，都會慢慢變成記憶裡很亮的一頁。</p>
+    <div class="pdfEndingMark">END OF JOURNEY</div>
+  </section>`;
+}
+
+function buildPhotoBookPDF(){
+  let pageNo = 1;
+  const pages = [];
+  pages.push(pdfCoverPage()); pageNo++;
+  pages.push(pdfOverviewPage()); pageNo++;
+  (data.days||[]).forEach(d=>{
+    pages.push(pdfDayChapterPage(d, pageNo)); pageNo++;
+    const photos = (data.photos||[]).filter(p=>p.day==d.key);
+    const photoPageCount = Math.max(1, Math.ceil(photos.length / 4));
+    pages.push(pdfDayPhotoPages(d, pageNo));
+    pageNo += photoPageCount;
+  });
+  pages.push(pdfEndingPage(pageNo));
+  return `<div class="pdfBook">${pages.join("")}</div>`;
+}
+
+function ensurePdfBookMount(){
+  let mount = document.getElementById("pdfBookPrintMount");
+  if(!mount){
+    mount = document.createElement("div");
+    mount.id = "pdfBookPrintMount";
+    document.body.appendChild(mount);
+  }
+  mount.innerHTML = buildPhotoBookPDF();
+  return mount;
+}
+
+function exportPhotoBookPDF(){
+  ensurePdfBookMount();
+  document.body.classList.add("printPhotoBook");
+  alert("已產生 PDF 專用 A4 旅行書版面。建議使用電腦 Chrome 匯出，手機／平板列印仍可能因瀏覽器而有些微差異。");
+  setTimeout(()=>window.print(), 80);
+}
+
+window.addEventListener("afterprint", ()=>{
+  document.body.classList.remove("printPhotoBook");
+});
 </script>
 
 </body></html>
