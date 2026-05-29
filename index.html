@@ -2037,6 +2037,177 @@ textarea{min-height:58px}
   }
 }
 
+
+/* ===== v42 photo book UI only ===== */
+.photoBookSectionCard{
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.94);
+  border-radius:20px;
+  padding:13px;
+  margin-bottom:12px;
+}
+.photoBookSectionTitle{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:8px;
+}
+.photoBookSectionTitle h3{
+  margin:0;
+  font-size:17px;
+}
+.photoBookSectionTitle span{
+  color:var(--muted);
+  font-size:12px;
+  font-weight:900;
+}
+.photoUploadCard{
+  border:1px solid var(--line);
+  border-radius:18px;
+  background:#fffdf9;
+  padding:12px;
+}
+.photoUploadCard input[type="file"]{
+  background:#fff;
+}
+.coverUploadPreview{
+  width:100%;
+  aspect-ratio:16/9;
+  border:2px dashed #dacfc3;
+  border-radius:18px;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(135deg,#fffefa,#edf8f3);
+  color:#8b827a;
+  overflow:hidden;
+  margin-top:9px;
+}
+.coverUploadPreview img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+.photoUploadStatus{
+  display:none;
+  margin-top:8px;
+  padding:8px 10px;
+  border-radius:999px;
+  background:#eef8f3;
+  color:#527b70;
+  font-size:12px;
+  font-weight:950;
+}
+.photoUploadStatus.show{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+}
+.photoUploadStatus.show::before{
+  content:"⏳";
+}
+.igPhotoGrid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(210px,1fr));
+  gap:12px;
+  margin-top:12px;
+}
+.igPhotoCard{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:22px;
+  overflow:hidden;
+  box-shadow:0 10px 26px rgba(88,72,55,.07);
+}
+.igPhotoFrame{
+  width:100%;
+  aspect-ratio:4/3;
+  background:#f7f3ec;
+  overflow:hidden;
+}
+.igPhotoFrame img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+.igPhotoBody{
+  padding:10px 11px 11px;
+}
+.igPhotoBody h3{
+  margin:0 0 5px;
+  font-size:15px;
+}
+.igTags{
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px;
+  margin:7px 0;
+}
+.igTag{
+  display:inline-flex;
+  align-items:center;
+  border-radius:999px;
+  background:#edf8f3;
+  color:#527b70;
+  padding:4px 8px;
+  font-size:11px;
+  font-weight:950;
+}
+.photoGridPrint{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(210px,1fr));
+  gap:12px;
+}
+.photoGridPrint .photo{
+  overflow:hidden;
+}
+.photoGridPrint .photo img{
+  width:100%;
+  aspect-ratio:4/3;
+  height:auto!important;
+  object-fit:cover;
+}
+.printCoverPhoto{
+  width:100%;
+  max-height:78mm;
+  object-fit:cover;
+  border-radius:24px;
+  margin:10mm 0 8mm;
+}
+@media(max-width:620px){
+  .photoBookSectionCard{
+    padding:11px;
+    border-radius:18px;
+  }
+  .igPhotoGrid{
+    grid-template-columns:1fr;
+    gap:10px;
+  }
+  .coverUploadPreview{
+    border-radius:16px;
+  }
+}
+@media print{
+  .printCoverPhoto{
+    width:100%!important;
+    height:70mm!important;
+    max-height:70mm!important;
+    object-fit:cover!important;
+    margin:8mm 0!important;
+  }
+  .photoGridPrint{
+    grid-template-columns:1fr 1fr!important;
+    gap:6mm!important;
+  }
+  .photoGridPrint .photo img{
+    height:48mm!important;
+    aspect-ratio:auto!important;
+    object-fit:cover!important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -2048,7 +2219,7 @@ textarea{min-height:58px}
   <button class="btn blue compact hidden" id="cloudLoadBtn" onclick="loadFromCloud()">載入雲端</button>
   <button class="btn pink compact hidden" id="cloudSaveBtn" onclick="saveToCloudNow()">立即同步</button>
 </div>
-<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v41｜2026-05-29｜手機航班時間App欄位版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
+<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v42｜2026-05-29｜照片旅遊書封面與日記優化版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
 
 <!-- Firebase SDK for cross-device sync -->
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -4472,7 +4643,7 @@ function photoBookDay(d){
 
 
 /* ===== Version marker ===== */
-const APP_VERSION = "v41｜2026-05-29｜手機航班時間App欄位版";
+const APP_VERSION = "v42｜2026-05-29｜照片旅遊書封面與日記優化版";
 console.log("My Travel Book", APP_VERSION);
 
 
@@ -8710,6 +8881,194 @@ function flightSegmentForm(k, idx, seg){
       <div class="airportQuickHint">台灣與亞洲機場優先列出；找不到可手動輸入。</div>
     </div>
   </details>`;
+}
+
+
+/* ===== v42 photo book only overrides ===== */
+function setPhotoUploadStatus(id, message){
+  const el=$(id);
+  if(!el)return;
+  el.textContent=message||"";
+  el.classList.toggle("show", !!message);
+}
+
+async function uploadImageFileForPhotoBook(file, options={}, statusId="photoUploadStatus"){
+  if(!file) throw new Error("請先選擇照片");
+  if(file.size > CLOUDINARY_CONFIG.maxUploadBytes){
+    setPhotoUploadStatus(statusId, "照片較大，正在壓縮中...");
+  }else{
+    setPhotoUploadStatus(statusId, "上傳中，先幫你壓縮照片...");
+  }
+
+  const blob = await compressImageToBlob(
+    file,
+    options.maxWidth || CLOUDINARY_CONFIG.maxWidth,
+    options.quality || CLOUDINARY_CONFIG.quality
+  );
+
+  setPhotoUploadStatus(statusId, "上傳中...");
+  const uploaded = await uploadBlobToCloudinary(blob, file.name || "travel-photo.jpg");
+  setPhotoUploadStatus(statusId, "");
+
+  return {
+    src: uploaded.secure_url,
+    publicId: uploaded.public_id,
+    width: uploaded.width,
+    height: uploaded.height,
+    bytes: uploaded.bytes,
+    cloudinary: true
+  };
+}
+
+function exportPhotoBookPDF(){
+  alert("匯出 PDF 建議使用電腦下載或列印，版面會比較穩定。手機也可以使用分享或列印功能另存 PDF。");
+  print();
+}
+
+function photoTagsHtml(tags){
+  const raw = String(tags||"").trim();
+  if(!raw)return "";
+  return `<div class="igTags">${raw.split(/[,\s，、]+/).filter(Boolean).map(t=>`<span class="igTag">${esc(t)}</span>`).join("")}</div>`;
+}
+
+async function addTripCover(file){
+  if(!file)return;
+  try{
+    setPhotoUploadStatus("coverUploadStatus", "上傳中...");
+    const img = await uploadImageFileForPhotoBook(file, {maxWidth:1800, quality:.84}, "coverUploadStatus");
+    data.tripCover=img.src;
+    data.tripCoverMeta=img;
+    save();
+    setPhotoUploadStatus("coverUploadStatus", "");
+    toast("旅遊書封面已上傳");
+  }catch(err){
+    setPhotoUploadStatus("coverUploadStatus", "");
+    alert("封面上傳失敗：" + err.message);
+  }
+}
+
+async function addDayCover(day,file){
+  if(!file)return;
+  try{
+    setPhotoUploadStatus(`dayCoverStatus-${day}`, "上傳中...");
+    const img = await uploadImageFileForPhotoBook(file, {maxWidth:1800, quality:.84}, `dayCoverStatus-${day}`);
+    data.dayCovers[day]=img.src;
+    if(!data.dayCoverMeta) data.dayCoverMeta={};
+    data.dayCoverMeta[day]=img;
+    save();
+    setPhotoUploadStatus(`dayCoverStatus-${day}`, "");
+    toast("本日封面圖已上傳");
+  }catch(err){
+    setPhotoUploadStatus(`dayCoverStatus-${day}`, "");
+    alert("封面圖上傳失敗：" + err.message);
+  }
+}
+
+async function addPhoto(){
+  let f=$("phf")?.files?.[0];
+  if(!f)return toast("請選照片");
+  try{
+    const img = await uploadImageFileForPhotoBook(f, {maxWidth:1600, quality:.82}, "photoUploadStatus");
+    data.photos.unshift({
+      id:uid(),
+      day:$("phd").value,
+      title:$("pht").value,
+      memo:$("phm").value,
+      tags:$("phtag")?.value || "",
+      src:img.src,
+      publicId:img.publicId,
+      cloudinary:true,
+      width:img.width,
+      height:img.height,
+      bytes:img.bytes
+    });
+    save();
+    toast("照片已加入照片日記");
+  }catch(err){
+    setPhotoUploadStatus("photoUploadStatus", "");
+    alert("照片上傳失敗：" + err.message);
+  }
+}
+
+function renderPhotoBook(){
+  $("photoBookView").innerHTML=`<div class="section"><div><h2>📖 照片旅遊書</h2><div class="hint">封面、每日照片與日記會整理成一本旅行書；照片日記偏 IG 風格，橫圖顯示更好看。</div></div><button class="btn soft noPrint" onclick="exportPhotoBookPDF()">匯出 PDF</button></div>
+
+  <div class="photoBookSectionCard noPrint">
+    <div class="photoBookSectionTitle"><h3>① 封面上傳</h3><span>整本旅遊書封面</span></div>
+    <div class="photoUploadCard">
+      <label>照片書模板</label>
+      <div class="templateRail">
+        ${templateCard("fresh","🌿 韓系清新","米白淡綠、乾淨圓角")}
+        ${templateCard("fun","🌈 活潑可愛","貼紙感、虛線框、繽紛")}
+        ${templateCard("diary","✎ 手帳日記","紙張格線、手寫感")}
+      </div>
+      <label>選擇封面照片</label>
+      <input type="file" accept="image/*" onchange="addTripCover(this.files[0])">
+      <div class="mini" style="margin-top:6px">建議尺寸：橫式 1600×1000px 以上，或手機照片 4:3／16:9；匯出 PDF 會裁切成與網頁預覽一致的封面比例。</div>
+      <div class="photoUploadStatus" id="coverUploadStatus"></div>
+      <div class="coverUploadPreview">${data.tripCover?`<img src="${data.tripCover}">`:"尚未上傳整本封面照"}</div>
+    </div>
+  </div>
+
+  <div class="photoBookSectionCard noPrint">
+    <div class="photoBookSectionTitle"><h3>② 照片日記</h3><span>每日照片與心情紀錄</span></div>
+    <div class="photoUploadCard">
+      <div class="three compactMobile">
+        <div><label>照片日期</label><select id="phd">${optsDays(cur)}</select></div>
+        <div><label>照片標題</label><input id="pht" placeholder="例：海雲台散步"></div>
+        <div><label>自訂標籤</label><input id="phtag" placeholder="例：🌊 海邊 咖啡"></div>
+      </div>
+      <label>選擇照片</label><input id="phf" type="file" accept="image/*">
+      <div class="mini" style="margin-top:6px">橫圖會最接近照片書排版；也可用 emoji 或 tag 幫照片分類。</div>
+      <label>照片日記</label><textarea id="phm" placeholder="這天的天氣、心情、最好吃的一餐、最喜歡的瞬間……"></textarea>
+      <div class="btns"><button class="btn dark" onclick="addPhoto()">上傳並加入照片日記</button></div>
+      <div class="photoUploadStatus" id="photoUploadStatus"></div>
+    </div>
+  </div>
+
+  <div class="bookStyle-${data.meta.bookStyle||"fresh"}">
+    <div class="printCover">
+      <span class="bookOrnament"></span>
+      <h1>${esc(data.meta.title)}</h1>
+      <p class="coverSub">${esc(data.meta.subtitle)}</p>
+      ${data.tripCover?`<img class="printCoverPhoto" src="${data.tripCover}">`:""}
+      <div class="coverMeta">
+        <div><span class="mini">目的地</span><br><b>${esc(data.trip.dest)}</b></div>
+        <div><span class="mini">日期</span><br><b>${short(data.trip.start)} - ${short(data.trip.end)}</b></div>
+      </div>
+    </div>
+    <div class="card"><h2>${esc(data.meta.title)}</h2><div class="box mint">${esc(data.meta.subtitle)}</div></div>
+    ${data.days.map(d=>photoBookDay(d)).join("")}
+  </div>`;
+}
+
+function photoBookDay(d){
+  const plans=sortedPlans(d.key);
+  const photos=data.photos.filter(p=>p.day==d.key);
+  const cover=data.dayCovers[d.key];
+  return `<div class="card bookDay">
+    <div class="bookDayHeader">
+      <div><span class="bookOrnament"></span><h2>${d.title}｜${d.label}</h2><div class="hint">本日住宿：${hotelFor(d.key)?.name||"未設定"}</div></div>
+      <span class="bookDayBadge">${plans.length} 個行程｜${photos.length} 張照片</span>
+      <div class="noPrint">
+        <label class="small" style="display:inline-block;cursor:pointer">上傳本日封面<input type="file" accept="image/*" onchange="addDayCover('${d.key}',this.files[0])" style="display:none"></label>
+        <div class="mini">每日封面建議：橫式 1600×900px 以上</div>
+        <div class="photoUploadStatus" id="dayCoverStatus-${d.key}"></div>
+      </div>
+    </div>
+    ${cover?`<img class="dayCover" src="${cover}">`:`<div class="dayCover" style="display:grid;place-items:center;color:#999">尚未上傳本日封面圖</div>`}
+    <div class="bookTimeline">${plans.map(p=>`<div class="bookTimelineItem"><div class="bookTimelineTime">${esc(p.start||"--:--")}</div><div class="bookTimelineContent"><b>${activityIcon(p.type)} ${esc(p.name)}</b><div class="mini">${esc(p.end?("結束 "+p.end):"")}</div>${p.note?`<div style="margin-top:4px">${esc(p.note)}</div>`:""}</div></div>`).join("")||'<div class="empty">這天還沒有行程</div>'}</div>
+    <div class="photoGridPrint igPhotoGrid">${photos.map(p=>`
+      <div class="photo igPhotoCard">
+        <div class="igPhotoFrame"><img src="${p.src}"></div>
+        <div class="igPhotoBody">
+          <h3>${esc(p.title||"照片紀錄")}</h3>
+          ${photoTagsHtml(p.tags)}
+          <p class="mini">${esc(p.memo||"")}</p>
+          <button class="small noPrint" onclick="delPhoto('${p.id}')">刪除</button>
+        </div>
+      </div>`).join("")||""}</div>
+  </div>`;
 }
 
 init();
