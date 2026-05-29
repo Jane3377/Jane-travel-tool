@@ -5269,7 +5269,7 @@ body[data-theme-mode] .btn.pink{
   <button class="btn blue compact hidden" id="cloudLoadBtn" onclick="loadFromCloud()">載入雲端</button>
   <button class="btn pink compact hidden" id="cloudSaveBtn" onclick="saveToCloudNow()">立即同步</button>
 </div>
-<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>VoyageMemo.｜LocalStorage + Cloudinary Version<br><strong>版本：v59｜2026-05-29｜PDF獨立出版頁版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
+<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>VoyageMemo.｜LocalStorage + Cloudinary Version<br><strong>版本：v60｜2026-05-29｜PDF出版頁文案可編輯版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
 
 <!-- Firebase SDK for cross-device sync -->
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -7693,7 +7693,7 @@ function photoBookDay(d){
 
 
 /* ===== Version marker ===== */
-const APP_VERSION = "v59｜2026-05-29｜PDF獨立出版頁版";
+const APP_VERSION = "v60｜2026-05-29｜PDF出版頁文案可編輯版";
 console.log("VoyageMemo.", APP_VERSION);
 
 
@@ -14838,6 +14838,44 @@ function openPdfPublisher(autoPrint=false){
 }
 function exportPhotoBookPDF(){
   openPdfPublisher(true);
+}
+</script>
+
+
+<style>
+/* ===== v60 index photo book export button alignment only ===== */
+#photoBookView .storyOnlyIntro{
+  display:flex!important;
+  align-items:flex-start!important;
+  justify-content:space-between!important;
+  gap:12px!important;
+}
+#photoBookView .storyOnlyActions{
+  margin-left:auto!important;
+  display:flex!important;
+  justify-content:flex-end!important;
+  align-items:center!important;
+  gap:8px!important;
+}
+@media(max-width:620px){
+  #photoBookView .storyOnlyIntro{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+  }
+  #photoBookView .storyOnlyActions{
+    width:100%!important;
+    justify-content:flex-end!important;
+  }
+}
+</style>
+<script>
+/* ===== v60 index: open publisher page, do not auto-print ===== */
+function openPdfPublisher(autoPrint=false){
+  try{ save(); }catch(e){}
+  window.open("export.html", "_blank");
+}
+function exportPhotoBookPDF(){
+  openPdfPublisher(false);
 }
 </script>
 

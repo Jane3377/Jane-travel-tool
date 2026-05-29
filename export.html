@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#f4f2ee">
-<title>VoyageMemo. PDF 出版頁</title>
+<title>VoyageMemo. PDF 出版頁 v60</title>
 <style>
 :root{
   --bg:#f4f2ee;
@@ -159,6 +159,112 @@ button.soft{background:#fff9ea;color:#6d5a35}
   .a4Page:last-child{break-after:auto!important;page-break-after:auto!important}
 }
 </style>
+
+<style>
+/* ===== v60 export editable captions only ===== */
+.editTextBtn{
+  border:0!important;
+  background:rgba(255,255,255,.82)!important;
+  box-shadow:none!important;
+  color:#6d6258!important;
+  width:28px!important;
+  height:28px!important;
+  border-radius:50%!important;
+  padding:0!important;
+  display:inline-grid!important;
+  place-items:center!important;
+  font-size:13px!important;
+  cursor:pointer!important;
+  vertical-align:middle!important;
+  margin-left:6px!important;
+}
+.editTextBtn:hover{
+  background:#f3eee8!important;
+}
+.editableHeadingLine{
+  display:flex;
+  align-items:center;
+  gap:4px;
+}
+.editableHeadingLine h2{
+  min-width:0;
+}
+.editCaptionModal{
+  position:fixed;
+  inset:0;
+  z-index:80;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+  background:rgba(44,42,37,.42);
+}
+.editCaptionModal.show{
+  display:flex;
+}
+.editCaptionBox{
+  width:min(520px,100%);
+  background:rgba(255,255,255,.98);
+  border:1px solid rgba(226,221,213,.9);
+  border-radius:24px;
+  box-shadow:0 24px 70px rgba(44,42,37,.2);
+  padding:18px;
+}
+.editCaptionBox h3{
+  margin:0 0 6px;
+}
+.editCaptionBox p{
+  margin:0 0 12px;
+  color:#8b827a;
+  font-size:13px;
+  line-height:1.6;
+}
+.editCaptionBox label{
+  display:block;
+  margin:10px 0 5px;
+  font-size:13px;
+  font-weight:900;
+}
+.editCaptionBox input,
+.editCaptionBox textarea{
+  width:100%;
+  border:1px solid #e2ddd5;
+  border-radius:14px;
+  padding:10px 11px;
+  font-size:15px;
+  background:#fffdf9;
+  color:#2f2a25;
+}
+.editCaptionBox textarea{
+  min-height:76px;
+  resize:vertical;
+}
+.editCaptionActions{
+  display:flex;
+  justify-content:flex-end;
+  gap:8px;
+  margin-top:14px;
+}
+.editCaptionActions button{
+  box-shadow:none!important;
+}
+.exportNote{
+  margin-top:8px;
+  font-size:12px;
+  color:#8b827a;
+  line-height:1.55;
+}
+@media print{
+  .editTextBtn,
+  .editCaptionModal,
+  .publisherBar,
+  .statusCard,
+  .pageNav{
+    display:none!important;
+  }
+}
+</style>
+
 </head>
 <body>
 <div class="publisherShell">
@@ -167,13 +273,13 @@ button.soft{background:#fff9ea;color:#6d5a35}
       <div class="logo">VM</div>
       <div>
         <h1>VoyageMemo. 出版工作台</h1>
-        <p>固定 A4 旅遊小書預覽與 PDF 匯出</p>
+        <p>固定 A4 旅遊小書預覽與 PDF 匯出｜建議用電腦 Chrome 另存 PDF</p>
       </div>
     </div>
     <div class="actions">
       <a class="btnLink" href="index.html">返回編輯器</a>
       <button class="soft" onclick="loadAndRender()">重新載入資料</button>
-      <button class="dark" onclick="printBook()">匯出 PDF</button>
+      <button class="dark" onclick="printBook()">匯出 / 另存 PDF</button>
     </div>
   </div>
 
@@ -369,9 +475,6 @@ function loadAndRender(){
   document.getElementById("statusText").textContent=`來源：localStorage / ${found.key}。目前版本先使用本機資料；未來可升級為 Firebase 雲端讀取。`;
   document.getElementById("bookRoot").innerHTML=buildBook();
   renderThumbs();
-  if(new URLSearchParams(location.search).get("print")==="1"){
-    waitForImages().then(()=>setTimeout(()=>printBook(),280));
-  }
 }
 function waitForImages(){
   const imgs=[...document.images];
@@ -382,5 +485,162 @@ function printBook(){
 }
 loadAndRender();
 </script>
+
+<script>
+/* ===== v60 export editable day/photo page captions ===== */
+/* 自訂文案存在獨立 localStorage，不改旅行資料結構 */
+const EXPORT_CAPTION_KEY = "voyageMemoExportCaptions";
+let exportCaptions = readExportCaptions();
+let editingCaptionTarget = null;
+
+function readExportCaptions(){
+  try{return JSON.parse(localStorage.getItem(EXPORT_CAPTION_KEY)||"{}");}
+  catch(e){return {};}
+}
+function saveExportCaptions(){
+  localStorage.setItem(EXPORT_CAPTION_KEY, JSON.stringify(exportCaptions));
+}
+function dayCaptionKey(dayKey, field){
+  const tripKey = (data?.trip?.start || "trip") + "_" + (data?.trip?.dest || "dest");
+  return `${tripKey}__${dayKey}__${field}`;
+}
+function getDayCaption(dayKey, field, fallback){
+  return exportCaptions[dayCaptionKey(dayKey, field)] || fallback;
+}
+function setDayCaption(dayKey, field, value){
+  const key = dayCaptionKey(dayKey, field);
+  if(String(value||"").trim()) exportCaptions[key] = String(value).trim();
+  else delete exportCaptions[key];
+  saveExportCaptions();
+}
+function openCaptionEditor(dayKey, type){
+  const d = (data.days||[]).find(x=>x.key===dayKey);
+  if(!d) return;
+  editingCaptionTarget = {dayKey, type};
+  const modal = document.getElementById("editCaptionModal");
+  const titleInput = document.getElementById("captionTitleInput");
+  const subtitleInput = document.getElementById("captionSubtitleInput");
+  const subtitleWrap = document.getElementById("captionSubtitleWrap");
+  const intro = document.getElementById("captionEditorIntro");
+
+  if(type === "chapter"){
+    titleInput.value = getDayCaption(dayKey, "chapterTitle", `${d.label} 的旅行故事`);
+    subtitleInput.value = "";
+    subtitleWrap.style.display = "none";
+    intro.textContent = "修改每日章節頁的大標題，例如：放假啟程日、海邊散步日。";
+  }else{
+    titleInput.value = getDayCaption(dayKey, "photoTitle", "今日照片日記");
+    subtitleInput.value = getDayCaption(dayKey, "photoSubtitle", `${d.label} 的畫面、心情與小片段。`);
+    subtitleWrap.style.display = "block";
+    intro.textContent = "修改照片日記頁的標題與副標，會套用到這一天的所有照片頁。";
+  }
+  modal.classList.add("show");
+}
+function closeCaptionEditor(){
+  const modal = document.getElementById("editCaptionModal");
+  if(modal) modal.classList.remove("show");
+  editingCaptionTarget = null;
+}
+function saveCaptionEditor(){
+  if(!editingCaptionTarget) return;
+  const {dayKey, type} = editingCaptionTarget;
+  const title = document.getElementById("captionTitleInput").value;
+  const subtitle = document.getElementById("captionSubtitleInput").value;
+  if(type === "chapter"){
+    setDayCaption(dayKey, "chapterTitle", title);
+  }else{
+    setDayCaption(dayKey, "photoTitle", title);
+    setDayCaption(dayKey, "photoSubtitle", subtitle);
+  }
+  closeCaptionEditor();
+  renderCurrentDataOnly();
+}
+function resetCaptionEditor(){
+  if(!editingCaptionTarget) return;
+  const {dayKey, type} = editingCaptionTarget;
+  if(type === "chapter"){
+    setDayCaption(dayKey, "chapterTitle", "");
+  }else{
+    setDayCaption(dayKey, "photoTitle", "");
+    setDayCaption(dayKey, "photoSubtitle", "");
+  }
+  closeCaptionEditor();
+  renderCurrentDataOnly();
+}
+function renderCurrentDataOnly(){
+  if(!data) return;
+  document.getElementById("bookRoot").innerHTML=buildBook();
+  renderThumbs();
+}
+
+function dayChapterPage(d,pageNo){
+  const plans=sortedPlans(d.key),photos=(data.photos||[]).filter(p=>p.day==d.key),cover=data.dayCovers?.[d.key]||photos[0]?.src||"",hotel=hotelFor(d.key)?.name||"未設定";
+  const customTitle = getDayCaption(d.key, "chapterTitle", `${d.label} 的旅行故事`);
+  return `<section class="a4Page" data-title="${esc(d.title)} 章節"><div class="pageInner">
+    <div class="pageHeader">
+      <div>
+        <span class="eyebrow">${esc(d.title)}</span>
+        <div class="editableHeadingLine">
+          <h2>${esc(customTitle)}</h2>
+          <button class="editTextBtn" title="編輯每日章節標題" onclick="openCaptionEditor('${d.key}','chapter')">✎</button>
+        </div>
+        <p>住宿：${esc(hotel)}。今天收錄 ${plans.length} 個行程與 ${photos.length} 張照片。</p>
+      </div>
+      <div class="pageNo">PAGE ${String(pageNo).padStart(2,"0")}</div>
+    </div>
+    <div class="chapterHero ${cover?"":"empty"}">${cover?`<img src="${cover}">`:"尚未上傳本日封面"}</div>
+    <div class="daySummary">
+      <div class="dayStats"><b>${plans.length}</b><span>今日行程</span><b style="margin-top:7mm">${photos.length}</b><span>今日照片</span></div>
+      <div class="timeline">
+        ${plans.length?plans.slice(0,9).map(p=>`<div class="timelineItem"><div class="time">${esc(p.start||"--:--")}</div><div class="timelineText"><b>${activityIcon(p.type)} ${esc(p.name||"未命名行程")}</b><span>${p.end?`至 ${esc(p.end)}`:""}${p.note?`｜${esc(p.note)}`:""}</span></div></div>`).join(""):`<div class="emptyBox">這天還沒有正式行程。<br>可以用照片留下旅行的空白與自由。</div>`}
+      </div>
+    </div>
+  </div></section>`;
+}
+
+function dayPhotoPages(d,startPageNo){
+  const photos=(data.photos||[]).filter(p=>p.day==d.key), chunks=photoChunks(photos,4);
+  const photoTitle = getDayCaption(d.key, "photoTitle", "今日照片日記");
+  const photoSubtitle = getDayCaption(d.key, "photoSubtitle", `${d.label} 的畫面、心情與小片段。`);
+  return chunks.map((chunk,idx)=>`<section class="a4Page" data-title="${esc(d.title)} 照片 ${idx+1}"><div class="pageInner">
+    <div class="pageHeader">
+      <div>
+        <span class="eyebrow">${esc(d.title)} PHOTO DIARY</span>
+        <div class="editableHeadingLine">
+          <h2>${esc(photoTitle)}${chunks.length>1?` ${idx+1}/${chunks.length}`:""}</h2>
+          <button class="editTextBtn" title="編輯照片頁標題與副標" onclick="openCaptionEditor('${d.key}','photo')">✎</button>
+        </div>
+        <p>${esc(photoSubtitle)}</p>
+      </div>
+      <div class="pageNo">PAGE ${String(startPageNo+idx).padStart(2,"0")}</div>
+    </div>
+    ${chunk.length?`<div class="photoGrid">${chunk.map(p=>`<div class="photoCard"><img src="${p.src}"><h3>${esc(p.title||"照片紀錄")}</h3>${tagsHtml(p.tags)}<p>${esc(p.memo||" ")}</p></div>`).join("")}</div>`:`<div class="emptyBox">這一天還沒有照片日記。<br>等你補上照片後，這裡會變成專屬的回憶頁。</div>`}
+  </div></section>`).join("");
+}
+
+function printBook(){
+  waitForImages().then(()=>window.print());
+}
+</script>
+
+<div class="editCaptionModal noPrint" id="editCaptionModal">
+  <div class="editCaptionBox">
+    <h3>編輯出版頁文字</h3>
+    <p id="captionEditorIntro">修改旅遊小書的頁面標題。</p>
+    <label>標題</label>
+    <input id="captionTitleInput" placeholder="例如：放假啟程日">
+    <div id="captionSubtitleWrap">
+      <label>副標</label>
+      <textarea id="captionSubtitleInput" placeholder="例如：第一天的畫面、心情與小片段。"></textarea>
+    </div>
+    <div class="editCaptionActions">
+      <button onclick="resetCaptionEditor()">恢復預設</button>
+      <button onclick="closeCaptionEditor()">取消</button>
+      <button class="dark" onclick="saveCaptionEditor()">儲存</button>
+    </div>
+    <div class="exportNote">這些出版頁文案會儲存在本機 localStorage，不會改動原本行程、照片或旅行資料結構。</div>
+  </div>
+</div>
+
 </body>
 </html>
