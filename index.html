@@ -1082,6 +1082,242 @@ html, body { max-width: 100%; overflow-x: hidden; }
   }
 }
 
+
+/* ===== v30 budget cards + dense flight UI ===== */
+:root{
+  --space-section:16px;
+  --space-card:12px;
+  --space-field:8px;
+  --space-label:4px;
+}
+
+/* 全站微調：欄位更緊湊但不壓迫 */
+.card{padding:var(--space-card)}
+label{margin:8px 0 var(--space-label);line-height:1.25}
+input,select,textarea{
+  padding:8px 10px;
+  min-height:38px;
+}
+textarea{min-height:58px}
+.two,.three,.four,.grid2,.grid3{gap:var(--space-field)}
+.btns{gap:7px;margin-top:10px}
+.section{margin-bottom:var(--space-section)}
+
+/* 預算總覽：改卡片式 */
+.budgetSummaryGrid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(135px,1fr));
+  gap:8px;
+  margin-bottom:12px;
+}
+.budgetSummaryCard{
+  border:1px solid var(--line);
+  border-radius:17px;
+  background:#fffdf8;
+  padding:11px;
+}
+.budgetSummaryCard b{
+  display:block;
+  font-size:13px;
+  color:var(--muted);
+  margin-bottom:4px;
+}
+.budgetSummaryCard strong{
+  display:block;
+  font-size:20px;
+}
+.budgetSummaryCard.total{
+  background:linear-gradient(135deg,#edf8f3,#fff8ea);
+  border-color:#cfe4db;
+}
+.budgetList{
+  display:grid;
+  gap:9px;
+}
+.budgetItem{
+  border:1px solid var(--line);
+  border-radius:18px;
+  background:#fffdf9;
+  overflow:hidden;
+}
+.budgetItem summary{
+  cursor:pointer;
+  list-style:none;
+  padding:11px 12px;
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:flex-start;
+}
+.budgetItem summary::-webkit-details-marker{display:none}
+.budgetItem summary:after{
+  content:"⌄";
+  color:var(--dark);
+  font-weight:950;
+  transition:.18s;
+}
+.budgetItem[open] summary:after{transform:rotate(180deg)}
+.budgetItemTitle{
+  min-width:0;
+}
+.budgetItemTitle b{
+  display:block;
+  font-size:15px;
+  margin-bottom:4px;
+}
+.budgetItemTitle span{
+  color:var(--muted);
+  font-size:12px;
+  display:block;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.budgetAmount{
+  flex:0 0 auto;
+  font-weight:950;
+  font-size:15px;
+  color:#365f54;
+  white-space:nowrap;
+}
+.budgetItemBody{
+  padding:0 12px 12px;
+}
+.budgetMetaGrid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:7px;
+  margin-top:8px;
+}
+.budgetMeta{
+  background:#f7f3ec;
+  border-radius:13px;
+  padding:8px;
+}
+.budgetMeta span{
+  display:block;
+  font-size:11px;
+  color:var(--muted);
+  margin-bottom:3px;
+}
+.budgetMeta b{
+  font-size:13px;
+}
+
+/* 航班區：密度與手機體驗 */
+.flightDense .box{
+  padding:10px;
+}
+.flightDense h3{
+  margin:0 0 8px;
+  font-size:16px;
+}
+.flightDense label{
+  margin:7px 0 4px;
+  font-size:12px;
+}
+.flightDense input,
+.flightDense select,
+.flightDense textarea{
+  min-height:36px;
+  padding:7px 9px;
+  font-size:14px;
+  border-radius:12px;
+}
+.flightDense textarea{
+  min-height:48px;
+}
+.flightDense .two,
+.flightDense .three,
+.flightDense .four{
+  gap:8px;
+}
+.flightDense .flightTypeHint{
+  margin-top:4px;
+  font-size:11px;
+}
+.segmentBox{
+  padding:0;
+  margin-top:9px;
+  overflow:hidden;
+}
+.segmentBox summary{
+  cursor:pointer;
+  list-style:none;
+  padding:10px 11px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px;
+  font-weight:950;
+}
+.segmentBox summary::-webkit-details-marker{display:none}
+.segmentBox summary:after{
+  content:"⌄";
+  color:var(--dark);
+  transition:.18s;
+}
+.segmentBox[open] summary:after{transform:rotate(180deg)}
+.segmentInner{
+  padding:0 10px 10px;
+}
+.segmentTitle{
+  margin:0;
+}
+.segmentTitle span{
+  padding:3px 7px;
+  font-size:11px;
+}
+.flightTransferBlock{
+  margin-top:12px;
+}
+.flightTransferBlock + .flightTransferBlock{
+  margin-top:16px;
+}
+
+@media(max-width:620px){
+  .budgetSummaryGrid{
+    grid-template-columns:1fr 1fr;
+  }
+  .budgetSummaryCard.total{
+    grid-column:1/-1;
+  }
+  .budgetItem summary{
+    padding:10px;
+  }
+  .budgetMetaGrid{
+    grid-template-columns:1fr 1fr;
+  }
+  .budgetAmount{
+    font-size:14px;
+  }
+
+  .flightDense .grid2{
+    grid-template-columns:1fr;
+  }
+  .flightDense .two,
+  .flightDense .three,
+  .flightDense .four,
+  .flightDense .three.compactMobile,
+  .flightDense .four.compactMobile{
+    grid-template-columns:1fr !important;
+  }
+  .flightDense input,
+  .flightDense select,
+  .flightDense textarea{
+    width:100%;
+  }
+  .segmentBox{
+    margin-top:8px;
+  }
+  .segmentBox summary{
+    padding:9px 10px;
+  }
+  .segmentInner{
+    padding:0 9px 9px;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1093,7 +1329,7 @@ html, body { max-width: 100%; overflow-x: hidden; }
   <button class="btn blue compact hidden" id="cloudLoadBtn" onclick="loadFromCloud()">載入雲端</button>
   <button class="btn pink compact hidden" id="cloudSaveBtn" onclick="saveToCloudNow()">立即同步</button>
 </div>
-<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v29-fixed｜2026-05-29｜轉機航班／分段行程同步修正版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
+<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v30｜2026-05-29｜預算卡片總覽／航班密度優化版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
 
 <!-- Firebase SDK for cross-device sync -->
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -3517,7 +3753,7 @@ function photoBookDay(d){
 
 
 /* ===== Version marker ===== */
-const APP_VERSION = "v29-fixed｜2026-05-29｜轉機航班／分段行程同步修正版";
+const APP_VERSION = "v30｜2026-05-29｜預算卡片總覽／航班密度優化版";
 console.log("My Travel Book", APP_VERSION);
 
 
@@ -6240,6 +6476,170 @@ function addFlightBudget(){
 const __renderTripBeforeV29 = renderTrip;
 renderTrip = function(){
   __renderTripBeforeV29();
+  afterRenderFlightForms();
+};
+
+
+/* ===== v30 overrides: budget cards + dense collapsible flight segments ===== */
+
+function budgetAllItems(){
+  const items=[];
+  (data.expenses||[]).forEach(x=>{
+    items.push({
+      id:x.id,
+      source:x.source||"預算",
+      day:x.day||"",
+      type:x.type||"其他",
+      name:x.name||"未命名費用",
+      payer:x.payer||"未定",
+      payMethod:x.payMethod||"未定",
+      foreign:moneyForeign(x),
+      twd:moneyTwd(x),
+      memo:x.memo||"",
+      editable:true,
+      kind:"expense"
+    });
+  });
+  (data.conns||[])
+    .filter(c=>Number(c.fareTwd||0)>0||Number(c.fareForeign||0)>0)
+    .forEach((c,i)=>{
+      items.push({
+        id:"conn-"+i,
+        source:"交通",
+        day:"",
+        type:c.mode||"交通",
+        name:"行程間交通",
+        payer:c.payer||"未定",
+        payMethod:c.payMethod||"未定",
+        foreign:Number(c.fareForeign||0),
+        twd:Number(c.fareTwd||0),
+        memo:"",
+        editable:false,
+        kind:"conn"
+      });
+    });
+  return items;
+}
+
+function budgetTypeSummary(items){
+  const map={};
+  items.forEach(x=>{
+    const amount=Number(x.twd||0);
+    if(amount<=0)return;
+    const type=x.type||"其他";
+    map[type]=(map[type]||0)+amount;
+  });
+  return Object.entries(map)
+    .sort((a,b)=>b[1]-a[1])
+    .map(([type,total])=>({type,total}));
+}
+
+function renderBudgetSummary(items){
+  const groups=budgetTypeSummary(items);
+  const total=items.reduce((s,x)=>s+Number(x.twd||0),0);
+  const groupHtml=groups.map(g=>`<div class="budgetSummaryCard"><b>${esc(g.type)}</b><strong>TWD ${fmt(g.total)}</strong></div>`).join("");
+  return `<div class="budgetSummaryGrid">
+    <div class="budgetSummaryCard total"><b>總費用</b><strong>TWD ${fmt(total)}</strong></div>
+    ${groupHtml || '<div class="budgetSummaryCard"><b>尚未有費用</b><strong>TWD 0</strong></div>'}
+  </div>`;
+}
+
+function budgetCardRows(items){
+  if(!items.length)return '<div class="empty">尚未新增預算</div>';
+  return `<div class="budgetList">${items.map(x=>`
+    <details class="budgetItem">
+      <summary>
+        <div class="budgetItemTitle">
+          <b>${esc(x.name)}</b>
+          <span>${esc(x.type)}｜${x.day?esc(x.day):"未指定日期"}｜${esc(x.source)}</span>
+        </div>
+        <div class="budgetAmount">TWD ${fmt(x.twd)}</div>
+      </summary>
+      <div class="budgetItemBody">
+        <div class="budgetMetaGrid">
+          <div class="budgetMeta"><span>付款人</span><b>${esc(travelerName(x.payer))}</b></div>
+          <div class="budgetMeta"><span>付款方式</span><b>${esc(payMethodLabel(x.payMethod))}</b></div>
+          <div class="budgetMeta"><span>${esc(data.trip.currency)}</span><b>${fmt(x.foreign)}</b></div>
+          <div class="budgetMeta"><span>備註</span><b>${esc(x.memo||"—")}</b></div>
+        </div>
+        ${x.editable?`<div class="btns"><button class="small" onclick="editExpense('${x.id}')">編輯</button><button class="small" onclick="delExpense('${x.id}')">刪除</button></div>`:""}
+      </div>
+    </details>`).join("")}</div>`;
+}
+
+function renderBudget(){
+  const items=budgetAllItems();
+  $("budgetView").innerHTML=`<div class="section"><div><h2>預算總覽</h2><div class="hint">依費用類型自動分類，只顯示已有金額的類別；清單改為卡片式，手機更好操作。</div></div><button class="iconBtn smallIcon" onclick="clearExpenseForm()">＋</button></div>
+  ${renderBudgetSummary(items)}
+  <div class="card">
+    <div class="three compactMobile">
+      <div><label>費用類型</label><select id="etype"><option>機票</option><option>住宿</option><option>網路</option><option>旅平險</option><option>交通票券</option><option>景點票券</option><option>餐飲</option><option>購物</option><option>其他</option></select></div>
+      <div><label>項目</label><input id="ename"></div>
+      <div><label>付款人</label><select id="epayer">${optsPayer("未定")}</select></div>
+    </div>
+    <div class="four compactMobile">
+      <div><label>${esc(data.trip.currency)} 金額</label><input id="eforeign" type="number" oninput="syncExpenseMoney('f')"></div>
+      <div><label>TWD</label><input id="etwd" type="number" oninput="syncExpenseMoney('t')"></div>
+      <div><label>付款方式</label><select id="epm">${optsPayMethod("未定")}</select></div>
+      <div><label>付款日</label><input id="eday" type="date"><div class="freeDateHint">付款日可留空，也可以早於出發日。</div></div>
+    </div>
+    <label>備註</label><input id="ememo">
+    <div class="btns">
+      <button class="btn dark" onclick="saveExpenseForm()">${editingExpenseId?"存好預算":"記一筆花費"}</button>
+      ${editingExpenseId?'<button class="btn soft" onclick="clearExpenseForm()">取消編輯 / 新增</button>':""}
+      <button class="btn blue" onclick="openRateSearch()">查一下匯率</button>
+    </div>
+  </div>
+  ${budgetCardRows(items)}`;
+  if(editingExpenseId)fillExpenseForm(editingExpenseId);
+}
+
+/* 航班段落改為可摺疊 details，並加密度 class */
+function flightSegmentForm(k, idx, seg){
+  seg = seg || {};
+  const defaultOpen = idx===0 ? "open" : "";
+  return `<details class="segmentBox" id="${k}segBox${idx}" ${defaultOpen}>
+    <summary><div class="segmentTitle">第 ${idx+1} 段航班 <span>${idx===0?"第一段":"第二段／轉機後"}</span></div></summary>
+    <div class="segmentInner">
+      <div class="three compactMobile">
+        <div><label>航班號</label><input id="${k}s${idx}no" value="${esc(seg.no||"")}" placeholder="例：BX794"></div>
+        <div><label>出發地 / 機場</label><input id="${k}s${idx}from" value="${esc(seg.from||"")}" placeholder="例：TPE 桃園"></div>
+        <div><label>抵達地 / 機場</label><input id="${k}s${idx}to" value="${esc(seg.to||"")}" placeholder="例：PUS 金海"></div>
+      </div>
+      <div class="two">
+        <div><label>起飛時間</label><input id="${k}s${idx}dep" type="datetime-local" value="${seg.dep||""}"></div>
+        <div><label>抵達時間</label><input id="${k}s${idx}arr" type="datetime-local" value="${seg.arr||""}"></div>
+      </div>
+    </div>
+  </details>`;
+}
+
+function flightForm(k){
+  const f=normalizeFlightObj(data.flights[k],k);
+  const segs=[f.segments[0]||{}, f.segments[1]||{}];
+  const isOut=k==="out";
+  return `<div class="flightTransferBlock">
+    <label>航班型態</label>${flightTypeSelect(k,f.type||"direct")}
+    <div class="flightTypeHint">直飛顯示 1 段；轉機固定顯示 2 段。每段航班會各自產生一筆行程。</div>
+    <div id="${k}segmentsWrap">
+      ${flightSegmentForm(k,0,segs[0])}
+      ${flightSegmentForm(k,1,segs[1])}
+    </div>
+    <label>${isOut?"如何抵達出發機場":"如何從旅遊地前往回程機場"}</label>
+    <textarea id="${k}toAirport">${esc(f.toAirport||f.transfer||"")}</textarea>
+    <label>${isOut?"如何從降落機場到旅遊地／飯店":"如何從抵達機場回家"}</label>
+    <textarea id="${k}fromAirport">${esc(f.fromAirport||"")}</textarea>
+  </div>`;
+}
+
+const __renderTripBeforeV30 = renderTrip;
+renderTrip = function(){
+  __renderTripBeforeV30();
+  const flightDetails = Array.from(document.querySelectorAll("#tripView details.card"));
+  const flightCard = flightDetails[1];
+  if(flightCard){
+    flightCard.classList.add("flightDense");
+  }
   afterRenderFlightForms();
 };
 
