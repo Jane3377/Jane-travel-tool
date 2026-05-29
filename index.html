@@ -4641,6 +4641,120 @@ body[data-theme-mode] .btn.pink{
   }
 }
 
+
+/* ===== v50 photo book story-only cleanup ===== */
+/* 只調整照片書：移除 PDF 預覽/切換感，匯出直接使用故事預覽 */
+#photoBookView .photoBookModeSwitch,
+#photoBookView .pdfPreviewHint,
+#photoBookView .pdfPreviewWrap{
+  display:none!important;
+}
+
+#photoBookView .storyBookPreview.pdfMode .storyBook,
+#photoBookView .storyBookPreview .storyBook{
+  display:block!important;
+}
+
+#photoBookView .storyOnlyIntro{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:10px;
+}
+
+#photoBookView .storyOnlyIntro h2{
+  margin:0;
+}
+
+#photoBookView .storyOnlyIntro .hint{
+  margin-top:4px;
+}
+
+#photoBookView .storyOnlyActions{
+  flex:0 0 auto;
+  display:flex;
+  gap:8px;
+}
+
+@media(max-width:620px){
+  #photoBookView .section{
+    display:block!important;
+    padding-bottom:8px!important;
+  }
+
+  #photoBookView .storyOnlyIntro{
+    display:block!important;
+    margin-bottom:8px!important;
+  }
+
+  #photoBookView .storyOnlyIntro h2{
+    font-size:24px!important;
+    line-height:1.25!important;
+    margin-bottom:4px!important;
+  }
+
+  #photoBookView .storyOnlyIntro .hint{
+    font-size:13px!important;
+    line-height:1.55!important;
+    margin:0!important;
+  }
+
+  #photoBookView .storyOnlyActions{
+    margin-top:10px!important;
+  }
+
+  #photoBookView .storyOnlyActions .btn{
+    width:auto!important;
+    min-height:38px!important;
+    padding:8px 13px!important;
+  }
+
+  /* 故事預覽在手機上與標題區更貼合，避免上方看起來像重複區塊 */
+  #photoBookView .storyBookPreview{
+    margin-top:6px!important;
+  }
+}
+
+@media print{
+  /* 匯出 PDF 直接列印故事預覽，隱藏編輯/操作介面 */
+  #photoBookView .section,
+  #photoBookView .photoBookModeSwitch,
+  #photoBookView .pdfPreviewHint,
+  #photoBookView .pdfPreviewWrap,
+  #photoBookView .photoInlineUpload,
+  #photoBookView .storyPhotoUploadCard,
+  #photoBookView .photoUploadStatus,
+  #photoBookView .noPrint{
+    display:none!important;
+  }
+
+  #photoBookView .storyBookPreview,
+  #photoBookView .storyBook{
+    display:block!important;
+  }
+
+  #photoBookView .storyBookCover,
+  #photoBookView .storyDay{
+    page-break-before:always!important;
+    break-before:page!important;
+    page-break-after:always!important;
+    break-after:page!important;
+    page-break-inside:avoid!important;
+    break-inside:avoid!important;
+    width:210mm!important;
+    min-height:297mm!important;
+    max-height:297mm!important;
+    overflow:hidden!important;
+    box-sizing:border-box!important;
+  }
+
+  #photoBookView .storyBookCover:first-child{
+    page-break-before:auto!important;
+    break-before:auto!important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -4652,7 +4766,7 @@ body[data-theme-mode] .btn.pink{
   <button class="btn blue compact hidden" id="cloudLoadBtn" onclick="loadFromCloud()">載入雲端</button>
   <button class="btn pink compact hidden" id="cloudSaveBtn" onclick="saveToCloudNow()">立即同步</button>
 </div>
-<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>VoyageMemo.｜LocalStorage + Cloudinary Version<br><strong>版本：v49｜2026-05-29｜照片書故事預覽直覺上傳版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
+<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>VoyageMemo.｜LocalStorage + Cloudinary Version<br><strong>版本：v50｜2026-05-29｜照片書故事預覽單一模式版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
 
 <!-- Firebase SDK for cross-device sync -->
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -7076,7 +7190,7 @@ function photoBookDay(d){
 
 
 /* ===== Version marker ===== */
-const APP_VERSION = "v49｜2026-05-29｜照片書故事預覽直覺上傳版";
+const APP_VERSION = "v50｜2026-05-29｜照片書故事預覽單一模式版";
 console.log("VoyageMemo.", APP_VERSION);
 
 
@@ -12061,6 +12175,35 @@ function renderPhotoBook(){
   $("photoBookView").innerHTML=`<div class="section">
     <div><h2>📖 照片旅遊書</h2><div class="hint">直接在故事預覽中上傳封面與每日照片；每一天最多 10 張照片。</div></div>
     <button class="btn soft noPrint" onclick="exportPhotoBookPDF()">匯出 PDF</button>
+  </div>
+
+  <div class="storyBookPreview bookStyle-${data.meta.bookStyle||"fresh"}">
+    <div class="storyBook">
+      ${storyBookCoverHtml()}
+      ${data.days.map(storyBookDay).join("")}
+    </div>
+  </div>`;
+}
+
+
+/* ===== v50 photo book story-only render/export ===== */
+function exportPhotoBookPDF(){
+  // 不再切換 PDF 預覽；直接用目前故事預覽列印
+  alert("將使用目前故事預覽版面匯出 PDF。正式輸出建議使用電腦 Chrome，版面最穩定。");
+  print();
+}
+
+function renderPhotoBook(){
+  $("photoBookView").innerHTML=`<div class="section">
+    <div class="storyOnlyIntro">
+      <div>
+        <h2>📖 照片旅遊書</h2>
+        <div class="hint">直接在故事預覽中上傳封面與每日照片；每一天最多 10 張照片。</div>
+      </div>
+      <div class="storyOnlyActions noPrint">
+        <button class="btn soft" onclick="exportPhotoBookPDF()">匯出 PDF</button>
+      </div>
+    </div>
   </div>
 
   <div class="storyBookPreview bookStyle-${data.meta.bookStyle||"fresh"}">
