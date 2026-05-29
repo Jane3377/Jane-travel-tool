@@ -3058,6 +3058,419 @@ textarea{min-height:58px}
   }
 }
 
+
+/* ===== v45 photo book PDF preview mode only ===== */
+.photoBookModeSwitch{
+  display:inline-flex;
+  gap:6px;
+  padding:5px;
+  border:1px solid var(--line);
+  background:#fffdf8;
+  border-radius:999px;
+  box-shadow:0 8px 18px rgba(88,72,55,.06);
+}
+.photoBookModeSwitch button{
+  border:0;
+  background:transparent;
+  color:var(--muted);
+  border-radius:999px;
+  padding:8px 11px;
+  font-weight:950;
+  font-size:12px;
+}
+.photoBookModeSwitch button.active{
+  background:var(--ink);
+  color:#fff;
+}
+.pdfPreviewHint{
+  margin:10px 0 12px;
+  border:1px solid #eadfd4;
+  border-radius:18px;
+  padding:10px 12px;
+  background:#fff8ea;
+  color:#6f6257;
+  font-size:12px;
+  line-height:1.65;
+}
+.pdfPreviewWrap{
+  display:grid;
+  gap:18px;
+  justify-items:center;
+  padding:8px 0 18px;
+}
+.pdfPage{
+  width:min(100%, 794px);
+  min-height:1123px;
+  background:#fff;
+  border:1px solid #ded4c9;
+  box-shadow:0 16px 42px rgba(88,72,55,.14);
+  border-radius:8px;
+  overflow:hidden;
+  position:relative;
+  page-break-after:always;
+  break-after:page;
+}
+.pdfPageInner{
+  padding:54px 50px;
+}
+.pdfCoverPage{
+  background:
+    radial-gradient(circle at 80px 68px,rgba(217,239,230,.85),transparent 170px),
+    radial-gradient(circle at 690px 80px,rgba(248,223,232,.8),transparent 160px),
+    linear-gradient(135deg,#fffefa,#f7f3ec);
+}
+.pdfCoverLabel{
+  display:inline-flex;
+  border-radius:999px;
+  background:#edf8f3;
+  color:#527b70;
+  border:1px solid #cfe4db;
+  padding:7px 12px;
+  font-size:12px;
+  font-weight:950;
+  margin-bottom:24px;
+}
+.pdfCoverTitle{
+  font-size:42px;
+  line-height:1.1;
+  letter-spacing:-1.2px;
+  margin:0 0 12px;
+}
+.pdfCoverSub{
+  color:#6f6962;
+  line-height:1.85;
+  font-size:14px;
+  max-width:620px;
+  margin:0 0 28px;
+}
+.pdfCoverImage{
+  width:100%;
+  height:430px;
+  border-radius:24px;
+  object-fit:cover;
+  background:#f7f3ec;
+  display:block;
+  margin:0 0 28px;
+}
+.pdfCoverEmpty{
+  width:100%;
+  height:430px;
+  border-radius:24px;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(135deg,#edf8f3,#fbedf2);
+  color:#8b827a;
+  margin:0 0 28px;
+}
+.pdfCoverMeta{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:12px;
+}
+.pdfCoverMeta div{
+  border:1px solid #eadfd4;
+  border-radius:16px;
+  background:#fff;
+  padding:14px;
+}
+.pdfCoverMeta span{
+  color:#8b827a;
+  font-size:11px;
+  font-weight:900;
+}
+.pdfCoverMeta b{
+  display:block;
+  margin-top:5px;
+  font-size:13px;
+}
+.pdfDayTop{
+  display:flex;
+  justify-content:space-between;
+  gap:14px;
+  align-items:flex-end;
+  border-bottom:1px solid #eadfd4;
+  padding-bottom:16px;
+  margin-bottom:18px;
+}
+.pdfDayTop .eyebrow{
+  display:inline-flex;
+  border-radius:999px;
+  background:#edf8f3;
+  color:#527b70;
+  border:1px solid #cfe4db;
+  padding:6px 10px;
+  font-size:11px;
+  font-weight:950;
+  margin-bottom:10px;
+}
+.pdfDayTop h2{
+  margin:0 0 6px;
+  font-size:30px;
+  line-height:1.15;
+}
+.pdfDayTop p{
+  margin:0;
+  color:#6f6962;
+  font-size:12px;
+  line-height:1.55;
+}
+.pdfDayBadge{
+  flex:0 0 auto;
+  border-radius:999px;
+  background:#f3eee8;
+  color:#6f6257;
+  padding:7px 11px;
+  font-size:12px;
+  font-weight:950;
+}
+.pdfDayHero{
+  width:100%;
+  height:235px;
+  border-radius:22px;
+  background:linear-gradient(135deg,#edf8f3,#fbedf2);
+  overflow:hidden;
+  display:grid;
+  place-items:center;
+  color:#8b827a;
+  margin-bottom:22px;
+}
+.pdfDayHero img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+.pdfSectionTitle{
+  font-size:14px;
+  font-weight:950;
+  color:#5d554e;
+  margin:0 0 10px;
+}
+.pdfTimeline{
+  display:grid;
+  gap:8px;
+  margin-bottom:22px;
+}
+.pdfTimelineItem{
+  display:grid;
+  grid-template-columns:74px 1fr;
+  gap:10px;
+  align-items:start;
+  page-break-inside:avoid;
+  break-inside:avoid;
+}
+.pdfTimelineTime{
+  background:#f3eee8;
+  border-radius:999px;
+  color:#6f6257;
+  padding:6px 8px;
+  text-align:center;
+  font-size:11px;
+  font-weight:950;
+}
+.pdfTimelineContent{
+  border-left:3px solid #d9efe6;
+  padding:1px 0 8px 12px;
+}
+.pdfTimelineContent b{
+  display:block;
+  font-size:13px;
+  line-height:1.35;
+}
+.pdfTimelineContent span{
+  display:block;
+  margin-top:4px;
+  color:#6f6962;
+  font-size:11px;
+  line-height:1.45;
+}
+.pdfPhotos{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+.pdfPhoto{
+  border:1px solid #eadfd4;
+  border-radius:18px;
+  overflow:hidden;
+  background:#fffdf9;
+  page-break-inside:avoid;
+  break-inside:avoid;
+}
+.pdfPhoto.featured{
+  grid-column:1/-1;
+}
+.pdfPhotoImage{
+  height:170px;
+  background:#f7f3ec;
+}
+.pdfPhoto.featured .pdfPhotoImage{
+  height:250px;
+}
+.pdfPhotoImage img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+.pdfPhotoText{
+  padding:12px;
+}
+.pdfPhotoText h3{
+  margin:0 0 6px;
+  font-size:13px;
+}
+.pdfPhotoText p{
+  margin:6px 0 0;
+  color:#6f6962;
+  font-size:11px;
+  line-height:1.55;
+  max-height:50px;
+  overflow:hidden;
+}
+.pdfTags{
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px;
+}
+.pdfTag{
+  display:inline-flex;
+  border-radius:999px;
+  background:#edf8f3;
+  color:#527b70;
+  padding:3px 7px;
+  font-size:10px;
+  font-weight:950;
+}
+.pdfEmpty{
+  border:1px dashed #d8cfc6;
+  border-radius:18px;
+  background:#fffefa;
+  color:#8b827a;
+  text-align:center;
+  padding:24px;
+  font-size:12px;
+}
+.storyBookPreview.pdfMode .storyBook{
+  display:none!important;
+}
+.storyBookPreview:not(.pdfMode) .pdfPreviewWrap,
+.storyBookPreview:not(.pdfMode) .pdfPreviewHint{
+  display:none!important;
+}
+@media(max-width:620px){
+  .photoBookModeSwitch{
+    width:100%;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    border-radius:18px;
+  }
+  .photoBookModeSwitch button{
+    border-radius:14px;
+  }
+  .pdfPreviewWrap{
+    align-items:start;
+    overflow-x:auto;
+    justify-items:start;
+    padding:8px 0 18px;
+  }
+  .pdfPage{
+    width:720px;
+    min-height:1018px;
+    transform-origin:top left;
+  }
+}
+@media print{
+  .photoBookModeSwitch,
+  .pdfPreviewHint{
+    display:none!important;
+  }
+  .storyBookPreview:not(.pdfMode) .storyBook{
+    display:none!important;
+  }
+  .storyBookPreview .pdfPreviewWrap{
+    display:block!important;
+    padding:0!important;
+  }
+  .pdfPage{
+    width:100%!important;
+    min-height:277mm!important;
+    height:277mm!important;
+    border:0!important;
+    border-radius:0!important;
+    box-shadow:none!important;
+    page-break-after:always!important;
+    break-after:page!important;
+    overflow:hidden!important;
+  }
+  .pdfPageInner{
+    padding:12mm 10mm!important;
+  }
+  .pdfCoverPage .pdfPageInner{
+    padding:18mm 14mm!important;
+  }
+  .pdfCoverTitle{
+    font-size:30px!important;
+  }
+  .pdfCoverImage,
+  .pdfCoverEmpty{
+    height:112mm!important;
+    border-radius:18px!important;
+  }
+  .pdfDayTop{
+    margin-bottom:6mm!important;
+    padding-bottom:4mm!important;
+  }
+  .pdfDayTop h2{
+    font-size:22px!important;
+  }
+  .pdfDayHero{
+    height:58mm!important;
+    border-radius:16px!important;
+    margin-bottom:7mm!important;
+  }
+  .pdfTimeline{
+    gap:2.4mm!important;
+    margin-bottom:7mm!important;
+  }
+  .pdfTimelineItem{
+    grid-template-columns:20mm 1fr!important;
+    gap:3mm!important;
+  }
+  .pdfTimelineTime{
+    font-size:9.5px!important;
+    padding:4px 6px!important;
+  }
+  .pdfTimelineContent b{
+    font-size:11px!important;
+  }
+  .pdfTimelineContent span{
+    font-size:9.5px!important;
+  }
+  .pdfPhotos{
+    gap:4mm!important;
+  }
+  .pdfPhoto{
+    border-radius:14px!important;
+  }
+  .pdfPhotoImage{
+    height:38mm!important;
+  }
+  .pdfPhoto.featured .pdfPhotoImage{
+    height:52mm!important;
+  }
+  .pdfPhotoText{
+    padding:3.5mm!important;
+  }
+  .pdfPhotoText h3{
+    font-size:11px!important;
+  }
+  .pdfPhotoText p{
+    font-size:9.5px!important;
+    max-height:17mm!important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -3069,7 +3482,7 @@ textarea{min-height:58px}
   <button class="btn blue compact hidden" id="cloudLoadBtn" onclick="loadFromCloud()">載入雲端</button>
   <button class="btn pink compact hidden" id="cloudSaveBtn" onclick="saveToCloudNow()">立即同步</button>
 </div>
-<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v44｜2026-05-29｜照片旅遊書PDF小冊子優化版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
+<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v45｜2026-05-29｜照片旅遊書PDF預覽模式版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
 
 <!-- Firebase SDK for cross-device sync -->
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -5493,7 +5906,7 @@ function photoBookDay(d){
 
 
 /* ===== Version marker ===== */
-const APP_VERSION = "v44｜2026-05-29｜照片旅遊書PDF小冊子優化版";
+const APP_VERSION = "v45｜2026-05-29｜照片旅遊書PDF預覽模式版";
 console.log("My Travel Book", APP_VERSION);
 
 
@@ -10080,6 +10493,124 @@ function exportPhotoBookPDF(){
   alert("建議使用電腦 Chrome 匯出 PDF，版面最穩定。平板可預覽與簡單匯出，但 Safari 可能會讓背景、分頁或照片比例略有落差。");
   print();
 }
+
+
+/* ===== v45 photo book PDF preview mode only ===== */
+let photoBookMode = "story";
+
+function setPhotoBookMode(mode){
+  photoBookMode = mode === "pdf" ? "pdf" : "story";
+  renderPhotoBook();
+}
+
+function exportPhotoBookPDF(){
+  if(photoBookMode !== "pdf"){
+    photoBookMode = "pdf";
+    renderPhotoBook();
+  }
+  alert("已切換到 PDF 預覽模式。建議使用電腦 Chrome 匯出 PDF，平板可預覽但 Safari 可能仍有些微落差。");
+  print();
+}
+
+function pdfTagsHtml(tags){
+  const raw=String(tags||"").trim();
+  if(!raw)return "";
+  return `<div class="pdfTags">${raw.split(/[,\s，、]+/).filter(Boolean).map(t=>`<span class="pdfTag">${esc(t)}</span>`).join("")}</div>`;
+}
+
+function pdfPhotoCard(p, idx){
+  return `<div class="pdfPhoto ${idx===0?"featured":""}">
+    <div class="pdfPhotoImage"><img src="${p.src}"></div>
+    <div class="pdfPhotoText">
+      <h3>${esc(p.title||"照片紀錄")}</h3>
+      ${pdfTagsHtml(p.tags)}
+      <p>${esc(p.memo||"")}</p>
+    </div>
+  </div>`;
+}
+
+function pdfTimelineHtml(plans){
+  if(!plans.length)return `<div class="pdfEmpty">這天還沒有行程，可以先用照片記錄旅途。</div>`;
+  return `<div class="pdfTimeline">${plans.slice(0,9).map(p=>`
+    <div class="pdfTimelineItem">
+      <div class="pdfTimelineTime">${esc(p.start||"--:--")}</div>
+      <div class="pdfTimelineContent">
+        <b>${activityIcon(p.type)} ${esc(p.name)}</b>
+        <span>${esc(p.end?`至 ${p.end}`:"")} ${p.note?`｜${p.note}`:""}</span>
+      </div>
+    </div>`).join("")}</div>`;
+}
+
+function pdfDayPage(d){
+  const plans=sortedPlans(d.key);
+  const photos=data.photos.filter(p=>p.day==d.key);
+  const cover=data.dayCovers[d.key] || photos[0]?.src || "";
+  return `<section class="pdfPage">
+    <div class="pdfPageInner">
+      <div class="pdfDayTop">
+        <div>
+          <span class="eyebrow">${d.title}</span>
+          <h2>${d.label} 的旅行故事</h2>
+          <p>住宿：${hotelFor(d.key)?.name||"未設定"}。今天收錄 ${plans.length} 個行程與 ${photos.length} 張照片。</p>
+        </div>
+        <div class="pdfDayBadge">${plans.length} 行程｜${photos.length} 照片</div>
+      </div>
+      <div class="pdfDayHero">${cover?`<img src="${cover}">`:"尚未上傳本日封面圖"}</div>
+      <div class="pdfSectionTitle">今天的路線</div>
+      ${pdfTimelineHtml(plans)}
+      <div class="pdfSectionTitle">今日照片日記</div>
+      ${photos.length?`<div class="pdfPhotos">${photos.slice(0,5).map(pdfPhotoCard).join("")}</div>`:`<div class="pdfEmpty">還沒有照片日記，先上傳幾張今天的代表照片吧。</div>`}
+    </div>
+  </section>`;
+}
+
+function pdfPreviewHtml(){
+  const cover=data.tripCover;
+  return `<div class="pdfPreviewHint noPrint">這是 PDF 預覽模式，會以 A4 紙張感呈現。正式匯出建議使用電腦 Chrome；平板 Safari 仍可能有些微差異。</div>
+  <div class="pdfPreviewWrap">
+    <section class="pdfPage pdfCoverPage">
+      <div class="pdfPageInner">
+        <span class="pdfCoverLabel">MY TRAVEL BOOK</span>
+        <h1 class="pdfCoverTitle">${esc(data.meta.title)}</h1>
+        <p class="pdfCoverSub">${esc(data.meta.subtitle)}</p>
+        ${cover?`<img class="pdfCoverImage" src="${cover}">`:`<div class="pdfCoverEmpty">尚未上傳旅遊書封面</div>`}
+        <div class="pdfCoverMeta">
+          <div><span>目的地</span><b>${esc(data.trip.dest||"未設定")}</b></div>
+          <div><span>日期</span><b>${short(data.trip.start)} - ${short(data.trip.end)}</b></div>
+          <div><span>天數</span><b>${data.days.length} 天旅行</b></div>
+        </div>
+      </div>
+    </section>
+    ${data.days.map(pdfDayPage).join("")}
+  </div>`;
+}
+
+const __renderPhotoBookBeforeV45 = renderPhotoBook;
+renderPhotoBook = function(){
+  __renderPhotoBookBeforeV45();
+
+  const section = $("photoBookView")?.querySelector(".section");
+  if(section){
+    const btnBox = section.querySelector(".btn.soft.noPrint")?.parentElement || section;
+    const switchHtml = `<div class="photoBookModeSwitch noPrint">
+      <button class="${photoBookMode==="story"?"active":""}" onclick="setPhotoBookMode('story')">故事預覽</button>
+      <button class="${photoBookMode==="pdf"?"active":""}" onclick="setPhotoBookMode('pdf')">PDF 預覽</button>
+    </div>`;
+    if(!section.querySelector(".photoBookModeSwitch")){
+      section.insertAdjacentHTML("beforeend", switchHtml);
+    }
+  }
+
+  const preview = $("photoBookView")?.querySelector(".storyBookPreview");
+  if(preview){
+    preview.classList.toggle("pdfMode", photoBookMode==="pdf");
+    const old = preview.querySelector(".pdfPreviewHint");
+    const oldWrap = preview.querySelector(".pdfPreviewWrap");
+    if(old) old.remove();
+    if(oldWrap) oldWrap.remove();
+    preview.insertAdjacentHTML("afterbegin", pdfPreviewHtml());
+  }
+};
 
 init();
 initFirebaseSync();
