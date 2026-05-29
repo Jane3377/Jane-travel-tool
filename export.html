@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#f4f2ee">
+<title>VoyageMemo. PDF 出版頁</title>
+<style>
+:root{
+  --bg:#f4f2ee;
+  --paper:#fffdf8;
+  --ink:#2f2a25;
+  --muted:#8b827a;
+  --line:#e2ddd5;
+  --primary:#4a5d4e;
+  --primarySoft:#e5ece9;
+  --accent:#efe6e6;
+  --shadow:0 20px 60px rgba(44,42,37,.14);
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif}
+body{overflow-x:hidden}
+.publisherShell{max-width:1180px;margin:0 auto;padding:18px 16px 40px}
+.publisherBar{
+  position:sticky;top:0;z-index:10;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:12px 14px;margin:-18px -16px 18px;
+  background:rgba(244,242,238,.88);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-bottom:1px solid rgba(226,221,213,.8)
+}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.logo{
+  width:40px;height:40px;border-radius:50%;
+  display:grid;place-items:center;
+  background:linear-gradient(135deg,#e5ece9,#efe6e6);
+  color:var(--primary);font-weight:950
+}
+.brand h1{margin:0;font-size:19px;letter-spacing:.4px}
+.brand p{margin:2px 0 0;color:var(--muted);font-size:12px;line-height:1.4}
+.actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+button,.btnLink{
+  border:1px solid var(--line);background:rgba(255,255,255,.92);color:var(--ink);
+  border-radius:999px;padding:9px 12px;font-weight:900;font-size:13px;
+  box-shadow:0 6px 18px rgba(44,42,37,.05);
+  cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:5px
+}
+button.dark{background:var(--ink);color:#fff;border-color:var(--ink)}
+button.soft{background:#fff9ea;color:#6d5a35}
+.statusCard{
+  display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;
+  border:1px solid rgba(226,221,213,.9);background:rgba(255,255,255,.72);
+  border-radius:22px;padding:14px 16px;margin-bottom:20px;box-shadow:0 12px 38px rgba(44,42,37,.06)
+}
+.statusCard b{display:block;margin-bottom:4px}
+.statusCard span{color:var(--muted);font-size:13px;line-height:1.55}
+.bookViewport{
+  display:grid;grid-template-columns:210px minmax(0,1fr);gap:22px;align-items:start
+}
+.pageNav{
+  position:sticky;top:84px;
+  border:1px solid rgba(226,221,213,.9);background:rgba(255,255,255,.74);
+  border-radius:24px;padding:12px;max-height:calc(100vh - 110px);overflow:auto
+}
+.pageNav h2{font-size:14px;margin:0 0 10px}
+.thumb{
+  border:1px solid var(--line);border-radius:14px;background:#fff;margin-bottom:9px;
+  padding:8px;color:var(--muted);font-size:12px;line-height:1.35;cursor:pointer
+}
+.thumb b{display:block;color:var(--ink);font-size:13px;margin-bottom:4px}
+.thumb.active{background:var(--primarySoft);border-color:#c8d8d1;color:var(--primary)}
+.previewStack{display:grid;gap:20px;justify-items:center}
+.a4Page{
+  width:210mm;height:297mm;position:relative;overflow:hidden;
+  background:var(--paper);box-shadow:var(--shadow);border-radius:8px;
+  page-break-after:always;break-after:page;
+}
+.a4Page:last-child{page-break-after:auto;break-after:auto}
+.a4Page::before{
+  content:"";position:absolute;inset:8mm;border:1px solid rgba(226,221,213,.76);
+  border-radius:9mm;pointer-events:none;z-index:2
+}
+.a4Page::after{
+  content:"VOYAGEMEMO. 旅跡手帳";position:absolute;left:17mm;right:17mm;bottom:8mm;
+  border-top:1px solid rgba(226,221,213,.75);padding-top:3mm;text-align:right;
+  font-size:7pt;letter-spacing:1.6pt;color:#9a928a;z-index:3
+}
+.pageInner{position:relative;z-index:1;padding:18mm 17mm;height:100%}
+.coverPage{background:#f4f2ee}
+.coverPage .pageInner{padding:0}
+.coverPhoto{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:saturate(.95) contrast(1.02)}
+.coverShade{position:absolute;inset:0;background:linear-gradient(90deg,rgba(255,253,248,.94) 0%,rgba(255,253,248,.74) 38%,rgba(255,253,248,.24) 78%),linear-gradient(180deg,rgba(255,255,255,.1),rgba(47,42,37,.16))}
+.coverContent{position:relative;z-index:2;width:112mm;height:100%;padding:28mm 0 22mm 20mm;display:flex;flex-direction:column;justify-content:center}
+.eyebrow{display:inline-flex;width:max-content;max-width:100%;padding:5mm 7mm;border-radius:999px;background:rgba(255,255,255,.82);border:1px solid rgba(226,221,213,.9);color:#6d6258;letter-spacing:4pt;font-size:9pt;font-weight:800;text-transform:uppercase}
+.coverContent h1{margin:10mm 0 6mm;font-size:34pt;line-height:1.12;letter-spacing:-.5pt}
+.coverSub{padding:6mm 7mm;border-radius:8mm;background:rgba(255,255,255,.78);border:1px solid rgba(226,221,213,.7);color:#6d6258;font-size:12pt;line-height:1.85}
+.metaChips{display:flex;flex-wrap:wrap;gap:4mm;margin-top:10mm}
+.metaChips span{display:inline-flex;border-radius:999px;background:rgba(255,255,255,.84);border:1px solid rgba(226,221,213,.75);padding:4mm 5mm;font-size:9pt;color:#2f2a25;font-weight:700}
+.pageHeader{display:flex;justify-content:space-between;align-items:flex-start;gap:10mm;padding-bottom:6mm;border-bottom:1px solid rgba(226,221,213,.85);margin-bottom:8mm}
+.pageHeader .eyebrow{padding:3mm 5mm;font-size:7pt;letter-spacing:2pt}
+.pageHeader h2{margin:4mm 0 0;font-size:25pt;line-height:1.18}
+.pageHeader p{margin:3mm 0 0;color:#8b827a;font-size:10pt;line-height:1.65}
+.pageNo{font-size:9pt;color:#9a928a;letter-spacing:1pt;margin-top:3mm;white-space:nowrap}
+.overviewGrid{display:grid;grid-template-columns:1fr 1fr;gap:5mm;margin-bottom:8mm}
+.infoCard{border:1px solid rgba(226,221,213,.88);background:rgba(255,255,255,.74);border-radius:6mm;padding:6mm}
+.infoCard span{display:block;color:#9a928a;font-size:8pt;letter-spacing:1pt;text-transform:uppercase;margin-bottom:2mm}
+.infoCard b{display:block;font-size:14pt;line-height:1.35}
+.miniDays{display:grid;grid-template-columns:1fr 1fr;gap:4mm}
+.miniDay{border:1px solid rgba(226,221,213,.8);border-radius:5mm;padding:4mm;background:#fff;min-height:24mm}
+.miniDay b{display:block;font-size:10pt;margin-bottom:2mm}
+.miniDay span{display:block;font-size:8pt;line-height:1.5;color:#8b827a}
+.chapterHero{height:83mm;border-radius:8mm;overflow:hidden;margin-bottom:7mm;background:linear-gradient(135deg,#edf8f3,#fbedf2);border:1px solid rgba(226,221,213,.8)}
+.chapterHero img{width:100%;height:100%;object-fit:cover;display:block}
+.chapterHero.empty{display:grid;place-items:center;color:#9a928a;font-size:12pt}
+.daySummary{display:grid;grid-template-columns:45mm 1fr;gap:6mm;align-items:start}
+.dayStats{border-radius:7mm;background:#eaf4ef;padding:6mm;border:1px solid rgba(207,228,219,.9)}
+.dayStats b{display:block;font-size:18pt;color:var(--primary)}
+.dayStats span{display:block;margin-top:2mm;font-size:8pt;color:#6d7b73;line-height:1.55}
+.timeline{display:grid;gap:3mm;max-height:92mm;overflow:hidden}
+.timelineItem{display:grid;grid-template-columns:22mm 1fr;gap:4mm;break-inside:avoid}
+.time{border-radius:999px;background:#f3eee8;color:#6d6258;padding:2.4mm 2mm;height:max-content;text-align:center;font-size:8pt;font-weight:800}
+.timelineText{border-left:1px solid rgba(98,143,128,.32);padding:0 0 2mm 4mm}
+.timelineText b{display:block;font-size:10pt;line-height:1.35}
+.timelineText span{display:block;margin-top:1mm;font-size:8pt;line-height:1.5;color:#8b827a}
+.photoGrid{display:grid;grid-template-columns:1fr 1fr;gap:6mm}
+.photoCard{break-inside:avoid;border:1px solid rgba(226,221,213,.88);background:#fff;border-radius:5mm;padding:4mm;min-height:94mm;overflow:hidden}
+.photoCard img{width:100%;height:58mm;object-fit:cover;display:block;border-radius:3mm;margin-bottom:3mm}
+.photoCard h3{margin:0 0 2mm;font-size:11pt;line-height:1.35}
+.photoTags{display:flex;flex-wrap:wrap;gap:2mm;margin-bottom:2mm}
+.photoTags span{display:inline-flex;border-radius:999px;background:#edf8f3;color:#527b70;padding:1.5mm 2.5mm;font-size:7pt;font-weight:700}
+.photoCard p{margin:0;font-size:8.5pt;line-height:1.55;color:#6d6258}
+.emptyBox{border:1px dashed rgba(154,146,138,.65);background:rgba(255,255,255,.55);border-radius:7mm;min-height:96mm;display:grid;place-items:center;text-align:center;color:#9a928a;font-size:11pt;line-height:1.8}
+.ending{display:flex;flex-direction:column;justify-content:center;text-align:center;background:radial-gradient(circle at 20% 20%,rgba(217,239,230,.9),transparent 42%),radial-gradient(circle at 80% 70%,rgba(248,223,232,.82),transparent 45%),#fffdf8}
+.ending h2{position:relative;z-index:2;margin:0;font-size:30pt;line-height:1.18}
+.ending p{position:relative;z-index:2;width:128mm;margin:8mm auto 0;color:#6d6258;font-size:12pt;line-height:1.9}
+.endingMark{position:relative;z-index:2;margin:12mm auto 0;display:inline-flex;width:max-content;padding:5mm 8mm;border-radius:999px;border:1px solid rgba(226,221,213,.8);background:rgba(255,255,255,.72);color:var(--primary);letter-spacing:2pt;font-size:9pt;font-weight:800}
+.loadError{background:#fff;border:1px solid var(--line);border-radius:24px;padding:24px;text-align:center;line-height:1.8;color:var(--muted)}
+.loadError b{color:var(--ink)}
+@media(max-width:980px){
+  .bookViewport{grid-template-columns:1fr}
+  .pageNav{position:static;max-height:none;display:flex;overflow:auto;gap:8px}
+  .pageNav h2{display:none}
+  .thumb{min-width:150px}
+  .previewStack{overflow-x:auto;justify-items:start;padding-bottom:12px}
+  .a4Page{transform-origin:top left}
+}
+@media(max-width:720px){
+  .publisherBar{align-items:flex-start;display:grid}
+  .actions{justify-content:flex-start}
+}
+@media print{
+  @page{size:A4 portrait;margin:0}
+  html,body{background:#fff!important;width:210mm!important;min-width:210mm!important;margin:0!important;padding:0!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+  .publisherBar,.statusCard,.pageNav{display:none!important}
+  .publisherShell{padding:0!important;margin:0!important;max-width:none!important}
+  .bookViewport{display:block!important}
+  .previewStack{display:block!important}
+  .a4Page{box-shadow:none!important;border-radius:0!important;margin:0!important;width:210mm!important;height:297mm!important;break-after:page!important;page-break-after:always!important;overflow:hidden!important}
+  .a4Page:last-child{break-after:auto!important;page-break-after:auto!important}
+}
+</style>
+</head>
+<body>
+<div class="publisherShell">
+  <div class="publisherBar">
+    <div class="brand">
+      <div class="logo">VM</div>
+      <div>
+        <h1>VoyageMemo. 出版工作台</h1>
+        <p>固定 A4 旅遊小書預覽與 PDF 匯出</p>
+      </div>
+    </div>
+    <div class="actions">
+      <a class="btnLink" href="index.html">返回編輯器</a>
+      <button class="soft" onclick="loadAndRender()">重新載入資料</button>
+      <button class="dark" onclick="printBook()">匯出 PDF</button>
+    </div>
+  </div>
+
+  <div class="statusCard">
+    <div><b id="statusTitle">準備載入旅行資料</b><span id="statusText">優先讀取與 index.html 相同網域的 localStorage。未來可升級為 Firebase 雲端讀取。</span></div>
+    <div id="pageCount">—</div>
+  </div>
+
+  <div class="bookViewport">
+    <aside class="pageNav" id="pageNav"><h2>頁面</h2></aside>
+    <main class="previewStack" id="bookRoot"></main>
+  </div>
+</div>
+
+<script>
+const CANDIDATE_KEYS = [
+  "voyageMemoData",
+  "travelBookData",
+  "travelBook",
+  "travelData",
+  "TRAVEL_BOOK_DATA",
+  "travel-tool-data"
+];
+
+let data = null;
+
+function esc(v){
+  return String(v ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+function uid(){return Math.random().toString(36).slice(2)+Date.now().toString(36)}
+function short(v){
+  if(!v)return "未設定";
+  const s=String(v);
+  if(s.includes("T")) return s.split("T")[0];
+  return s;
+}
+function fmt(v){return Number(v||0).toLocaleString("zh-TW")}
+function activityIcon(t){
+  const map = {"景點":"📍","餐廳":"🍽️","咖啡廳":"☕","購物":"🛍️","交通":"🚕","住宿":"🏨","航班":"✈️","其他":"•"};
+  return map[t] || "•";
+}
+function dayTitle(k){
+  const d=(data.days||[]).find(x=>x.key==k);
+  return d ? `${d.title}｜${d.label}` : k;
+}
+function sortedPlans(day){
+  return (data.plans||[]).filter(p=>p.day==day).slice().sort((a,b)=>(a.start||"99:99").localeCompare(b.start||"99:99"));
+}
+function hotelFor(day){
+  return (data.hotels||[]).find(h=>h.checkin<=day && h.checkout>day) || null;
+}
+function photoChunks(photos, size=4){
+  const out=[];
+  for(let i=0;i<photos.length;i+=size) out.push(photos.slice(i,i+size));
+  return out.length ? out : [[]];
+}
+function tagsHtml(tags){
+  const raw=String(tags||"").trim();
+  if(!raw)return "";
+  return `<div class="photoTags">${raw.split(/[,\s，、]+/).filter(Boolean).slice(0,5).map(t=>`<span>${esc(t)}</span>`).join("")}</div>`;
+}
+function looksLikeTravelData(obj){
+  return obj && typeof obj==="object" && Array.isArray(obj.days) && Array.isArray(obj.plans) && Array.isArray(obj.photos);
+}
+function findTravelDataInLocalStorage(){
+  for(const key of CANDIDATE_KEYS){
+    try{
+      const obj = JSON.parse(localStorage.getItem(key)||"null");
+      if(looksLikeTravelData(obj)) return {key,obj};
+    }catch(e){}
+  }
+  for(let i=0;i<localStorage.length;i++){
+    const key = localStorage.key(i);
+    try{
+      const obj = JSON.parse(localStorage.getItem(key)||"null");
+      if(looksLikeTravelData(obj)) return {key,obj};
+    }catch(e){}
+  }
+  return null;
+}
+function normalizeData(d){
+  d.meta=d.meta||{};
+  d.trip=d.trip||{};
+  d.days=Array.isArray(d.days)?d.days:[];
+  d.plans=Array.isArray(d.plans)?d.plans:[];
+  d.photos=Array.isArray(d.photos)?d.photos:[];
+  d.hotels=Array.isArray(d.hotels)?d.hotels:[];
+  d.dayCovers=d.dayCovers||{};
+  return d;
+}
+function coverPage(){
+  const img = data.tripCover || (data.photos||[])[0]?.src || "";
+  return `<section class="a4Page coverPage" data-title="封面">
+    ${img?`<img class="coverPhoto" src="${img}">`:""}
+    <div class="coverShade"></div>
+    <div class="coverContent">
+      <span class="eyebrow">VOYAGEMEMO</span>
+      <h1>${esc(data.meta.title || "我的旅行手帳")}</h1>
+      <div class="coverSub">${esc(data.meta.subtitle || "把想去的地方、走過的路與照片，整理成一本旅行書。")}</div>
+      <div class="metaChips">
+        <span>目的地：${esc(data.trip.dest || "未設定")}</span>
+        <span>日期：${esc(short(data.trip.start))} - ${esc(short(data.trip.end))}</span>
+        <span>${(data.days||[]).length} 天旅行</span>
+      </div>
+    </div>
+  </section>`;
+}
+function overviewPage(pageNo){
+  const totalPlans=(data.plans||[]).length,totalPhotos=(data.photos||[]).length,totalHotels=(data.hotels||[]).length;
+  return `<section class="a4Page" data-title="旅行總覽"><div class="pageInner">
+    <div class="pageHeader">
+      <div><span class="eyebrow">TRIP OVERVIEW</span><h2>旅行總覽</h2><p>用一頁整理這趟旅程的日期、目的地與每日章節。</p></div>
+      <div class="pageNo">PAGE ${String(pageNo).padStart(2,"0")}</div>
+    </div>
+    <div class="overviewGrid">
+      <div class="infoCard"><span>Destination</span><b>${esc(data.trip.dest || "未設定")}</b></div>
+      <div class="infoCard"><span>Date</span><b>${esc(short(data.trip.start))} - ${esc(short(data.trip.end))}</b></div>
+      <div class="infoCard"><span>Itinerary</span><b>${totalPlans} 個行程</b></div>
+      <div class="infoCard"><span>Memory</span><b>${totalPhotos} 張照片｜${totalHotels} 筆住宿</b></div>
+    </div>
+    <div class="miniDays">
+      ${(data.days||[]).map(d=>{
+        const plans=sortedPlans(d.key), photos=(data.photos||[]).filter(p=>p.day==d.key), hotel=hotelFor(d.key)?.name||"未設定住宿";
+        return `<div class="miniDay"><b>${esc(d.title)}｜${esc(d.label)}</b><span>${esc(hotel)}</span><span>${plans.length} 個行程・${photos.length} 張照片</span></div>`;
+      }).join("")}
+    </div>
+  </div></section>`;
+}
+function dayChapterPage(d,pageNo){
+  const plans=sortedPlans(d.key),photos=(data.photos||[]).filter(p=>p.day==d.key),cover=data.dayCovers?.[d.key]||photos[0]?.src||"",hotel=hotelFor(d.key)?.name||"未設定";
+  return `<section class="a4Page" data-title="${esc(d.title)} 章節"><div class="pageInner">
+    <div class="pageHeader">
+      <div><span class="eyebrow">${esc(d.title)}</span><h2>${esc(d.label)} 的旅行故事</h2><p>住宿：${esc(hotel)}。今天收錄 ${plans.length} 個行程與 ${photos.length} 張照片。</p></div>
+      <div class="pageNo">PAGE ${String(pageNo).padStart(2,"0")}</div>
+    </div>
+    <div class="chapterHero ${cover?"":"empty"}">${cover?`<img src="${cover}">`:"尚未上傳本日封面"}</div>
+    <div class="daySummary">
+      <div class="dayStats"><b>${plans.length}</b><span>今日行程</span><b style="margin-top:7mm">${photos.length}</b><span>今日照片</span></div>
+      <div class="timeline">
+        ${plans.length?plans.slice(0,9).map(p=>`<div class="timelineItem"><div class="time">${esc(p.start||"--:--")}</div><div class="timelineText"><b>${activityIcon(p.type)} ${esc(p.name||"未命名行程")}</b><span>${p.end?`至 ${esc(p.end)}`:""}${p.note?`｜${esc(p.note)}`:""}</span></div></div>`).join(""):`<div class="emptyBox">這天還沒有正式行程。<br>可以用照片留下旅行的空白與自由。</div>`}
+      </div>
+    </div>
+  </div></section>`;
+}
+function dayPhotoPages(d,startPageNo){
+  const photos=(data.photos||[]).filter(p=>p.day==d.key), chunks=photoChunks(photos,4);
+  return chunks.map((chunk,idx)=>`<section class="a4Page" data-title="${esc(d.title)} 照片 ${idx+1}"><div class="pageInner">
+    <div class="pageHeader">
+      <div><span class="eyebrow">${esc(d.title)} PHOTO DIARY</span><h2>今日照片日記${chunks.length>1?` ${idx+1}/${chunks.length}`:""}</h2><p>${esc(d.label)} 的畫面、心情與小片段。</p></div>
+      <div class="pageNo">PAGE ${String(startPageNo+idx).padStart(2,"0")}</div>
+    </div>
+    ${chunk.length?`<div class="photoGrid">${chunk.map(p=>`<div class="photoCard"><img src="${p.src}"><h3>${esc(p.title||"照片紀錄")}</h3>${tagsHtml(p.tags)}<p>${esc(p.memo||" ")}</p></div>`).join("")}</div>`:`<div class="emptyBox">這一天還沒有照片日記。<br>等你補上照片後，這裡會變成專屬的回憶頁。</div>`}
+  </div></section>`).join("");
+}
+function endingPage(pageNo){
+  return `<section class="a4Page ending" data-title="結尾"><div class="pageInner" style="display:flex;flex-direction:column;justify-content:center;height:100%"><h2>旅程，會被好好收藏。</h2><p>那些走過的路、吃過的飯、偶然遇見的風景，都會慢慢變成記憶裡很亮的一頁。</p><div class="endingMark">END OF JOURNEY</div></div></section>`;
+}
+function buildBook(){
+  let pageNo=1,pages=[];
+  pages.push(coverPage()); pageNo++;
+  pages.push(overviewPage(pageNo)); pageNo++;
+  (data.days||[]).forEach(d=>{
+    pages.push(dayChapterPage(d,pageNo)); pageNo++;
+    const photos=(data.photos||[]).filter(p=>p.day==d.key);
+    const photoPageCount=Math.max(1,Math.ceil(photos.length/4));
+    pages.push(dayPhotoPages(d,pageNo)); pageNo += photoPageCount;
+  });
+  pages.push(endingPage(pageNo));
+  return pages.join("");
+}
+function renderThumbs(){
+  const nav=document.getElementById("pageNav");
+  const pages=[...document.querySelectorAll(".a4Page")];
+  nav.innerHTML="<h2>頁面</h2>"+pages.map((p,i)=>`<div class="thumb" onclick="scrollToPage(${i})"><b>${String(i+1).padStart(2,"0")}</b>${esc(p.dataset.title||"頁面")}</div>`).join("");
+  document.getElementById("pageCount").textContent=`共 ${pages.length} 頁`;
+}
+function scrollToPage(i){
+  const p=document.querySelectorAll(".a4Page")[i];
+  if(p) p.scrollIntoView({behavior:"smooth",block:"start"});
+}
+function loadAndRender(){
+  const found=findTravelDataInLocalStorage();
+  if(!found){
+    document.getElementById("statusTitle").textContent="找不到旅行資料";
+    document.getElementById("statusText").textContent="請先回 index.html 編輯並儲存資料，或確認 export.html 與 index.html 在同一個網域與資料夾下。";
+    document.getElementById("bookRoot").innerHTML=`<div class="loadError"><b>目前沒有可出版的旅行資料</b><br>請回編輯器儲存後再重新載入。</div>`;
+    document.getElementById("pageNav").innerHTML="<h2>頁面</h2>";
+    document.getElementById("pageCount").textContent="0 頁";
+    return;
+  }
+  data=normalizeData(found.obj);
+  document.getElementById("statusTitle").textContent=`已載入旅行資料`;
+  document.getElementById("statusText").textContent=`來源：localStorage / ${found.key}。目前版本先使用本機資料；未來可升級為 Firebase 雲端讀取。`;
+  document.getElementById("bookRoot").innerHTML=buildBook();
+  renderThumbs();
+  if(new URLSearchParams(location.search).get("print")==="1"){
+    waitForImages().then(()=>setTimeout(()=>printBook(),280));
+  }
+}
+function waitForImages(){
+  const imgs=[...document.images];
+  return Promise.all(imgs.map(img=>img.complete?Promise.resolve():new Promise(res=>{img.onload=img.onerror=res;})));
+}
+function printBook(){
+  waitForImages().then(()=>window.print());
+}
+loadAndRender();
+</script>
+</body>
+</html>
