@@ -2635,6 +2635,429 @@ textarea{min-height:58px}
   }
 }
 
+
+/* ===== v44 photo book PDF booklet refinement only ===== */
+/* 只調整照片旅遊書列印 / PDF 版面，不改資料結構與其他頁面 */
+@media print{
+  @page{
+    size:A4 portrait;
+    margin:10mm;
+  }
+
+  body{
+    background:#fff!important;
+    color:#332f2b!important;
+    -webkit-print-color-adjust:exact!important;
+    print-color-adjust:exact!important;
+  }
+
+  /* 只在照片旅遊書列印時保留故事書預覽，其他編輯工具全部隱藏 */
+  .photoBookEditor,
+  .photoBookEditor *,
+  .storyPanel,
+  .storyPanel *,
+  .tabs,
+  .mobile,
+  .mobileTopNav,
+  .panel,
+  .btns,
+  .small.noPrint,
+  .iconBtn,
+  .noPrint,
+  footer,
+  .toast,
+  .accountWidget,
+  .syncMini{
+    display:none!important;
+  }
+
+  .app{
+    max-width:none!important;
+    width:100%!important;
+    padding:0!important;
+    margin:0!important;
+  }
+
+  header{
+    display:none!important;
+  }
+
+  .layout,
+  .layout.noCalendar,
+  .layout.withCalendar{
+    display:block!important;
+  }
+
+  .main{
+    padding:0!important;
+    margin:0!important;
+    box-shadow:none!important;
+    border:0!important;
+    background:#fff!important;
+    border-radius:0!important;
+  }
+
+  #photoBookView{
+    display:block!important;
+  }
+
+  #tripView,
+  #plannerView,
+  #spotsView,
+  #budgetView,
+  #packingView,
+  #helpView{
+    display:none!important;
+  }
+
+  #photoBookView > .section{
+    display:none!important;
+  }
+
+  .storyBookPreview{
+    display:block!important;
+    margin:0!important;
+    padding:0!important;
+    width:100%!important;
+  }
+
+  .storyBook{
+    display:block!important;
+    border:0!important;
+    border-radius:0!important;
+    background:#fff!important;
+    overflow:visible!important;
+    box-shadow:none!important;
+  }
+
+  /* 封面獨立一頁：乾淨、不過度放大 */
+  .storyBookCover{
+    page-break-after:always!important;
+    break-after:page!important;
+    page-break-inside:avoid!important;
+    break-inside:avoid!important;
+    height:277mm!important;
+    min-height:277mm!important;
+    max-height:277mm!important;
+    padding:18mm 16mm!important;
+    border-radius:0!important;
+    overflow:hidden!important;
+    position:relative!important;
+    background:
+      radial-gradient(circle at 18mm 18mm,rgba(217,239,230,.78),transparent 42mm),
+      radial-gradient(circle at 172mm 22mm,rgba(248,223,232,.75),transparent 40mm),
+      linear-gradient(135deg,#fffefa,#f7f3ec)!important;
+  }
+
+  .storyBookCoverImage{
+    position:absolute!important;
+    left:16mm!important;
+    right:16mm!important;
+    top:42mm!important;
+    width:calc(100% - 32mm)!important;
+    height:112mm!important;
+    object-fit:cover!important;
+    border-radius:18px!important;
+    opacity:1!important;
+    box-shadow:none!important;
+  }
+
+  .storyBookCoverOverlay{
+    display:none!important;
+  }
+
+  .storyBookCoverText{
+    position:relative!important;
+    z-index:2!important;
+    max-width:none!important;
+    color:#332f2b!important;
+    padding-top:0!important;
+  }
+
+  .storyBookCoverText .eyebrow{
+    background:#edf8f3!important;
+    border:1px solid #cfe4db!important;
+    color:#527b70!important;
+    padding:6px 11px!important;
+    margin-bottom:8mm!important;
+  }
+
+  .storyBookCoverText h1{
+    font-size:30px!important;
+    line-height:1.15!important;
+    letter-spacing:-.8px!important;
+    margin:0 0 4mm!important;
+    max-width:150mm!important;
+  }
+
+  .storyBookCoverText p{
+    font-size:12.5px!important;
+    line-height:1.75!important;
+    color:#6f6962!important;
+    max-width:150mm!important;
+    margin:0!important;
+  }
+
+  .storyBookCoverMeta{
+    position:absolute!important;
+    left:16mm!important;
+    right:16mm!important;
+    bottom:20mm!important;
+    display:grid!important;
+    grid-template-columns:1fr 1fr 1fr!important;
+    gap:5mm!important;
+    margin:0!important;
+  }
+
+  .storyBookCoverMeta span{
+    display:block!important;
+    background:#fff!important;
+    border:1px solid #eadfd4!important;
+    border-radius:14px!important;
+    padding:7mm 5mm!important;
+    font-size:11px!important;
+    font-weight:900!important;
+    color:#5d554e!important;
+  }
+
+  /* 每天一章：從新頁開始，避免上下切碎 */
+  .storyDay{
+    page-break-before:always!important;
+    break-before:page!important;
+    page-break-inside:avoid!important;
+    break-inside:avoid!important;
+    min-height:277mm!important;
+    padding:11mm 9mm!important;
+    border:0!important;
+    border-radius:0!important;
+    background:#fff!important;
+    box-shadow:none!important;
+    overflow:hidden!important;
+  }
+
+  .storyDayHeader{
+    display:grid!important;
+    grid-template-columns:1fr auto!important;
+    gap:6mm!important;
+    align-items:end!important;
+    margin:0 0 6mm!important;
+    padding-bottom:4mm!important;
+    border-bottom:1px solid #eadfd4!important;
+    break-inside:avoid!important;
+    page-break-inside:avoid!important;
+  }
+
+  .storyDay .eyebrow{
+    background:#edf8f3!important;
+    border:1px solid #cfe4db!important;
+    color:#527b70!important;
+    padding:5px 10px!important;
+    margin:0 0 3mm!important;
+    font-size:10.5px!important;
+  }
+
+  .storyDayHeader h2{
+    font-size:22px!important;
+    line-height:1.2!important;
+    margin:0 0 2mm!important;
+  }
+
+  .storyDayHeader p{
+    font-size:11px!important;
+    line-height:1.55!important;
+    color:#6f6962!important;
+    margin:0!important;
+  }
+
+  .bookDayBadge{
+    display:inline-flex!important;
+    background:#f3eee8!important;
+    color:#6f6257!important;
+    border-radius:999px!important;
+    padding:5px 9px!important;
+    font-size:10.5px!important;
+    font-weight:900!important;
+    white-space:nowrap!important;
+  }
+
+  .storyDayHero{
+    height:58mm!important;
+    width:100%!important;
+    aspect-ratio:auto!important;
+    border-radius:16px!important;
+    margin:0 0 7mm!important;
+    overflow:hidden!important;
+    background:#f7f3ec!important;
+    break-inside:avoid!important;
+    page-break-inside:avoid!important;
+  }
+
+  .storyDayHero img{
+    width:100%!important;
+    height:100%!important;
+    object-fit:cover!important;
+    display:block!important;
+  }
+
+  .storyDayHero.emptyHero{
+    border:1px dashed #d8cfc6!important;
+    display:grid!important;
+    place-items:center!important;
+    color:#8b827a!important;
+    font-size:11px!important;
+  }
+
+  .storyDayBody{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:6mm!important;
+    align-items:start!important;
+  }
+
+  .storyTimelineTitle,
+  .storyPhotosTitle{
+    font-size:12px!important;
+    font-weight:950!important;
+    margin:0 0 3mm!important;
+    color:#5d554e!important;
+  }
+
+  .storyTimeline{
+    display:grid!important;
+    gap:2.4mm!important;
+    margin:0!important;
+  }
+
+  .storyTimelineItem{
+    display:grid!important;
+    grid-template-columns:20mm 1fr!important;
+    gap:3mm!important;
+    align-items:start!important;
+    break-inside:avoid!important;
+    page-break-inside:avoid!important;
+  }
+
+  .storyTimelineTime{
+    background:#f3eee8!important;
+    border-radius:999px!important;
+    color:#6f6257!important;
+    padding:4px 6px!important;
+    font-size:9.5px!important;
+    line-height:1.2!important;
+    text-align:center!important;
+    font-weight:950!important;
+  }
+
+  .storyTimelineContent{
+    border-left:2px solid #d9efe6!important;
+    padding:0 0 2.5mm 3mm!important;
+  }
+
+  .storyTimelineContent b{
+    display:block!important;
+    font-size:11px!important;
+    line-height:1.35!important;
+    margin:0!important;
+  }
+
+  .storyTimelineContent span{
+    display:block!important;
+    font-size:9.5px!important;
+    line-height:1.45!important;
+    color:#6f6962!important;
+    margin-top:1mm!important;
+  }
+
+  .storyPhotoLayout{
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+    gap:4mm!important;
+    margin:0!important;
+  }
+
+  .storyPhotoCard{
+    border:1px solid #eadfd4!important;
+    border-radius:14px!important;
+    background:#fffdf9!important;
+    box-shadow:none!important;
+    overflow:hidden!important;
+    break-inside:avoid!important;
+    page-break-inside:avoid!important;
+  }
+
+  .storyPhotoCard.featured{
+    grid-column:1/-1!important;
+  }
+
+  .storyPhotoImage,
+  .storyPhotoCard.featured .storyPhotoImage{
+    height:38mm!important;
+    width:100%!important;
+    aspect-ratio:auto!important;
+    overflow:hidden!important;
+    background:#f7f3ec!important;
+  }
+
+  .storyPhotoCard.featured .storyPhotoImage{
+    height:52mm!important;
+  }
+
+  .storyPhotoImage img{
+    width:100%!important;
+    height:100%!important;
+    object-fit:cover!important;
+    display:block!important;
+  }
+
+  .storyPhotoText{
+    padding:3.5mm!important;
+  }
+
+  .storyPhotoText h3{
+    font-size:11px!important;
+    line-height:1.35!important;
+    margin:0 0 1.5mm!important;
+  }
+
+  .storyPhotoText p{
+    font-size:9.5px!important;
+    line-height:1.45!important;
+    color:#6f6962!important;
+    margin:1.5mm 0 0!important;
+    max-height:17mm!important;
+    overflow:hidden!important;
+  }
+
+  .storyTags{
+    display:flex!important;
+    flex-wrap:wrap!important;
+    gap:1.5mm!important;
+    margin:1.5mm 0!important;
+  }
+
+  .storyTag{
+    display:inline-flex!important;
+    background:#edf8f3!important;
+    color:#527b70!important;
+    border-radius:999px!important;
+    padding:2px 6px!important;
+    font-size:8.5px!important;
+    font-weight:950!important;
+  }
+
+  .storyEmpty{
+    border:1px dashed #d8cfc6!important;
+    border-radius:14px!important;
+    background:#fffefa!important;
+    color:#8b827a!important;
+    padding:8mm!important;
+    text-align:center!important;
+    font-size:11px!important;
+    break-inside:avoid!important;
+    page-break-inside:avoid!important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -2646,7 +3069,7 @@ textarea{min-height:58px}
   <button class="btn blue compact hidden" id="cloudLoadBtn" onclick="loadFromCloud()">載入雲端</button>
   <button class="btn pink compact hidden" id="cloudSaveBtn" onclick="saveToCloudNow()">立即同步</button>
 </div>
-<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v43｜2026-05-29｜照片旅遊書故事排版版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
+<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v44｜2026-05-29｜照片旅遊書PDF小冊子優化版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
 
 <!-- Firebase SDK for cross-device sync -->
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -5070,7 +5493,7 @@ function photoBookDay(d){
 
 
 /* ===== Version marker ===== */
-const APP_VERSION = "v43｜2026-05-29｜照片旅遊書故事排版版";
+const APP_VERSION = "v44｜2026-05-29｜照片旅遊書PDF小冊子優化版";
 console.log("My Travel Book", APP_VERSION);
 
 
@@ -9649,6 +10072,13 @@ function renderPhotoBook(){
       ${data.days.map(storyBookDay).join("")}
     </div>
   </div>`;
+}
+
+
+/* ===== v44 photo book PDF export hint only ===== */
+function exportPhotoBookPDF(){
+  alert("建議使用電腦 Chrome 匯出 PDF，版面最穩定。平板可預覽與簡單匯出，但 Safari 可能會讓背景、分頁或照片比例略有落差。");
+  print();
 }
 
 init();
