@@ -1809,6 +1809,40 @@ textarea{min-height:58px}
   }
 }
 
+
+/* ===== v39 flight save-first workflow only ===== */
+.flightSavedHint{
+  font-size:12px;
+  line-height:1.45;
+  color:var(--muted);
+  margin-top:7px;
+}
+.flightStatusBox .btn[disabled]{
+  opacity:.48;
+  cursor:not-allowed;
+  transform:none!important;
+  box-shadow:none!important;
+}
+.flightStatusSaved{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  border-radius:999px;
+  padding:5px 9px;
+  font-size:12px;
+  font-weight:900;
+  background:#edf8f3;
+  color:#527b70;
+}
+.flightStatusSaved.warn{
+  background:#fff3ce;
+  color:#7b653b;
+}
+.flightStatusSaved.off{
+  background:#f3eee8;
+  color:#6f6257;
+}
+
 </style>
 </head>
 <body>
@@ -1820,7 +1854,7 @@ textarea{min-height:58px}
   <button class="btn blue compact hidden" id="cloudLoadBtn" onclick="loadFromCloud()">載入雲端</button>
   <button class="btn pink compact hidden" id="cloudSaveBtn" onclick="saveToCloudNow()">立即同步</button>
 </div>
-<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v38｜2026-05-29｜手機航班表單呈現修正版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
+<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v39｜2026-05-29｜航班儲存流程與行程時間修正版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
 
 <!-- Firebase SDK for cross-device sync -->
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -4244,7 +4278,7 @@ function photoBookDay(d){
 
 
 /* ===== Version marker ===== */
-const APP_VERSION = "v38｜2026-05-29｜手機航班表單呈現修正版";
+const APP_VERSION = "v39｜2026-05-29｜航班儲存流程與行程時間修正版";
 console.log("My Travel Book", APP_VERSION);
 
 
@@ -8108,6 +8142,319 @@ function readFlightForm(k){
     fromAirport:$(k+"fromAirport")?.value||"",
     transfer:$(k+"toAirport")?.value||""
   };
+}
+
+
+/* ===== v39 flight save-first workflow + flight plan time rules ===== */
+/* 只調整航班與機場接送區塊，不改資料結構 */
+
+let v39FlightDirty = false;
+
+function v39ParseLocalDT(dt){
+  if(!dt)return null;
+  const [d,t] = String(dt).split("T");
+  if(!d || !t)return null;
+  const [y,m,day]=d.split("-").map(Number);
+  const [hh,mm]=t.split(":").map(Number);
+  if(!y||!m||!day||!Number.isFinite(hh)||!Number.isFinite(mm))return null;
+  return new Date(y,m-1,day,hh,mm,0,0);
+}
+function v39Pad(n){return String(n).padStart(2,"0")}
+function v39FormatDate(d){
+  if(!d)return "";
+  return `${d.getFullYear()}-${v39Pad(d.getMonth()+1)}-${v39Pad(d.getDate())}`;
+}
+function v39FormatTime(d){
+  if(!d)return "";
+  return `${v39Pad(d.getHours())}:${v39Pad(d.getMinutes())}`;
+}
+function v39AddMinutes(dt, minutes){
+  const d=v39ParseLocalDT(dt);
+  if(!d)return null;
+  return new Date(d.getTime()+minutes*60000);
+}
+function v39DateFromDT(dt, fallback){
+  const d=v39ParseLocalDT(dt);
+  return d ? v39FormatDate(d) : (fallback || data.trip.start);
+}
+function v39TimeFromDT(dt){
+  const d=v39ParseLocalDT(dt);
+  return d ? v39FormatTime(d) : "";
+}
+function v39DateFromDateObj(d, fallback){
+  return d ? v39FormatDate(d) : (fallback || data.trip.start);
+}
+function v39TimeFromDateObj(d){
+  return d ? v39FormatTime(d) : "";
+}
+
+function v39FlightSnapshotFromData(){
+  return JSON.stringify({
+    out: normalizeFlightObj(data.flights.out,"out"),
+    back: normalizeFlightObj(data.flights.back,"back")
+  });
+}
+function v39FlightSnapshotFromForm(){
+  try{
+    return JSON.stringify({
+      out: readFlightForm("out"),
+      back: readFlightForm("back")
+    });
+  }catch(e){
+    return "";
+  }
+}
+function v39SavedFlightReady(){
+  const out=normalizeFlightObj(data.flights.out,"out");
+  const back=normalizeFlightObj(data.flights.back,"back");
+  const all=[...(out.segments||[]),...(back.segments||[])];
+  if(!all.length)return false;
+  return all.every(s=>s.no && s.from && s.to && s.dep && s.arr);
+}
+function v39MarkFlightDirty(){
+  const formSig=v39FlightSnapshotFromForm();
+  const dataSig=v39FlightSnapshotFromData();
+  v39FlightDirty = !!formSig && formSig !== dataSig;
+  v39RenderFlightStatusOnly();
+}
+function v39CanUseFlightActions(){
+  return !v39FlightDirty && v39SavedFlightReady();
+}
+
+function flightStatusInnerHtml(){
+  const hasP=flightHasPlans();
+  const hasB=flightHasBudget();
+  const canUse=v39CanUseFlightActions();
+  const stateText = v39FlightDirty ? "有尚未儲存的航班修改" : (v39SavedFlightReady() ? "航班已儲存" : "請先填寫並存好航班");
+  const stateClass = v39FlightDirty ? "warn" : (v39SavedFlightReady() ? "" : "off");
+  const disabledAttr = canUse ? "" : "disabled";
+  const actionHint = v39FlightDirty
+    ? "請先按「存好航班設定」，再帶入行程或預算。"
+    : (v39SavedFlightReady() ? "可選擇是否帶入行程或記一筆來回機票。" : "航班資料存好後，才會開放帶入行程與預算。");
+
+  return `
+    <div class="flightSavedHint"><span class="flightStatusSaved ${stateClass}">${stateText}</span><br>${actionHint}</div>
+    <div class="flightStatusGrid">
+      <div class="flightStatusItem"><b>行程</b><span class="${hasP?"ok":""}">${hasP?"已帶入行程":"尚未帶入行程"}</span></div>
+      <div class="flightStatusItem"><b>機票預算</b><span class="${hasB?"ok":""}">${hasB?"已記錄預算":"尚未記錄預算"}</span></div>
+    </div>
+    <div class="flightStatusActions">
+      ${hasP
+        ? `<button class="btn soft compact" ${disabledAttr} onclick="removeFlightPlans()">移除航班行程</button>`
+        : `<button class="btn blue compact" ${disabledAttr} onclick="v16AddFlightsToPlans(true)">帶入行程</button>`}
+      ${hasB
+        ? `<button class="btn soft compact" ${disabledAttr} onclick="removeFlightBudget()">移除機票預算</button>`
+        : `<button class="btn pink compact" ${disabledAttr} onclick="addFlightBudget()">記一筆來回機票</button>`}
+    </div>`;
+}
+
+function flightStatusHtml(){
+  return `<div class="flightStatusBox" id="flightStatusMount">${flightStatusInnerHtml()}</div>`;
+}
+
+function v39RenderFlightStatusOnly(){
+  const mount=$("flightStatusMount");
+  if(mount)mount.innerHTML=flightStatusInnerHtml();
+}
+
+document.addEventListener("input", function(e){
+  if(e.target && e.target.closest && e.target.closest("#tripView .flightDense")){
+    v39MarkFlightDirty();
+  }
+}, true);
+document.addEventListener("change", function(e){
+  if(e.target && e.target.closest && e.target.closest("#tripView .flightDense")){
+    v39MarkFlightDirty();
+  }
+}, true);
+
+function v39FlightName(direction, idx, segCount, no){
+  const isOut = direction === "out";
+  if(segCount <= 1){
+    return isOut ? `搭乘去程飛機${no ? " " + no : ""}` : `搭乘回程飛機${no ? " " + no : ""}`;
+  }
+  return isOut ? `搭乘去程第 ${idx+1} 段飛機${no ? " " + no : ""}` : `搭乘回程第 ${idx+1} 段飛機${no ? " " + no : ""}`;
+}
+
+function flightPlanTemplates(){
+  const out=normalizeFlightObj(data.flights.out,"out");
+  const back=normalizeFlightObj(data.flights.back,"back");
+  const templates=[];
+
+  const outSegs=(out.segments && out.segments.length ? out.segments : [{}]);
+  const backSegs=(back.segments && back.segments.length ? back.segments : [{}]);
+  const firstOut=outSegs[0]||{};
+  const lastOut=outSegs[outSegs.length-1]||{};
+  const firstBack=backSegs[0]||{};
+  const lastBack=backSegs[backSegs.length-1]||{};
+
+  const outAirportArrive = v39AddMinutes(firstOut.dep, -120);
+  const outCityEnd = v39AddMinutes(lastOut.arr, 60);
+  const backAirportArrive = v39AddMinutes(firstBack.dep, -120);
+  const backHomeEnd = v39AddMinutes(lastBack.arr, 60);
+
+  // 去程：出發去機場，結束時間 = 起飛前 2 小時
+  templates.push({
+    id:"flight-out-to-airport",
+    source:"flight",
+    sourceType:"flight",
+    lockedName:true,
+    day:v39DateFromDateObj(outAirportArrive, v39DateFromDT(firstOut.dep, data.trip.start)),
+    start:"",
+    end:v39TimeFromDateObj(outAirportArrive),
+    type:"交通",
+    name:`出發去 ${firstOut.from||"機場"}`,
+    note:out.toAirport||"",
+    memo:"由航班資料帶入"
+  });
+
+  // 去程：每段航班，起訖時間 = 航班起飛 / 抵達時間
+  outSegs.forEach((s,i)=>{
+    templates.push({
+      id:`flight-out-seg-${i}`,
+      source:"flight",
+      sourceType:"flight",
+      lockedName:true,
+      day:v39DateFromDT(s.dep, data.trip.start),
+      start:v39TimeFromDT(s.dep),
+      end:v39TimeFromDT(s.arr),
+      type:"航班",
+      name:v39FlightName("out", i, outSegs.length, s.no||""),
+      note:[`${s.from||""} → ${s.to||""}`, terminalNote(s)].filter(Boolean).join("\n"),
+      memo:"由航班資料帶入"
+    });
+  });
+
+  // 去程：抵達機場去市區 / 飯店，開始 = 航班抵達，結束 = +1 小時
+  templates.push({
+    id:"flight-out-arrival-transfer",
+    source:"flight",
+    sourceType:"flight",
+    lockedName:true,
+    day:v39DateFromDT(lastOut.arr, data.trip.start),
+    start:v39TimeFromDT(lastOut.arr),
+    end:v39TimeFromDateObj(outCityEnd),
+    type:"交通",
+    name:`從 ${lastOut.to||"抵達機場"} 前往市區／飯店`,
+    note:out.fromAirport||"",
+    memo:"由航班資料帶入"
+  });
+
+  // 回程：從飯店去回程機場，結束時間 = 起飛前 2 小時
+  templates.push({
+    id:"flight-back-to-airport",
+    source:"flight",
+    sourceType:"flight",
+    lockedName:true,
+    day:v39DateFromDateObj(backAirportArrive, v39DateFromDT(firstBack.dep, data.trip.end)),
+    start:"",
+    end:v39TimeFromDateObj(backAirportArrive),
+    type:"交通",
+    name:`從飯店前往 ${firstBack.from||"回程機場"}`,
+    note:back.toAirport||"",
+    memo:"由航班資料帶入"
+  });
+
+  // 回程：每段航班
+  backSegs.forEach((s,i)=>{
+    templates.push({
+      id:`flight-back-seg-${i}`,
+      source:"flight",
+      sourceType:"flight",
+      lockedName:true,
+      day:v39DateFromDT(s.dep, data.trip.end),
+      start:v39TimeFromDT(s.dep),
+      end:v39TimeFromDT(s.arr),
+      type:"航班",
+      name:v39FlightName("back", i, backSegs.length, s.no||""),
+      note:[`${s.from||""} → ${s.to||""}`, terminalNote(s)].filter(Boolean).join("\n"),
+      memo:"由航班資料帶入"
+    });
+  });
+
+  // 回程：抵達後回家，開始 = 航班抵達，結束 = +1 小時
+  templates.push({
+    id:"flight-back-home-transfer",
+    source:"flight",
+    sourceType:"flight",
+    lockedName:true,
+    day:v39DateFromDT(lastBack.arr, data.trip.end),
+    start:v39TimeFromDT(lastBack.arr),
+    end:v39TimeFromDateObj(backHomeEnd),
+    type:"交通",
+    name:`從 ${lastBack.to||"抵達機場"} 回家`,
+    note:back.fromAirport||"",
+    memo:"由航班資料帶入"
+  });
+
+  return templates;
+}
+
+function syncFlightPlans(){
+  v28NormalizePlans();
+  const templates=flightPlanTemplates();
+  const keepIds=templates.map(p=>p.id);
+  data.plans=data.plans.filter(p=>p.source!=="flight" || keepIds.includes(p.id));
+  data.conns=(data.conns||[]).filter(c=>data.plans.some(p=>p.id===c.a)&&data.plans.some(p=>p.id===c.b));
+  templates.forEach(p=>v28UpsertPlan(p));
+}
+
+function v16AddFlightsToPlans(doRender=true){
+  if(!v39CanUseFlightActions()){
+    toast(v39FlightDirty ? "請先存好航班設定" : "請先填寫並存好航班");
+    return;
+  }
+  syncFlightPlans();
+  if(doRender) save();
+  toast("已幫你把航班帶入行程囉！");
+}
+
+function addFlightBudget(){
+  if(!v39CanUseFlightActions()){
+    toast(v39FlightDirty ? "請先存好航班設定" : "請先填寫並存好航班");
+    return;
+  }
+  if(flightHasBudget())return toast("航班預算已經記過囉！");
+  const out=normalizeFlightObj(data.flights.out,"out");
+  const back=normalizeFlightObj(data.flights.back,"back");
+  const outNos=out.segments.map(s=>s.no).filter(Boolean).join("＋");
+  const backNos=back.segments.map(s=>s.no).filter(Boolean).join("＋");
+  const label=[outNos?`去程 ${outNos}`:"", backNos?`回程 ${backNos}`:""].filter(Boolean).join("／");
+
+  data.expenses.push({
+    id:uid(),
+    sourceType:"flight",
+    source:"航班",
+    type:"機票",
+    name: label ? `來回機票（${label}）` : "來回機票",
+    payer:"未定",
+    payMethod:"未定",
+    day:"",
+    mode:"TWD",
+    foreign:0,
+    twd:0,
+    memo:"由航班資料帶入，可自行補金額"
+  });
+  save();
+  toast("已幫你記一筆來回機票！");
+}
+
+function saveFlights(){
+  if(!validateFlightSegments())return;
+  const alreadyHasPlans = flightHasPlans();
+
+  data.flights.out=readFlightForm("out");
+  data.flights.back=readFlightForm("back");
+  v39FlightDirty=false;
+
+  if(alreadyHasPlans){
+    syncFlightPlans();
+  }
+
+  silentSave();
+  render();
+  v16CollapseTripDetail(1);
+  toast(alreadyHasPlans ? "已存好航班，並更新行程囉！" : "已幫你存好航班囉！");
 }
 
 init();
