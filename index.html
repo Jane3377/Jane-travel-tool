@@ -1562,7 +1562,7 @@ textarea{min-height:58px}
   <button class="btn blue compact hidden" id="cloudLoadBtn" onclick="loadFromCloud()">載入雲端</button>
   <button class="btn pink compact hidden" id="cloudSaveBtn" onclick="saveToCloudNow()">立即同步</button>
 </div>
-<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v33｜2026-05-29｜預算桌機表格／手機對齊卡片版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
+<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>My Travel Book｜LocalStorage + Cloudinary Version<br><strong>版本：v34｜2026-05-29｜預算來源修正／中國城市版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
 
 <!-- Firebase SDK for cross-device sync -->
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -3986,7 +3986,7 @@ function photoBookDay(d){
 
 
 /* ===== Version marker ===== */
-const APP_VERSION = "v33｜2026-05-29｜預算桌機表格／手機對齊卡片版";
+const APP_VERSION = "v34｜2026-05-29｜預算來源修正／中國城市版";
 console.log("My Travel Book", APP_VERSION);
 
 
@@ -7391,6 +7391,148 @@ function renderBudget(){
   </div>
   ${budgetDetailsHtml(items)}`;
   if(editingExpenseId)fillExpenseForm(editingExpenseId);
+}
+
+
+/* ===== v34 targeted fixes: source plan budget skip, no delete confirm, China cities ===== */
+
+// 1) 航班 / 住宿來源行程不自動建立預算；口袋景點 / 手動行程仍會建立。
+// 不改資料結構，只調整建立預算的小邏輯。
+function createBudgetFromPlanSnapshot(plan){
+  if(!plan || !plan.name)return;
+
+  const source = plan.source || plan.sourceType || "";
+  if(source==="flight" || source==="hotel"){
+    return;
+  }
+
+  const pType = typeof normalizePlanType === "function" ? normalizePlanType(plan.type) : (plan.type || "其他");
+  data.expenses.push({
+    id:uid(),
+    source:"行程",
+    type:typeof budgetTypeFromPlanType === "function" ? budgetTypeFromPlanType(pType) : pType,
+    name:plan.name,
+    payer:"未定",
+    payMethod:"未定",
+    day:plan.day || "",
+    mode:"TWD",
+    foreign:0,
+    twd:0,
+    memo:`由${pType}行程建立，可自行補金額`
+  });
+}
+
+// 2) 刪除口袋景點不用彈跳確認。
+function delSpot(id){
+  data.spots=data.spots.filter(x=>x.id!=id);
+  if(editingSpotId==id)editingSpotId=null;
+  save();
+  toast("已刪除口袋景點");
+}
+
+// 2) 刪除預算項目不用彈跳確認。
+function delExpense(id){
+  data.expenses=data.expenses.filter(x=>x.id!=id);
+  if(editingExpenseId==id)editingExpenseId=null;
+  save();
+  toast("已刪除預算");
+}
+
+// 3) 新增中國到旅遊國家與城市對應；盡量相容既有 v15 的城市選單流程。
+currencyMap["中國"]="CNY";
+rateMap["CNY"]=4.35;
+
+function v15CountryCityMaps(){
+  return {
+    cityMap:{
+      "韓國":["釜山","首爾","濟州","大邱","仁川","自訂"],
+      "日本":["東京","大阪","京都","福岡","札幌","沖繩","名古屋","自訂"],
+      "中國":["上海","北京","廣州","深圳","杭州","成都","重慶","西安","青島","廈門","南京","蘇州","自訂"],
+      "香港":["香港"],
+      "新加坡":["新加坡"],
+      "泰國":["曼谷","清邁","普吉","自訂"],
+      "越南":["胡志明","河內","峴港","自訂"],
+      "美國":["紐約","洛杉磯","舊金山","西雅圖","拉斯維加斯","自訂"],
+      "歐洲":["自訂"],
+      "英國":["倫敦","曼徹斯特","愛丁堡","自訂"],
+      "其他":["自訂"]
+    }
+  };
+}
+
+function countryOptions(){
+  const order=["韓國","日本","中國","香港","新加坡","泰國","越南","美國","歐洲","英國","其他"];
+  const existing=Object.keys(currencyMap).filter(c=>!order.includes(c));
+  return [...order.filter(c=>c==="其他" || currencyMap[c]),...existing]
+    .map(c=>`<option value="${c}" ${data.trip.country==c?"selected":""}>${c}</option>`)
+    .join("");
+}
+
+function v15CityOptions(selected=""){
+  const list=(v15CountryCityMaps().cityMap[$("country")?.value || data.trip.country] || ["自訂"]);
+  const safeSelected = selected && list.includes(selected) ? selected : (list[0] || "自訂");
+  return list.map(c=>`<option value="${c}" ${c===safeSelected?"selected":""}>${c}</option>`).join("");
+}
+
+function v15CurrentCity(){
+  const city=data.trip.city || "";
+  if(city)return city;
+  const dest=data.trip.dest || "";
+  const country=data.trip.country || "";
+  return dest.replace(country,"").trim() || (v15CountryCityMaps().cityMap[country]?.[0] || "");
+}
+
+function v15DestinationName(country, city){
+  if(country==="香港" || country==="新加坡")return country;
+  if(country==="其他"){
+    return city || "自訂目的地";
+  }
+  return `${country}${city||""}`;
+}
+
+function updateCustomCityVisibility(){
+  const citySel=$("citySelect");
+  const box=$("customCityBox");
+  if(!citySel || !box)return;
+  box.style.display = citySel.value==="自訂" || $("country")?.value==="其他" ? "block" : "none";
+}
+
+function updateDestByCity(){
+  updateCustomCityVisibility();
+  countryChanged();
+}
+
+function refreshCityOptions(){
+  const citySel=$("citySelect");
+  if(!citySel)return;
+  const list = v15CountryCityMaps().cityMap[$("country").value] || ["自訂"];
+  citySel.innerHTML = v15CityOptions(list[0] || "自訂");
+  const custom=$("cityCustom");
+  if(custom)custom.value="";
+  updateCustomCityVisibility();
+  countryChanged();
+}
+
+function handleCountrySelectChange(){
+  refreshCityOptions();
+}
+
+function countryChanged(){
+  const c=$("country")?.value || data.trip.country;
+  if($("currency") && currencyMap[c]){
+    $("currency").value=currencyMap[c];
+  }
+  if($("rateSetup") && currencyMap[c]){
+    $("rateSetup").value=rateMap[currencyMap[c]]||data.trip.rate;
+  }
+  const citySel=$("citySelect");
+  const custom=$("cityCustom");
+  if(citySel){
+    const city=citySel.value==="自訂" ? (custom?.value || "") : citySel.value;
+    const dest=v15DestinationName(c, city);
+    const destInput=$("dest");
+    if(destInput)destInput.value=dest;
+  }
 }
 
 init();
