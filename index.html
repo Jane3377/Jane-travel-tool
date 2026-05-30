@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#d9efe6">
-<title>貞選旅管家 Janeselect Travel Manager</title>
+<title>貞選旅管家</title>
+<link id="janeselectFavicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%234A5D4E'/%3E%3Ctext x='32' y='43' text-anchor='middle' font-family='Georgia,serif' font-size='34' font-weight='700' fill='%23fffaf2'%3EJ%3C/text%3E%3C/svg%3E">
 <style>
 :root{--bg:#f7f3ec;--card:#fffdfa;--ink:#3f3a35;--muted:#8b827a;--line:#eadfd4;--mint:#d9efe6;--mint2:#b9dccc;--dark:#628f80;--blue:#e3f0fa;--pink:#f8dfe8;--yellow:#fff0c5;--green:#edf8f3;--shadow:0 16px 40px rgba(88,72,55,.08);--r:22px}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 0 0,#e1f2ec,transparent 34%),radial-gradient(circle at 100% 0,#fde4ec,transparent 30%),linear-gradient(#fbf7f1,#f7f3ec);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif}.app{max-width:1160px;margin:auto;padding:14px 14px 86px}header,.panel,.main,.card{background:rgba(255,255,255,.92);border:1px solid rgba(255,255,255,.84);box-shadow:var(--shadow);border-radius:var(--r)}header{padding:18px}.badge{display:inline-flex;align-items:center;gap:6px;background:var(--mint);color:#41675d;border-radius:999px;padding:7px 12px;font-weight:900;font-size:13px;margin-bottom:10px}.titleRow{display:flex;align-items:center;gap:8px}h1{margin:0;font-size:32px;line-height:1.15;letter-spacing:-1px}.subRow{display:flex;align-items:flex-start;gap:7px;margin:10px 0 14px}.sub{color:var(--muted);line-height:1.65;font-size:15px;margin:0;flex:1}.iconBtn{border:0;background:#f3eee8;color:#5d554e;border-radius:50%;width:32px;height:32px;font-size:16px;font-weight:900;display:grid;place-items:center;flex:0 0 auto}.iconBtn.smallIcon{width:30px;height:30px;font-size:14px}.heroStats{display:grid;grid-template-columns:1fr 1fr;gap:9px}.heroStats div{background:#fff;border:1px solid var(--line);border-radius:17px;padding:11px}.heroStats span{display:block;color:var(--muted);font-size:12px;margin-bottom:4px}.heroStats strong{font-size:16px}.tabs{display:flex;gap:9px;flex-wrap:wrap;margin:14px 0}.tab{border:0;background:#fff;border-radius:999px;padding:10px 13px;font-weight:900;color:var(--ink);box-shadow:0 8px 20px rgba(88,72,55,.06)}.tab.active{background:var(--ink);color:#fff}.layout{display:grid;grid-template-columns:300px 1fr;gap:14px;align-items:start}.panel{padding:14px;position:static}.main{padding:14px}.section{display:flex;justify-content:space-between;gap:12px;margin-bottom:12px}.section h2,.section h3{margin:0}.hint,.mini{color:var(--muted);font-size:13px;line-height:1.55}label{display:block;margin:9px 0 5px;font-size:13px;font-weight:900}input,select,textarea{width:100%;border:1px solid var(--line);border-radius:14px;background:#fffdf9;padding:10px 11px;font-size:15px;color:var(--ink)}textarea{min-height:66px;resize:vertical}.two{display:grid;grid-template-columns:1fr 1fr;gap:9px}.three{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.four{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:11px}.btn{
   border:1px solid rgba(255,255,255,.78);
@@ -5271,7 +5272,7 @@ body[data-theme-mode] .btn.pink{
   <button class="btn blue compact hidden" id="cloudLoadBtn" onclick="loadFromCloud()">載入雲端</button>
   <button class="btn pink compact hidden" id="cloudSaveBtn" onclick="saveToCloudNow()">立即同步</button>
 </div>
-<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="stayView" class="hidden"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>VoyageMemo.｜LocalStorage + Cloudinary Version<br><strong>版本：v63｜2026-05-30｜登入白名單與多旅程架構版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
+<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="stayView" class="hidden"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>貞選旅管家 Janeselect Travel Manager｜LocalStorage + Firebase + Cloudinary<br><strong>版本：v63.1｜2026-05-30｜品牌更新、旅程清單美化與航班住宿版面修正版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
 
 <!-- Firebase SDK for cross-device sync -->
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -7696,7 +7697,7 @@ function photoBookDay(d){
 
 /* ===== Version marker ===== */
 const APP_VERSION = "v63｜2026-05-30｜登入白名單與多旅程架構版";
-console.log("VoyageMemo.", APP_VERSION);
+console.log("貞選旅管家", APP_VERSION);
 
 
 /* ===== v21 overrides: country reset on save, option modals, locked names, budget exclusion ===== */
@@ -12550,7 +12551,7 @@ function exportPhotoBookPDF(){
     photoBookMode = "pdf";
     renderPhotoBook();
   }
-  alert("已切換到 PDF 預覽模式。建議使用電腦 Chrome 匯出 PDF，會最接近 VoyageMemo. 旅跡手帳的 A4 小冊子排版。");
+  alert("已切換到 PDF 預覽模式。建議使用電腦 Chrome 匯出 PDF，會最接近貞選旅管家的 A4 小冊子排版。");
   print();
 }
 
@@ -15416,6 +15417,266 @@ async function v63Boot(){
   }
 }
 v63Boot();
+</script>
+
+
+<style>
+/* ===== v63.1 brand polish + trip list + stay flight layout ===== */
+:root{
+  --jm-olive:#4A5D4E;
+  --jm-cream:#fffaf2;
+  --jm-soft:#F2F6F4;
+  --jm-line:#E2DDD5;
+}
+.loginBrand,.badge{
+  letter-spacing:.2px;
+}
+.loginBrand::first-letter,
+.badge::first-letter{
+  font-family:Georgia,serif;
+}
+.tripListHero{
+  position:relative;
+  overflow:hidden;
+  border-radius:30px;
+  background:
+    radial-gradient(circle at 92% 12%,rgba(217,239,230,.82),transparent 150px),
+    radial-gradient(circle at 16% 100%,rgba(248,223,232,.58),transparent 190px),
+    rgba(255,255,255,.96);
+}
+.tripListHero::after{
+  content:"J";
+  position:absolute;
+  right:24px;
+  bottom:-38px;
+  font-family:Georgia,serif;
+  font-size:150px;
+  font-weight:700;
+  color:rgba(74,93,78,.06);
+  line-height:1;
+  pointer-events:none;
+}
+.tripGrid{
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+}
+.tripListCard{
+  border-radius:24px;
+  border-color:rgba(226,221,213,.88);
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.98),rgba(255,253,249,.94));
+  transition:transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+}
+.tripListCard:hover{
+  transform:translateY(-2px);
+  box-shadow:0 18px 44px rgba(88,72,55,.10);
+  border-color:#cfded7;
+}
+.tripListCard .tripBadge{
+  background:#f2f6f4;
+  color:#4A5D4E;
+}
+.tripCardTop{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:10px;
+}
+.tripCardIcon{
+  width:42px;
+  height:42px;
+  border-radius:16px;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(135deg,#e5ece9,#fff3e7);
+  color:#4A5D4E;
+  font-family:Georgia,serif;
+  font-weight:800;
+  flex:0 0 auto;
+}
+.tripCardMetaGrid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:7px;
+  margin:10px 0 11px;
+}
+.tripCardMetaGrid div{
+  border:1px solid var(--line);
+  background:#fffdf8;
+  border-radius:14px;
+  padding:8px;
+  min-width:0;
+}
+.tripCardMetaGrid span{
+  display:block;
+  color:var(--muted);
+  font-size:11px;
+  font-weight:900;
+  margin-bottom:3px;
+}
+.tripCardMetaGrid b{
+  display:block;
+  font-size:12px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.tripCreateCard{
+  border-radius:26px;
+}
+.tripCreateCard h3{
+  margin-top:0;
+}
+
+/* 航班住宿頁：避免去回程在大螢幕被拉成兩個超寬欄位 */
+#stayView .stayFlightGrid{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:12px;
+  max-width:920px;
+  margin:0 auto;
+}
+#stayView .flightDense{
+  overflow:hidden;
+}
+#stayView .flightDense .box{
+  white-space:normal!important;
+  line-height:1.38!important;
+  padding:10px!important;
+  border-radius:18px!important;
+}
+#stayView .flightDense .box h3{
+  margin:0 0 8px!important;
+  font-size:16px!important;
+  line-height:1.25!important;
+}
+#stayView .flightDense label{
+  margin:7px 0 4px!important;
+  font-size:12px!important;
+  line-height:1.25!important;
+}
+#stayView .flightDense input,
+#stayView .flightDense select,
+#stayView .flightDense textarea{
+  min-height:36px!important;
+  padding:7px 9px!important;
+  font-size:14px!important;
+  border-radius:12px!important;
+  width:100%!important;
+  max-width:100%!important;
+}
+#stayView .flightDense textarea{
+  min-height:44px!important;
+}
+#stayView .flightDense .three,
+#stayView .flightDense .two,
+#stayView .flightDense .four,
+#stayView .flightDense .terminalPair{
+  gap:7px!important;
+}
+#stayView .flightDense .segmentBox{
+  margin:8px 0!important;
+  border-radius:15px!important;
+  background:#fffdf8!important;
+}
+#stayView .flightDense .segmentBox summary{
+  padding:8px 10px!important;
+}
+#stayView .flightDense .segmentInner{
+  padding:0 9px 9px!important;
+}
+#stayView .flightStatusBox{
+  max-width:920px;
+  margin:12px auto 0!important;
+}
+#stayView .flightStatusActions{
+  margin-top:8px!important;
+}
+@media(min-width:980px){
+  #stayView .flightDense .box{
+    padding:12px!important;
+  }
+}
+@media(max-width:620px){
+  .tripGrid{grid-template-columns:1fr}
+  .tripCardMetaGrid{grid-template-columns:1fr 1fr}
+  #stayView .stayFlightGrid{max-width:none}
+  #stayView .flightDense .three,
+  #stayView .flightDense .two,
+  #stayView .flightDense .four,
+  #stayView .flightDense .terminalPair,
+  #stayView .flightDense .three.compactMobile,
+  #stayView .flightDense .four.compactMobile{
+    grid-template-columns:1fr!important;
+  }
+  #stayView .flightDense input,
+  #stayView .flightDense select,
+  #stayView .flightDense textarea{
+    font-size:16px!important;
+  }
+}
+@media print{
+  #janeselectFavicon{display:none!important}
+}
+</style>
+
+<script>
+/* ===== v63.1 functional overrides ===== */
+function v631BrandTitle(){
+  document.title="貞選旅管家";
+}
+function renderHead(){
+  $("titleText").textContent=data.meta.title||"貞選旅管家";
+  v631BrandTitle();
+  $("subtitleText").textContent=data.meta.subtitle||base.meta.subtitle;
+  $("sDest").textContent=data.trip.dest||"未設定";
+  $("sDate").textContent=data.trip.start&&data.trip.end?`${short(data.trip.start)}-${short(data.trip.end)}`:"未設定";
+}
+function renderTripList(){
+  const el=$("tripListView"); if(!el)return;
+  const active=tripList.filter(t=>!t.archived);
+  const archived=tripList.filter(t=>t.archived);
+  el.innerHTML=`<div class="gateShell">
+    <div class="tripListHero"><div><div class="loginBrand">J｜貞選旅管家</div><h1>我的旅程</h1><p>每趟旅程都是一包獨立資料：旅遊地、航班住宿、行程、口袋景點、預算、行李與旅遊書都會分開保存。</p></div><div class="tripListCount">${active.length}/${V63_MAX_TRIPS} 個旅程</div></div>
+    <div class="tripGrid">${active.map(v63TripCard).join("") || '<div class="tripListCard"><div class="tripCardTop"><div><span class="tripBadge">尚未開始</span><h3>還沒有旅程</h3></div><div class="tripCardIcon">J</div></div><div class="meta">先在下方新增第一趟旅程。</div></div>'}</div>
+    ${archived.length?`<details class="tripCreateCard"><summary style="cursor:pointer;font-weight:950">封存旅程</summary><div class="tripGrid">${archived.map(v63TripCard).join("")}</div></details>`:""}
+    <div class="tripCreateCard"><h3>＋ 新增旅程</h3><div class="tripCreateGrid"><div><label>旅程名稱</label><input id="newTripTitle" placeholder="例：2026 釜山自由行"></div><div><label>國家 / 區域</label><select id="newTripCountry" onchange="v63NewTripCountryChanged()">${Object.keys(currencyMap).map(c=>`<option value="${c}">${c}</option>`).join("")}<option value="其他">其他</option></select></div><div><label>城市 / 路線</label><input id="newTripCity" value="釜山"></div><div><label>出發日</label><input id="newTripStart" type="date"></div><div><label>回程日</label><input id="newTripEnd" type="date"></div><div style="align-self:end"><button class="btn dark" style="width:100%" onclick="createTrip()">建立旅程</button></div></div><div class="cloudHint">建立後會先進入旅遊地設定；完成旅遊地後才會解鎖其他功能。</div></div>
+    <div class="btns"><button class="btn soft" onclick="firebaseSignOut()">登出</button></div>
+  </div>`;
+  v631BrandTitle();
+}
+function v63TripCard(t){
+  const dateText=t.start&&t.end?`${esc(short(t.start))} - ${esc(short(t.end))}`:"尚未完成";
+  const destText=t.dest||"未設定目的地";
+  return `<div class="tripListCard ${t.archived?"archived":""}">
+    <div class="tripCardTop"><div><span class="tripBadge">${t.archived?"已封存":"旅程"}</span><h3>${esc(t.title||"未命名旅程")}</h3></div><div class="tripCardIcon">J</div></div>
+    <div class="tripCardMetaGrid"><div><span>目的地</span><b>${esc(destText)}</b></div><div><span>日期</span><b>${dateText}</b></div></div>
+    <div class="meta">${t.updatedAtClient?`最後更新：${new Date(t.updatedAtClient).toLocaleDateString("zh-TW")}`:"尚未同步更新時間"}</div>
+    <div class="btns"><button class="btn dark compact" onclick="selectTrip('${t.id}')">繼續編輯</button>${t.archived?`<button class="btn blue compact" onclick="restoreTrip('${t.id}')">還原</button>`:`<button class="btn soft compact" onclick="archiveTrip('${t.id}')">封存</button>`}</div>
+  </div>`;
+}
+function renderStay(){
+  if(!$("stayView"))return;
+  const h=editingHotelId?data.hotels.find(x=>x.id==editingHotelId):null;
+  if(!v63TripReady()){
+    $("stayView").innerHTML=`<div class="empty">請先完成旅遊地設定，才能使用航班住宿。</div>`;
+    return;
+  }
+  if(typeof v18SortHotels==="function")v18SortHotels();
+  $("stayView").innerHTML=`<div class="section"><div><h2>✈️ 航班住宿</h2><div class="hint">這裡只管理航班、機場接送與住宿；旅遊地設定已拆到前一個頁籤。</div></div></div>
+  <details class="card flightDense stayFlightCard" open><summary>① ✈️ 航班與機場接送</summary><div class="detailBody"><div class="stayFlightGrid"><div class="box blue"><h3>去程</h3>${flightForm("out")}</div><div class="box pink"><h3>回程</h3>${flightForm("back")}</div></div>${typeof flightStatusHtml==="function"?flightStatusHtml():""}<div class="btns" style="max-width:920px;margin-left:auto;margin-right:auto"><button class="btn dark" onclick="saveFlights()">存好航班設定</button></div></div></details>
+  <details class="card" ${v16KeepHotelOpen||editingHotelId?"open":""}><summary>② 🏨 住宿</summary><div class="detailBody"><div class="three compactMobile"><div class="full"><label>住宿名稱</label><input id="hname" value="${esc(h?.name||"")}"></div><div><label>入住日</label><input id="hstart" type="date" min="${data.trip.start}" max="${data.trip.end}" value="${h?.start||data.trip.start}"></div><div><label>退房日</label><input id="hend" type="date" min="${data.trip.start}" max="${data.trip.end}" value="${h?.end||data.trip.end}"></div></div><label>地址</label><div class="two"><input id="haddr" value="${esc(h?.addr||"")}" placeholder="可手動貼上飯店地址"><button class="btn blue compact" onclick="searchHotelAddress()">查地圖</button></div><label>備註</label><textarea id="hnote">${esc(h?.note||"")}</textarea><div class="btns"><button class="btn dark" onclick="saveHotel()">${h?"存好住宿修改":"新增住宿"}</button>${h?'<button class="btn soft" onclick="editingHotelId=null;v16KeepHotelOpen=true;renderStay()">取消編輯</button>':""}</div><div class="hotelSortedNote">住宿會依入住日自動排序；可選日期已限制在旅遊日期內。</div><div class="grid2" style="margin-top:10px">${data.hotels.map(hotelCard).join("")||'<div class="empty">還沒有新增住宿</div>'}</div></div></details>`;
+}
+document.addEventListener("input", function(e){
+  if(e.target && e.target.closest && e.target.closest("#stayView .flightDense")){
+    if(typeof v39MarkFlightDirty==="function")v39MarkFlightDirty();
+  }
+}, true);
+document.addEventListener("change", function(e){
+  if(e.target && e.target.closest && e.target.closest("#stayView .flightDense")){
+    if(typeof v39MarkFlightDirty==="function")v39MarkFlightDirty();
+  }
+}, true);
+v631BrandTitle();
 </script>
 
 </body></html>
