@@ -4292,7 +4292,7 @@ body[data-theme-mode] .btn.pink{
   }
 
   .pdfPage:not(.pdfCoverPage)::before{
-    content:"VOYAGEMEMO.  |  JOURNEY MEMO";
+    content:"JANESELECT TRAVEL MANAGER  |  JOURNEY MEMO";
     position:absolute;
     top:11mm;
     left:18mm;
@@ -12828,7 +12828,7 @@ function storyBookCoverHtml(){
       <img class="storyBookCoverImage" src="${cover}">
       <div class="storyBookCoverOverlay"></div>
       <div class="storyBookCoverText">
-        <span class="eyebrow">VOYAGEMEMO.</span>
+        <span class="eyebrow">JANESELECT</span>
         <h1>${esc(data.meta.title)}</h1>
         <p>${esc(data.meta.subtitle)}</p>
         <div class="storyBookCoverMeta">
@@ -12841,7 +12841,7 @@ function storyBookCoverHtml(){
   }
   return `<section class="storyBookCover storyInlineEmpty noPrint">
     <div>
-      <span class="eyebrow">VOYAGEMEMO.</span>
+      <span class="eyebrow">JANESELECT</span>
       <h1>${esc(data.meta.title)}</h1>
       <p>${esc(data.meta.subtitle)}</p>
       <div style="margin-top:16px">
@@ -14444,7 +14444,7 @@ try{
   }
 
   .pdfPage::after{
-    content:"VOYAGEMEMO. 旅跡手帳";
+    content:"JANESELECT 旅跡手帳";
     position:absolute;
     bottom:8mm;
     left:17mm;
@@ -17863,238 +17863,120 @@ setTimeout(()=>{
 
 
 
-<style>
-/* ===== v64.2 AI compact interface + iPad layout only ===== */
-.v642AiBarCompact{
-  padding:10px 12px !important;
-  border-radius:18px !important;
-  margin:0 0 10px !important;
-}
-.v642AiBarCompact .v64AiBarHead{
-  display:flex;
-  justify-content:space-between;
-  gap:10px;
-  align-items:center;
-}
-.v642AiBarCompact .v64AiBarHead b{font-size:14px;}
-.v642AiBarCompact .v64AiBarHead span{font-size:12px;line-height:1.35;}
-.v642AiBarCompact .v64AiActions{
-  display:flex;
-  gap:7px;
-  flex-wrap:wrap;
-  margin-top:8px;
-}
-.v642AiBarCompact .btn.compact{
-  min-height:32px;
-  padding:7px 11px !important;
-}
-.v642ModalNote{
-  margin:8px 0 11px;
-  border:1px solid var(--theme-line,#E2DDD5);
-  border-radius:16px;
-  padding:10px 12px;
-  background:var(--theme-primary-weak,#F2F6F4);
-  color:var(--theme-muted,#8B827A);
-  font-size:12px;
-  line-height:1.55;
-}
-.v642PrefsModal .v641Prefs{
-  margin:0 0 12px !important;
-  box-shadow:none !important;
-}
-.v642PrefsModal .v641PrefsGrid{
-  grid-template-columns:repeat(3,minmax(0,1fr));
-}
-.v642ReviewFold{
-  border:1px solid var(--theme-line,#E2DDD5);
-  border-radius:18px;
-  background:rgba(255,255,255,.92);
-  box-shadow:0 10px 28px rgba(44,42,41,.045);
-  margin:0 0 12px;
-  overflow:hidden;
-}
-.v642ReviewFold summary{
-  cursor:pointer;
-  list-style:none;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:10px;
-  padding:12px 13px;
-  font-weight:900;
-}
-.v642ReviewFold summary::-webkit-details-marker{display:none;}
-.v642ReviewFold summary:after{
-  content:'⌄';
-  color:var(--theme-primary,#4A5D4E);
-  font-weight:950;
-  transition:.18s;
-}
-.v642ReviewFold[open] summary:after{transform:rotate(180deg);}
-.v642ReviewSummary b{display:block;font-size:14px;margin-bottom:3px;}
-.v642ReviewSummary span{display:block;color:var(--theme-muted,#8B827A);font-size:11px;line-height:1.45;}
-.v642ReviewBody{padding:0 12px 12px;}
-.v642ReviewCardLite{
-  border:1px solid var(--theme-line,#E2DDD5);
-  border-radius:16px;
-  background:#fffdf9;
-  padding:10px;
-  margin-top:8px;
-}
-.v642ReviewCardLite:first-child{margin-top:0;}
-.v642ReviewCardLite .v641ReviewHead{margin-bottom:8px;}
-.v642ReviewItemsCompact{display:grid;gap:7px;margin-top:8px;}
-.v642ReviewItemsCompact .v641ReviewItem{margin:0;}
-@media(max-width:900px){
-  .v642AiBarCompact .v64AiBarHead{align-items:flex-start;}
-  .v642AiBarCompact .v64AiActions{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px;}
-  .v642AiBarCompact .v64AiActions .btn{flex:0 0 auto;}
-}
-@media(max-width:620px){
-  .v642AiBarCompact{padding:9px 10px !important;border-radius:17px !important;}
-  .v642AiBarCompact .v64AiBarHead{display:block;}
-  .v642AiBarCompact .v64AiBarHead span{display:block;margin-top:3px;}
-  .v642AiBarCompact .v64AiActions{gap:6px;margin-top:9px;}
-  .v642PrefsModal .v641PrefsGrid{grid-template-columns:1fr;}
-  .v642ReviewFold summary{padding:11px;align-items:flex-start;}
-  .v642ReviewBody{padding:0 10px 10px;}
-  #v642AiCheckModal{align-items:flex-end!important;padding:10px!important;}
-  #v642AiCheckModal .v64AiBox{width:100%!important;max-height:82vh!important;border-radius:24px!important;}
-}
-@media print{.v642AiBarCompact,.v642ReviewFold,#v642AiCheckModal{display:none!important;}}
-</style>
-
 <script>
-/* ===== v64.2 AI compact interface + iPad layout only =====
-   - 行程頁 AI 區塊改輕量工具列
-   - 偏好參考移入 AI 健檢彈窗
-   - AI 健檢建議預設收合
-   - 不改資料主結構；沿用 aiReviews 可選欄位
+/* ===== v64.2 AI brand visual restore layer =====
+   目的：恢復 Janeselect 品牌主視覺，不動 data / localStorage / Firebase / Cloudinary / AI 匯入結構。
+   範圍：Logo、favicon、登入頁、旅程清單頁、主頁 badge、頁尾品牌文字。
 */
-const V642_VERSION_SHORT = '版本：v64.2｜2026-05-31';
-const V642_VERSION_TEXT = 'v64.2｜2026-05-31｜AI 輔助介面收合與 iPad 版面優化版';
-
-function v642EnsureCheckModal(){
-  if($('v642AiCheckModal')) return;
-  document.body.insertAdjacentHTML('beforeend', `<div class="v64AiModal v642PrefsModal noPrint" id="v642AiCheckModal" aria-hidden="true">
-    <div class="v64AiBox">
-      <div class="v64AiHead">
-        <div><h3>AI 健檢</h3><p>只檢查已排入行程；偏好參考可不填。</p></div>
-        <button type="button" class="iconBtn" onclick="v642CloseCheckModal()">×</button>
-      </div>
-      <div class="v642ModalNote">旅遊風格、MBTI、星座只會放進提示詞，讓 AI 回覆更貼近需求，不會寫進旅程資料。</div>
-      <div id="v642PrefsMount"></div>
-      <div class="btns">
-        <button class="btn dark" type="button" onclick="v642GenerateItineraryPrompt()">產生提示詞</button>
-        <button class="btn soft" type="button" onclick="v642CloseCheckModal()">關閉</button>
-      </div>
-    </div>
-  </div>`);
+function v64BrandRestoreMarkSvg(){
+  return `<span class="brandMark" aria-hidden="true"><svg viewBox="0 0 64 64" focusable="false"><rect x="10" y="13" width="40" height="43" rx="10"></rect><path d="M22 13c1.7-5.4 13.9-5.4 15.6 0"></path><path d="M21 28h18M21 38h14"></path><circle cx="45" cy="18" r="6"></circle><path d="M45 14v4l3 2"></path></svg></span>`;
 }
-function v642OpenCheckModal(){
-  v642EnsureCheckModal();
-  const mount=$('v642PrefsMount');
-  if(mount && typeof v641PrefsHtml==='function') mount.innerHTML=v641PrefsHtml();
-  $('v642AiCheckModal').classList.add('show');
-  $('v642AiCheckModal').setAttribute('aria-hidden','false');
+function v64BrandRestoreFavicon(){
+  const fav=document.getElementById('janeselectFavicon');
+  if(!fav)return;
+  fav.href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%234A5D4E'/%3E%3Cpath d='M20 18h25a5 5 0 0 1 5 5v27a5 5 0 0 1-5 5H20a6 6 0 0 1-6-6V24a6 6 0 0 1 6-6z' fill='%23FFFAF2'/%3E%3Cpath d='M22 16c2-7 17-7 19 0' fill='none' stroke='%23FFFAF2' stroke-width='4' stroke-linecap='round'/%3E%3Cpath d='M24 31h17M24 40h13' stroke='%234A5D4E' stroke-width='4' stroke-linecap='round'/%3E%3Ccircle cx='45' cy='19' r='7' fill='%23E5ECE9'/%3E%3Cpath d='M45 15v5l4 2' stroke='%234A5D4E' stroke-width='2.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E";
+  fav.dataset.v64BrandRestored='1';
 }
-function v642CloseCheckModal(){
-  $('v642AiCheckModal')?.classList.remove('show');
-  $('v642AiCheckModal')?.setAttribute('aria-hidden','true');
+function v64BrandRestoreApply(){
+  document.title = (data?.meta?.title ? data.meta.title + '｜' : '') + '貞選旅管家';
+  document.querySelectorAll('.badge').forEach(el=>{
+    el.innerHTML = `${v64BrandRestoreMarkSvg()}<span>貞選旅管家</span>`;
+    el.dataset.v64BrandRestored='1';
+  });
+  document.querySelectorAll('.loginBrand').forEach(el=>{
+    el.innerHTML = `${v64BrandRestoreMarkSvg()}<span><b>貞選旅管家</b><small>Janeselect Travel Manager</small></span>`;
+    el.dataset.v64BrandRestored='1';
+  });
+  document.querySelectorAll('.siteFooterBrand').forEach(el=>{
+    el.innerHTML='貞選旅管家 <span>Janeselect Travel Manager</span>';
+  });
+  v64BrandRestoreFavicon();
 }
-function v642GenerateItineraryPrompt(){
-  try{ if(typeof v641SavePrefsFromDom==='function') v641SavePrefsFromDom(); }catch(e){}
-  v642CloseCheckModal();
-  v64ShowPrompt('itinerary','AI 健檢','請 AI 檢查已排入行程的順路性與節奏。');
-}
-function v642ReviewCount(){ return (data.aiReviews?.itinerary||[]).length; }
-function v642ScrollReviews(){
-  const block=$('v641ReviewBlock');
-  if(!block){ toast('目前還沒有 AI 健檢建議'); return; }
-  const details=block.querySelector('details');
-  if(details) details.open=true;
-  block.scrollIntoView({behavior:'smooth',block:'start'});
-}
-
-/* 行程 AI 工具列改成輕量版：偏好改進彈窗 */
-const v642PrevAiBarHtml = typeof v64AiBarHtml==='function' ? v64AiBarHtml : null;
-v64AiBarHtml = function(kind){
-  if(kind==='planner'){
-    const count=v642ReviewCount();
-    return `<div class="v64AiBar v642AiBarCompact" id="v64AiBar-planner">
-      <div class="v64AiBarHead"><div><b>AI 輔助</b><span>需要時再開啟健檢、匯入或查看建議，主畫面保留給每日行程。</span></div></div>
-      <div class="v64AiActions">
-        <button class="btn pink compact" onclick="v642OpenCheckModal()">AI 健檢</button>
-        <button class="btn blue compact" onclick="v64OpenImportModal('itinerary')">AI 匯入</button>
-        <button class="btn soft compact" onclick="v642ScrollReviews()">查看建議${count?` ${count}`:''}</button>
-      </div>
-    </div>`;
+(function(){
+  const prevRenderHead = typeof renderHead==='function' ? renderHead : null;
+  if(prevRenderHead && !window.__v64BrandRestoreRenderHeadPatched){
+    renderHead = function(...args){
+      const r = prevRenderHead.apply(this,args);
+      v64BrandRestoreApply();
+      return r;
+    };
+    window.__v64BrandRestoreRenderHeadPatched=true;
   }
-  return v642PrevAiBarHtml ? v642PrevAiBarHtml(kind) : '';
-};
-
-/* AI 健檢建議：預設收合，避免 iPad/桌機主畫面被占滿 */
-v641ReviewHtml = function(){
-  const reviews=(data.aiReviews?.itinerary||[]).slice(0,5);
-  if(!reviews.length) return '';
-  const latest=reviews[0];
-  return `<details class="v642ReviewFold" id="v642ReviewDetails">
-    <summary><div class="v642ReviewSummary"><b>AI 健檢建議 ${reviews.length} 則</b><span>最新：${esc((latest.createdAt||'').slice(0,10))}｜預設收合，不會自動覆蓋行程。</span></div></summary>
-    <div class="v642ReviewBody">
-      ${reviews.map(r=>`<div class="v642ReviewCardLite">
-        <div class="v641ReviewHead"><div><b>${esc((r.createdAt||'').slice(0,10))} AI 健檢</b><span>只作為調整參考，不會自動改時間或重排行程。</span></div><button class="small" onclick="v641DeleteReview('${r.id}')">刪除</button></div>
-        ${r.summary?`<div class="box mint">${esc(r.summary)}</div>`:''}
-        ${r.items?.length?`<div class="v642ReviewItemsCompact">${r.items.map(x=>`<div class="v641ReviewItem"><em>${esc(x.day||'全旅程')}｜${esc(x.level||'建議')}</em><strong>${esc(x.title||'AI 建議')}</strong>${esc(x.memo||'')}</div>`).join('')}</div>`:''}
-      </div>`).join('')}
-    </div>
-  </details>`;
-};
-
-/* 匯入成功後自動展開建議，但後續 render 預設仍收合 */
-const v642PrevImportAiText = typeof v64ImportAiText==='function' ? v64ImportAiText : null;
-v64ImportAiText = function(){
-  const raw=$('v64AiImportText')?.value || '';
-  if(!raw.trim()) return toast('請先貼上 AI 回覆');
-  try{
-    const obj=JSON.parse(v64JsonText(raw));
-    const result=v64ImportAiObject(obj);
-    if(!result.count) throw new Error('no items');
-    silentSave();
-    render();
-    v64CloseImportModal();
-    if(result.label==='AI 健檢建議'){
-      setTimeout(()=>{go('planner'); setTimeout(v642ScrollReviews,120);},80);
-      toast('已匯入 AI 健檢建議');
-    }else{
-      toast(`已匯入 ${result.count} 筆${result.label}`);
-    }
-  }catch(e){
-    $('v64AiImportPreview').textContent='匯入失敗：請確認貼上的是純 JSON，且格式符合 AI 提示詞要求。';
+  const prevRenderLogin = typeof renderLoginView==='function' ? renderLoginView : null;
+  if(prevRenderLogin && !window.__v64BrandRestoreLoginPatched){
+    renderLoginView = function(...args){
+      const r = prevRenderLogin.apply(this,args);
+      v64BrandRestoreApply();
+      return r;
+    };
+    window.__v64BrandRestoreLoginPatched=true;
   }
-};
-
-/* 更新說明頁與頁尾版本 */
-v64UpdateFooterVersion = function(){
-  document.querySelectorAll('footer strong,.siteFooterVersion').forEach(el=>el.textContent=V642_VERSION_SHORT);
-  if(typeof v637EnsureFooter === 'function') v637EnsureFooter();
-};
-renderHelp = function(){
-  const allowed = (typeof ALLOWED_EMAIL !== 'undefined') ? ALLOWED_EMAIL : '';
-  $('helpView').innerHTML=`<div class="section"><div><h2>說明與備份</h2><div class="hint">工具使用方式、AI 輔助、資料備份與還原放在這裡。</div></div></div>
-  <div class="card" id="v64UpdateLog">
-    <h3>最新更新紀錄</h3>
-    <div class="box mint"><b>${esc(V642_VERSION_TEXT)}</b><br>行程頁 AI 輔助改為輕量工具列；旅遊風格、MBTI、星座偏好移入 AI 健檢彈窗；AI 健檢建議預設收合，減少 iPad 與桌機版面占用。</div>
-  </div>
-  <div class="card"><h3>AI 輔助使用方式</h3><div class="box blue">AI 輔助放在各功能頁內。行程頁可用 AI 健檢產生提示詞，AI 回覆 JSON 後可用 AI 匯入貼回網站；匯入只新增建議卡片，不會自動重排或覆蓋行程。</div></div>
-  <div class="card"><h3>Firebase 跨裝置同步</h3><div class="box mint">登入授權 Google 帳號後，旅遊資料會同步到 Firestore。照片本體仍存在 Cloudinary，Firestore 只保存圖片網址與旅行資料。</div><div class="btns"><button class="btn dark" onclick="saveToCloudNow()">立即同步到雲端</button><button class="btn blue" onclick="loadFromCloud()">載入雲端資料</button></div>${allowed?`<div class="cloudHint">目前授權 email：${esc(allowed)}</div>`:''}</div>
-  <div class="card"><h3>備份資料</h3><div class="box blue">匯出備份會下載 JSON。匯入備份會覆蓋目前資料。若要修改國家或日期，建議先匯出備份。</div><div class="btns"><button class="btn dark" onclick="exportBackup()">匯出備份</button><label class="btn soft" style="display:inline-block">匯入備份<input type="file" accept=".json,application/json" onchange="importBackup(this.files[0])" style="display:none"></label></div></div>`;
-  if(typeof v641PatchAnchorTargets === 'function') v641PatchAnchorTargets($('helpView'));
-  v64UpdateFooterVersion();
-};
-
-setTimeout(()=>{
-  try{ v64AfterRender?.(); v64UpdateFooterVersion(); if(typeof render==='function') render(); }catch(e){ console.warn(e); }
-},260);
+  const prevRenderList = typeof renderTripList==='function' ? renderTripList : null;
+  if(prevRenderList && !window.__v64BrandRestoreListPatched){
+    renderTripList = function(...args){
+      const r = prevRenderList.apply(this,args);
+      v64BrandRestoreApply();
+      return r;
+    };
+    window.__v64BrandRestoreListPatched=true;
+  }
+  document.addEventListener('DOMContentLoaded',()=>{
+    v64BrandRestoreApply();
+    setTimeout(v64BrandRestoreApply,280);
+    setTimeout(v64BrandRestoreApply,900);
+  });
+  setTimeout(v64BrandRestoreApply,120);
+})();
 </script>
+
+<style>
+/* ===== Janeselect brand visual restore CSS ===== */
+:root{
+  --brand-primary:#4A5D4E;
+  --brand-primary-soft:#E5ECE9;
+  --brand-primary-weak:#F2F6F4;
+  --brand-bg:#F7F3EC;
+  --brand-card:#FFFDFC;
+  --brand-text:#2C2A29;
+  --brand-muted:#8B827A;
+  --brand-line:#E2DDD5;
+  --radius-xl:28px;
+  --radius-lg:24px;
+  --radius-md:18px;
+  --radius-sm:14px;
+  --radius-pill:999px;
+  --shadow-card:0 18px 44px rgba(44,42,41,.055);
+  --shadow-modal:0 24px 70px rgba(44,42,41,.18);
+  --btn-height:44px;
+  --input-height:42px;
+}
+.badge,.loginBrand{
+  display:inline-flex!important;
+  align-items:center!important;
+  gap:9px!important;
+  border-radius:999px!important;
+  background:var(--theme-primary-weak,var(--brand-primary-weak))!important;
+  color:var(--theme-primary,var(--brand-primary))!important;
+  border:1px solid color-mix(in srgb,var(--theme-primary-soft,var(--brand-primary-soft)) 70%, var(--theme-line,var(--brand-line)) 30%)!important;
+  font-weight:900!important;
+  letter-spacing:.2px!important;
+}
+.badge{padding:7px 12px!important;}
+.loginBrand{padding:9px 13px!important;margin-bottom:12px!important;}
+.loginBrand small{display:block;font-size:10.5px;line-height:1.1;color:var(--theme-muted,var(--brand-muted));letter-spacing:.35px;margin-top:2px;}
+.brandMark{width:26px;height:26px;display:inline-grid;place-items:center;flex:0 0 auto;}
+.brandMark svg{width:100%;height:100%;display:block;}
+.brandMark rect{fill:var(--theme-primary,var(--brand-primary));stroke:none;}
+.brandMark path{fill:none;stroke:var(--theme-card,var(--brand-card));stroke-width:4;stroke-linecap:round;stroke-linejoin:round;}
+.brandMark circle{fill:var(--theme-primary-soft,var(--brand-primary-soft));stroke:var(--theme-card,var(--brand-card));stroke-width:2;}
+.tripListHero::after{content:none!important;display:none!important;}
+.tripCardIcon{display:none!important;}
+.tripListHero .loginBrand{letter-spacing:.2px!important;}
+@media(max-width:620px){
+  .badge,.loginBrand{gap:8px!important;}
+  .brandMark{width:24px;height:24px;}
+}
+@media print{.brandMark{display:none!important;}}
+</style>
 
 </body></html>
