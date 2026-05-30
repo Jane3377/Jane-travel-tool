@@ -17979,4 +17979,289 @@ function v64BrandRestoreApply(){
 @media print{.brandMark{display:none!important;}}
 </style>
 
+
+
+<script>
+/* ===== v64.3 date adjustment protection layer =====
+   目的：救援已輸入資料。修改旅遊日期不再清空行程、住宿、預算、照片書與行李。
+   範圍：覆寫日期變更流程，提供「增減天數」與「整趟平移」。不改 Firebase / localStorage key / Cloudinary / 主資料結構。
+*/
+const V643_VERSION_SHORT = "v64.3｜2026-05-31";
+const V643_VERSION_TEXT = "v64.3｜日期調整保護與資料保留版";
+let v643PendingBasic = null;
+
+function v643ReadTripBasicFromForm(){
+  const selectedCountry = $("country")?.value || data.trip.country || "";
+  const cityEl = $("citySelect");
+  let selectedCity = cityEl ? cityEl.value : (data.trip.city || "");
+  let city = selectedCity;
+  if(selectedCity === "自訂" && $("cityCustom")) city = $("cityCustom").value.trim();
+  const dest = (typeof v15DestinationName === 'function')
+    ? v15DestinationName(selectedCountry, city)
+    : (($("dest")?.value || data.trip.dest || "").trim());
+  const count = Number($("travelerCount")?.value || data.trip.travelerCount || 1);
+  const travelers=[];
+  for(let i=0;i<count;i++) travelers.push($("traveler"+i)?.value || data.trip.travelers?.[i] || String.fromCharCode(65+i));
+  return {
+    country:selectedCountry,
+    city,
+    dest,
+    currency:($("currency")?.value || data.trip.currency || "").toUpperCase(),
+    rate:Number($("rateSetup")?.value || data.trip.rate || 1),
+    travelerCount:count,
+    travelers,
+    start:$("start")?.value || data.trip.start || "",
+    end:$("end")?.value || data.trip.end || ""
+  };
+}
+function v643ApplyBasicFields(basic){
+  if(!basic) return;
+  data.trip.country = basic.country;
+  data.trip.city = basic.city;
+  data.trip.dest = basic.dest;
+  data.trip.currency = basic.currency;
+  data.trip.rate = basic.rate;
+  data.trip.travelerCount = basic.travelerCount;
+  data.trip.travelers = basic.travelers;
+}
+function v643DaysBetween(a,b){
+  if(!a || !b) return 0;
+  const d1=parseLocalDate(a), d2=parseLocalDate(b);
+  return Math.round((d2-d1)/86400000);
+}
+function v643ShiftDate(value, offset){
+  if(!value || !/^\d{4}-\d{2}-\d{2}$/.test(String(value))) return value;
+  const d=parseLocalDate(value);
+  d.setDate(d.getDate()+Number(offset||0));
+  return formatLocalDate(d);
+}
+function v643ShiftDateTime(value, offset){
+  if(!value || !/^\d{4}-\d{2}-\d{2}T/.test(String(value))) return value;
+  return v643ShiftDate(value.slice(0,10), offset) + value.slice(10);
+}
+function v643WithinRange(day,start,end){
+  if(!day || !start || !end) return true;
+  return day >= start && day <= end;
+}
+function v643OutOfRangeCounts(start,end){
+  const out={plans:0,spots:0,expenses:0,photos:0,covers:0,hotels:0,total:0};
+  (data.plans||[]).forEach(x=>{ if(x.day && !v643WithinRange(x.day,start,end)) out.plans++; });
+  (data.spots||[]).forEach(x=>{ if(x.day && !v643WithinRange(x.day,start,end)) out.spots++; });
+  (data.expenses||[]).forEach(x=>{ if(x.day && !v643WithinRange(x.day,start,end)) out.expenses++; });
+  (data.photos||[]).forEach(x=>{ if(x.day && !v643WithinRange(x.day,start,end)) out.photos++; });
+  Object.keys(data.dayCovers||{}).forEach(k=>{ if(!v643WithinRange(k,start,end)) out.covers++; });
+  (data.hotels||[]).forEach(h=>{ if((h.start && !v643WithinRange(h.start,start,end)) || (h.end && !v643WithinRange(h.end,start,end))) out.hotels++; });
+  out.total=out.plans+out.spots+out.expenses+out.photos+out.covers+out.hotels;
+  return out;
+}
+function v643EnsureDateModal(){
+  let modal=$("dateResetModal");
+  if(!modal){
+    modal=document.createElement('div');
+    modal.id='dateResetModal';
+    modal.className='resetModal';
+    document.body.appendChild(modal);
+  }
+  modal.className='resetModal v643DateModal';
+  return modal;
+}
+function v643DateSummaryHtml(){
+  const p=v643PendingBasic;
+  if(!p) return '';
+  const oldStart=data.trip.start || '';
+  const oldEnd=data.trip.end || '';
+  const oldDays=(data.days||mkDays(oldStart,oldEnd)||[]).length;
+  const newDays=mkDays(p.start,p.end).length;
+  const deltaStart=v643DaysBetween(oldStart,p.start);
+  const out=v643OutOfRangeCounts(p.start,p.end);
+  const moveText = deltaStart===0 ? '起始日沒有改變，通常選「增減天數」即可。' : `起始日變動 ${deltaStart>0?'往後':'往前'} ${Math.abs(deltaStart)} 天，可選「整趟平移」。`;
+  const outText = out.total ? `新日期範圍外目前有 ${out.total} 筆資料，系統會保留，不會刪除。` : '目前看起來沒有資料落在新日期範圍外。';
+  return `<div class="v643DateCompare">
+    <div><span>原日期</span><b>${esc(oldStart||'未設定')} ～ ${esc(oldEnd||'未設定')}</b><small>${oldDays||0} 天</small></div>
+    <div><span>新日期</span><b>${esc(p.start||'未設定')} ～ ${esc(p.end||'未設定')}</b><small>${newDays||0} 天</small></div>
+  </div>
+  <div class="box mint v643SafeNote"><b>這次不會清空資料。</b><br>${esc(outText)}<br>${esc(moveText)}</div>`;
+}
+function v643OpenDateAdjustModal(){
+  const modal=v643EnsureDateModal();
+  modal.innerHTML=`<div class="resetBox v643DateBox">
+    <h3>調整旅遊日期</h3>
+    <div class="hint">請選擇這次日期變更的情境。系統會保留你已輸入的行程、住宿、預算、照片書、行李與 AI 建議。</div>
+    ${v643DateSummaryHtml()}
+    <div class="v643DateChoices">
+      <button class="v643DateChoice" onclick="v643ConfirmDateAdjust('range')">
+        <b>增減天數</b>
+        <span>適合：起始日正確，只是多一天或少一天。既有日期內資料保留；超出範圍資料只暫存保留。</span>
+      </button>
+      <button class="v643DateChoice" onclick="v643ConfirmDateAdjust('shift')">
+        <b>整趟平移</b>
+        <span>適合：整趟旅行日期錯一天或多天。行程、住宿、照片、預算日期會一起往前或往後移。</span>
+      </button>
+    </div>
+    <div class="btns"><button class="btn soft" onclick="cancelDateReset()">取消</button></div>
+  </div>`;
+  modal.classList.add('show');
+}
+function cancelDateReset(){
+  v19PendingDates=null;
+  v643PendingBasic=null;
+  $("dateResetModal")?.classList.remove("show");
+}
+function v643ShiftTripDateData(offset){
+  if(!offset) return;
+  (data.plans||[]).forEach(x=>{ if(x.day) x.day=v643ShiftDate(x.day,offset); });
+  (data.spots||[]).forEach(x=>{ if(x.day) x.day=v643ShiftDate(x.day,offset); });
+  (data.expenses||[]).forEach(x=>{ if(x.day) x.day=v643ShiftDate(x.day,offset); });
+  (data.photos||[]).forEach(x=>{ if(x.day) x.day=v643ShiftDate(x.day,offset); });
+  (data.hotels||[]).forEach(h=>{ if(h.start) h.start=v643ShiftDate(h.start,offset); if(h.end) h.end=v643ShiftDate(h.end,offset); });
+  if(data.dayCovers){
+    const next={};
+    Object.keys(data.dayCovers).forEach(k=>{ next[v643ShiftDate(k,offset)] = data.dayCovers[k]; });
+    data.dayCovers=next;
+  }
+  if(data.dayCoverMeta){
+    const next={};
+    Object.keys(data.dayCoverMeta).forEach(k=>{ next[v643ShiftDate(k,offset)] = data.dayCoverMeta[k]; });
+    data.dayCoverMeta=next;
+  }
+  if(data.flights){
+    ['out','back'].forEach(k=>{
+      if(data.flights[k]){
+        data.flights[k].dep=v643ShiftDateTime(data.flights[k].dep,offset);
+        data.flights[k].arr=v643ShiftDateTime(data.flights[k].arr,offset);
+      }
+    });
+  }
+  cur=v643ShiftDate(cur,offset);
+  if(window.currentDay) currentDay=v643ShiftDate(currentDay,offset);
+}
+function v643AfterDateApplyToast(mode,outBefore){
+  if(mode==='shift') return toast('已整趟平移日期，資料已保留');
+  if(outBefore?.total) return toast(`已調整日期，${outBefore.total} 筆日期外資料已安全保留`);
+  toast('已調整日期，資料已保留');
+}
+function v643ConfirmDateAdjust(mode){
+  const basic=v643PendingBasic;
+  if(!basic) return cancelDateReset();
+  const oldStart=data.trip.start;
+  const outBefore=v643OutOfRangeCounts(basic.start,basic.end);
+  v643ApplyBasicFields(basic);
+  if(mode==='shift'){
+    const offset=v643DaysBetween(oldStart,basic.start);
+    v643ShiftTripDateData(offset);
+  }
+  data.trip.start=basic.start;
+  data.trip.end=basic.end;
+  data.days=mkDays(data.trip.start,data.trip.end);
+  if(!data.days.some(d=>d.key===cur)) cur=data.days[0]?.key || data.trip.start;
+  if(window.currentDay && !data.days.some(d=>d.key===currentDay)) currentDay=cur;
+  if(typeof v18SortHotels==='function') v18SortHotels();
+  v643PendingBasic=null;
+  v19PendingDates=null;
+  $("dateResetModal")?.classList.remove("show");
+  silentSave();
+  render();
+  if(typeof v63UpdateCurrentTripMeta==='function') setTimeout(()=>v63UpdateCurrentTripMeta(true),80);
+  v643AfterDateApplyToast(mode,outBefore);
+}
+function confirmDateReset(){
+  /* 舊版按鈕若被瀏覽器快取呼叫，也改走安全的增減天數，不再清空資料。 */
+  v643ConfirmDateAdjust('range');
+}
+function v643SaveBasicNoDateChange(basic){
+  v643ApplyBasicFields(basic);
+  data.trip.start=basic.start;
+  data.trip.end=basic.end;
+  data.days=mkDays(data.trip.start,data.trip.end);
+  if(!data.days.some(d=>d.key===cur)) cur=data.days[0]?.key || data.trip.start;
+  if(typeof v18SortHotels==='function') v18SortHotels();
+  silentSave();
+  render();
+  const d=document.querySelectorAll("#tripView details.card")[0];
+  if(d) d.removeAttribute("open");
+  if(typeof v63UpdateCurrentTripMeta==='function') setTimeout(()=>v63UpdateCurrentTripMeta(true),80);
+  toast("已幫你存好囉！");
+}
+/* 最後覆寫 saveBasic：日期改變時不再清空。 */
+saveBasic=function(){
+  const basic=v643ReadTripBasicFromForm();
+  if(basic.country !== data.trip.country){
+    v18PendingCountry=basic.country;
+    if($("country")) $("country").value=data.trip.country;
+    $("countryResetModal")?.classList.add("show");
+    return;
+  }
+  const dateChanged = basic.start !== data.trip.start || basic.end !== data.trip.end;
+  if(dateChanged && data.days?.length){
+    v643PendingBasic=basic;
+    v19PendingDates={start:basic.start,end:basic.end};
+    v643OpenDateAdjustModal();
+    return;
+  }
+  v643SaveBasicNoDateChange(basic);
+};
+function v643OutOfRangeNoticeHtml(){
+  if(!data?.trip?.start || !data?.trip?.end) return '';
+  const out=v643OutOfRangeCounts(data.trip.start,data.trip.end);
+  if(!out.total) return '';
+  return `<div class="card v643OutNotice"><h3>日期外資料已保留</h3><div class="box pink">目前有 ${out.total} 筆資料不在旅遊日期範圍內，系統沒有刪除它們。若需要恢復，可再延長日期或把旅程日期平移回來。</div></div>`;
+}
+const v643PrevRenderTrip = typeof renderTrip==='function' ? renderTrip : null;
+if(v643PrevRenderTrip && !window.__v643RenderTripPatched){
+  renderTrip=function(...args){
+    const r=v643PrevRenderTrip.apply(this,args);
+    const root=$("tripView");
+    if(root && !root.querySelector('.v643OutNotice')) root.insertAdjacentHTML('beforeend', v643OutOfRangeNoticeHtml());
+    return r;
+  };
+  window.__v643RenderTripPatched=true;
+}
+const v643PrevRenderHelp = typeof renderHelp==='function' ? renderHelp : null;
+if(v643PrevRenderHelp && !window.__v643HelpPatched){
+  renderHelp=function(...args){
+    const r=v643PrevRenderHelp.apply(this,args);
+    const log=$("v64UpdateLog") || $("helpView")?.querySelector('.card');
+    if(log){
+      log.innerHTML=`<h3>最新更新紀錄</h3><div class="box mint"><b>${esc(V643_VERSION_TEXT)}</b><br>修改旅遊日期不再清空資料；新增「增減天數」與「整趟平移」兩種安全調整方式，行程、住宿、預算、照片書與行李會保留。</div>`;
+    }
+    v643UpdateFooterVersion();
+    return r;
+  };
+  window.__v643HelpPatched=true;
+}
+function v643UpdateFooterVersion(){
+  document.querySelectorAll('footer strong,.siteFooterVersion').forEach(el=>el.textContent=V643_VERSION_SHORT);
+  document.querySelectorAll('footer').forEach(el=>{
+    if(!el.innerHTML.includes('Janeselect Travel Manager')){
+      el.innerHTML=`貞選旅管家 Janeselect Travel Manager<br><strong>${V643_VERSION_SHORT}</strong>`;
+    }
+  });
+}
+setTimeout(()=>{try{v643UpdateFooterVersion(); if(typeof render==='function') render();}catch(e){console.warn(e)}},300);
+</script>
+
+<style>
+/* ===== v64.3 date adjustment protection UI ===== */
+.v643DateModal{z-index:380!important;}
+.v643DateBox h3{margin:0 0 8px!important;}
+.v643DateCompare{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0;}
+.v643DateCompare div{border:1px solid var(--theme-line,var(--brand-line,#E2DDD5));border-radius:18px;background:#fffdf9;padding:12px;}
+.v643DateCompare span{display:block;color:var(--theme-muted,var(--brand-muted,#8B827A));font-size:12px;font-weight:900;margin-bottom:5px;}
+.v643DateCompare b{display:block;color:var(--theme-ink,var(--brand-text,#2C2A29));font-size:14px;line-height:1.35;}
+.v643DateCompare small{display:inline-flex;margin-top:7px;border-radius:999px;background:var(--theme-primary-weak,var(--brand-primary-weak,#F2F6F4));color:var(--theme-primary,var(--brand-primary,#4A5D4E));padding:4px 8px;font-size:11px;font-weight:900;}
+.v643SafeNote{white-space:normal!important;}
+.v643DateChoices{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;}
+.v643DateChoice{border:1px solid var(--theme-line,var(--brand-line,#E2DDD5));background:#fff;border-radius:20px;padding:13px;text-align:left;color:var(--theme-ink,var(--brand-text,#2C2A29));box-shadow:0 10px 24px rgba(44,42,41,.055);cursor:pointer;}
+.v643DateChoice:hover{border-color:var(--theme-primary-soft,var(--brand-primary-soft,#E5ECE9));background:var(--theme-primary-weak,var(--brand-primary-weak,#F2F6F4));}
+.v643DateChoice b{display:block;font-size:16px;margin-bottom:6px;color:var(--theme-primary,var(--brand-primary,#4A5D4E));}
+.v643DateChoice span{display:block;color:var(--theme-muted,var(--brand-muted,#8B827A));font-size:12px;line-height:1.6;}
+.v643OutNotice{border-color:rgba(200,91,91,.25)!important;}
+@media(max-width:620px){
+  .v643DateModal{align-items:flex-end!important;padding:12px!important;}
+  .v643DateBox{width:100%!important;max-height:84vh!important;border-radius:24px!important;}
+  .v643DateCompare,.v643DateChoices{grid-template-columns:1fr;}
+}
+@media print{.v643DateModal{display:none!important;}}
+</style>
+
 </body></html>
