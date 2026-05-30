@@ -17612,4 +17612,409 @@ setTimeout(v641AfterRender,500);
 #v641UpdateLog .box{line-height:1.72;}
 </style>
 
+
+
+<style>
+/* ===== v64.2 modal consistency + safe delete layer only =====
+   只統一彈窗與危險操作確認，不改 data / localStorage / Firestore / Cloudinary 資料結構。
+*/
+.jtmModalBackdrop{
+  position:fixed;
+  inset:0;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:16px;
+  background:rgba(39,34,29,.38);
+  backdrop-filter:blur(4px);
+  z-index:420;
+}
+.jtmModalBackdrop.show{display:flex;}
+.jtmModalBox{
+  width:min(560px,100%);
+  max-height:86vh;
+  overflow:auto;
+  background:color-mix(in srgb,var(--v64-brand-card,#FFFDFC) 96%, white 4%);
+  color:var(--v64-brand-ink,#2C2A29);
+  border:1px solid rgba(255,255,255,.92);
+  box-shadow:0 28px 80px rgba(44,42,41,.20);
+  border-radius:28px;
+  padding:18px;
+}
+.jtmModalHead{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:10px;
+}
+.jtmModalTitle{
+  margin:0;
+  font-size:20px;
+  line-height:1.25;
+  font-weight:850;
+}
+.jtmModalClose{
+  width:34px;
+  height:34px;
+  border:0;
+  border-radius:50%;
+  background:#f3eee8;
+  color:#5d554e;
+  font-weight:950;
+}
+.jtmModalMessage{
+  color:var(--v64-brand-muted,#8B827A);
+  font-size:14px;
+  line-height:1.72;
+  white-space:pre-wrap;
+}
+.jtmModalField{
+  margin-top:12px;
+}
+.jtmModalField input,
+.jtmModalField textarea{
+  width:100%;
+  border:1px solid var(--v64-brand-line,#E2DDD5);
+  border-radius:14px;
+  background:#fffdf9;
+  color:var(--v64-brand-ink,#2C2A29);
+  padding:10px 11px;
+  font-size:15px;
+}
+.jtmModalField textarea{min-height:110px;resize:vertical;}
+.jtmModalActions{
+  display:flex;
+  justify-content:flex-end;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:16px;
+}
+.jtmModalActions .btn{min-height:40px;}
+.jtmModalActions .btn.danger{
+  background:#FFF1F1!important;
+  color:var(--v64-danger,#C85B5B)!important;
+  border-color:#F3D1D1!important;
+}
+@media(max-width:620px){
+  .jtmModalBackdrop{align-items:flex-end;padding:12px;}
+  .jtmModalBox{width:100%;max-height:84vh;border-radius:24px;padding:16px;}
+  .jtmModalActions{display:grid;grid-template-columns:1fr;}
+  .jtmModalActions .btn{width:100%;}
+}
+@media print{.jtmModalBackdrop{display:none!important;}}
+#v642UpdateLog .box{line-height:1.72;}
+</style>
+
+<script>
+/* ===== v64.2 modal consistency + safe delete behavior only ===== */
+const V642_VERSION_SHORT = '版本：v64.2｜2026-05-31';
+const V642_VERSION_TEXT = '版本：v64.2｜2026-05-31｜彈窗一致性與刪除安全版';
+
+function jtmEnsureModal(){
+  let el=document.getElementById('jtmModalBackdrop');
+  if(el)return el;
+  el=document.createElement('div');
+  el.id='jtmModalBackdrop';
+  el.className='jtmModalBackdrop noPrint';
+  el.innerHTML=`<div class="jtmModalBox" role="dialog" aria-modal="true">
+    <div class="jtmModalHead">
+      <h3 class="jtmModalTitle" id="jtmModalTitle"></h3>
+      <button type="button" class="jtmModalClose" id="jtmModalClose">×</button>
+    </div>
+    <div class="jtmModalMessage" id="jtmModalMessage"></div>
+    <div class="jtmModalField hidden" id="jtmModalField"></div>
+    <div class="jtmModalActions" id="jtmModalActions"></div>
+  </div>`;
+  document.body.appendChild(el);
+  return el;
+}
+function jtmModal(options={}){
+  const modal=jtmEnsureModal();
+  const titleEl=document.getElementById('jtmModalTitle');
+  const msgEl=document.getElementById('jtmModalMessage');
+  const fieldEl=document.getElementById('jtmModalField');
+  const actionsEl=document.getElementById('jtmModalActions');
+  const closeEl=document.getElementById('jtmModalClose');
+  titleEl.textContent=options.title || '提醒';
+  msgEl.textContent=options.message || '';
+  fieldEl.innerHTML='';
+  fieldEl.classList.add('hidden');
+  actionsEl.innerHTML='';
+  let inputEl=null;
+  if(options.input){
+    fieldEl.classList.remove('hidden');
+    if(options.inputType==='textarea'){
+      inputEl=document.createElement('textarea');
+    }else{
+      inputEl=document.createElement('input');
+      inputEl.type='text';
+    }
+    inputEl.value=options.defaultValue || '';
+    inputEl.placeholder=options.placeholder || '';
+    fieldEl.appendChild(inputEl);
+  }
+  return new Promise(resolve=>{
+    let done=false;
+    const cleanup=(value)=>{
+      if(done)return;
+      done=true;
+      modal.classList.remove('show');
+      modal.removeEventListener('click',onBackdrop);
+      document.removeEventListener('keydown',onKey);
+      closeEl.onclick=null;
+      resolve(value);
+    };
+    const onBackdrop=(e)=>{ if(e.target===modal && options.dismissible!==false) cleanup(options.input?null:false); };
+    const onKey=(e)=>{
+      if(e.key==='Escape' && options.dismissible!==false) cleanup(options.input?null:false);
+      if(e.key==='Enter' && inputEl && options.inputType!=='textarea') cleanup(inputEl.value);
+    };
+    closeEl.onclick=()=>cleanup(options.input?null:false);
+    if(options.showCancel!==false){
+      const cancel=document.createElement('button');
+      cancel.type='button';
+      cancel.className='btn soft';
+      cancel.textContent=options.cancelText || '取消';
+      cancel.onclick=()=>cleanup(options.input?null:false);
+      actionsEl.appendChild(cancel);
+    }
+    const ok=document.createElement('button');
+    ok.type='button';
+    ok.className=options.danger ? 'btn danger' : 'btn dark';
+    ok.textContent=options.confirmText || '確認';
+    ok.onclick=()=>cleanup(options.input ? (inputEl ? inputEl.value : '') : true);
+    actionsEl.appendChild(ok);
+    modal.addEventListener('click',onBackdrop);
+    document.addEventListener('keydown',onKey);
+    modal.classList.add('show');
+    setTimeout(()=>{ (inputEl || ok).focus?.(); if(inputEl)inputEl.select?.(); },40);
+  });
+}
+function jtmConfirm(title,message,opts={}){return jtmModal({title,message,confirmText:opts.confirmText||'確認',cancelText:opts.cancelText||'取消',danger:!!opts.danger});}
+function jtmNotice(title,message){return jtmModal({title,message,showCancel:false,confirmText:'知道了'});}
+function jtmPrompt(title,message,defaultValue='',opts={}){return jtmModal({title,message,input:true,inputType:opts.inputType||'text',defaultValue,placeholder:opts.placeholder||'',confirmText:opts.confirmText||'儲存',cancelText:'取消'});}
+
+/* 原生 alert 改成品牌彈窗，讓驗證/錯誤訊息不再跳系統框。 */
+window.alert=function(message){ jtmNotice('提醒', String(message||'')); };
+
+/* 標題 / 副標維持自製彈窗 */
+editTitle = async function(){
+  const v=await jtmPrompt('修改旅程標題','請輸入這趟旅程的標題。', data?.meta?.title || '我的旅跡手帳');
+  if(v!==null && String(v).trim()){ data.meta.title=String(v).trim(); save(); }
+};
+editSubtitle = async function(){
+  const v=await jtmPrompt('修改旅程副標','可以寫下這趟旅行的心情、主題或提醒。', data?.meta?.subtitle || (base?.meta?.subtitle || ''), {inputType:'textarea'});
+  if(v!==null && String(v).trim()){ data.meta.subtitle=String(v).trim(); save(); }
+};
+
+/* 刪除 / 清除類操作：改成自製確認彈窗。 */
+delHotel = async function(id){
+  const item=data.hotels?.find(x=>x.id==id);
+  const ok=await jtmConfirm('刪除住宿',`確定要刪除「${item?.name || '這筆住宿'}」嗎？`,{danger:true,confirmText:'確認刪除'});
+  if(!ok)return;
+  data.hotels=data.hotels.filter(x=>x.id!=id);
+  if(editingHotelId==id)editingHotelId=null;
+  save();
+};
+delSpot = async function(id){
+  const item=data.spots?.find(x=>x.id==id);
+  const ok=await jtmConfirm('刪除景點',`確定要刪除「${item?.name || '這個景點'}」嗎？`,{danger:true,confirmText:'確認刪除'});
+  if(!ok)return;
+  data.spots=data.spots.filter(x=>x.id!=id);
+  if(editingSpotId==id)editingSpotId=null;
+  save();
+};
+delPlan = async function(id){
+  const item=data.plans?.find(x=>x.id==id);
+  const ok=await jtmConfirm('刪除行程',`確定要刪除「${item?.name || '這筆行程'}」嗎？\n相關的行程間交通連線也會一起移除。`,{danger:true,confirmText:'確認刪除'});
+  if(!ok)return;
+  data.plans=data.plans.filter(x=>x.id!=id);
+  data.conns=data.conns.filter(c=>c.a!=id&&c.b!=id);
+  if(editingPlanId==id)editingPlanId=null;
+  save();
+};
+delExpense = async function(id){
+  const item=data.expenses?.find(x=>x.id==id);
+  const ok=await jtmConfirm('刪除費用',`確定要刪除「${item?.name || '這筆費用'}」嗎？`,{danger:true,confirmText:'確認刪除'});
+  if(!ok)return;
+  data.expenses=data.expenses.filter(x=>x.id!=id);
+  if(editingExpenseId==id)editingExpenseId=null;
+  save();
+};
+delPhoto = async function(id){
+  const item=data.photos?.find(x=>x.id==id);
+  const ok=await jtmConfirm('刪除照片',`確定要刪除「${item?.title || '這張照片'}」嗎？`,{danger:true,confirmText:'確認刪除'});
+  if(!ok)return;
+  data.photos=data.photos.filter(p=>p.id!=id);
+  save();
+};
+resetAll = async function(){
+  const ok=await jtmConfirm('清除目前旅程資料','這會清除目前這趟旅程在此裝置上的資料。建議先確認已同步或已匯出備份。',{danger:true,confirmText:'確認清除'});
+  if(!ok)return;
+  localStorage.removeItem(typeof getLocalTripKey==='function' ? getLocalTripKey() : 'travel_book_v8');
+  localStorage.removeItem('travel_book_v8');
+  data=loadData();
+  cur=data.days?.[0]?.key || data.trip?.start;
+  render();
+  toast('已清除本機資料');
+};
+clearAllPlans = async function(){
+  const ok=await jtmConfirm('清除所有行程','這會刪除目前已排入的行程卡片與行程間交通連線。建議先到「說明」匯出備份。',{danger:true,confirmText:'確認清除'});
+  if(!ok)return;
+  data.plans=[];
+  data.conns=[];
+  editingPlanId=null;
+  save();
+  toast('已清除所有行程');
+};
+returnSpotToPocket = async function(id){
+  const s=data.spots?.find(x=>x.id==id);
+  if(!s || !s.planId)return;
+  const ok=await jtmConfirm('放回口袋景點',`要把「${s.name || '這個景點'}」放回口袋，並移除已排入的行程嗎？`,{danger:true,confirmText:'確認移除行程'});
+  if(!ok)return;
+  data.plans=data.plans.filter(p=>p.id!=s.planId);
+  data.conns=data.conns.filter(c=>c.a!=s.planId && c.b!=s.planId);
+  delete s.planId;
+  save();
+};
+
+/* 交通方式變更改成 toast，不中斷流程。 */
+changeConnMode = function(id,v){
+  let c=data.conns.find(x=>x.id==id);
+  if(c)c.mode=v;
+  save();
+  toast('已變更交通方式，可重新查詢路線');
+};
+
+/* 備份匯入 / 雲端載入改用自製確認。 */
+importBackup = async function(file){
+  if(!file)return;
+  const ok=await jtmConfirm('匯入備份','匯入備份會覆蓋目前這趟旅程資料。建議先確認已同步或已匯出目前資料。',{danger:true,confirmText:'確認匯入'});
+  if(!ok)return;
+  let r=new FileReader();
+  r.onload=e=>{
+    try{
+      data=JSON.parse(e.target.result);
+      if(!data.days?.length)data.days=mkDays(data.trip.start,data.trip.end);
+      localStorage.setItem(typeof getLocalTripKey==='function' ? getLocalTripKey() : 'travel_book_v8',JSON.stringify(data));
+      localStorage.setItem('travel_book_v8',JSON.stringify(data));
+      cur=data.days?.[0]?.key||data.trip?.start;
+      render();
+      toast('已匯入備份');
+    }catch(err){toast('備份檔格式錯誤');}
+  };
+  r.readAsText(file);
+};
+const __v642LoadFromCloud = typeof loadFromCloud==='function' ? loadFromCloud : null;
+if(__v642LoadFromCloud){
+  loadFromCloud = async function(options={}){
+    const silent=!!options.silent;
+    if(!silent && !options.force){
+      const ok=await jtmConfirm('載入雲端資料','載入雲端資料會覆蓋目前此裝置上的同一趟旅程資料。建議先確認已同步或已匯出備份。',{danger:true,confirmText:'確認載入'});
+      if(!ok)return false;
+      return __v642LoadFromCloud({...options,force:true});
+    }
+    return __v642LoadFromCloud(options);
+  };
+}
+
+/* 旅程清單封存 / 刪除改用自製確認。 */
+archiveTrip = async function(id){
+  const t=tripList?.find(x=>x.id===id);
+  const ok=await jtmConfirm('封存旅程',`確定要封存「${t?.title || '這趟旅程'}」嗎？\n資料不會刪除，可在封存旅程中還原。`,{confirmText:'確認封存'});
+  if(!ok)return;
+  if(t)t.archived=true;
+  if(currentTripId===id){currentTripId='';localStorage.removeItem(V63_CURRENT_TRIP_KEY);}
+  await v63SaveTripListCloud?.();
+  renderTripList?.();
+};
+deleteTrip = async function(id){
+  const t=tripList?.find(x=>x.id===id);
+  if(!t)return;
+  const ok=await jtmConfirm('刪除旅程',`確定要刪除「${t.title || '這趟旅程'}」嗎？\n刪除後會從旅程清單移除，並嘗試刪除雲端旅程資料。`,{danger:true,confirmText:'確認刪除'});
+  if(!ok)return;
+  try{
+    if(fbUser && fbDb && typeof v636DeleteTripCloud==='function')await v636DeleteTripCloud(id);
+    tripList=tripList.filter(x=>x.id!==id);
+    try{localStorage.removeItem(getLocalTripKey(id));}catch(e){}
+    try{localStorage.removeItem(`${getLocalTripKey(id)}__meta`);}catch(e){}
+    if(currentTripId===id){
+      currentTripId='';
+      localStorage.removeItem(V63_CURRENT_TRIP_KEY);
+      if(cloudUnsub){cloudUnsub();cloudUnsub=null;}
+      cloudReady=false;
+    }
+    await v63SaveTripListCloud?.();
+    renderTripList?.();
+    toast('已刪除旅程');
+  }catch(e){
+    jtmNotice('刪除失敗', e?.message || String(e));
+  }
+};
+
+/* 頁尾與說明頁更新紀錄 */
+function v642UpdateFooterVersion(){
+  document.querySelectorAll('footer strong,.siteFooterVersion').forEach(el=>el.textContent=V642_VERSION_SHORT);
+  if(typeof v637EnsureFooter==='function')v637EnsureFooter();
+}
+if(typeof v637FooterHtml==='function'){
+  v637FooterHtml=function(){
+    return `<footer id="siteFooter" class="siteFooter noPrint">
+      <div class="siteFooterBrand">貞選旅管家 <span>Janeselect Travel Manager</span></div>
+      <div class="siteFooterVersion">${esc(V642_VERSION_SHORT)}</div>
+      <div class="siteFooterLinks">
+        <button type="button" onclick="v637PolicyToast('服務條款')">服務條款</button><span>・</span>
+        <button type="button" onclick="v637PolicyToast('隱私權政策')">隱私權政策</button><span>・</span>
+        <button type="button" onclick="v637PolicyToast('聯絡我們')">聯絡我們</button>
+      </div>
+      <div class="siteFooterCopy">© 2026 Janeselect Travel Manager. All rights reserved.</div>
+    </footer>`;
+  };
+}
+const __v642RenderHelp = typeof renderHelp==='function' ? renderHelp : null;
+if(__v642RenderHelp){
+  renderHelp=function(...args){
+    const r=__v642RenderHelp.apply(this,args);
+    const el=$('helpView');
+    if(el && !$('v642UpdateLog')){
+      el.insertAdjacentHTML('afterbegin', `<div class="card" id="v642UpdateLog">
+        <h3>最新更新紀錄</h3>
+        <div class="box mint">
+          <b>v64.2｜2026-05-31｜彈窗一致性與刪除安全版</b><br>
+          刪除、清除、匯入備份與載入雲端等操作改為貞選旅管家風格彈窗，減少瀏覽器原生對話框造成的不一致體驗；交通方式變更改為輕提示，不中斷操作流程。<br><br>
+          <b>v64.1｜2026-05-31｜外部連結新分頁與更新紀錄整理版</b><br>
+          地圖、Naver / Kakao、Google 備用、匯率查詢與旅遊書匯出等跨頁操作改為新分頁開啟，避免覆蓋目前旅程頁面。<br><br>
+          <b>v64｜2026-05-31｜品牌視覺一致與外觀自訂整理版</b><br>
+          統一 Logo、按鈕、彈窗、頁籤與手機版視覺規格，同時保留外觀設定與旅程卡片色系。
+        </div>
+      </div>`);
+    }
+    v642UpdateFooterVersion();
+    return r;
+  };
+}
+function v642AfterRender(){
+  v642UpdateFooterVersion();
+  if(typeof v641PatchAnchorTargets==='function')v641PatchAnchorTargets(document);
+}
+['render','renderHead','renderTripList','renderLoginView'].forEach(fnName=>{
+  const original=window[fnName];
+  if(typeof original==='function' && !original.__v642Wrapped){
+    const wrapped=function(...args){
+      const result=original.apply(this,args);
+      setTimeout(v642AfterRender,0);
+      return result;
+    };
+    wrapped.__v642Wrapped=true;
+    window[fnName]=wrapped;
+  }
+});
+document.addEventListener('DOMContentLoaded',()=>{
+  v642AfterRender();
+  setTimeout(v642AfterRender,300);
+  setTimeout(v642AfterRender,900);
+});
+setTimeout(v642AfterRender,500);
+</script>
 </body></html>
