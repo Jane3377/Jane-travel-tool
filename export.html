@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#f4f2ee">
-<title>VoyageMemo. PDF 出版頁 v63</title>
+<title>VoyageMemo. PDF 出版頁 v64</title>
 <style>
 :root{
   --bg:#f4f2ee;
@@ -777,6 +777,64 @@ body[data-export-style="sticker"] .coverContent h1::after{
 }
 </style>
 
+
+<style>
+/* ===== v64 real inline illustration assets + stable mobile preview ===== */
+.exportFooterMeta{font-size:12px}
+.a4Page{--illus-opacity:.9}
+.illus{position:absolute;z-index:1;pointer-events:none;opacity:var(--illus-opacity);background-repeat:no-repeat;background-size:contain;background-position:center}
+.coverPhoto{position:absolute}
+.coverShade,.coverContent,.pageInner{position:relative}
+
+/* Inline SVG illustration assets: no extra GitHub files needed */
+.illus-flower{background-image:url("data:image/svg+xml,%3Csvg width='240' height='240' viewBox='0 0 240 240' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%239a5e76' stroke-width='7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M120 128c-34-22-36-54-15-67 15-9 29 1 35 18 8-19 25-28 40-16 22 18 7 52-60 65Z' fill='%23f7d9e5'/%3E%3Cpath d='M116 129c-10-37 6-62 30-59 19 2 25 20 18 36 18-9 36-4 40 15 6 28-27 45-88 8Z' fill='%23fdecc8' opacity='.82'/%3E%3Cpath d='M121 129c-33 22-66 15-70-10-3-19 12-30 30-29-16-13-19-31-3-43 23-17 51 8 43 82Z' fill='%23fff8fb' opacity='.92'/%3E%3Cpath d='M121 132c-2 29-13 54-34 75'/%3E%3Cpath d='M96 177c-24-2-40-12-48-30 25-3 41 7 48 30Z' fill='%23e3eddc' stroke='%23556b4b'/%3E%3Cpath d='M107 159c26-11 47-8 64 7-21 16-43 13-64-7Z' fill='%23e3eddc' stroke='%23556b4b'/%3E%3C/g%3E%3C/svg%3E")}
+.illus-wave{background-image:url("data:image/svg+xml,%3Csvg width='280' height='180' viewBox='0 0 280 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 120c32-40 63-40 94 0s62 40 94 0 42-38 56-24' stroke='%232d6c8f' stroke-width='9'/%3E%3Cpath d='M28 143c28-27 55-27 82 0s54 27 82 0 44-28 66-6' stroke='%237ab3cf' stroke-width='8'/%3E%3Cpath d='M50 79c23-26 47-26 70 0s47 26 70 0' stroke='%23fbe6ba' stroke-width='7'/%3E%3Ccircle cx='223' cy='43' r='18' fill='%23fbe6ba' opacity='.9'/%3E%3C/g%3E%3C/svg%3E")}
+.illus-leaf{background-image:url("data:image/svg+xml,%3Csvg width='240' height='240' viewBox='0 0 240 240' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23556b4b' stroke-width='7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M116 210c-5-64 6-119 42-164'/%3E%3Cpath d='M126 151c-40-8-67-28-80-61 45-4 72 18 80 61Z' fill='%23e3eddc'/%3E%3Cpath d='M141 116c5-42 26-70 63-83 9 44-12 72-63 83Z' fill='%23e3eddc' opacity='.86'/%3E%3Cpath d='M132 181c31-24 62-29 93-14-27 27-58 32-93 14Z' fill='%23f1e5c8'/%3E%3Cpath d='M78 112c21 13 38 26 50 39'/%3E%3Cpath d='M174 63c-10 20-21 37-33 53'/%3E%3C/g%3E%3C/svg%3E")}
+.illus-ticket{background-image:url("data:image/svg+xml,%3Csvg width='280' height='190' viewBox='0 0 280 190' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%236d6258' stroke-width='6' stroke-linejoin='round'%3E%3Cpath d='M37 52h206c-8 18 5 34 23 34v36c-20 0-31 17-23 35H37c8-18-5-35-23-35V86c20 0 31-16 23-34Z' fill='%23fffaf0'/%3E%3Cpath d='M84 67v88' stroke-dasharray='10 10' opacity='.55'/%3E%3Cpath d='M109 82h90M109 109h116M109 136h70'/%3E%3Ccircle cx='219' cy='78' r='15' fill='%23f7d9e5' stroke='%239a5e76'/%3E%3C/g%3E%3C/svg%3E")}
+.illus-star{background-image:url("data:image/svg+xml,%3Csvg width='260' height='220' viewBox='0 0 260 220' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23d8c38c' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M132 24l18 57 59 2-49 34 17 57-45-35-48 35 19-57-50-34 60-2 19-57Z' fill='%232a3040'/%3E%3Cpath d='M37 41l8 20 20 8-20 8-8 20-8-20-20-8 20-8 8-20ZM211 125l7 17 17 7-17 7-7 17-7-17-17-7 17-7 7-17Z' fill='%23d8c38c'/%3E%3Cpath d='M55 178c36-10 91-13 153 0' opacity='.65'/%3E%3C/g%3E%3C/svg%3E")}
+.illus-camera{background-image:url("data:image/svg+xml,%3Csvg width='260' height='210' viewBox='0 0 260 210' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%236d6258' stroke-width='7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M44 74h45l15-24h52l15 24h45c12 0 21 9 21 21v70c0 12-9 21-21 21H44c-12 0-21-9-21-21V95c0-12 9-21 21-21Z' fill='%23fffaf0'/%3E%3Ccircle cx='130' cy='130' r='38' fill='%23e4f4fb' stroke='%232d6c8f'/%3E%3Ccircle cx='130' cy='130' r='18' fill='%23f7d9e5' stroke='%239a5e76'/%3E%3Cpath d='M51 96h25M185 98h23'/%3E%3C/g%3E%3C/svg%3E")}
+
+/* placement */
+.coverPage .illus-flower{width:58mm;height:58mm;right:14mm;bottom:18mm}
+.coverPage .illus-wave{width:70mm;height:45mm;right:8mm;bottom:14mm}
+.coverPage .illus-leaf{width:56mm;height:56mm;right:14mm;bottom:18mm}
+.coverPage .illus-ticket{width:62mm;height:42mm;right:16mm;bottom:22mm;transform:rotate(-5deg)}
+.coverPage .illus-star{width:60mm;height:52mm;right:14mm;bottom:20mm}
+.coverPage .illus-camera{width:48mm;height:38mm;right:18mm;bottom:22mm;transform:rotate(4deg)}
+.a4Page:not(.coverPage) .illus-flower{width:35mm;height:35mm;right:13mm;top:12mm;opacity:.28}
+.a4Page:not(.coverPage) .illus-wave{width:44mm;height:28mm;right:12mm;top:12mm;opacity:.3}
+.a4Page:not(.coverPage) .illus-leaf{width:35mm;height:35mm;right:12mm;top:12mm;opacity:.28}
+.a4Page:not(.coverPage) .illus-ticket{width:38mm;height:26mm;right:13mm;top:14mm;opacity:.24;transform:rotate(5deg)}
+.a4Page:not(.coverPage) .illus-star{width:38mm;height:32mm;right:13mm;top:13mm;opacity:.26}
+.a4Page:not(.coverPage) .illus-camera{width:32mm;height:26mm;left:12mm;bottom:12mm;top:auto;right:auto;opacity:.22}
+
+/* style visibility */
+body[data-export-style="classic"] .a4Page .illus,body[data-export-style="magazine"] .a4Page .illus{display:none}
+body[data-export-style="sakura"] .a4Page .illus:not(.illus-flower){display:none}
+body[data-export-style="oceanic"] .a4Page .illus:not(.illus-wave){display:none}
+body[data-export-style="botanical"] .a4Page .illus:not(.illus-leaf){display:none}
+body[data-export-style="polaroid"] .a4Page .illus:not(.illus-camera):not(.illus-ticket){display:none}
+body[data-export-style="sticker"] .a4Page .illus:not(.illus-ticket):not(.illus-camera):not(.illus-flower){display:none}
+body[data-export-style="midnight"] .a4Page .illus:not(.illus-star){display:none}
+
+/* stable mobile preview: CSS only, no JS measuring */
+@media screen and (max-width:980px){
+  .previewStack{display:grid!important;justify-items:center!important;gap:14px!important;overflow:visible!important;width:100%!important}
+  .pageFrame{width:min(100%,420px)!important;aspect-ratio:210/297!important;height:auto!important;position:relative!important;overflow:visible!important;margin:0 auto 14px!important}
+  .pageFrame>.a4Page{width:210mm!important;height:297mm!important;transform-origin:top left!important;transform:scale(calc(min(100vw - 24px, 420px) / 793.7))!important;position:absolute!important;left:0!important;top:0!important;margin:0!important}
+}
+@media screen and (max-width:480px){
+  .pageFrame{width:calc(100vw - 20px)!important}
+  .pageFrame>.a4Page{transform:scale(calc((100vw - 20px) / 793.7))!important}
+}
+@media print{
+  .illus{display:block!important}
+  .pageFrame{width:210mm!important;height:297mm!important;margin:0!important;aspect-ratio:auto!important}
+  .pageFrame>.a4Page{transform:none!important;position:relative!important;left:auto!important;top:auto!important}
+  .exportFooterBar{display:none!important}
+}
+</style>
+
 </head>
 <body>
 <div class="publisherShell">
@@ -817,7 +875,7 @@ body[data-export-style="sticker"] .coverContent h1::after{
 
   <div class="exportFooterBar">
     <div class="exportFooterBrand">VoyageMemo. Travel Book Export</div>
-    <div class="exportFooterMeta">版本：v63｜PDF 風格擴充與底部版本列</div>
+    <div class="exportFooterMeta">版本：v64｜插畫素材與手機穩定預覽版</div>
   </div>
 </div>
 
@@ -1288,6 +1346,82 @@ setTimeout(()=>{
   if(typeof data !== "undefined" && data) renderCurrentDataOnly();
   else if(typeof loadAndRender === "function") loadAndRender();
 }, 180);
+</script>
+
+
+<script>
+/* ===== v64 illustration injection + stable no-flicker frames ===== */
+function illustrationLayer(){
+  return `<span class="illus illus-flower"></span><span class="illus illus-wave"></span><span class="illus illus-leaf"></span><span class="illus illus-ticket"></span><span class="illus illus-star"></span><span class="illus illus-camera"></span>`;
+}
+function addIllustrationsToPages(){
+  document.querySelectorAll(".a4Page").forEach(page=>{
+    if(!page.querySelector(".illus")) page.insertAdjacentHTML("beforeend", illustrationLayer());
+  });
+}
+function stableWrapPages(){
+  const stack=document.getElementById("bookRoot");
+  if(!stack) return;
+
+  // unwrap duplicate/nested frames
+  document.querySelectorAll(".pageFrame .pageFrame").forEach(nested=>{
+    const page=nested.querySelector(".a4Page");
+    if(page) nested.parentNode.insertBefore(page,nested);
+    nested.remove();
+  });
+
+  // wrap direct a4 pages once
+  [...stack.children].forEach(child=>{
+    if(child.classList && child.classList.contains("a4Page")){
+      const frame=document.createElement("div");
+      frame.className="pageFrame";
+      child.parentNode.insertBefore(frame,child);
+      frame.appendChild(child);
+    }
+  });
+  addIllustrationsToPages();
+}
+function unwrapPageFramesV64(){
+  document.querySelectorAll(".pageFrame").forEach(frame=>{
+    const page=frame.querySelector(".a4Page");
+    if(page) frame.parentNode.insertBefore(page,frame);
+    frame.remove();
+  });
+  addIllustrationsToPages();
+}
+/* Override older dynamic scale functions to stop mobile flicker */
+window.wrapAndScalePages = stableWrapPages;
+window.unwrapPageFrames = unwrapPageFramesV64;
+
+const __renderThumbsBeforeV64 = renderThumbs;
+renderThumbs = function(){
+  __renderThumbsBeforeV64();
+  stableWrapPages();
+};
+const __loadAndRenderBeforeV64 = loadAndRender;
+loadAndRender = function(){
+  __loadAndRenderBeforeV64();
+  if(typeof setExportBookStyle==="function") setExportBookStyle(getExportBookStyle());
+  stableWrapPages();
+  const status=document.getElementById("statusText");
+  if(status && !status.dataset.v64){
+    status.dataset.v64="1";
+    status.innerHTML += "<br>v64 已改用穩定比例預覽，手機/平板不再依 resize 反覆縮放。";
+  }
+};
+const __renderCurrentDataOnlyBeforeV64 = renderCurrentDataOnly;
+renderCurrentDataOnly = function(){
+  __renderCurrentDataOnlyBeforeV64();
+  if(typeof setExportBookStyle==="function") setExportBookStyle(getExportBookStyle());
+  stableWrapPages();
+};
+window.addEventListener("beforeprint", unwrapPageFramesV64);
+window.addEventListener("afterprint", ()=>setTimeout(stableWrapPages,80));
+setTimeout(()=>{
+  if(typeof data!=="undefined" && data) renderCurrentDataOnly();
+  else if(typeof loadAndRender==="function") loadAndRender();
+  stableWrapPages();
+},260);
 </script>
 
 </body>
