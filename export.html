@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#f4f2ee">
-<title>VoyageMemo. PDF 出版頁 v64</title>
+<title>VoyageMemo. PDF 出版頁 v65</title>
 <style>
 :root{
   --bg:#f4f2ee;
@@ -835,6 +835,196 @@ body[data-export-style="midnight"] .a4Page .illus:not(.illus-star){display:none}
 }
 </style>
 
+
+<style>
+/* ===== v65 mobile preview fix: stable single wrapper + predictable image size ===== */
+html,body{
+  max-width:100%;
+  overflow-x:hidden;
+}
+.publisherShell,
+.publisherBar,
+.statusCard,
+.bookViewport,
+.previewStack{
+  max-width:100%;
+}
+.previewStack{
+  overflow:visible!important;
+  justify-items:center!important;
+}
+.a4Page{
+  margin:0 auto;
+}
+.pageFrame{
+  position:relative;
+  display:block;
+  margin:0 auto 22px;
+  width:var(--frame-w, 210mm);
+  height:var(--frame-h, 297mm);
+  overflow:hidden;
+}
+.pageFrame > .a4Page{
+  position:absolute!important;
+  left:0!important;
+  top:0!important;
+  margin:0!important;
+  transform-origin:top left!important;
+  transform:scale(var(--page-scale, 1))!important;
+}
+
+/* 手機/平板時，避免圖片或 A4 頁超出造成橫向捲動 */
+@media screen and (max-width:980px){
+  .publisherShell{
+    width:100%!important;
+    padding:12px 10px 56px!important;
+    overflow-x:hidden!important;
+  }
+  .publisherBar{
+    width:100%!important;
+    margin:-12px -10px 12px!important;
+    padding:10px!important;
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:10px!important;
+  }
+  .brand h1{
+    font-size:17px!important;
+    line-height:1.25!important;
+  }
+  .brand p{
+    font-size:11.5px!important;
+    line-height:1.45!important;
+  }
+  .actions{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:8px!important;
+    width:100%!important;
+  }
+  .actions button,
+  .actions .btnLink,
+  .actions .styleSelect{
+    width:100%!important;
+    min-height:42px!important;
+    justify-content:center!important;
+    text-align:center!important;
+  }
+  .statusCard{
+    width:100%!important;
+    grid-template-columns:1fr!important;
+    padding:12px!important;
+    border-radius:18px!important;
+  }
+  .bookViewport{
+    display:block!important;
+    width:100%!important;
+  }
+  .pageNav{
+    position:static!important;
+    max-height:none!important;
+    display:flex!important;
+    gap:8px!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    padding:10px!important;
+    margin-bottom:12px!important;
+    border-radius:18px!important;
+    -webkit-overflow-scrolling:touch;
+  }
+  .pageNav h2{
+    display:none!important;
+  }
+  .thumb{
+    flex:0 0 118px!important;
+    min-width:118px!important;
+    margin-bottom:0!important;
+    font-size:11px!important;
+  }
+  .previewStack{
+    display:block!important;
+    width:100%!important;
+    overflow:hidden!important;
+    padding-bottom:22px!important;
+  }
+  .pageFrame{
+    max-width:100%!important;
+    border-radius:10px!important;
+  }
+  .editTextBtn{
+    width:44px!important;
+    height:44px!important;
+    min-width:44px!important;
+    font-size:20px!important;
+  }
+}
+
+/* 版本固定在下方，避免滑到最底仍看不到 */
+.exportFixedVersion{
+  position:fixed;
+  right:12px;
+  bottom:10px;
+  z-index:50;
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.88);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  color:var(--muted);
+  border-radius:999px;
+  padding:6px 10px;
+  font-size:11px;
+  font-weight:850;
+  box-shadow:0 8px 24px rgba(44,42,37,.08);
+}
+.exportFooterBar{
+  margin-bottom:34px!important;
+}
+
+/* 插畫若在小尺寸預覽太搶版面，手機自動降低透明度 */
+@media screen and (max-width:620px){
+  .a4Page{--illus-opacity:.72}
+  .coverPage .illus-flower,
+  .coverPage .illus-leaf,
+  .coverPage .illus-star{
+    right:8mm!important;
+    bottom:12mm!important;
+  }
+  .coverPage .illus-wave{
+    right:4mm!important;
+    bottom:10mm!important;
+  }
+  .coverPage .illus-ticket,
+  .coverPage .illus-camera{
+    right:8mm!important;
+    bottom:14mm!important;
+  }
+}
+@media print{
+  .pageFrame{
+    width:210mm!important;
+    height:297mm!important;
+    margin:0!important;
+    overflow:hidden!important;
+    page-break-after:always!important;
+    break-after:page!important;
+  }
+  .pageFrame:last-child{
+    page-break-after:auto!important;
+    break-after:auto!important;
+  }
+  .pageFrame > .a4Page{
+    position:relative!important;
+    transform:none!important;
+    left:auto!important;
+    top:auto!important;
+  }
+  .exportFixedVersion,
+  .exportFooterBar{
+    display:none!important;
+  }
+}
+</style>
+
 </head>
 <body>
 <div class="publisherShell">
@@ -875,8 +1065,9 @@ body[data-export-style="midnight"] .a4Page .illus:not(.illus-star){display:none}
 
   <div class="exportFooterBar">
     <div class="exportFooterBrand">VoyageMemo. Travel Book Export</div>
-    <div class="exportFooterMeta">版本：v64｜插畫素材與手機穩定預覽版</div>
+    <div class="exportFooterMeta">版本：v65｜手機預覽修正版</div>
   </div>
+  <div class="exportFixedVersion noPrint">v65｜手機預覽修正版</div>
 </div>
 
 <script>
@@ -1258,8 +1449,10 @@ function printBook(){
 </script>
 
 
+
 <script>
-/* ===== v62 export style selector + mobile page scaler ===== */
+/* ===== v65 stable mobile preview engine ===== */
+/* 單一縮放來源：只在載入/旋轉時套用，不反覆 unwrap/measure，避免閃爍忽大忽小 */
 const EXPORT_STYLE_KEY = "voyageMemoExportStyle";
 
 function getExportBookStyle(){
@@ -1271,86 +1464,7 @@ function setExportBookStyle(style){
   const sel = document.getElementById("bookStyleSelect");
   if(sel) sel.value = style || "classic";
 }
-function unwrapPageFrames(){
-  document.querySelectorAll(".pageFrame").forEach(frame=>{
-    const page = frame.querySelector(".a4Page");
-    if(page) frame.parentNode.insertBefore(page, frame);
-    frame.remove();
-  });
-}
-function wrapAndScalePages(){
-  if(window.matchMedia("print").matches) return;
-  const stack = document.getElementById("bookRoot");
-  if(!stack) return;
 
-  unwrapPageFrames();
-
-  const pages = [...stack.querySelectorAll(".a4Page")];
-  if(!pages.length) return;
-
-  const available = Math.max(260, Math.min(window.innerWidth - 24, stack.clientWidth || window.innerWidth - 24));
-  pages.forEach(page=>{
-    const naturalW = page.getBoundingClientRect().width || 794;
-    const naturalH = page.getBoundingClientRect().height || 1123;
-    const scale = Math.min(1, available / naturalW);
-    const frame = document.createElement("div");
-    frame.className = "pageFrame";
-    frame.style.width = `${naturalW * scale}px`;
-    frame.style.height = `${naturalH * scale}px`;
-    page.parentNode.insertBefore(frame, page);
-    frame.appendChild(page);
-    page.style.transform = `scale(${scale})`;
-    page.style.position = "absolute";
-    page.style.left = "0";
-    page.style.top = "0";
-  });
-}
-const __renderThumbsBeforeV62 = renderThumbs;
-renderThumbs = function(){
-  __renderThumbsBeforeV62();
-  wrapAndScalePages();
-};
-const __loadAndRenderBeforeV62 = loadAndRender;
-loadAndRender = function(){
-  __loadAndRenderBeforeV62();
-  setExportBookStyle(getExportBookStyle());
-  const status = document.getElementById("statusText");
-  if(status && !status.dataset.v62){
-    status.dataset.v62 = "1";
-    status.innerHTML += "<br>手機與平板可先預覽排版，但最美的 PDF 建議仍用電腦 Chrome 匯出。";
-  }
-  setTimeout(wrapAndScalePages, 120);
-};
-const __renderCurrentDataOnlyBeforeV62 = renderCurrentDataOnly;
-renderCurrentDataOnly = function(){
-  __renderCurrentDataOnlyBeforeV62();
-  setExportBookStyle(getExportBookStyle());
-  setTimeout(wrapAndScalePages, 80);
-};
-window.addEventListener("resize", ()=>setTimeout(wrapAndScalePages, 120));
-window.addEventListener("beforeprint", ()=>{
-  unwrapPageFrames();
-  document.querySelectorAll(".a4Page").forEach(p=>{
-    p.style.transform="";
-    p.style.position="";
-    p.style.left="";
-    p.style.top="";
-  });
-});
-window.addEventListener("afterprint", ()=>setTimeout(wrapAndScalePages, 120));
-
-setExportBookStyle(getExportBookStyle());
-setTimeout(()=>{
-  const sel = document.getElementById("bookStyleSelect");
-  if(sel) sel.value = getExportBookStyle();
-  if(typeof data !== "undefined" && data) renderCurrentDataOnly();
-  else if(typeof loadAndRender === "function") loadAndRender();
-}, 180);
-</script>
-
-
-<script>
-/* ===== v64 illustration injection + stable no-flicker frames ===== */
 function illustrationLayer(){
   return `<span class="illus illus-flower"></span><span class="illus illus-wave"></span><span class="illus illus-leaf"></span><span class="illus illus-ticket"></span><span class="illus illus-star"></span><span class="illus illus-camera"></span>`;
 }
@@ -1359,69 +1473,120 @@ function addIllustrationsToPages(){
     if(!page.querySelector(".illus")) page.insertAdjacentHTML("beforeend", illustrationLayer());
   });
 }
-function stableWrapPages(){
-  const stack=document.getElementById("bookRoot");
+
+function removePageFrames(){
+  document.querySelectorAll(".pageFrame").forEach(frame=>{
+    const page = frame.querySelector(".a4Page");
+    if(page){
+      page.style.removeProperty("transform");
+      page.style.removeProperty("position");
+      page.style.removeProperty("left");
+      page.style.removeProperty("top");
+      frame.parentNode.insertBefore(page, frame);
+    }
+    frame.remove();
+  });
+}
+
+function applyStablePreviewScale(){
+  const stack = document.getElementById("bookRoot");
   if(!stack) return;
 
-  // unwrap duplicate/nested frames
+  // Remove nested frames only; then wrap direct pages exactly once.
   document.querySelectorAll(".pageFrame .pageFrame").forEach(nested=>{
-    const page=nested.querySelector(".a4Page");
-    if(page) nested.parentNode.insertBefore(page,nested);
+    const page = nested.querySelector(".a4Page");
+    if(page) nested.parentNode.insertBefore(page, nested);
     nested.remove();
   });
 
-  // wrap direct a4 pages once
-  [...stack.children].forEach(child=>{
-    if(child.classList && child.classList.contains("a4Page")){
-      const frame=document.createElement("div");
-      frame.className="pageFrame";
-      child.parentNode.insertBefore(frame,child);
-      frame.appendChild(child);
+  const directPages = [...stack.children].filter(el=>el.classList && el.classList.contains("a4Page"));
+  directPages.forEach(page=>{
+    const frame = document.createElement("div");
+    frame.className = "pageFrame";
+    page.parentNode.insertBefore(frame, page);
+    frame.appendChild(page);
+  });
+
+  addIllustrationsToPages();
+
+  const frames = [...document.querySelectorAll(".pageFrame")];
+  const isSmall = window.matchMedia("(max-width: 980px)").matches;
+  const A4W = 794;   // 210mm approx at CSS px
+  const A4H = 1123;  // 297mm approx at CSS px
+
+  frames.forEach(frame=>{
+    const page = frame.querySelector(".a4Page");
+    if(!page) return;
+
+    if(isSmall){
+      const parentW = Math.max(280, Math.min(window.innerWidth - 20, stack.clientWidth || window.innerWidth - 20));
+      const maxW = window.innerWidth <= 620 ? parentW : Math.min(parentW, 620);
+      const scale = Math.min(1, maxW / A4W);
+      frame.style.setProperty("--frame-w", `${Math.round(A4W * scale)}px`);
+      frame.style.setProperty("--frame-h", `${Math.round(A4H * scale)}px`);
+      frame.style.setProperty("--page-scale", String(scale));
+      page.style.position = "absolute";
+      page.style.left = "0";
+      page.style.top = "0";
+    }else{
+      frame.style.setProperty("--frame-w", "210mm");
+      frame.style.setProperty("--frame-h", "297mm");
+      frame.style.setProperty("--page-scale", "1");
+      page.style.position = "absolute";
+      page.style.left = "0";
+      page.style.top = "0";
     }
   });
-  addIllustrationsToPages();
 }
-function unwrapPageFramesV64(){
-  document.querySelectorAll(".pageFrame").forEach(frame=>{
-    const page=frame.querySelector(".a4Page");
-    if(page) frame.parentNode.insertBefore(page,frame);
-    frame.remove();
-  });
-  addIllustrationsToPages();
-}
-/* Override older dynamic scale functions to stop mobile flicker */
-window.wrapAndScalePages = stableWrapPages;
-window.unwrapPageFrames = unwrapPageFramesV64;
 
-const __renderThumbsBeforeV64 = renderThumbs;
+const __renderThumbsBeforeV65 = renderThumbs;
 renderThumbs = function(){
-  __renderThumbsBeforeV64();
-  stableWrapPages();
+  __renderThumbsBeforeV65();
+  applyStablePreviewScale();
 };
-const __loadAndRenderBeforeV64 = loadAndRender;
+
+const __loadAndRenderBeforeV65 = loadAndRender;
 loadAndRender = function(){
-  __loadAndRenderBeforeV64();
-  if(typeof setExportBookStyle==="function") setExportBookStyle(getExportBookStyle());
-  stableWrapPages();
-  const status=document.getElementById("statusText");
-  if(status && !status.dataset.v64){
-    status.dataset.v64="1";
-    status.innerHTML += "<br>v64 已改用穩定比例預覽，手機/平板不再依 resize 反覆縮放。";
+  __loadAndRenderBeforeV65();
+  setExportBookStyle(getExportBookStyle());
+  applyStablePreviewScale();
+  const status = document.getElementById("statusText");
+  if(status && !status.dataset.v65){
+    status.dataset.v65 = "1";
+    status.innerHTML += "<br>v65 已修正手機預覽寬度與圖片縮放，若要匯出最穩 PDF 仍建議用電腦 Chrome。";
   }
 };
-const __renderCurrentDataOnlyBeforeV64 = renderCurrentDataOnly;
+
+const __renderCurrentDataOnlyBeforeV65 = renderCurrentDataOnly;
 renderCurrentDataOnly = function(){
-  __renderCurrentDataOnlyBeforeV64();
-  if(typeof setExportBookStyle==="function") setExportBookStyle(getExportBookStyle());
-  stableWrapPages();
+  __renderCurrentDataOnlyBeforeV65();
+  setExportBookStyle(getExportBookStyle());
+  applyStablePreviewScale();
 };
-window.addEventListener("beforeprint", unwrapPageFramesV64);
-window.addEventListener("afterprint", ()=>setTimeout(stableWrapPages,80));
+
+let resizeTimer = null;
+window.addEventListener("resize", ()=>{
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(applyStablePreviewScale, 240);
+});
+window.addEventListener("orientationchange", ()=>{
+  setTimeout(applyStablePreviewScale, 360);
+});
+
+window.addEventListener("beforeprint", ()=>{
+  removePageFrames();
+  addIllustrationsToPages();
+});
+window.addEventListener("afterprint", ()=>{
+  setTimeout(applyStablePreviewScale, 120);
+});
+
+setExportBookStyle(getExportBookStyle());
 setTimeout(()=>{
-  if(typeof data!=="undefined" && data) renderCurrentDataOnly();
-  else if(typeof loadAndRender==="function") loadAndRender();
-  stableWrapPages();
-},260);
+  if(typeof data !== "undefined" && data) renderCurrentDataOnly();
+  else if(typeof loadAndRender === "function") loadAndRender();
+  applyStablePreviewScale();
+}, 180);
 </script>
 
 </body>
