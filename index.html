@@ -5447,6 +5447,45 @@ body[data-theme-mode] .btn.pink{
 }
 
 </style>
+
+<style>
+/* ===== v63.5 theme settings placement fix only ===== */
+/* 不再把外觀設定入口放在主視覺/旅程卡片區，改收進右上帳號選單。 */
+.themeWidget{
+  display:none !important;
+}
+.accountMenu #menuTheme{
+  width:100%;
+  border:0;
+  background:transparent;
+  text-align:left;
+  padding:9px 10px;
+  border-radius:12px;
+  font-weight:900;
+  color:var(--theme-ink, var(--ink));
+}
+.accountMenu #menuTheme:hover{
+  background:#f7f3ec;
+}
+.themePanelBackdrop{
+  z-index:210 !important;
+}
+@media(max-width:620px){
+  .themePanelBackdrop{
+    align-items:flex-end !important;
+    padding:12px !important;
+  }
+  .themePanel{
+    width:100% !important;
+    max-height:82vh !important;
+    border-radius:24px !important;
+  }
+}
+@media print{
+  #menuTheme,.themePanelBackdrop{display:none!important;}
+}
+</style>
+
 </head>
 <body>
 <div id="loginView" class="gateView noPrint hidden"></div>
@@ -16323,6 +16362,81 @@ document.addEventListener("keydown", function(e){
 document.addEventListener("DOMContentLoaded",()=>{
   const footer=document.querySelector("footer strong");
   if(footer)footer.textContent="版本：v63.4｜2026-05-30｜外觀設定與頁籤可讀性優化版";
+});
+
+
+/* ===== v63.5 theme settings actual relocation fix ===== */
+function v635ThemePanelHtml(){
+  const prefs=applyThemePrefs(getThemePrefs());
+  return `<div class="themePanelBackdrop noPrint" id="themePanelBackdrop" onclick="if(event.target===this)closeThemePanel()">
+    <div class="themePanel" role="dialog" aria-modal="true" aria-labelledby="themePanelTitle">
+      <div class="themePanelHead">
+        <div><h3 id="themePanelTitle">🎨 外觀設定</h3><p>調整整體色系、明暗與卡片風格。這只會改畫面外觀，不會影響旅程資料。</p></div>
+        <button class="themeCloseBtn" type="button" onclick="closeThemePanel()">×</button>
+      </div>
+      <div class="themePanelControls">
+        <div class="themeField"><label>明暗模式</label><select id="themeModeSelect" onchange="setThemePrefs({mode:this.value})">${themeOptions(THEME_CONFIG.modes,prefs.mode)}</select></div>
+        <div class="themeField"><label>色系風格</label><select id="themePaletteSelect" onchange="setThemePrefs({palette:this.value})">${themeOptions(THEME_CONFIG.palettes,prefs.palette)}</select></div>
+        <div class="themeField"><label>卡片樣式</label><select id="themeCardStyleSelect" onchange="setThemePrefs({cardStyle:this.value})">${themeOptions(THEME_CONFIG.cardStyles,prefs.cardStyle)}</select></div>
+      </div>
+      <div class="themePanelSwatches"><span class="themeSwatch seoul"></span><span class="themeSwatch ocean"></span><span class="themeSwatch latte"></span></div>
+      <div class="themePanelNote">外觀設定目前只儲存在這台裝置，不會改變旅程資料，也不會影響雲端同步。</div>
+    </div>
+  </div>`;
+}
+function removeInlineThemeWidgets(){
+  document.querySelectorAll('.themeWidget').forEach(el=>el.remove());
+}
+function ensureThemePanel(){
+  if(!document.body)return;
+  if(!$('themePanelBackdrop')){
+    document.body.insertAdjacentHTML('beforeend', v635ThemePanelHtml());
+  }
+  renderThemeWidgetState();
+}
+function ensureAccountThemeButton(){
+  const menu=$('accountMenu');
+  if(!menu || $('menuTheme'))return;
+  const logout=$('menuLogout');
+  const btn=document.createElement('button');
+  btn.id='menuTheme';
+  btn.type='button';
+  btn.textContent='外觀設定';
+  btn.onclick=function(){ closeAccountMenu?.(); openThemePanel(); };
+  if(logout) menu.insertBefore(btn, logout);
+  else menu.appendChild(btn);
+}
+function injectThemeWidget(){
+  removeInlineThemeWidgets();
+  ensureThemePanel();
+  ensureAccountThemeButton();
+}
+function openThemePanel(){
+  ensureThemePanel();
+  const el=$('themePanelBackdrop');
+  if(el){ renderThemeWidgetState(); el.classList.add('show'); }
+}
+function closeThemePanel(){
+  const el=$('themePanelBackdrop');
+  if(el)el.classList.remove('show');
+}
+function toggleThemeWidget(){ openThemePanel(); }
+const __renderAccountWidgetBeforeV635 = renderAccountWidget;
+renderAccountWidget = function(user){
+  __renderAccountWidgetBeforeV635(user);
+  ensureAccountThemeButton();
+};
+const __toggleAccountMenuBeforeV635 = toggleAccountMenu;
+toggleAccountMenu = function(){
+  ensureAccountThemeButton();
+  __toggleAccountMenuBeforeV635();
+};
+document.addEventListener('DOMContentLoaded',()=>{
+  removeInlineThemeWidgets();
+  ensureThemePanel();
+  ensureAccountThemeButton();
+  const footer=document.querySelector('footer strong');
+  if(footer)footer.textContent='版本：v63.5｜2026-05-30｜外觀設定位置修正版';
 });
 </script>
 
