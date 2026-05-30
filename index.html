@@ -16438,6 +16438,192 @@ document.addEventListener('DOMContentLoaded',()=>{
   const footer=document.querySelector('footer strong');
   if(footer)footer.textContent='版本：v63.5｜2026-05-30｜外觀設定位置修正版';
 });
+
+
+/* ===== v63.6 trip card management + per-trip color UI only =====
+   目的：
+   - 我的旅程卡片新增「刪除」功能
+   - 移除旅程卡片固定 J 字樣，改為多人使用友善設計
+   - 每趟旅程可選 5 種卡片背景色，僅寫入 tripIndex 的 cardColor，不改旅程 data 結構
+*/
+const V636_VERSION = "v63.6";
+const V636_CARD_COLORS = [
+  {key:"cream", label:"奶油白"},
+  {key:"mint", label:"薄荷綠"},
+  {key:"rose", label:"玫瑰粉"},
+  {key:"sky", label:"晨霧藍"},
+  {key:"latte", label:"奶茶棕"}
+];
+function v636ColorKey(v){
+  return V636_CARD_COLORS.some(c=>c.key===v) ? v : "cream";
+}
+function v636ColorOptions(selected="cream"){
+  const val=v636ColorKey(selected);
+  return V636_CARD_COLORS.map(c=>`<option value="${c.key}" ${c.key===val?"selected":""}>${c.label}</option>`).join("");
+}
+function v636ColorDots(selected="cream", id=""){
+  const val=v636ColorKey(selected);
+  return `<div class="tripColorDots" aria-label="旅程卡片色系">${V636_CARD_COLORS.map(c=>`<button type="button" class="tripColorDot color-${c.key} ${c.key===val?"active":""}" title="${c.label}" onclick="updateTripCardColor('${id}','${c.key}')"></button>`).join("")}</div>`;
+}
+function v636DeleteTripCloud(id){
+  if(!(fbUser && fbDb && id))return Promise.resolve();
+  return fbDb.collection("users").doc(fbUser.uid).collection("trips").doc(id).delete().catch(e=>{
+    console.warn("delete trip cloud failed", e);
+    toast("雲端刪除失敗，已保留本機資料");
+    throw e;
+  });
+}
+async function updateTripCardColor(id,color){
+  const t=tripList.find(x=>x.id===id);
+  if(!t)return;
+  t.cardColor=v636ColorKey(color);
+  t.updatedAtClient=Date.now();
+  v63SaveTripListLocal?.();
+  renderTripList();
+  try{ await v63SaveTripListCloud?.(); }catch(e){ console.warn(e); }
+  toast("已更新旅程卡片色系");
+}
+
+/* 重新覆寫旅程清單：拿掉 J 圖示、加入色系欄位 */
+renderTripList = function(){
+  const el=$("tripListView"); if(!el)return;
+  const active=tripList.filter(t=>!t.archived);
+  const archived=tripList.filter(t=>t.archived);
+  el.innerHTML=`<div class="gateShell">
+    <div class="tripListHero"><div><div class="loginBrand">貞選旅管家</div><h1>我的旅程</h1><p>每趟旅程都是一包獨立資料：旅遊地、航班住宿、行程、口袋景點、預算、行李與旅遊書都會分開保存。</p></div><div class="tripListCount">${active.length}/${V63_MAX_TRIPS} 個旅程</div></div>
+    <div class="tripGrid">${active.map(v63TripCard).join("") || '<div class="tripListCard tripColor-cream"><div class="tripCardTop"><div><span class="tripBadge">尚未開始</span><h3>還沒有旅程</h3></div></div><div class="meta">先在下方新增第一趟旅程。</div></div>'}</div>
+    ${archived.length?`<details class="tripCreateCard" open><summary style="cursor:pointer;font-weight:950">封存旅程</summary><div class="tripGrid">${archived.map(v63TripCard).join("")}</div></details>`:""}
+    <div class="tripCreateCard"><h3>＋ 新增旅程</h3><div class="tripCreateGrid"><div><label>旅程名稱</label><input id="newTripTitle" placeholder="例：2026 釜山自由行"></div><div><label>國家 / 區域</label><select id="newTripCountry" onchange="v63NewTripCountryChanged()">${Object.keys(currencyMap).map(c=>`<option value="${c}">${c}</option>`).join("")}<option value="其他">其他</option></select></div><div><label>城市 / 路線</label><input id="newTripCity" value="釜山"></div><div><label>卡片色系</label><select id="newTripColor">${v636ColorOptions("cream")}</select></div><div><label>出發日</label><input id="newTripStart" type="date"></div><div><label>回程日</label><input id="newTripEnd" type="date"></div><div style="align-self:end"><button class="btn dark" style="width:100%" onclick="createTrip()">建立旅程</button></div></div><div class="cloudHint">建立後會先進入旅遊地設定；完成旅遊地後才會解鎖其他功能。旅程卡片色系只影響清單外觀，不會改變旅行資料。</div></div>
+    <div class="btns"><button class="btn soft" onclick="firebaseSignOut()">登出</button></div>
+  </div>`;
+  if(typeof v631BrandTitle==="function")v631BrandTitle();
+};
+
+v63TripCard = function(t){
+  const dateText=t.start&&t.end?`${esc(short(t.start))} - ${esc(short(t.end))}`:"尚未完成";
+  const destText=t.dest||"未設定目的地";
+  const color=v636ColorKey(t.cardColor);
+  return `<div class="tripListCard tripColor-${color} ${t.archived?"archived":""}">
+    <div class="tripCardTop"><div><span class="tripBadge">${t.archived?"已封存":"旅程"}</span><h3>${esc(t.title||"未命名旅程")}</h3></div></div>
+    <div class="tripCardMetaGrid"><div><span>目的地</span><b>${esc(destText)}</b></div><div><span>日期</span><b>${dateText}</b></div></div>
+    <div class="meta">${t.updatedAtClient?`最後更新：${new Date(t.updatedAtClient).toLocaleDateString("zh-TW")}`:"尚未同步更新時間"}</div>
+    <div class="tripCardTools">
+      <div class="tripColorControl"><span>卡片色系</span>${v636ColorDots(color,t.id)}</div>
+      <select class="tripColorSelect" onchange="updateTripCardColor('${t.id}',this.value)">${v636ColorOptions(color)}</select>
+    </div>
+    <div class="btns">
+      <button class="btn dark compact" onclick="selectTrip('${t.id}')">繼續編輯</button>
+      ${t.archived?`<button class="btn blue compact" onclick="restoreTrip('${t.id}')">還原</button>`:`<button class="btn soft compact" onclick="archiveTrip('${t.id}')">封存</button>`}
+      <button class="btn danger compact" onclick="deleteTrip('${t.id}')">刪除</button>
+    </div>
+  </div>`;
+};
+
+/* 覆寫新增旅程：多讀一個 cardColor 欄位，寫入旅程索引 */
+createTrip = async function(){
+  const active=tripList.filter(t=>!t.archived);
+  if(active.length>=V63_MAX_TRIPS)return toast(`每個帳號最多只能建立 ${V63_MAX_TRIPS} 個旅程`);
+  const title=$("newTripTitle")?.value.trim() || "我的新旅程";
+  const country=$("newTripCountry")?.value || "韓國";
+  const city=$("newTripCity")?.value.trim() || "";
+  const start=$("newTripStart")?.value || "";
+  const end=$("newTripEnd")?.value || "";
+  const cardColor=v636ColorKey($("newTripColor")?.value || "cream");
+  if(!start || !end)return toast("請先選擇出發日與回程日");
+  if(start>end)return toast("回程日不可早於出發日");
+  const id=`trip_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
+  currentTripId=id;
+  localStorage.setItem(V63_CURRENT_TRIP_KEY,id);
+  data=v63DefaultTripData({title,country,city,start,end});
+  cur=data.days?.[0]?.key || data.trip.start;
+  tripList.unshift({...v63TripMetaFromData(id), cardColor});
+  v63PersistTripLocal();
+  await v63SaveTripListCloud();
+  await saveToCloudNow();
+  v63ShowShell("app");
+  view="trip";
+  renderNav(); render(); scrollTo(0,0);
+  toast("已建立旅程");
+};
+
+/* 真正刪除旅程：刪 Firestore trip doc、本機資料、tripIndex。封存仍保留原行為。 */
+deleteTrip = async function(id){
+  const t=tripList.find(x=>x.id===id);
+  if(!t)return;
+  const title=t.title || "這趟旅程";
+  const ok=confirm(`確定要刪除「${title}」嗎？\n\n刪除後會從旅程清單移除，並嘗試刪除雲端旅程資料。這個動作不能從網頁內復原。`);
+  if(!ok)return;
+  try{
+    if(fbUser && fbDb)await v636DeleteTripCloud(id);
+    tripList=tripList.filter(x=>x.id!==id);
+    try{localStorage.removeItem(getLocalTripKey(id));}catch(e){}
+    try{localStorage.removeItem(`${getLocalTripKey(id)}__meta`);}catch(e){}
+    if(currentTripId===id){
+      currentTripId="";
+      localStorage.removeItem(V63_CURRENT_TRIP_KEY);
+      if(cloudUnsub){cloudUnsub(); cloudUnsub=null;}
+      cloudReady=false;
+    }
+    await v63SaveTripListCloud();
+    renderTripList();
+    v63ShowShell("list");
+    toast("已刪除旅程");
+  }catch(e){
+    console.warn(e);
+  }
+};
+
+/* 若舊旅程沒有顏色，補預設色，不影響資料內容 */
+const __v636LoadTripsBefore = loadTrips;
+loadTrips = async function(){
+  const list=await __v636LoadTripsBefore();
+  let changed=false;
+  tripList=(tripList||[]).map(t=>{
+    if(!t.cardColor){changed=true; return {...t, cardColor:"cream"};}
+    return {...t, cardColor:v636ColorKey(t.cardColor)};
+  });
+  if(changed){v63SaveTripListLocal?.(); try{await v63SaveTripListCloud?.();}catch(e){}}
+  return tripList;
+};
+
+/* 樣式：五色卡片、移除 J 固定個人化符號 */
+const v636Style=document.createElement("style");
+v636Style.textContent=`
+  .tripListHero .loginBrand{letter-spacing:.08em;}
+  .tripListCard{position:relative;isolation:isolate;}
+  .tripListCard::before{content:"";position:absolute;inset:0;border-radius:inherit;z-index:-1;opacity:.78;}
+  .tripListCard.tripColor-cream::before{background:linear-gradient(135deg,#fffdfa,#f7f3ec);}
+  .tripListCard.tripColor-mint::before{background:linear-gradient(135deg,#f8fffb,#e2f3eb);}
+  .tripListCard.tripColor-rose::before{background:linear-gradient(135deg,#fffafb,#f8e4ea);}
+  .tripListCard.tripColor-sky::before{background:linear-gradient(135deg,#fbfdff,#e4f0f7);}
+  .tripListCard.tripColor-latte::before{background:linear-gradient(135deg,#fffaf4,#efe2d4);}
+  .tripCardIcon{display:none!important;}
+  .tripCardTop{display:block!important;}
+  .tripCardTools{margin:10px 0 2px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+  .tripColorControl{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px;font-weight:900;}
+  .tripColorDots{display:inline-flex;gap:6px;align-items:center;}
+  .tripColorDot{width:22px;height:22px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px var(--line),0 3px 8px rgba(88,72,55,.08);padding:0;cursor:pointer;}
+  .tripColorDot.active{box-shadow:0 0 0 2px var(--ink),0 4px 10px rgba(88,72,55,.12);}
+  .tripColorDot.color-cream{background:#f7f3ec;}
+  .tripColorDot.color-mint{background:#d9efe6;}
+  .tripColorDot.color-rose{background:#f8dfe8;}
+  .tripColorDot.color-sky{background:#dceefa;}
+  .tripColorDot.color-latte{background:#ead9c8;}
+  .tripColorSelect{width:auto!important;min-width:118px!important;min-height:32px!important;padding:5px 28px 5px 9px!important;border-radius:999px!important;font-size:12px!important;background:#fff!important;}
+  .tripListCard .btn.danger.compact{background:linear-gradient(180deg,#fff1f1,#ffd8d8)!important;color:#a85252!important;}
+  @media(max-width:620px){
+    .tripCardTools{display:grid;grid-template-columns:1fr;gap:7px;}
+    .tripColorControl{justify-content:space-between;}
+    .tripColorSelect{width:100%!important;}
+    .tripListCard .btns .btn{flex:1 1 auto;}
+  }
+`;
+document.head.appendChild(v636Style);
+
+document.addEventListener('DOMContentLoaded',()=>{
+  const footer=document.querySelector('footer strong');
+  if(footer)footer.textContent='版本：v63.6｜2026-05-31｜旅程卡片刪除與色系管理版';
+});
 </script>
 
 </body></html>
