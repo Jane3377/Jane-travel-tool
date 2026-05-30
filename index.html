@@ -15679,4 +15679,397 @@ document.addEventListener("change", function(e){
 v631BrandTitle();
 </script>
 
+
+
+<style>
+/* ===== v63.2 cloud sync reliability patch ===== */
+.syncCloudBadge{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  border-radius:999px;
+  padding:5px 8px;
+  font-size:11px;
+  font-weight:900;
+  background:#f3eee8;
+  color:#6f6257;
+  margin-top:5px;
+}
+.syncCloudBadge.on{background:#edf8f3;color:#527b70}
+.syncCloudBadge.warn{background:#fff3ce;color:#7b653b}
+.syncCloudBadge.off{background:#fbedf2;color:#875363}
+.tripSwitchBar .btns .btn{white-space:nowrap}
+@media(max-width:620px){
+  .tripSwitchBar{align-items:flex-start}
+  .tripSwitchBar .btns{width:100%;display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+  .tripSwitchBar .btns .btn{width:100%;padding-left:7px!important;padding-right:7px!important}
+}
+</style>
+
+<script>
+/* ===== v63.2 cloud sync reliability patch =====
+   目的：修正 v63/v63.1 在多旅程架構下，部分儲存只留在 localStorage、未穩定寫入 Firestore 的問題。
+   原則：不改 data 內容結構，只強化 uid + tripId 的讀寫路徑、雲端狀態與錯誤提示。
+*/
+const V632_VERSION = "v63.2";
+const V632_LOCAL_META_SUFFIX = "__meta";
+let v632LastSyncState = {kind:"off", title:"尚未同步", desc:"", at:0};
+
+function v632Now(){ return Date.now(); }
+function v632LocalMetaKey(tripId=currentTripId){ return `${getLocalTripKey(tripId)}${V632_LOCAL_META_SUFFIX}`; }
+function v632GetLocalMeta(tripId=currentTripId){
+  try{return JSON.parse(localStorage.getItem(v632LocalMetaKey(tripId))||"{}");}catch(e){return {};}
+}
+function v632SetLocalMeta(tripId=currentTripId, meta={}){
+  if(!tripId)return;
+  localStorage.setItem(v632LocalMetaKey(tripId), JSON.stringify({...v632GetLocalMeta(tripId), ...meta}));
+}
+function v632IsAllowed(){
+  return !!(fbUser && typeof v63IsAllowed === "function" && v63IsAllowed(fbUser));
+}
+function v632CanUseCloud(showToast=false){
+  if(!fbUser){ if(showToast)toast("請先登入 Google"); return false; }
+  if(!v632IsAllowed()){ if(showToast)toast("這個帳號還沒授權同步"); return false; }
+  if(!fbDb){ if(showToast)toast("Firebase 尚未初始化"); return false; }
+  if(!currentTripId){ if(showToast)toast("請先選擇旅程"); return false; }
+  return true;
+}
+function v632CloudPathText(){
+  if(!fbUser || !currentTripId)return "尚未選擇旅程";
+  return `users/${fbUser.uid}/trips/${currentTripId}`;
+}
+function tripDocRef(){
+  if(!fbUser) throw new Error("尚未登入");
+  if(!currentTripId) throw new Error("尚未選擇旅程");
+  return fbDb.collection("users").doc(fbUser.uid).collection("trips").doc(currentTripId);
+}
+function cloudPayload(){
+  return {
+    appVersion: V632_VERSION,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAtClient: v632Now(),
+    ownerEmail: fbUser?.email || "",
+    tripId: currentTripId || "",
+    tripMeta: typeof v63TripMetaFromData === "function" ? v63TripMetaFromData(currentTripId) : {},
+    data: JSON.parse(JSON.stringify(data))
+  };
+}
+function setSyncStatus(kind,title,desc){
+  v632LastSyncState={kind:kind||"off",title:title||"",desc:desc||"",at:v632Now()};
+  const dotClass = kind==="on"?"on":kind==="warn"?"warn":"off";
+  const shortTitle = String(title||"").replace("已同步雲端","同步好了").replace("已同步到雲端","同步好了");
+  const html = `<span class="syncDot ${dotClass}"></span><b>${esc(shortTitle)}</b>${desc?`<br>${esc(desc)}`:""}`;
+  const el=$("syncStatus"); if(el)el.innerHTML=html;
+  const mini=$("syncMini");
+  if(mini){ mini.textContent = `${shortTitle}${desc?"｜"+desc:""}`; mini.classList.add("show"); setTimeout(()=>mini.classList.remove("show"),1800); }
+  const line=$("accountSyncLine");
+  if(line){
+    const state = kind==="on"?"success":kind==="warn"?"syncing":kind==="off"?"error":"";
+    line.innerHTML = `<span class="dot ${state}"></span>${esc(shortTitle||"同步狀態")}`;
+  }
+}
+function v632StatusBadge(){
+  const s=v632LastSyncState || {};
+  const kind=s.kind||"off";
+  const label=kind==="on"?"雲端已同步":kind==="warn"?"雲端同步中":"雲端未確認";
+  const time=s.at?new Date(s.at).toLocaleTimeString("zh-TW",{hour:"2-digit",minute:"2-digit"}):"";
+  return `<span class="syncCloudBadge ${kind}">${label}${time?`｜${time}`:""}</span>`;
+}
+function v63PersistTripLocal(){
+  if(currentTripId){
+    localStorage.setItem(getLocalTripKey(currentTripId), JSON.stringify(data));
+    v632SetLocalMeta(currentTripId,{updatedAtClient:v632Now(), tripId:currentTripId, title:data?.meta?.title||"", dest:data?.trip?.dest||""});
+    try{ localStorage.setItem("voyageMemoData", JSON.stringify(data)); }catch(e){}
+  }
+}
+function save(){
+  v63PersistTripLocal();
+  if(typeof v63UpdateCurrentTripMeta === "function")v63UpdateCurrentTripMeta(false);
+  render();
+  scheduleCloudSave("save");
+}
+function silentSave(){
+  v63PersistTripLocal();
+  if(typeof v63UpdateCurrentTripMeta === "function")v63UpdateCurrentTripMeta(false);
+  scheduleCloudSave("silentSave");
+}
+function scheduleCloudSave(reason="auto"){
+  if(suppressCloudSave)return;
+  if(!v632CanUseCloud(false))return;
+  cloudReady=true;
+  clearTimeout(cloudSaveTimer);
+  setSyncStatus("warn","同步排程中", reason==="auto"?"即將存到雲端":`即將存到雲端：${reason}`);
+  cloudSaveTimer=setTimeout(()=>saveToCloudNow({silent:true,reason}),900);
+}
+async function v632SaveTripIndexCloud(){
+  if(!fbUser || !fbDb)return;
+  try{
+    await v63TripIndexRef().set({
+      trips:tripList,
+      updatedAtClient:v632Now(),
+      ownerEmail:fbUser.email||"",
+      appVersion:V632_VERSION
+    },{merge:true});
+  }catch(e){
+    console.warn("tripIndex save failed", e);
+    throw e;
+  }
+}
+async function v63SaveTripListCloud(){
+  v63SaveTripListLocal();
+  if(fbUser && fbDb){
+    await v632SaveTripIndexCloud();
+  }
+}
+async function saveToCloudNow(options={}){
+  const silent=!!options.silent;
+  if(!v632CanUseCloud(true))return false;
+  try{
+    clearTimeout(cloudSaveTimer);
+    setSyncStatus("warn","同步中",`寫入：${v632CloudPathText()}`);
+    const now=v632Now();
+    lastCloudUpdatedAt=now;
+    const payload=cloudPayload();
+    payload.updatedAtClient=now;
+    payload.tripMeta={...payload.tripMeta, updatedAtClient:now};
+    await tripDocRef().set(payload,{merge:true});
+    cloudReady=true;
+    v632SetLocalMeta(currentTripId,{updatedAtClient:now, cloudUpdatedAtClient:now, cloudPath:v632CloudPathText()});
+    if(typeof v63UpdateCurrentTripMeta === "function"){
+      await v63UpdateCurrentTripMeta(false);
+      await v632SaveTripIndexCloud();
+    }
+    localStorage.setItem(`janeselect_cloud_backup_${currentTripId}`, JSON.stringify(data));
+    localStorage.setItem("travel_book_v22_cloud_backup", JSON.stringify(data));
+    setSyncStatus("on","同步好了",`${new Date(now).toLocaleTimeString("zh-TW",{hour:"2-digit",minute:"2-digit"})}`);
+    if(!silent)toast("已同步到雲端");
+    return true;
+  }catch(err){
+    const msg=err?.message || String(err) || "請檢查 Firestore Rules 與網路。";
+    setSyncStatus("off","同步失敗",msg);
+    if(!silent)alert("同步失敗："+msg+"\n\n請確認 Firestore Rules 允許 users/{uid}/trips/{tripId} 與 users/{uid}/tripIndex/list 讀寫。");
+    return false;
+  }
+}
+async function loadFromCloud(options={}){
+  const silent=!!options.silent;
+  if(!v632CanUseCloud(true))return false;
+  if(!silent && !options.force && !confirm("載入雲端資料會覆蓋目前此裝置上的同一趟旅程資料。確定載入嗎？"))return false;
+  try{
+    setSyncStatus("warn","載入中",`讀取：${v632CloudPathText()}`);
+    const snap=await tripDocRef().get();
+    if(!snap.exists || !snap.data()?.data){
+      if(!silent)toast("這趟旅程雲端目前沒有資料");
+      setSyncStatus("off","雲端無資料",v632CloudPathText());
+      return false;
+    }
+    suppressCloudSave=true;
+    const doc=snap.data();
+    data=v63NormalizeData(doc.data);
+    cur=data.days?.[0]?.key || data.trip?.start || cur;
+    v63PersistTripLocal();
+    lastCloudUpdatedAt=doc.updatedAtClient || v632Now();
+    suppressCloudSave=false;
+    cloudReady=true;
+    render();
+    setSyncStatus("on","已載入雲端資料",`旅程：${v63CurrentTripTitle()}`);
+    return true;
+  }catch(err){
+    suppressCloudSave=false;
+    const msg=err?.message || String(err);
+    setSyncStatus("off","載入雲端失敗",msg);
+    if(!silent)alert("載入雲端失敗："+msg);
+    return false;
+  }
+}
+function listenCloudChanges(){
+  if(!v632CanUseCloud(false))return;
+  if(cloudUnsub){cloudUnsub(); cloudUnsub=null;}
+  const listeningTripId=currentTripId;
+  cloudUnsub=tripDocRef().onSnapshot(snap=>{
+    if(!snap.exists || !snap.data()?.data || !cloudReady)return;
+    if(listeningTripId!==currentTripId)return;
+    const doc=snap.data();
+    const remoteUpdated=doc.updatedAtClient || 0;
+    const localMeta=v632GetLocalMeta(currentTripId);
+    const localUpdated=localMeta.updatedAtClient || 0;
+    if(remoteUpdated && remoteUpdated > Math.max(lastCloudUpdatedAt, localUpdated) + 1200){
+      lastCloudUpdatedAt=remoteUpdated;
+      setSyncStatus("warn","雲端有較新的資料","可按「載入」更新此裝置");
+    }
+  },err=>setSyncStatus("off","雲端監聽失敗",err.message));
+}
+async function loadTrips(){
+  const localList=v63LoadTripListLocal();
+  tripList=[...localList];
+  if(fbUser && fbDb){
+    try{
+      const snap=await v63TripIndexRef().get();
+      const cloudList=(snap.exists && Array.isArray(snap.data()?.trips)) ? snap.data().trips : [];
+      const map=new Map();
+      [...cloudList,...localList].forEach(t=>{
+        if(!t?.id)return;
+        const old=map.get(t.id);
+        if(!old || Number(t.updatedAtClient||0)>=Number(old.updatedAtClient||0))map.set(t.id,t);
+      });
+      tripList=[...map.values()].sort((a,b)=>Number(b.updatedAtClient||0)-Number(a.updatedAtClient||0));
+      v63SaveTripListLocal();
+      if(tripList.length)await v632SaveTripIndexCloud();
+    }catch(e){
+      console.warn("loadTrips fallback local", e);
+      setSyncStatus("off","旅程清單同步失敗",e.message||String(e));
+    }
+  }
+  return tripList;
+}
+async function selectTrip(id){
+  currentTripId=id;
+  localStorage.setItem(V63_CURRENT_TRIP_KEY,id);
+  cloudReady=false;
+  if(cloudUnsub){cloudUnsub(); cloudUnsub=null;}
+
+  let localData=null, localMeta=v632GetLocalMeta(id), cloudDoc=null;
+  try{
+    const raw=localStorage.getItem(getLocalTripKey(id));
+    if(raw)localData=v63NormalizeData(JSON.parse(raw));
+  }catch(e){console.warn("local trip load failed",e)}
+
+  if(fbUser && fbDb){
+    try{
+      const snap=await tripDocRef().get();
+      if(snap.exists && snap.data()?.data)cloudDoc=snap.data();
+    }catch(e){
+      console.warn("cloud trip load failed",e);
+      setSyncStatus("off","雲端讀取失敗",e.message||String(e));
+    }
+  }
+
+  const cloudUpdated=Number(cloudDoc?.updatedAtClient||0);
+  const localUpdated=Number(localMeta?.updatedAtClient||0);
+  suppressCloudSave=true;
+  if(cloudDoc?.data && cloudUpdated>=localUpdated){
+    data=v63NormalizeData(cloudDoc.data);
+    lastCloudUpdatedAt=cloudUpdated;
+    setSyncStatus("on","已載入雲端資料",`旅程：${cloudDoc.tripMeta?.title || v63CurrentTripTitle()}`);
+  }else if(localData){
+    data=localData;
+    if(cloudDoc?.data){
+      setSyncStatus("warn","本機資料較新","即將補同步到雲端");
+    }else{
+      setSyncStatus("warn","雲端尚無此旅程","即將建立雲端資料");
+    }
+  }else if(cloudDoc?.data){
+    data=v63NormalizeData(cloudDoc.data);
+    lastCloudUpdatedAt=cloudUpdated;
+  }else{
+    data=v63CloneBase();
+    setSyncStatus("off","尚無旅程資料","請先設定旅遊地");
+  }
+  cur=data.days?.[0]?.key || data.trip?.start || cur;
+  v63PersistTripLocal();
+  suppressCloudSave=false;
+  cloudReady=!!(fbUser && currentTripId && v632IsAllowed());
+  if(cloudReady)listenCloudChanges();
+
+  v63ShowShell("app");
+  view="trip";
+  renderNav(); render(); scrollTo(0,0);
+
+  if(cloudReady && (!cloudDoc?.data || localUpdated>cloudUpdated+1000)){
+    scheduleCloudSave("selectTrip-local-newer");
+  }
+}
+async function createTrip(){
+  const active=tripList.filter(t=>!t.archived);
+  if(active.length>=V63_MAX_TRIPS)return toast(`每個帳號最多只能建立 ${V63_MAX_TRIPS} 個旅程`);
+  const title=$("newTripTitle")?.value.trim() || "我的新旅程";
+  const country=$("newTripCountry")?.value || "韓國";
+  const city=$("newTripCity")?.value.trim() || "";
+  const start=$("newTripStart")?.value || "";
+  const end=$("newTripEnd")?.value || "";
+  if(!start || !end)return toast("請先選擇出發日與回程日");
+  if(start>end)return toast("回程日不可早於出發日");
+  const id=`trip_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
+  currentTripId=id;
+  localStorage.setItem(V63_CURRENT_TRIP_KEY,id);
+  data=v63DefaultTripData({title,country,city,start,end});
+  cur=data.days?.[0]?.key || data.trip.start;
+  tripList.unshift(v63TripMetaFromData(id));
+  v63PersistTripLocal();
+  cloudReady=!!(fbUser && currentTripId && v632IsAllowed());
+  try{
+    await v63SaveTripListCloud();
+    if(cloudReady)await saveToCloudNow({silent:true,reason:"createTrip"});
+  }catch(e){
+    setSyncStatus("off","建立雲端旅程失敗",e.message||String(e));
+  }
+  if(cloudReady)listenCloudChanges();
+  v63ShowShell("app");
+  view="trip";
+  renderNav(); render(); scrollTo(0,0);
+  toast("已建立旅程");
+}
+async function v63HandleAuth(user){
+  fbUser=user||null;
+  v63AuthPassed=!!(user && v63IsAllowed(user));
+  if(cloudUnsub){cloudUnsub(); cloudUnsub=null;}
+  if(!user){
+    currentTripId=""; cloudReady=false;
+    renderLoginView(); v63ShowShell("login"); renderAccountWidget?.(null);
+    setSyncStatus("off","尚未登入","登入 Google 後可跨裝置同步");
+    return;
+  }
+  if(!v63AuthPassed){
+    currentTripId=""; cloudReady=false;
+    renderLoginView(`${user.email || "這個帳號"} 尚未在白名單中，請改用授權帳號登入。`);
+    v63ShowShell("login"); renderAccountWidget?.(user);
+    setSyncStatus("off","帳號未授權",user.email||"");
+    return;
+  }
+  setSyncStatus("warn","登入成功","載入旅程清單中");
+  await loadTrips();
+  renderAccountWidget?.(user);
+  const savedId=localStorage.getItem(V63_CURRENT_TRIP_KEY)||currentTripId;
+  if(savedId && tripList.some(t=>t.id===savedId && !t.archived)){
+    await selectTrip(savedId);
+  }else{
+    currentTripId=""; localStorage.removeItem(V63_CURRENT_TRIP_KEY); cloudReady=false;
+    renderTripList(); v63ShowShell("list");
+    setSyncStatus("on","已載入旅程清單",`${tripList.filter(t=>!t.archived).length} 個旅程`);
+  }
+}
+function v63RenderTripSwitchBar(){
+  const header=document.querySelector("#mainApp header") || document.querySelector(".app header");
+  if(!header || !currentTripId)return;
+  let bar=$("tripSwitchBar");
+  if(!bar){bar=document.createElement("div");bar.id="tripSwitchBar";bar.className="tripSwitchBar noPrint";header.appendChild(bar);}
+  bar.innerHTML=`<div class="miniTrip"><b>${esc(v63CurrentTripTitle())}</b><br>${esc(data.trip.dest||"未設定目的地")}｜${data.trip.start&&data.trip.end?`${esc(short(data.trip.start))}-${esc(short(data.trip.end))}`:"尚未完成日期"}<br>${v632StatusBadge()}</div><div class="btns" style="margin:0"><button class="btn soft compact" onclick="v63BackToTripList()">切換</button><button class="btn blue compact" onclick="loadFromCloud({force:true})">載入</button><button class="btn dark compact" onclick="saveToCloudNow()">同步</button></div>`;
+}
+async function v632CheckCloud(){
+  if(!v632CanUseCloud(true))return;
+  try{
+    const snap=await tripDocRef().get();
+    if(!snap.exists)return alert(`雲端尚未建立此旅程\n路徑：${v632CloudPathText()}`);
+    const doc=snap.data()||{};
+    const d=doc.data||{};
+    alert(`雲端檢查成功\n路徑：${v632CloudPathText()}\n更新時間：${doc.updatedAtClient?new Date(doc.updatedAtClient).toLocaleString("zh-TW"):"未知"}\n行程：${Array.isArray(d.plans)?d.plans.length:0} 筆\n住宿：${Array.isArray(d.hotels)?d.hotels.length:0} 筆\n景點：${Array.isArray(d.spots)?d.spots.length:0} 筆`);
+  }catch(e){
+    alert("雲端檢查失敗："+(e.message||String(e)));
+  }
+}
+const __v632RenderHelp = renderHelp;
+renderHelp=function(){
+  __v632RenderHelp();
+  const el=$("helpView");
+  if(el){
+    el.insertAdjacentHTML("afterbegin", `<div class="card"><h3>v63.2 雲端同步檢查</h3><div class="box mint">目前同步路徑：${esc(v632CloudPathText())}<br>如果平板有資料、手機看不到，請先在有資料的裝置按「強制同步」，再到另一台裝置按「載入」。</div><div class="btns"><button class="btn dark" onclick="saveToCloudNow()">強制同步</button><button class="btn blue" onclick="loadFromCloud({force:true})">載入雲端</button><button class="btn soft" onclick="v632CheckCloud()">檢查雲端筆數</button></div></div>`);
+  }
+};
+// 重新標示目前版本，保留頁尾原資訊之外再補 v63.2 狀態。
+document.addEventListener("DOMContentLoaded",()=>{
+  const footer=document.querySelector("footer strong");
+  if(footer && !footer.textContent.includes("v63.2"))footer.textContent="版本：v63.2｜2026-05-30｜多旅程雲端同步穩定修正版";
+});
+</script>
+
 </body></html>
