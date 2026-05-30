@@ -4,11 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#d9efe6">
-<meta name="application-name" content="貞選旅管家">
-<meta name="apple-mobile-web-app-title" content="貞選旅管家">
-<link rel="icon" type="image/svg+xml" href='data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"%3E%3Crect width="64" height="64" rx="18" fill="%23d9efe6"/%3E%3Ctext x="50%25" y="54%25" text-anchor="middle" dominant-baseline="middle" font-family="Arial, Helvetica, sans-serif" font-size="38" font-weight="700" fill="%2341675d"%3EJ%3C/text%3E%3C/svg%3E'>
-<link rel="shortcut icon" href='data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"%3E%3Crect width="64" height="64" rx="18" fill="%23d9efe6"/%3E%3Ctext x="50%25" y="54%25" text-anchor="middle" dominant-baseline="middle" font-family="Arial, Helvetica, sans-serif" font-size="38" font-weight="700" fill="%2341675d"%3EJ%3C/text%3E%3C/svg%3E'>
-<title>貞選旅管家</title>
+<title>貞選旅管家 Janeselect Travel Manager</title>
 <style>
 :root{--bg:#f7f3ec;--card:#fffdfa;--ink:#3f3a35;--muted:#8b827a;--line:#eadfd4;--mint:#d9efe6;--mint2:#b9dccc;--dark:#628f80;--blue:#e3f0fa;--pink:#f8dfe8;--yellow:#fff0c5;--green:#edf8f3;--shadow:0 16px 40px rgba(88,72,55,.08);--r:22px}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 0 0,#e1f2ec,transparent 34%),radial-gradient(circle at 100% 0,#fde4ec,transparent 30%),linear-gradient(#fbf7f1,#f7f3ec);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif}.app{max-width:1160px;margin:auto;padding:14px 14px 86px}header,.panel,.main,.card{background:rgba(255,255,255,.92);border:1px solid rgba(255,255,255,.84);box-shadow:var(--shadow);border-radius:var(--r)}header{padding:18px}.badge{display:inline-flex;align-items:center;gap:6px;background:var(--mint);color:#41675d;border-radius:999px;padding:7px 12px;font-weight:900;font-size:13px;margin-bottom:10px}.titleRow{display:flex;align-items:center;gap:8px}h1{margin:0;font-size:32px;line-height:1.15;letter-spacing:-1px}.subRow{display:flex;align-items:flex-start;gap:7px;margin:10px 0 14px}.sub{color:var(--muted);line-height:1.65;font-size:15px;margin:0;flex:1}.iconBtn{border:0;background:#f3eee8;color:#5d554e;border-radius:50%;width:32px;height:32px;font-size:16px;font-weight:900;display:grid;place-items:center;flex:0 0 auto}.iconBtn.smallIcon{width:30px;height:30px;font-size:14px}.heroStats{display:grid;grid-template-columns:1fr 1fr;gap:9px}.heroStats div{background:#fff;border:1px solid var(--line);border-radius:17px;padding:11px}.heroStats span{display:block;color:var(--muted);font-size:12px;margin-bottom:4px}.heroStats strong{font-size:16px}.tabs{display:flex;gap:9px;flex-wrap:wrap;margin:14px 0}.tab{border:0;background:#fff;border-radius:999px;padding:10px 13px;font-weight:900;color:var(--ink);box-shadow:0 8px 20px rgba(88,72,55,.06)}.tab.active{background:var(--ink);color:#fff}.layout{display:grid;grid-template-columns:300px 1fr;gap:14px;align-items:start}.panel{padding:14px;position:static}.main{padding:14px}.section{display:flex;justify-content:space-between;gap:12px;margin-bottom:12px}.section h2,.section h3{margin:0}.hint,.mini{color:var(--muted);font-size:13px;line-height:1.55}label{display:block;margin:9px 0 5px;font-size:13px;font-weight:900}input,select,textarea{width:100%;border:1px solid var(--line);border-radius:14px;background:#fffdf9;padding:10px 11px;font-size:15px;color:var(--ink)}textarea{min-height:66px;resize:vertical}.two{display:grid;grid-template-columns:1fr 1fr;gap:9px}.three{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.four{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:11px}.btn{
   border:1px solid rgba(255,255,255,.78);
@@ -4295,7 +4291,7 @@ body[data-theme-mode] .btn.pink{
   }
 
   .pdfPage:not(.pdfCoverPage)::before{
-    content:"JANESELECT TRAVEL MANAGER  |  旅遊手帳";
+    content:"VOYAGEMEMO.  |  JOURNEY MEMO";
     position:absolute;
     top:11mm;
     left:18mm;
@@ -5265,7 +5261,9 @@ body[data-theme-mode] .btn.pink{
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 </head>
 <body>
-<div class="app"><header><div class="badge">🧳 貞選旅管家｜Janeselect Travel Manager</div><div class="titleRow"><h1 id="titleText">釜山小旅行手帳</h1><button class="iconBtn" onclick="editTitle()">✎</button></div><div class="subRow"><p class="sub" id="subtitleText">把想去的海邊、巷弄、咖啡香與晚餐清單都收進來，慢慢排成一趟期待出發的旅行。</p><button class="iconBtn" onclick="editSubtitle()">✎</button></div><div class="heroStats"><div><span>目的地</span><strong id="sDest">韓國釜山</strong></div>
+<div id="loginView" class="gateView noPrint hidden"></div>
+<div id="tripListView" class="gateView noPrint hidden"></div>
+<div class="app" id="mainApp"><header><div class="badge">J 貞選旅管家</div><div class="titleRow"><h1 id="titleText">釜山小旅行手帳</h1><button class="iconBtn" onclick="editTitle()">✎</button></div><div class="subRow"><p class="sub" id="subtitleText">把想去的海邊、巷弄、咖啡香與晚餐清單都收進來，慢慢排成一趟期待出發的旅行。</p><button class="iconBtn" onclick="editSubtitle()">✎</button></div><div class="heroStats"><div><span>目的地</span><strong id="sDest">韓國釜山</strong></div>
 <div class="syncBar noPrint">
   <div class="syncStatus" id="syncStatus"><span class="syncDot off"></span><b>尚未登入</b><br>登入 Google 後可跨裝置同步。</div>
   <button class="btn dark compact" id="loginBtn" onclick="firebaseSignIn()">Google 登入</button>
@@ -5273,7 +5271,7 @@ body[data-theme-mode] .btn.pink{
   <button class="btn blue compact hidden" id="cloudLoadBtn" onclick="loadFromCloud()">載入雲端</button>
   <button class="btn pink compact hidden" id="cloudSaveBtn" onclick="saveToCloudNow()">立即同步</button>
 </div>
-<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>貞選旅管家 Janeselect Travel Manager｜LocalStorage + Cloudinary Version<br><strong>版本：v64｜2026-05-30｜品牌名稱＋頁籤 J icon 更新版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
+<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="stayView" class="hidden"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>VoyageMemo.｜LocalStorage + Cloudinary Version<br><strong>版本：v63｜2026-05-30｜登入白名單與多旅程架構版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
 
 <!-- Firebase SDK for cross-device sync -->
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -5291,7 +5289,7 @@ function mkDays(s,e){let a=[];if(!s||!e)return a;let sd=parseLocalDate(s),ed=par
 function loadData(){try{const s=JSON.parse(localStorage.getItem("travel_book_v8"))||JSON.parse(localStorage.getItem("travel_book_v7"))||{};let d=structuredClone(base);Object.assign(d,s);d.meta={...base.meta,...(s.meta||{})};d.trip={...base.trip,...(s.trip||{})};if(!d.trip.travelers){d.trip.travelers=[d.trip.a||"A",d.trip.b||"B"];d.trip.travelerCount=d.trip.travelers.length}d.flights={out:{...base.flights.out,...(s.flights?.out||{})},back:{...base.flights.back,...(s.flights?.back||{})}};if(!d.days?.length)d.days=mkDays(d.trip.start,d.trip.end);if(!d.packing?.length)d.packing=base.packing;if(!d.expenses)d.expenses=[];if(!d.dayCovers)d.dayCovers={};return d}catch(e){let d=structuredClone(base);d.days=mkDays(d.trip.start,d.trip.end);return d}}
 function save(){localStorage.setItem("travel_book_v8",JSON.stringify(data));render()}function silentSave(){localStorage.setItem("travel_book_v8",JSON.stringify(data))}function travelerName(v){if(v==="共同"||v==="未定")return v;return data.trip.travelers[Number(v)]||v||"未定"}function dayTitle(k){let d=data.days.find(x=>x.key==k);return d?`${d.title}｜${d.label}`:k}function hotelFor(k){return data.hotels.find(h=>k>=h.start&&k<=h.end)}function moneyTwd(item){return item.mode==="TWD"?Number(item.twd||0):Math.round(Number(item.foreign||0)*Number(data.trip.rate||0))}function moneyForeign(item){return item.mode==="TWD"?Math.round(Number(item.twd||0)/Number(data.trip.rate||1)):Number(item.foreign||0)}function payMethodLabel(v){return v==="cash"?"現金":v==="card"?"刷卡":v==="transfer"?"轉帳":v||"未定"}
 function init(){renderNav();render()}function renderNav(){$("tabs").innerHTML=views.map(v=>`<button class="tab ${v[0]==view?"active":""}" onclick="go('${v[0]}')">${v[1]}</button>`).join("");$("mobile").innerHTML=[["trip","旅遊地"],["planner","行程"],["spots","景點"],["budget","預算"],["photoBook","照片書"]].map(v=>`<button class="nav ${v[0]==view?"active":""}" onclick="go('${v[0]}')">${v[1]}</button>`).join("")}function go(v){view=v;views.forEach(x=>$(x[0]+"View").classList.toggle("hidden",x[0]!=v));renderNav();render();scrollTo(0,0)}
-function render(){renderHead();renderSide();renderTrip();renderPlanner();renderSpots();renderBudget();renderPacking();renderPhotoBook();renderHelp()}function renderHead(){$("titleText").textContent=data.meta.title||"我的旅行手帳";document.title=(data.meta.title?data.meta.title+"｜":"")+(data.meta.brandNameEn||"Janeselect Travel Manager");$("subtitleText").textContent=data.meta.subtitle||base.meta.subtitle;$("sDest").textContent=data.trip.dest||"未設定";$("sDate").textContent=data.trip.start?`${short(data.trip.start)}-${short(data.trip.end)}`:"未設定"}function editTitle(){const v=prompt("請輸入旅行手帳標題",data.meta.title||"我的旅行手帳");if(v!==null&&v.trim()){data.meta.title=v.trim();save()}}function editSubtitle(){const v=prompt("請輸入副標文字",data.meta.subtitle||base.meta.subtitle);if(v!==null&&v.trim()){data.meta.subtitle=v.trim();save()}}
+function render(){renderHead();renderSide();renderTrip();renderPlanner();renderSpots();renderBudget();renderPacking();renderPhotoBook();renderHelp()}function renderHead(){$("titleText").textContent=data.meta.title||"我的旅跡手帳";document.title=data.meta.title||"我的旅跡手帳";$("subtitleText").textContent=data.meta.subtitle||base.meta.subtitle;$("sDest").textContent=data.trip.dest||"未設定";$("sDate").textContent=data.trip.start?`${short(data.trip.start)}-${short(data.trip.end)}`:"未設定"}function editTitle(){const v=prompt("請輸入旅行手帳標題",data.meta.title||"我的旅跡手帳");if(v!==null&&v.trim()){data.meta.title=v.trim();save()}}function editSubtitle(){const v=prompt("請輸入副標文字",data.meta.subtitle||base.meta.subtitle);if(v!==null&&v.trim()){data.meta.subtitle=v.trim();save()}}
 function renderSide(){$("days").innerHTML=data.days.map(d=>{let h=hotelFor(d.key),n=data.plans.filter(p=>p.day==d.key).length;return `<div class="day ${d.key==cur?"active":""}" onclick="cur='${d.key}';go('planner')"><b>${d.title}｜${d.label}</b><span>${n} 行程｜住宿：${h?esc(h.name):"未設定"}</span></div>`}).join("")}function optsDays(selected=""){return data.days.map(d=>`<option value="${d.key}" ${d.key==selected?"selected":""}>${d.label} ${d.title}</option>`).join("")}function optsPayer(selected="未定"){let opts=data.trip.travelers.map((n,i)=>[String(i),n]);opts.push(["共同","共同"],["未定","未定"]);return opts.map(x=>`<option value="${x[0]}" ${String(x[0])===String(selected)?"selected":""}>${esc(x[1])}</option>`).join("")}function optsPayMethod(selected="未定"){return [["cash","現金"],["card","刷卡"],["transfer","轉帳"],["未定","未定"]].map(x=>`<option value="${x[0]}" ${x[0]==selected?"selected":""}>${x[1]}</option>`).join("")}function countryOptions(){return Object.keys(currencyMap).map(c=>`<option value="${c}" ${data.trip.country==c?"selected":""}>${c}</option>`).join("")+`<option value="其他" ${data.trip.country=="其他"?"selected":""}>其他</option>`}
 function travelerInputs(){let out="";for(let i=0;i<Number(data.trip.travelerCount||1);i++)out+=`<div><label>旅伴 ${String.fromCharCode(65+i)} 名稱</label><input id="traveler${i}" value="${esc(data.trip.travelers[i]||String.fromCharCode(65+i))}"></div>`;return out}
 function renderTrip(){const h=editingHotelId?data.hotels.find(x=>x.id==editingHotelId):null;$("tripView").innerHTML=`<div class="section"><div><h2>旅遊地與機酒</h2><div class="hint">先整理旅行地、日期、幣別、航班、住宿。卡片右側箭頭可展開或收合。</div></div></div><details class="card" open><summary>① 旅遊地與旅伴</summary><div class="detailBody"><div class="three"><div><label>國家</label><select id="country" onchange="countryChanged()">${countryOptions()}</select></div><div><label>目的地 / 城市</label><input id="dest" value="${esc(data.trip.dest)}"></div><div><label>幣別</label><input id="currency" value="${esc(data.trip.currency)}"></div></div><div class="three"><div><label>出發日</label><input id="start" type="date" value="${data.trip.start}"></div><div><label>回程日</label><input id="end" type="date" value="${data.trip.end}"></div><div><label>匯率：1 ${esc(data.trip.currency)} = TWD</label><input id="rateSetup" type="number" step="0.0001" value="${data.trip.rate}"></div></div><div class="two"><div><label>旅遊人數</label><select id="travelerCount" onchange="previewTravelerCount()">${[1,2,3,4,5,6,7,8].map(n=>`<option value="${n}" ${Number(data.trip.travelerCount)==n?"selected":""}>${n} 人</option>`).join("")}</select></div><div><label>匯率查詢</label><button class="btn blue" style="width:100%" onclick="openRateSearch()">查看現在匯率</button></div></div><div class="grid2" id="travelerBox">${travelerInputs()}</div><div class="btns"><button class="btn dark" onclick="saveBasic()">儲存旅遊地設定</button></div></div></details><details class="card"><summary>② 航班與機場接送</summary><div class="detailBody"><div class="grid2"><div class="box blue"><h3>去程</h3>${flightForm("out")}</div><div class="box pink"><h3>回程</h3>${flightForm("back")}</div></div><div class="btns"><button class="btn dark" onclick="saveFlights()">儲存航班</button></div></div></details><details class="card" open><summary>③ 住宿</summary><div class="detailBody"><div class="three"><div><label>住宿名稱</label><input id="hname" value="${esc(h?.name||"")}"></div><div><label>入住日</label><select id="hstart">${optsDays(h?.start||"")}</select></div><div><label>退房日</label><select id="hend">${optsDays(h?.end||data.days.at(-1)?.key)}</select></div></div><label>地址</label><div class="two"><input id="haddr" value="${esc(h?.addr||"")}" placeholder="可手動貼上飯店地址"><button class="btn blue" onclick="searchHotelAddress()">搜尋地圖</button></div><label>備註</label><textarea id="hnote">${esc(h?.note||"")}</textarea><div class="btns"><button class="btn dark" onclick="saveHotel()">${h?"儲存住宿修改":"新增住宿"}</button>${h?'<button class="btn soft" onclick="editingHotelId=null;renderTrip()">取消編輯</button>':""}</div><div class="grid2" style="margin-top:10px">${data.hotels.map(hotelCard).join("")||'<div class="empty">尚未新增住宿</div>'}</div></div></details>`}
@@ -5720,7 +5718,7 @@ function generateAIPrompt(){
     data.flights.back.no?`回程 ${data.flights.back.no}：${data.flights.back.from} ${data.flights.back.dep} → ${data.flights.back.to} ${data.flights.back.arr}`:""
   ].filter(Boolean).join("\\n") || "尚未設定航班";
   const days=data.days.map(d=>`${d.key}（${d.title}｜${d.label}）`).join("\\n");
-  const prompt=`請你依照以下旅行設定，幫我規劃一份可匯入「貞選旅管家 HTML 工具」的行程 JSON。
+  const prompt=`請你依照以下旅行設定，幫我規劃一份可匯入「旅跡手帳 HTML 工具」的行程 JSON。
 
 旅行設定：
 - 目的地：${data.trip.dest}
@@ -5947,7 +5945,7 @@ function spotsPromptSchema(){
 function generateSpotAIPrompt(){
   const days=data.days.map(d=>`${d.key}（${d.title}｜${d.label}）`).join("\\n");
   const hotels=data.hotels.map(h=>`${short(h.start)}~${short(h.end)} ${h.name}${h.addr?("，地址/區域："+h.addr):""}`).join("\\n") || "尚未設定住宿";
-  const prompt=`請依照以下旅行設定，幫我產出可匯入「貞選旅管家 HTML 工具」的口袋景點 TXT/JSON 檔內容。
+  const prompt=`請依照以下旅行設定，幫我產出可匯入「旅跡手帳 HTML 工具」的口袋景點 TXT/JSON 檔內容。
 
 旅行設定：
 - 目的地：${data.trip.dest}
@@ -6154,7 +6152,7 @@ function renderPlanner(){
 function finalSpotPromptText(){
   const days=data.days.map(d=>`${d.key}（${d.title}｜${d.label}）`).join("\n");
   const hotels=data.hotels.map(h=>`${short(h.start)}~${short(h.end)} ${h.name}${h.addr?("，地址/區域："+h.addr):""}`).join("\n")||"尚未設定住宿";
-  return `請依照以下旅行設定，幫我產出可匯入「貞選旅管家 HTML 工具」的口袋景點資料。
+  return `請依照以下旅行設定，幫我產出可匯入「旅跡手帳 HTML 工具」的口袋景點資料。
 
 旅行設定：
 - 目的地：${data.trip.dest}
@@ -6518,7 +6516,7 @@ function spotsPromptSchema(){
 function buildSpotPrompt(){
   const days=data.days.map(d=>`${d.key}（${d.title}｜${d.label}）`).join("\\n");
   const hotels=data.hotels.map(h=>`${short(h.start)}~${short(h.end)} ${h.name}${h.addr?("，地址/區域："+h.addr):""}`).join("\\n") || "尚未設定住宿";
-  return `請依照以下旅行設定，幫我產出可匯入「貞選旅管家 HTML 工具」的口袋景點 TXT/JSON 檔內容。
+  return `請依照以下旅行設定，幫我產出可匯入「旅跡手帳 HTML 工具」的口袋景點 TXT/JSON 檔內容。
 
 旅行設定：
 - 目的地：${data.trip.dest}
@@ -7697,8 +7695,8 @@ function photoBookDay(d){
 
 
 /* ===== Version marker ===== */
-const APP_VERSION = "v64｜2026-05-30｜品牌名稱＋頁籤 J icon 更新版";
-console.log("Janeselect Travel Manager", APP_VERSION);
+const APP_VERSION = "v63｜2026-05-30｜登入白名單與多旅程架構版";
+console.log("VoyageMemo.", APP_VERSION);
 
 
 /* ===== v21 overrides: country reset on save, option modals, locked names, budget exclusion ===== */
@@ -12552,7 +12550,7 @@ function exportPhotoBookPDF(){
     photoBookMode = "pdf";
     renderPhotoBook();
   }
-  alert("已切換到 PDF 預覽模式。建議使用電腦 Chrome 匯出 PDF，會最接近 貞選旅管家 Janeselect Travel Manager 的 A4 小冊子排版。");
+  alert("已切換到 PDF 預覽模式。建議使用電腦 Chrome 匯出 PDF，會最接近 VoyageMemo. 旅跡手帳的 A4 小冊子排版。");
   print();
 }
 
@@ -12603,7 +12601,7 @@ function storyBookCoverHtml(){
       <img class="storyBookCoverImage" src="${cover}">
       <div class="storyBookCoverOverlay"></div>
       <div class="storyBookCoverText">
-        <span class="eyebrow">JANESELECT TRAVEL MANAGER</span>
+        <span class="eyebrow">VOYAGEMEMO.</span>
         <h1>${esc(data.meta.title)}</h1>
         <p>${esc(data.meta.subtitle)}</p>
         <div class="storyBookCoverMeta">
@@ -12616,7 +12614,7 @@ function storyBookCoverHtml(){
   }
   return `<section class="storyBookCover storyInlineEmpty noPrint">
     <div>
-      <span class="eyebrow">JANESELECT TRAVEL MANAGER</span>
+      <span class="eyebrow">VOYAGEMEMO.</span>
       <h1>${esc(data.meta.title)}</h1>
       <p>${esc(data.meta.subtitle)}</p>
       <div style="margin-top:16px">
@@ -14219,7 +14217,7 @@ try{
   }
 
   .pdfPage::after{
-    content:"貞選旅管家 Janeselect Travel Manager";
+    content:"VOYAGEMEMO. 旅跡手帳";
     position:absolute;
     bottom:8mm;
     left:17mm;
@@ -14676,7 +14674,7 @@ function pdfCoverPage(){
     ${img ? `<img class="pdfCoverPhoto" src="${img}">` : ""}
     <div class="pdfCoverShade"></div>
     <div class="pdfCoverContent">
-      <span class="pdfEyebrow">JANESELECT TRAVEL MANAGER</span>
+      <span class="pdfEyebrow">VOYAGEMEMO</span>
       <h1>${pdfEsc(data.meta.title || "我的旅行手帳")}</h1>
       <div class="pdfCoverSub">${pdfEsc(data.meta.subtitle || "把想去的地方、走過的路與照片，整理成一本旅行書。")}</div>
       <div class="pdfMetaChips">
@@ -14881,6 +14879,543 @@ function openPdfPublisher(autoPrint=false){
 function exportPhotoBookPDF(){
   openPdfPublisher(false);
 }
+</script>
+
+
+
+<style>
+/* ===== v63 login gate + multi-trip shell ===== */
+.gateView{
+  min-height:100vh;
+  padding:24px 14px 80px;
+  background:
+    radial-gradient(circle at 0 0,#e1f2ec,transparent 34%),
+    radial-gradient(circle at 100% 0,#fde4ec,transparent 30%),
+    linear-gradient(#fbf7f1,#f7f3ec);
+  color:var(--ink);
+}
+.gateShell{
+  width:min(960px,100%);
+  margin:0 auto;
+}
+.loginCard,.tripListHero,.tripListCard,.tripCreateCard{
+  background:rgba(255,255,255,.94);
+  border:1px solid rgba(255,255,255,.86);
+  border-radius:26px;
+  box-shadow:var(--shadow);
+  padding:18px;
+}
+.loginCard{
+  margin:min(12vh,90px) auto 0;
+  width:min(560px,100%);
+}
+.loginBrand{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  border-radius:999px;
+  background:var(--mint);
+  color:#41675d;
+  padding:8px 12px;
+  font-weight:950;
+  margin-bottom:12px;
+}
+.loginCard h1,.tripListHero h1{margin:0;font-size:32px;line-height:1.15;letter-spacing:-.8px}
+.loginCard p,.tripListHero p{color:var(--muted);line-height:1.7;margin:10px 0 0}
+.tripListHero{margin-bottom:14px;display:flex;justify-content:space-between;gap:14px;align-items:flex-start}
+.tripListCount{border-radius:999px;background:#edf8f3;color:#527b70;padding:7px 11px;font-size:12px;font-weight:950;white-space:nowrap}
+.tripGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin:14px 0}
+.tripListCard{padding:14px;position:relative;overflow:hidden}
+.tripListCard.archived{opacity:.62}
+.tripListCard h3{margin:0 0 6px;font-size:18px}
+.tripListCard .meta{color:var(--muted);font-size:13px;line-height:1.55;margin-bottom:10px}
+.tripListCard .tripBadge{display:inline-flex;border-radius:999px;background:#fff8ea;color:#7b653b;padding:5px 8px;font-size:11px;font-weight:900;margin-bottom:8px}
+.tripCreateCard{margin-top:14px}
+.tripCreateGrid{display:grid;grid-template-columns:1.2fr .8fr .8fr;gap:9px}
+.lockedTab{opacity:.48}
+.lockedTab::after{content:" 🔒";font-size:11px}
+.tripSwitchBar{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  align-items:center;
+  justify-content:space-between;
+  margin:12px 0 0;
+  padding:9px 10px;
+  border-radius:18px;
+  background:rgba(255,255,255,.82);
+  border:1px solid var(--line);
+}
+.tripSwitchBar .miniTrip{color:var(--muted);font-size:12px;line-height:1.45}
+@media(max-width:620px){
+  .gateView{padding:14px 10px 78px}
+  .loginCard{margin-top:54px;border-radius:24px}
+  .loginCard h1,.tripListHero h1{font-size:27px}
+  .tripListHero{display:block}
+  .tripListCount{display:inline-flex;margin-top:10px}
+  .tripCreateGrid{grid-template-columns:1fr}
+}
+@media print{.gateView,.tripSwitchBar{display:none!important}}
+</style>
+
+<script>
+/* ===== v63 login whitelist + multi-trip data layer ===== */
+const V63_ALLOWED_EMAILS = ["jan33772001@gmail.com"];
+const V63_MAX_TRIPS = 10;
+const V63_TRIP_LIST_KEY_PREFIX = "janeselect_trip_list_v63";
+const V63_CURRENT_TRIP_KEY = "janeselect_currentTripId_v63";
+let currentTripId = localStorage.getItem(V63_CURRENT_TRIP_KEY) || "";
+let tripList = [];
+let v63AuthPassed = false;
+let v63Booted = false;
+
+function v63UserKey(){
+  return (fbUser?.uid || "guest");
+}
+function getTripListKey(){
+  return `${V63_TRIP_LIST_KEY_PREFIX}_${v63UserKey()}`;
+}
+function getLocalTripKey(tripId=currentTripId){
+  return `janeselect_travel_data_v63_${v63UserKey()}_${tripId || "draft"}`;
+}
+function v63CloneBase(){
+  const d=structuredClone(base);
+  d.days=mkDays(d.trip.start,d.trip.end);
+  return d;
+}
+function v63NormalizeData(s){
+  let d=v63CloneBase();
+  if(s && typeof s === "object") Object.assign(d,s);
+  d.meta={...base.meta,...(s?.meta||{})};
+  d.trip={...base.trip,...(s?.trip||{})};
+  if(!d.trip.travelers){
+    d.trip.travelers=[d.trip.a||"A",d.trip.b||"B"];
+    d.trip.travelerCount=d.trip.travelers.length;
+  }
+  d.flights={out:{...base.flights.out,...(s?.flights?.out||{})},back:{...base.flights.back,...(s?.flights?.back||{})}};
+  if(!d.days?.length && d.trip?.start && d.trip?.end)d.days=mkDays(d.trip.start,d.trip.end);
+  if(!d.packing?.length)d.packing=base.packing.map(x=>({...x,id:x.id||uid()}));
+  if(!d.expenses)d.expenses=[];
+  if(!d.hotels)d.hotels=[];
+  if(!d.spots)d.spots=[];
+  if(!d.plans)d.plans=[];
+  if(!d.conns)d.conns=[];
+  if(!d.photos)d.photos=[];
+  if(!d.dayCovers)d.dayCovers={};
+  return d;
+}
+function loadData(){
+  try{
+    const raw = currentTripId ? localStorage.getItem(getLocalTripKey(currentTripId)) : null;
+    const fallback = localStorage.getItem("travel_book_v12") || localStorage.getItem("travel_book_v8") || localStorage.getItem("travel_book_v7");
+    const s = JSON.parse(raw || fallback || "{}");
+    return v63NormalizeData(s);
+  }catch(e){
+    return v63CloneBase();
+  }
+}
+function v63PersistTripLocal(){
+  if(currentTripId){
+    localStorage.setItem(getLocalTripKey(currentTripId), JSON.stringify(data));
+  }
+}
+function save(){
+  v63PersistTripLocal();
+  v63UpdateCurrentTripMeta(false);
+  render();
+  scheduleCloudSave();
+}
+function silentSave(){
+  v63PersistTripLocal();
+  v63UpdateCurrentTripMeta(false);
+  scheduleCloudSave();
+}
+function v63TripIndexRef(){
+  if(!fbUser) throw new Error("尚未登入");
+  return fbDb.collection("users").doc(fbUser.uid).collection("tripIndex").doc("list");
+}
+function tripDocRef(){
+  if(!fbUser) throw new Error("尚未登入");
+  if(!currentTripId) throw new Error("尚未選擇旅程");
+  return fbDb.collection("users").doc(fbUser.uid).collection("trips").doc(currentTripId);
+}
+function v63IsAllowed(user){
+  const email=(user?.email||"").toLowerCase();
+  return V63_ALLOWED_EMAILS.map(x=>x.toLowerCase()).includes(email);
+}
+function v63TripReady(){
+  return !!(data?.trip?.country && data?.trip?.dest && data?.trip?.start && data?.trip?.end && data?.days?.length);
+}
+function v63LoadTripListLocal(){
+  try{return JSON.parse(localStorage.getItem(getTripListKey())||"[]").filter(Boolean)}catch(e){return []}
+}
+function v63SaveTripListLocal(){
+  localStorage.setItem(getTripListKey(), JSON.stringify(tripList));
+}
+async function loadTrips(){
+  tripList = v63LoadTripListLocal();
+  if(fbUser && fbDb){
+    try{
+      const snap=await v63TripIndexRef().get();
+      if(snap.exists && Array.isArray(snap.data()?.trips)){
+        tripList=snap.data().trips;
+        v63SaveTripListLocal();
+      }else if(tripList.length){
+        await v63TripIndexRef().set({trips:tripList,updatedAtClient:Date.now(),ownerEmail:fbUser.email||""},{merge:true});
+      }
+    }catch(e){
+      console.warn("loadTrips fallback local", e);
+    }
+  }
+  return tripList;
+}
+async function v63SaveTripListCloud(){
+  v63SaveTripListLocal();
+  if(fbUser && fbDb){
+    try{await v63TripIndexRef().set({trips:tripList,updatedAtClient:Date.now(),ownerEmail:fbUser.email||""},{merge:true});}catch(e){console.warn(e)}
+  }
+}
+function v63TripMetaFromData(id=currentTripId){
+  return {
+    id,
+    title:data?.meta?.title || data?.trip?.dest || "未命名旅程",
+    dest:data?.trip?.dest || "未設定",
+    country:data?.trip?.country || "",
+    start:data?.trip?.start || "",
+    end:data?.trip?.end || "",
+    updatedAtClient:Date.now(),
+    archived:false
+  };
+}
+async function v63UpdateCurrentTripMeta(saveCloud=true){
+  if(!currentTripId)return;
+  const idx=tripList.findIndex(t=>t.id===currentTripId);
+  const old=idx>=0?tripList[idx]:{};
+  const meta={...old,...v63TripMetaFromData(currentTripId),archived:old.archived||false};
+  if(idx>=0)tripList[idx]=meta; else tripList.unshift(meta);
+  if(saveCloud) await v63SaveTripListCloud(); else v63SaveTripListLocal();
+}
+function v63DefaultTripData({title,country,city,start,end}){
+  const d=v63CloneBase();
+  d.meta.title=title || "我的新旅程";
+  d.trip.country=country || "韓國";
+  d.trip.city=city || "釜山";
+  d.trip.dest=typeof v15DestinationName==="function" ? v15DestinationName(d.trip.country,d.trip.city) : [d.trip.country,d.trip.city].filter(Boolean).join("");
+  d.trip.currency=currencyMap[d.trip.country] || "USD";
+  d.trip.rate=rateMap[d.trip.currency] || 1;
+  d.trip.start=start || "";
+  d.trip.end=end || "";
+  d.days=d.trip.start && d.trip.end ? mkDays(d.trip.start,d.trip.end) : [];
+  d.flights={out:{...base.flights.out},back:{...base.flights.back}};
+  d.hotels=[]; d.expenses=[]; d.spots=[]; d.plans=[]; d.conns=[]; d.photos=[]; d.dayCovers={};
+  d.packing=base.packing.map(x=>({...x,id:uid(),checked:false}));
+  return d;
+}
+function v63CurrentTripTitle(){
+  const t=tripList.find(x=>x.id===currentTripId);
+  return t?.title || data?.meta?.title || "目前旅程";
+}
+function v63ShowShell(mode){
+  const login=$("loginView"), list=$("tripListView"), app=$("mainApp")||document.querySelector(".app");
+  if(login)login.classList.toggle("hidden",mode!=="login");
+  if(list)list.classList.toggle("hidden",mode!=="list");
+  if(app)app.classList.toggle("hidden",mode!=="app");
+  if($("accountWidget"))$("accountWidget").style.display = mode==="app" ? "" : "none";
+}
+function renderLoginView(message=""){
+  const el=$("loginView"); if(!el)return;
+  const signed=!!fbUser;
+  el.innerHTML=`<div class="gateShell"><div class="loginCard">
+    <div class="loginBrand">J｜貞選旅管家</div>
+    <h1>Janeselect Travel Manager</h1>
+    <p>登入後才能建立與管理旅程。現階段採 Email 白名單開放，每個帳號最多可建立 ${V63_MAX_TRIPS} 個旅程。</p>
+    ${message?`<div class="box pink" style="margin-top:12px">${esc(message)}</div>`:""}
+    <div class="btns"><button class="btn dark" onclick="firebaseSignIn()">使用 Google 登入</button>${signed?'<button class="btn soft" onclick="firebaseSignOut()">登出目前帳號</button>':''}</div>
+    <div class="cloudHint">目前白名單：${V63_ALLOWED_EMAILS.map(esc).join("、")}</div>
+  </div></div>`;
+}
+function renderTripList(){
+  const el=$("tripListView"); if(!el)return;
+  const active=tripList.filter(t=>!t.archived);
+  const archived=tripList.filter(t=>t.archived);
+  el.innerHTML=`<div class="gateShell">
+    <div class="tripListHero"><div><div class="loginBrand">J｜貞選旅管家</div><h1>我的旅程</h1><p>每趟旅程都是一包獨立資料：旅遊地、航班住宿、行程、口袋景點、預算、行李與旅遊書都會分開保存。</p></div><div class="tripListCount">${active.length}/${V63_MAX_TRIPS} 個旅程</div></div>
+    <div class="tripGrid">${active.map(v63TripCard).join("") || '<div class="tripListCard"><h3>還沒有旅程</h3><div class="meta">先在下方新增第一趟旅程。</div></div>'}</div>
+    ${archived.length?`<details class="tripCreateCard"><summary style="cursor:pointer;font-weight:950">封存旅程</summary><div class="tripGrid">${archived.map(v63TripCard).join("")}</div></details>`:""}
+    <div class="tripCreateCard"><h3>＋ 新增旅程</h3><div class="tripCreateGrid"><div><label>旅程名稱</label><input id="newTripTitle" placeholder="例：2026 釜山自由行"></div><div><label>國家 / 區域</label><select id="newTripCountry" onchange="v63NewTripCountryChanged()">${Object.keys(currencyMap).map(c=>`<option value="${c}">${c}</option>`).join("")}<option value="其他">其他</option></select></div><div><label>城市 / 路線</label><input id="newTripCity" value="釜山"></div><div><label>出發日</label><input id="newTripStart" type="date"></div><div><label>回程日</label><input id="newTripEnd" type="date"></div><div style="align-self:end"><button class="btn dark" style="width:100%" onclick="createTrip()">建立旅程</button></div></div><div class="cloudHint">建立後會先進入旅遊地設定；完成旅遊地後才會解鎖其他功能。</div></div>
+    <div class="btns"><button class="btn soft" onclick="firebaseSignOut()">登出</button></div>
+  </div>`;
+}
+function v63TripCard(t){
+  return `<div class="tripListCard ${t.archived?"archived":""}"><span class="tripBadge">${t.archived?"已封存":"旅程"}</span><h3>${esc(t.title||"未命名旅程")}</h3><div class="meta">${esc(t.dest||"未設定目的地")}<br>${t.start&&t.end?`${esc(short(t.start))} - ${esc(short(t.end))}`:"尚未完成日期設定"}</div><div class="btns"><button class="btn dark compact" onclick="selectTrip('${t.id}')">繼續編輯</button>${t.archived?`<button class="btn blue compact" onclick="restoreTrip('${t.id}')">還原</button>`:`<button class="btn soft compact" onclick="archiveTrip('${t.id}')">封存</button>`}</div></div>`;
+}
+function v63NewTripCountryChanged(){
+  const c=$("newTripCountry")?.value;
+  const map=typeof v15CountryCityMaps==="function" ? v15CountryCityMaps().cityMap : {};
+  const first=(map[c]||[])[0] || "";
+  if($("newTripCity"))$("newTripCity").value=first;
+}
+async function createTrip(){
+  const active=tripList.filter(t=>!t.archived);
+  if(active.length>=V63_MAX_TRIPS)return toast(`每個帳號最多只能建立 ${V63_MAX_TRIPS} 個旅程`);
+  const title=$("newTripTitle")?.value.trim() || "我的新旅程";
+  const country=$("newTripCountry")?.value || "韓國";
+  const city=$("newTripCity")?.value.trim() || "";
+  const start=$("newTripStart")?.value || "";
+  const end=$("newTripEnd")?.value || "";
+  if(!start || !end)return toast("請先選擇出發日與回程日");
+  if(start>end)return toast("回程日不可早於出發日");
+  const id=`trip_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
+  currentTripId=id;
+  localStorage.setItem(V63_CURRENT_TRIP_KEY,id);
+  data=v63DefaultTripData({title,country,city,start,end});
+  cur=data.days?.[0]?.key || data.trip.start;
+  tripList.unshift(v63TripMetaFromData(id));
+  v63PersistTripLocal();
+  await v63SaveTripListCloud();
+  await saveToCloudNow();
+  v63ShowShell("app");
+  view="trip";
+  renderNav(); render(); scrollTo(0,0);
+  toast("已建立旅程");
+}
+async function selectTrip(id){
+  currentTripId=id;
+  localStorage.setItem(V63_CURRENT_TRIP_KEY,id);
+  let loaded=false;
+  if(fbUser && fbDb){
+    try{
+      const snap=await tripDocRef().get();
+      if(snap.exists && snap.data()?.data){
+        data=v63NormalizeData(snap.data().data);
+        loaded=true;
+      }
+    }catch(e){console.warn(e)}
+  }
+  if(!loaded){
+    try{data=v63NormalizeData(JSON.parse(localStorage.getItem(getLocalTripKey(id))||"{}"));}catch(e){data=v63CloneBase()}
+  }
+  cur=data.days?.[0]?.key || data.trip?.start || cur;
+  v63PersistTripLocal();
+  cloudReady=!!(fbUser && currentTripId);
+  if(cloudUnsub){cloudUnsub(); cloudUnsub=null;}
+  if(fbUser && fbDb)listenCloudChanges();
+  v63ShowShell("app");
+  view = v63TripReady() ? "trip" : "trip";
+  renderNav(); render(); scrollTo(0,0);
+}
+async function archiveTrip(id){
+  if(!confirm("確定要封存這趟旅程？資料不會刪除，可在封存旅程中還原。"))return;
+  const t=tripList.find(x=>x.id===id); if(t)t.archived=true;
+  if(currentTripId===id){currentTripId=""; localStorage.removeItem(V63_CURRENT_TRIP_KEY);}
+  await v63SaveTripListCloud();
+  renderTripList();
+}
+async function restoreTrip(id){
+  const t=tripList.find(x=>x.id===id); if(t)t.archived=false;
+  await v63SaveTripListCloud();
+  renderTripList();
+}
+function deleteTrip(id){ return archiveTrip(id); }
+async function v63HandleAuth(user){
+  fbUser=user||null;
+  v63AuthPassed=!!(user && v63IsAllowed(user));
+  if(!user){
+    currentTripId="";
+    cloudReady=false;
+    renderLoginView();
+    v63ShowShell("login");
+    renderAccountWidget?.(null);
+    return;
+  }
+  if(!v63AuthPassed){
+    currentTripId="";
+    cloudReady=false;
+    renderLoginView(`${user.email || "這個帳號"} 尚未在白名單中，請改用授權帳號登入。`);
+    v63ShowShell("login");
+    renderAccountWidget?.(user);
+    return;
+  }
+  await loadTrips();
+  renderAccountWidget?.(user);
+  if(currentTripId && tripList.some(t=>t.id===currentTripId && !t.archived)){
+    await selectTrip(currentTripId);
+  }else{
+    currentTripId="";
+    localStorage.removeItem(V63_CURRENT_TRIP_KEY);
+    renderTripList();
+    v63ShowShell("list");
+  }
+}
+function firstCloudLoadOrCreate(){
+  return currentTripId ? loadFromCloud().catch(()=>{}) : Promise.resolve();
+}
+async function saveToCloudNow(){
+  if(!fbUser)return toast("請先登入 Google");
+  if(!v63IsAllowed(fbUser))return toast("這個帳號還沒授權同步");
+  if(!currentTripId)return toast("請先選擇旅程");
+  try{
+    setSyncStatus("warn","同步中","正在存到雲端...");
+    const now=Date.now();
+    lastCloudUpdatedAt=now;
+    const payload=cloudPayload();
+    payload.updatedAtClient=now;
+    payload.tripMeta=v63TripMetaFromData(currentTripId);
+    await tripDocRef().set(payload,{merge:true});
+    await v63UpdateCurrentTripMeta(true);
+    localStorage.setItem(`janeselect_cloud_backup_${currentTripId}`, JSON.stringify(data));
+    setSyncStatus("on","同步好了",`${new Date().toLocaleTimeString("zh-TW",{hour:"2-digit",minute:"2-digit"})}`);
+  }catch(err){
+    setSyncStatus("off","同步失敗",err.message || "請檢查 Firestore Rules 與白名單。")
+  }
+}
+async function loadFromCloud(){
+  if(!fbUser)return toast("請先登入 Google");
+  if(!currentTripId)return toast("請先選擇旅程");
+  try{
+    const snap=await tripDocRef().get();
+    if(!snap.exists || !snap.data()?.data)return toast("這趟旅程雲端目前沒有資料");
+    suppressCloudSave=true;
+    data=v63NormalizeData(snap.data().data);
+    cur=data.days?.[0]?.key || data.trip?.start || cur;
+    v63PersistTripLocal();
+    render();
+    suppressCloudSave=false;
+    setSyncStatus("on","已載入雲端資料",`旅程：${v63CurrentTripTitle()}`);
+  }catch(err){
+    suppressCloudSave=false;
+    setSyncStatus("off","載入雲端失敗",err.message);
+  }
+}
+function listenCloudChanges(){
+  if(!fbUser || !currentTripId)return;
+  const ref=tripDocRef();
+  cloudUnsub=ref.onSnapshot(snap=>{
+    if(!snap.exists || !snap.data()?.data || !cloudReady)return;
+    const doc=snap.data();
+    const remoteUpdated=doc.updatedAtClient || 0;
+    if(remoteUpdated && remoteUpdated > lastCloudUpdatedAt + 5000){
+      lastCloudUpdatedAt=remoteUpdated;
+      setSyncStatus("warn","雲端有較新的資料","可按「載入雲端」更新此裝置。")
+    }
+  },err=>setSyncStatus("off","雲端監聽失敗",err.message));
+}
+const __v63SaveBasic = saveBasic;
+saveBasic=function(){
+  __v63SaveBasic();
+  setTimeout(()=>v63UpdateCurrentTripMeta(true),60);
+};
+function renderTrip(){
+  const selectedCity=typeof v15CurrentCity==="function" ? v15CurrentCity() : (data.trip.city||"");
+  const mapObj=typeof v15CountryCityMaps==="function" ? v15CountryCityMaps().cityMap : {};
+  const list=mapObj[data.trip.country]||[];
+  const customCity=list.includes(selectedCity)?"":selectedCity;
+  const showCustom=data.trip.country==="其他" || !list.includes(selectedCity);
+  $("tripView").innerHTML=`<div class="section"><div><h2>🌏 旅遊地設定</h2><div class="hint">先設定旅遊地、日期、幣別與旅伴。完成後才會開啟航班住宿、行程、口袋景點、預算、行李與旅遊書。</div></div></div>
+  <details class="card" open><summary>① 🌏 旅遊地與旅伴</summary><div class="detailBody">
+    <div class="three compactMobile"><div><label>國家 / 區域</label><select id="country" onchange="handleCountrySelectChange()">${countryOptions()}</select></div><div><label>城市 / 路線</label><select id="citySelect" onchange="updateDestByCity()">${v15CityOptions(selectedCity)}</select></div><div id="customCityBox" class="full" style="display:${showCustom?"block":"none"}"><label>自訂目的地</label><input id="cityCustom" value="${esc(customCity)}" oninput="updateDestByCity()" placeholder="例：釜山＋慶州"></div></div>
+    <div class="two"><div><label>幣別</label><input id="currency" value="${esc(data.trip.currency)}" oninput="countryChanged()"></div><div><label id="rateLabel">匯率：1 ${esc(data.trip.currency)} = TWD</label><input id="rateSetup" type="number" step="0.0001" value="${data.trip.rate}"></div></div>
+    <div class="three compactMobile"><div><label>出發日</label><input id="start" type="date" value="${data.trip.start||""}"></div><div><label>回程日</label><input id="end" type="date" value="${data.trip.end||""}"></div><div class="full"><label>匯率查詢</label><button class="btn blue compact" onclick="openRateSearch()">查一下匯率</button></div></div>
+    <div class="two"><div><label>旅遊人數</label><select id="travelerCount" onchange="previewTravelerCount()">${[1,2,3,4,5,6,7,8].map(n=>`<option value="${n}" ${Number(data.trip.travelerCount)==n?"selected":""}>${n} 人</option>`).join("")}</select></div><div class="hint" style="align-self:end">目前目的地：${esc(data.trip.dest||"尚未設定")}</div></div>
+    <div class="grid2" id="travelerBox">${travelerInputs()}</div>
+    <div class="btns"><button class="btn dark" onclick="saveBasic()">存好旅遊地設定</button><button class="btn soft" onclick="v63BackToTripList()">回我的旅程</button></div>
+  </div></details>`;
+}
+function renderStay(){
+  if(!$("stayView"))return;
+  const h=editingHotelId?data.hotels.find(x=>x.id==editingHotelId):null;
+  if(!v63TripReady()){
+    $("stayView").innerHTML=`<div class="empty">請先完成旅遊地設定，才能使用航班住宿。</div>`;
+    return;
+  }
+  if(typeof v18SortHotels==="function")v18SortHotels();
+  $("stayView").innerHTML=`<div class="section"><div><h2>✈️ 航班住宿</h2><div class="hint">這裡只管理航班、機場接送與住宿；旅遊地設定已拆到前一個頁籤。</div></div></div>
+  <details class="card" open><summary>① ✈️ 航班與機場接送</summary><div class="detailBody"><div class="grid2"><div class="box blue"><h3>去程</h3>${flightForm("out")}</div><div class="box pink"><h3>回程</h3>${flightForm("back")}</div></div>${typeof flightStatusHtml==="function"?flightStatusHtml():""}<div class="btns"><button class="btn dark" onclick="saveFlights()">存好航班設定</button></div></div></details>
+  <details class="card" ${v16KeepHotelOpen||editingHotelId?"open":""}><summary>② 🏨 住宿</summary><div class="detailBody"><div class="three compactMobile"><div class="full"><label>住宿名稱</label><input id="hname" value="${esc(h?.name||"")}"></div><div><label>入住日</label><input id="hstart" type="date" min="${data.trip.start}" max="${data.trip.end}" value="${h?.start||data.trip.start}"></div><div><label>退房日</label><input id="hend" type="date" min="${data.trip.start}" max="${data.trip.end}" value="${h?.end||data.trip.end}"></div></div><label>地址</label><div class="two"><input id="haddr" value="${esc(h?.addr||"")}" placeholder="可手動貼上飯店地址"><button class="btn blue compact" onclick="searchHotelAddress()">查地圖</button></div><label>備註</label><textarea id="hnote">${esc(h?.note||"")}</textarea><div class="btns"><button class="btn dark" onclick="saveHotel()">${h?"存好住宿修改":"新增住宿"}</button>${h?'<button class="btn soft" onclick="editingHotelId=null;v16KeepHotelOpen=true;renderStay()">取消編輯</button>':""}</div><div class="hotelSortedNote">住宿會依入住日自動排序；可選日期已限制在旅遊日期內。</div><div class="grid2" style="margin-top:10px">${data.hotels.map(hotelCard).join("")||'<div class="empty">還沒有新增住宿</div>'}</div></div></details>`;
+}
+function editHotel(id){editingHotelId=id;v16KeepHotelOpen=true;go("stay");}
+function v63BackToTripList(){
+  v63UpdateCurrentTripMeta(true);
+  currentTripId="";
+  localStorage.removeItem(V63_CURRENT_TRIP_KEY);
+  renderTripList();
+  v63ShowShell("list");
+}
+function renderNav(){
+  const items=views.map(v=>{
+    const locked=!v63TripReady() && !["trip","help"].includes(v[0]);
+    return `<button class="tab ${v[0]==view?"active":""} ${locked?"lockedTab":""}" onclick="go('${v[0]}')">${v[1]}</button>`;
+  }).join("");
+  if($("tabs"))$("tabs").innerHTML=items;
+  const mobileItems=views.filter(v=>["trip","stay","planner","spots","budget","packing","photoBook","help"].includes(v[0]));
+  const mobileHtml=mobileItems.map(v=>{const locked=!v63TripReady() && !["trip","help"].includes(v[0]); return `<button class="nav ${v[0]==view?"active":""} ${locked?"lockedTab":""}" onclick="go('${v[0]}')">${v[1]}</button>`}).join("");
+  if($("mobileTopNav"))$("mobileTopNav").innerHTML=mobileHtml;
+  if($("mobile"))$("mobile").innerHTML=mobileItems.slice(0,5).map(v=>{const locked=!v63TripReady() && !["trip","help"].includes(v[0]); return `<button class="nav ${v[0]==view?"active":""} ${locked?"lockedTab":""}" onclick="go('${v[0]}')">${v[1]}</button>`}).join("");
+}
+function go(v){
+  if(!currentTripId){renderTripList();v63ShowShell("list");return;}
+  if(v!=="trip" && v!=="help" && !v63TripReady()){
+    toast("請先完成旅遊地設定，才能使用其他功能");
+    v="trip";
+  }
+  view=v;
+  views.forEach(x=>$(x[0]+"View")?.classList.toggle("hidden",x[0]!=v));
+  renderNav();
+  if(v==="planner"){
+    if(!currentDay) currentDay=cur||data.days?.[0]?.key;
+    cur=currentDay;
+  }
+  render();
+  scrollTo(0,0);
+}
+function render(){
+  renderHead();
+  renderSide();
+  renderTrip();
+  renderStay();
+  renderPlanner();
+  renderSpots();
+  renderBudget();
+  renderPacking();
+  renderPhotoBook();
+  renderHelp();
+  v63RenderTripSwitchBar();
+}
+function v63RenderTripSwitchBar(){
+  const header=document.querySelector("#mainApp header") || document.querySelector(".app header");
+  if(!header || !currentTripId)return;
+  let bar=$("tripSwitchBar");
+  if(!bar){bar=document.createElement("div");bar.id="tripSwitchBar";bar.className="tripSwitchBar noPrint";header.appendChild(bar);}
+  bar.innerHTML=`<div class="miniTrip"><b>${esc(v63CurrentTripTitle())}</b><br>${esc(data.trip.dest||"未設定目的地")}｜${data.trip.start&&data.trip.end?`${esc(short(data.trip.start))}-${esc(short(data.trip.end))}`:"尚未完成日期"}</div><div class="btns" style="margin:0"><button class="btn soft compact" onclick="v63BackToTripList()">切換旅程</button><button class="btn blue compact" onclick="saveToCloudNow()">同步</button></div>`;
+}
+function renderHead(){
+  $("titleText").textContent=data.meta.title||"貞選旅管家";
+  document.title=(data.meta.title||"貞選旅管家") + "｜Janeselect Travel Manager";
+  $("subtitleText").textContent=data.meta.subtitle||base.meta.subtitle;
+  $("sDest").textContent=data.trip.dest||"未設定";
+  $("sDate").textContent=data.trip.start&&data.trip.end?`${short(data.trip.start)}-${short(data.trip.end)}`:"未設定";
+}
+async function v63Boot(){
+  if(v63Booted)return;
+  v63Booted=true;
+  views.splice(0, views.length, ["trip","旅遊地"],["stay","航班住宿"],["planner","行程"],["spots","口袋景點"],["budget","預算"],["packing","行李"],["photoBook","旅遊書"],["help","說明"]);
+  if(!$("stayView")){
+    const stay=document.createElement("section"); stay.id="stayView"; stay.className="hidden";
+    $("plannerView")?.before(stay);
+  }
+  renderLoginView();
+  v63ShowShell("login");
+  if(fbAuth){
+    fbAuth.onAuthStateChanged(v63HandleAuth);
+  }else if(window.firebase){
+    try{
+      if(!firebase.apps.length)fbApp=firebase.initializeApp(FIREBASE_CONFIG); else fbApp=firebase.app();
+      fbAuth=firebase.auth(); fbDb=firebase.firestore();
+      fbAuth.onAuthStateChanged(v63HandleAuth);
+    }catch(e){renderLoginView("Firebase 初始化失敗："+(e.message||e));}
+  }
+}
+v63Boot();
 </script>
 
 </body></html>
