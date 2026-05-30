@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#f4f2ee">
-<title>VoyageMemo. PDF 出版頁 v65</title>
+<title>VoyageMemo. PDF 出版頁 v66</title>
 <style>
 :root{
   --bg:#f4f2ee;
@@ -1025,6 +1025,154 @@ html,body{
 }
 </style>
 
+
+<style>
+/* ===== v66 footer version + export reminder + warm/purple illustrated styles ===== */
+
+/* 版本號只放頁面最下方，不固定在瀏覽器角落 */
+.exportFixedVersion{
+  position:static!important;
+  display:block!important;
+  width:max-content!important;
+  max-width:100%!important;
+  margin:18px 0 0 auto!important;
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.82);
+  color:var(--muted);
+  border-radius:999px;
+  padding:6px 10px;
+  font-size:11px;
+  font-weight:850;
+  box-shadow:none!important;
+}
+.exportFooterBar{
+  margin-bottom:8px!important;
+}
+
+/* 新增插畫素材：橘子、太陽、紫藤 */
+.illus-orange{
+  background-image:url("data:image/svg+xml,%3Csvg width='240' height='220' viewBox='0 0 240 220' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%238f5a28' stroke-width='7' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='118' cy='120' r='58' fill='%23ffd19a'/%3E%3Cpath d='M77 116c22 12 56 13 84 0M82 143c21 10 50 10 72 0M100 70c10 26 11 68 0 102M132 70c-8 29-7 70 4 102' opacity='.65'/%3E%3Cpath d='M122 55c11-26 31-35 57-30-7 26-25 39-57 30Z' fill='%23dbe8bc' stroke='%235e7447'/%3E%3Cpath d='M116 60c-3-15 0-28 9-40' stroke='%235e7447'/%3E%3Ccircle cx='70' cy='62' r='12' fill='%23fff1cf' stroke='%23d59b48'/%3E%3Ccircle cx='181' cy='156' r='10' fill='%23fff1cf' stroke='%23d59b48'/%3E%3C/g%3E%3C/svg%3E");
+}
+.illus-sun{
+  background-image:url("data:image/svg+xml,%3Csvg width='250' height='230' viewBox='0 0 250 230' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%238a6a20' stroke-width='7' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='125' cy='111' r='45' fill='%23ffe39b'/%3E%3Cpath d='M125 24v33M125 166v35M38 111h34M178 111h34M63 49l24 24M163 149l24 24M187 49l-24 24M87 149l-24 24'/%3E%3Cpath d='M63 193c36-20 84-24 132-1' stroke='%23e7b95c'/%3E%3Cpath d='M85 205c25-11 56-12 91-1' stroke='%23e7b95c' opacity='.65'/%3E%3C/g%3E%3C/svg%3E");
+}
+.illus-lavender{
+  background-image:url("data:image/svg+xml,%3Csvg width='240' height='250' viewBox='0 0 240 250' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M82 219c7-55 13-107 20-162M126 222c0-55 1-111 4-169M164 218c-10-57-18-109-23-158' stroke='%236b7b55'/%3E%3Cpath d='M101 57c-20 7-31 20-34 39 23 0 35-13 34-39Z' fill='%23d8c7ef' stroke='%2375659a'/%3E%3Cpath d='M96 92c-22 8-35 23-39 44 26 0 40-15 39-44Z' fill='%23c7b1e8' stroke='%2375659a'/%3E%3Cpath d='M130 53c19 9 28 25 28 45-22-3-32-17-28-45Z' fill='%23e4d6f7' stroke='%2375659a'/%3E%3Cpath d='M130 91c22 9 33 26 33 49-25-3-37-19-33-49Z' fill='%23d8c7ef' stroke='%2375659a'/%3E%3Cpath d='M143 62c24 3 40 15 48 36-25 6-42-6-48-36Z' fill='%23c7b1e8' stroke='%2375659a'/%3E%3Cpath d='M151 103c26 4 43 18 50 42-29 5-47-9-50-42Z' fill='%23e4d6f7' stroke='%2375659a'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* 新風格：橘色系 */
+body[data-export-style="orange"]{
+  --paper:#fff8ef;
+  --primary:#9a5d24;
+  --primarySoft:#ffe3c2;
+  --accent:#ffd19a;
+  --line:#ead5bd;
+}
+body[data-export-style="orange"] .a4Page{
+  background:
+    radial-gradient(circle at 24mm 24mm, rgba(255,209,154,.48) 0 12mm, transparent 13mm),
+    radial-gradient(circle at 188mm 248mm, rgba(219,232,188,.58) 0 14mm, transparent 15mm),
+    #fff8ef;
+}
+body[data-export-style="orange"] .coverShade{
+  background:linear-gradient(90deg,rgba(255,248,239,.96) 0%,rgba(255,248,239,.82) 38%,rgba(255,248,239,.12) 78%);
+}
+body[data-export-style="orange"] .a4Page::after{content:"🍊 Orange Journey Notes 🍊"}
+body[data-export-style="orange"] .eyebrow,
+body[data-export-style="orange"] .metaChips span,
+body[data-export-style="orange"] .infoCard,
+body[data-export-style="orange"] .miniDay,
+body[data-export-style="orange"] .photoCard,
+body[data-export-style="orange"] .dayStats{
+  border-color:#ead5bd;
+  background:rgba(255,255,255,.78);
+}
+body[data-export-style="orange"] .photoTags span{background:#ffe3c2;color:#8f5a28}
+body[data-export-style="orange"] .a4Page .illus:not(.illus-orange){display:none}
+
+/* 新風格：黃色系 */
+body[data-export-style="sunny"]{
+  --paper:#fffdf2;
+  --primary:#8a6a20;
+  --primarySoft:#fff0bb;
+  --accent:#ffe39b;
+  --line:#eadfbf;
+}
+body[data-export-style="sunny"] .a4Page{
+  background:
+    radial-gradient(circle at 180mm 25mm, rgba(255,227,155,.56) 0 15mm, transparent 16mm),
+    linear-gradient(180deg,#fffdf2,#fff9df);
+}
+body[data-export-style="sunny"] .coverShade{
+  background:linear-gradient(90deg,rgba(255,253,242,.96) 0%,rgba(255,253,242,.82) 38%,rgba(255,253,242,.1) 78%);
+}
+body[data-export-style="sunny"] .a4Page::after{content:"☀ Sunny Cream Diary ☀"}
+body[data-export-style="sunny"] .chapterHero,
+body[data-export-style="sunny"] .photoCard img{filter:saturate(1.04) brightness(1.03)}
+body[data-export-style="sunny"] .photoTags span{background:#fff0bb;color:#80611d}
+body[data-export-style="sunny"] .a4Page .illus:not(.illus-sun){display:none}
+
+/* 新風格：紫色系 */
+body[data-export-style="lavender"]{
+  --paper:#fbf8ff;
+  --primary:#715a91;
+  --primarySoft:#eadff8;
+  --accent:#f3e6ff;
+  --line:#ded0eb;
+}
+body[data-export-style="lavender"] .a4Page{
+  background:
+    radial-gradient(circle at 26mm 24mm, rgba(216,199,239,.5) 0 13mm, transparent 14mm),
+    radial-gradient(circle at 180mm 250mm, rgba(243,230,255,.7) 0 16mm, transparent 17mm),
+    #fbf8ff;
+}
+body[data-export-style="lavender"] .coverShade{
+  background:linear-gradient(90deg,rgba(251,248,255,.96) 0%,rgba(251,248,255,.82) 38%,rgba(251,248,255,.12) 78%);
+}
+body[data-export-style="lavender"] .a4Page::after{content:"✦ Lavender Dream Travel Book ✦"}
+body[data-export-style="lavender"] .eyebrow,
+body[data-export-style="lavender"] .metaChips span,
+body[data-export-style="lavender"] .infoCard,
+body[data-export-style="lavender"] .miniDay,
+body[data-export-style="lavender"] .photoCard,
+body[data-export-style="lavender"] .dayStats{
+  border-color:#ded0eb;
+}
+body[data-export-style="lavender"] .photoTags span{background:#eadff8;color:#715a91}
+body[data-export-style="lavender"] .a4Page .illus:not(.illus-lavender){display:none}
+
+/* placements for new illustrations */
+.coverPage .illus-orange{width:58mm;height:54mm;right:14mm;bottom:18mm}
+.coverPage .illus-sun{width:58mm;height:52mm;right:12mm;bottom:18mm}
+.coverPage .illus-lavender{width:54mm;height:58mm;right:14mm;bottom:16mm}
+.a4Page:not(.coverPage) .illus-orange{width:35mm;height:33mm;right:13mm;top:13mm;opacity:.3}
+.a4Page:not(.coverPage) .illus-sun{width:35mm;height:32mm;right:13mm;top:13mm;opacity:.28}
+.a4Page:not(.coverPage) .illus-lavender{width:34mm;height:36mm;right:13mm;top:12mm;opacity:.28}
+
+/* 移除午夜旅刊樣式入口：若舊資料曾選 midnight，自動用清新手帳呈現 */
+body[data-export-style="midnight"]{
+  --paper:#fffdf8;
+  --primary:#4a5d4e;
+  --primarySoft:#e5ece9;
+  --accent:#efe6e6;
+  --ink:#2f2a25;
+  --muted:#8b827a;
+  --line:#e2ddd5;
+}
+body[data-export-style="midnight"] .a4Page .illus{display:none}
+
+@media screen and (max-width:620px){
+  .exportFixedVersion{
+    margin:14px 0 0 auto!important;
+  }
+}
+@media print{
+  .exportFixedVersion{
+    display:none!important;
+  }
+}
+</style>
+
 </head>
 <body>
 <div class="publisherShell">
@@ -1047,7 +1195,9 @@ html,body{
         <option value="sakura">櫻花日記</option>
         <option value="oceanic">海岸假期</option>
         <option value="botanical">植物圖鑑</option>
-        <option value="midnight">午夜旅刊</option>
+        <option value="orange">橘子旅行</option>
+        <option value="sunny">奶油黃日記</option>
+        <option value="lavender">紫藤夢境</option>
       </select>
       <button class="dark" onclick="printBook()">匯出 / 另存 PDF</button>
     </div>
@@ -1065,9 +1215,9 @@ html,body{
 
   <div class="exportFooterBar">
     <div class="exportFooterBrand">VoyageMemo. Travel Book Export</div>
-    <div class="exportFooterMeta">版本：v65｜手機預覽修正版</div>
+    <div class="exportFooterMeta">版本：v66｜暖色系風格與匯出提醒版</div>
   </div>
-  <div class="exportFixedVersion noPrint">v65｜手機預覽修正版</div>
+  <div class="exportFixedVersion noPrint">v66｜暖色系風格與匯出提醒版</div>
 </div>
 
 <script>
@@ -1587,6 +1737,49 @@ setTimeout(()=>{
   else if(typeof loadAndRender === "function") loadAndRender();
   applyStablePreviewScale();
 }, 180);
+</script>
+
+
+<script>
+/* ===== v66 export reminder + remove midnight fallback ===== */
+const __setExportBookStyleBeforeV66 = setExportBookStyle;
+setExportBookStyle = function(style){
+  if(style === "midnight") style = "classic";
+  __setExportBookStyleBeforeV66(style || "classic");
+};
+
+const __getExportBookStyleBeforeV66 = getExportBookStyle;
+getExportBookStyle = function(){
+  const s = __getExportBookStyleBeforeV66();
+  return s === "midnight" ? "classic" : s;
+};
+
+function addV66Illustrations(){
+  const extra = `<span class="illus illus-orange"></span><span class="illus illus-sun"></span><span class="illus illus-lavender"></span>`;
+  document.querySelectorAll(".a4Page").forEach(page=>{
+    if(!page.querySelector(".illus-orange")) page.insertAdjacentHTML("beforeend", extra);
+  });
+}
+const __addIllustrationsToPagesBeforeV66 = addIllustrationsToPages;
+addIllustrationsToPages = function(){
+  __addIllustrationsToPagesBeforeV66();
+  addV66Illustrations();
+};
+
+const __printBookBeforeV66 = printBook;
+printBook = function(){
+  const ok = confirm("建議使用電腦版 Chrome 開啟 export.html 後再另存 PDF，版面與圖片效果最穩定。\\n\\n手機／平板可以預覽，但匯出 PDF 可能會因瀏覽器不同而有落差。\\n\\n要繼續開啟列印 / 另存 PDF 嗎？");
+  if(ok) __printBookBeforeV66();
+};
+
+setTimeout(()=>{
+  const sel = document.getElementById("bookStyleSelect");
+  if(sel && sel.querySelector('option[value="midnight"]')){
+    sel.querySelector('option[value="midnight"]').remove();
+  }
+  addV66Illustrations();
+  if(getExportBookStyle()==="midnight") setExportBookStyle("classic");
+}, 120);
 </script>
 
 </body>
