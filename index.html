@@ -16804,4 +16804,185 @@ document.addEventListener('DOMContentLoaded',()=>{
 setTimeout(v637EnsureFooter, 300);
 </script>
 
+
+
+<script>
+/* ===== v63.8 Korea transit mode only =====
+   - 只針對韓國旅程改善交通查詢，不改 data / Firebase / Cloudinary / localStorage 結構
+   - 韓國旅程改以 Naver Map / KakaoMap 查詢交通；Google 僅保留備用
+   - 查完交通時間後，仍手動填回「預估時間」，保留現有自動調整行程邏輯
+*/
+const V638_VERSION_TEXT = '版本：v63.8｜2026-05-31｜韓國交通查詢優化版';
+
+function isKoreaTrip(){
+  const country=String(data?.trip?.country||'').trim();
+  const dest=String(data?.trip?.dest||'').trim();
+  return country.includes('韓國') || country.toLowerCase().includes('korea') || dest.includes('韓國') || dest.includes('首爾') || dest.includes('釜山') || dest.includes('濟州');
+}
+function safeDecodeQuery(q){
+  try{return decodeURIComponent(String(q||''));}catch(e){return String(q||'');}
+}
+function koreaCleanQuery(q){
+  return String(q||'').replace(/\s+/g,' ').trim();
+}
+function koreaSearchUrl(provider, q){
+  const clean=koreaCleanQuery(q);
+  const enc=encodeURIComponent(clean);
+  if(provider==='naver')return 'https://map.naver.com/p/search/'+enc;
+  if(provider==='kakao')return 'https://map.kakao.com/?q='+enc;
+  return 'https://www.google.com/maps/search/?api=1&query='+enc;
+}
+function koreaDirectionQuery(origin,destination,mode){
+  const modeText=mode==='走路'?'도보':mode==='開車/計程車'?'택시':'대중교통';
+  return koreaCleanQuery(`${origin} → ${destination} ${modeText}`);
+}
+function koreaTransitNoteHtml(){
+  if(!isKoreaTrip())return '';
+  return `<div class="koreaTransitCard noPrint">
+    <div class="koreaTransitIcon">🇰🇷</div>
+    <div><b>韓國交通模式已啟用</b><p>韓國行程建議用 Naver Map / KakaoMap 查交通時間。查完後，把時間填回「預估時間」，貞選旅管家會繼續幫你推算下一段行程。</p></div>
+  </div>`;
+}
+function ensureKoreaMapModal(){
+  if($('koreaMapModal'))return;
+  document.body.insertAdjacentHTML('beforeend', `<div class="koreaMapModal noPrint" id="koreaMapModal" aria-hidden="true">
+    <div class="koreaMapBox">
+      <div class="koreaMapHead"><div><span>🇰🇷 韓國交通查詢</span><h3 id="koreaMapTitle">選擇地圖服務</h3></div><button type="button" class="iconBtn" onclick="closeKoreaMapModal()">×</button></div>
+      <div class="koreaMapContent">
+        <div class="koreaMapRouteText" id="koreaMapRouteText"></div>
+        <div class="koreaMapHint">Naver / Kakao 查到交通時間後，請回到行程中填寫「預估時間」。Google 在韓國的交通路線可能不完整，因此只作為備用。</div>
+        <div class="koreaMapActions" id="koreaMapActions"></div>
+      </div>
+    </div>
+  </div>`);
+}
+function closeKoreaMapModal(){
+  const m=$('koreaMapModal');
+  if(m){m.classList.remove('show');m.setAttribute('aria-hidden','true');}
+}
+function openKoreaMapChoice(options={}){
+  ensureKoreaMapModal();
+  const type=options.type||'search';
+  const origin=koreaCleanQuery(options.origin||'');
+  const destination=koreaCleanQuery(options.destination||options.query||'');
+  const mode=options.mode||'大眾運輸';
+  const query=type==='route'?koreaDirectionQuery(origin,destination,mode):koreaCleanQuery(options.query||destination);
+  const title=type==='route'?'查詢兩地交通':'查詢地點';
+  $('koreaMapTitle').textContent=title;
+  $('koreaMapRouteText').innerHTML=type==='route'
+    ? `<span>起點</span><b>${esc(origin||'未設定')}</b><span>終點</span><b>${esc(destination||'未設定')}</b><span>交通方式</span><b>${esc(mode)}</b>`
+    : `<span>查詢內容</span><b>${esc(query||'未設定')}</b>`;
+  const naver=koreaSearchUrl('naver',query);
+  const kakao=koreaSearchUrl('kakao',query);
+  const google= type==='route'
+    ? `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&travelmode=${mode==='走路'?'walking':mode==='開車/計程車'?'driving':'transit'}`
+    : koreaSearchUrl('google',query);
+  $('koreaMapActions').innerHTML=`
+    <button class="btn dark" type="button" onclick="open('${naver}','_blank')">Naver Map 查詢</button>
+    <button class="btn blue" type="button" onclick="open('${kakao}','_blank')">KakaoMap 查詢</button>
+    <button class="btn soft" type="button" onclick="navigator.clipboard?.writeText('${String(query).replace(/'/g,"\\'")}'); toast('已複製查詢文字')">複製查詢文字</button>
+    <button class="btn" type="button" onclick="open('${google}','_blank')">Google 備用</button>`;
+  $('koreaMapModal').classList.add('show');
+  $('koreaMapModal').setAttribute('aria-hidden','false');
+}
+
+/* 韓國旅程：地圖查詢預設轉為在地地圖選擇，不影響其他國家 */
+const __v638OriginalMap = typeof map==='function'?map:null;
+map = function(q){
+  const query=safeDecodeQuery(q);
+  if(isKoreaTrip()) return openKoreaMapChoice({type:'search',query});
+  if(__v638OriginalMap) return __v638OriginalMap(q);
+  open('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(query),'_blank');
+};
+routeCurrent = function(q){
+  const query=safeDecodeQuery(q);
+  if(isKoreaTrip()) return openKoreaMapChoice({type:'search',query});
+  return map(q);
+};
+route = function(a,b,m){
+  const origin=safeDecodeQuery(a);
+  const destination=safeDecodeQuery(b);
+  if(isKoreaTrip()) return openKoreaMapChoice({type:'route',origin,destination,mode:m||'大眾運輸'});
+  const mode=m==='走路'?'walking':m==='開車/計程車'?'driving':'transit';
+  open(`https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&travelmode=${mode}`,'_blank');
+};
+
+function koreaRouteButtonsHtml(a,b,c){
+  if(!isKoreaTrip()){
+    return `<button class="btn blue" onclick="route('${encodeURIComponent((a.name||'')+' '+(data.trip.dest||''))}','${encodeURIComponent((b.name||'')+' '+(data.trip.dest||''))}','${c.mode}')">Google Maps 查路線</button>`;
+  }
+  const origin=encodeURIComponent((a.address||a.addr||a.name||'')+' '+(data.trip.dest||''));
+  const dest=encodeURIComponent((b.address||b.addr||b.name||'')+' '+(data.trip.dest||''));
+  return `<button class="btn dark" onclick="route('${origin}','${dest}','${c.mode}')">Naver / Kakao 查交通</button><button class="btn soft" onclick="open('https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${dest}&travelmode=${c.mode==='走路'?'walking':c.mode==='開車/計程車'?'driving':'transit'}','_blank')">Google 備用</button>`;
+}
+
+/* 覆寫行程連接交通卡：只替換查詢按鈕與提示，原本預估時間 / 抵達 / 車資邏輯保留 */
+connHtml = function(a,b){
+  let c=data.conns.find(x=>x.a==a.id&&x.b==b.id);
+  if(!c){c={id:uid(),a:a.id,b:b.id,mode:'大眾運輸',h:0,m:30,memo:'',fareForeign:0,fareTwd:0,payer:'未定',payMethod:'未定'};data.conns.push(c);silentSave();}
+  const arrival=addMinutes(a.end,(Number(c.h||0)*60+Number(c.m||0)));
+  const taxiBlock=c.mode==='開車/計程車'?`<div class="four" style="margin-top:8px"><div><label>車資 ${esc(data.trip.currency)}</label><input value="${c.fareForeign||''}" type="number" oninput="updConn('${c.id}','fareForeign',this.value)"></div><div><label>車資 TWD</label><input value="${c.fareTwd||''}" type="number" oninput="updConn('${c.id}','fareTwd',this.value)"></div><div><label>付款人</label><select onchange="updConn('${c.id}','payer',this.value)">${optsPayer(c.payer)}</select></div><div><label>付款方式</label><select onchange="updConn('${c.id}','payMethod',this.value)">${optsPayMethod(c.payMethod)}</select></div></div>`:'';
+  const koreaHint=isKoreaTrip()?`<div class="koreaConnHint">韓國交通建議用 Naver / Kakao 查詢；查完後請手動填回預估時間。</div>`:'';
+  return `<div class="connector"><div class="arrow">↓</div><div class="connbox ${isKoreaTrip()?'koreaConnbox':''}"><div class="three"><div><label>交通</label><select onchange="changeConnMode('${c.id}',this.value)"><option ${c.mode==='大眾運輸'?'selected':''}>大眾運輸</option><option ${c.mode==='走路'?'selected':''}>走路</option><option ${c.mode==='開車/計程車'?'selected':''}>開車/計程車</option></select></div><div><label>預估時間</label><div class="two"><select onchange="updConn('${c.id}','h',this.value)">${hourOptions(c.h)}</select><select onchange="updConn('${c.id}','m',this.value)">${minuteOptions(c.m)}</select></div></div><div><label>預估抵達</label><input value="${arrival||''}" disabled></div></div>${taxiBlock}${koreaHint}<div class="btns koreaRouteBtns">${koreaRouteButtonsHtml(a,b,c)}</div><input value="${esc(c.memo)}" placeholder="交通備註" oninput="updConn('${c.id}','memo',this.value)"></div></div>`;
+};
+
+/* 行程頁上方加韓國交通提醒卡，保留原 renderPlanner */
+const __v638RenderPlanner = typeof renderPlanner==='function'?renderPlanner:null;
+if(__v638RenderPlanner){
+  renderPlanner = function(options={}){
+    __v638RenderPlanner(options);
+    const viewEl=$('plannerView');
+    if(viewEl && isKoreaTrip() && !viewEl.querySelector('.koreaTransitCard')){
+      viewEl.insertAdjacentHTML('afterbegin', koreaTransitNoteHtml());
+    }
+  };
+}
+
+/* 頁尾版本更新 */
+if(typeof v637FooterHtml==='function'){
+  v637FooterHtml = function(){
+    return `<footer id="siteFooter" class="siteFooter noPrint">
+      <div class="siteFooterBrand">貞選旅管家 <span>Janeselect Travel Manager</span></div>
+      <div class="siteFooterVersion">${esc(V638_VERSION_TEXT)}</div>
+      <div class="siteFooterLinks">
+        <button type="button" onclick="v637PolicyToast('服務條款')">服務條款</button><span>・</span>
+        <button type="button" onclick="v637PolicyToast('隱私權政策')">隱私權政策</button><span>・</span>
+        <button type="button" onclick="v637PolicyToast('聯絡我們')">聯絡我們</button>
+      </div>
+      <div class="siteFooterCopy">© 2026 Janeselect Travel Manager. All rights reserved.</div>
+    </footer>`;
+  };
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  document.querySelectorAll('footer strong').forEach(el=>el.textContent=V638_VERSION_TEXT);
+  if(typeof v637EnsureFooter==='function')v637EnsureFooter();
+});
+setTimeout(()=>{ if(typeof v637EnsureFooter==='function')v637EnsureFooter(); },450);
+</script>
+
+<style>
+/* ===== v63.8 Korea transit mode style only ===== */
+.koreaTransitCard{display:grid;grid-template-columns:42px minmax(0,1fr);gap:10px;align-items:start;border:1px solid var(--theme-line,var(--line));border-radius:20px;background:linear-gradient(135deg,#fffdf8,#eef8f3);padding:12px;margin:0 0 12px;box-shadow:0 10px 26px rgba(44,42,41,.045);}
+.koreaTransitIcon{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:#fff;border:1px solid var(--theme-line,var(--line));font-size:21px;}
+.koreaTransitCard b{display:block;font-size:15px;margin-bottom:4px;color:var(--theme-ink,var(--ink));}
+.koreaTransitCard p{margin:0;color:var(--theme-muted,var(--muted));font-size:12.5px;line-height:1.55;}
+.koreaConnbox{background:linear-gradient(135deg,#f8fffb,#fffdf8)!important;border-style:solid!important;}
+.koreaConnHint{margin:8px 0 0;padding:8px 10px;border-radius:14px;background:#fff8ea;color:#7b653b;font-size:12px;font-weight:850;line-height:1.5;}
+.koreaRouteBtns .btn{margin-right:0;}
+.koreaMapModal{position:fixed;inset:0;background:rgba(44,38,32,.38);display:none;align-items:center;justify-content:center;padding:18px;z-index:230;}
+.koreaMapModal.show{display:flex;}
+.koreaMapBox{width:min(560px,100%);max-height:86vh;overflow:auto;background:rgba(255,255,255,.98);border:1px solid rgba(255,255,255,.9);box-shadow:0 24px 70px rgba(44,42,41,.16);border-radius:24px;padding:18px;}
+.koreaMapHead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;}
+.koreaMapHead span{display:inline-flex;border-radius:999px;background:var(--theme-primary-weak,#edf8f3);color:var(--theme-primary,#4A5D4E);padding:5px 9px;font-size:12px;font-weight:950;}
+.koreaMapHead h3{margin:5px 0 0;font-size:22px;}
+.koreaMapRouteText{display:grid;grid-template-columns:72px 1fr;gap:7px 10px;border:1px solid var(--theme-line,var(--line));border-radius:18px;background:#fffdf9;padding:12px;margin-bottom:10px;}
+.koreaMapRouteText span{color:var(--theme-muted,var(--muted));font-size:12px;font-weight:900;}
+.koreaMapRouteText b{min-width:0;word-break:break-word;font-size:14px;}
+.koreaMapHint{border-radius:16px;background:#fff8ea;color:#6f6257;padding:10px 12px;font-size:12.5px;line-height:1.6;margin-bottom:12px;}
+.koreaMapActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.koreaMapActions .btn{width:100%;}
+@media(max-width:620px){.koreaTransitCard{grid-template-columns:36px 1fr;padding:11px;border-radius:18px}.koreaTransitIcon{width:36px;height:36px;font-size:18px}.koreaMapModal{align-items:flex-end;padding:12px}.koreaMapBox{border-radius:24px;max-height:82vh;padding:16px}.koreaMapActions{grid-template-columns:1fr}.koreaMapRouteText{grid-template-columns:58px 1fr}.koreaRouteBtns{display:grid!important;grid-template-columns:1fr!important}.koreaRouteBtns .btn{width:100%;}}
+@media print{.koreaTransitCard,.koreaMapModal{display:none!important;}}
+</style>
+
 </body></html>
