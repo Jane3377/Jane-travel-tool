@@ -16626,4 +16626,182 @@ document.addEventListener('DOMContentLoaded',()=>{
 });
 </script>
 
+
+<script>
+/* ===== v63.7 footer + edit modal + trip color UI cleanup =====
+   - 不更動旅程資料主結構 / Firebase 路徑 / Cloudinary / 行程與預算功能
+   - 新增全站固定頁尾：登入頁、旅程清單、主功能頁都會顯示
+   - 標題與副標改成自製彈窗，不再使用瀏覽器 prompt
+   - 旅程卡片色系只保留圓點選擇，移除下拉選單
+*/
+const V637_VERSION_TEXT = '版本：v63.7｜2026-05-31｜頁尾、標題編輯彈窗與旅程卡片色系優化版';
+
+function v637FooterHtml(){
+  return `<footer id="siteFooter" class="siteFooter noPrint">
+    <div class="siteFooterBrand">貞選旅管家 <span>Janeselect Travel Manager</span></div>
+    <div class="siteFooterVersion">${esc(V637_VERSION_TEXT)}</div>
+    <div class="siteFooterLinks">
+      <button type="button" onclick="v637PolicyToast('服務條款')">服務條款</button>
+      <span>・</span>
+      <button type="button" onclick="v637PolicyToast('隱私權政策')">隱私權政策</button>
+      <span>・</span>
+      <button type="button" onclick="v637PolicyToast('聯絡我們')">聯絡我們</button>
+    </div>
+    <div class="siteFooterCopy">© 2026 Janeselect Travel Manager. All rights reserved.</div>
+  </footer>`;
+}
+function v637PolicyToast(name){ toast(`${name}內容尚未設定，之後可接到獨立頁面或後台設定。`); }
+function v637EnsureFooter(){
+  document.querySelectorAll('.app > footer').forEach(f=>f.classList.add('legacyFooter'));
+  let f=$('siteFooter');
+  if(!f){ document.body.insertAdjacentHTML('beforeend', v637FooterHtml()); }
+  else { f.outerHTML=v637FooterHtml(); }
+}
+
+/* 讓 login/list/app 切換時，footer 都存在 */
+const __v637ShowShell = typeof v63ShowShell === 'function' ? v63ShowShell : null;
+if(__v637ShowShell){
+  v63ShowShell = function(mode){
+    __v637ShowShell(mode);
+    v637EnsureFooter();
+  };
+}
+
+function v637EnsureEditModal(){
+  if($('titleEditModal'))return;
+  document.body.insertAdjacentHTML('beforeend', `<div class="titleEditModal noPrint" id="titleEditModal" aria-hidden="true">
+    <div class="titleEditBox">
+      <div class="titleEditHead">
+        <div><span class="titleEditKicker">貞選旅管家</span><h3 id="titleEditHeading">編輯文字</h3></div>
+        <button type="button" class="iconBtn" onclick="v637CloseTitleModal()">×</button>
+      </div>
+      <div class="titleEditBody">
+        <label id="titleEditLabel">內容</label>
+        <textarea id="titleEditInput"></textarea>
+        <div class="hint" id="titleEditHint">修改後會儲存在目前旅程資料中，並隨同步保存。</div>
+      </div>
+      <div class="btns titleEditActions">
+        <button class="btn soft" type="button" onclick="v637CloseTitleModal()">取消</button>
+        <button class="btn dark" type="button" onclick="v637SaveTitleModal()">儲存</button>
+      </div>
+    </div>
+  </div>`);
+}
+let v637EditMode='title';
+function v637OpenTitleModal(mode){
+  v637EnsureEditModal();
+  v637EditMode=mode;
+  const isTitle=mode==='title';
+  $('titleEditHeading').textContent=isTitle?'編輯旅程標題':'編輯旅程副標';
+  $('titleEditLabel').textContent=isTitle?'旅程標題':'副標文字';
+  $('titleEditInput').value=isTitle?(data.meta.title||'我的旅程'):(data.meta.subtitle||base.meta.subtitle||'');
+  $('titleEditInput').style.minHeight=isTitle?'88px':'150px';
+  $('titleEditModal').classList.add('show');
+  $('titleEditModal').setAttribute('aria-hidden','false');
+  setTimeout(()=>$('titleEditInput')?.focus(),30);
+}
+function v637CloseTitleModal(){
+  const m=$('titleEditModal');
+  if(m){m.classList.remove('show');m.setAttribute('aria-hidden','true');}
+}
+function v637SaveTitleModal(){
+  const value=($('titleEditInput')?.value||'').trim();
+  if(!value)return toast('請輸入內容');
+  if(v637EditMode==='title') data.meta.title=value;
+  else data.meta.subtitle=value;
+  v637CloseTitleModal();
+  save();
+  toast('已更新旅程文字');
+}
+editTitle = function(){ v637OpenTitleModal('title'); };
+editSubtitle = function(){ v637OpenTitleModal('subtitle'); };
+
+function v637ColorDotSet(selected='cream', id='', mode='trip'){
+  const val=typeof v636ColorKey==='function'?v636ColorKey(selected):(selected||'cream');
+  const colors=[['cream','奶油白'],['mint','薄荷綠'],['rose','玫瑰粉'],['sky','晨霧藍'],['latte','奶茶棕']];
+  return `<div class="tripColorDots" role="group" aria-label="卡片色系">${colors.map(([k,label])=>{
+    const active=k===val?' active':'';
+    const onclick=mode==='new'?`v637SetNewTripColor('${k}')`:`updateTripCardColor('${id}','${k}')`;
+    return `<button type="button" class="tripColorDot color-${k}${active}" title="${label}" aria-label="${label}" onclick="${onclick}"></button>`;
+  }).join('')}</div>`;
+}
+function v637SetNewTripColor(color){
+  const v=typeof v636ColorKey==='function'?v636ColorKey(color):(color||'cream');
+  const input=$('newTripColor'); if(input)input.value=v;
+  const box=$('newTripColorDots');
+  if(box)box.innerHTML=v637ColorDotSet(v,'','new');
+}
+
+/* 覆寫旅程清單：新增頁尾一致；新增旅程色系改圓點；旅程卡片不顯示下拉 */
+renderTripList = function(){
+  const el=$('tripListView'); if(!el)return;
+  const active=tripList.filter(t=>!t.archived);
+  const archived=tripList.filter(t=>t.archived);
+  el.innerHTML=`<div class="gateShell">
+    <div class="tripListHero"><div><div class="loginBrand">貞選旅管家</div><h1>我的旅程</h1><p>每趟旅程都是一包獨立資料：旅遊地、航班住宿、行程、口袋景點、預算、行李與旅遊書都會分開保存。</p></div><div class="tripListCount">${active.length}/${V63_MAX_TRIPS} 個旅程</div></div>
+    <div class="tripGrid">${active.map(v63TripCard).join('') || '<div class="tripListCard tripColor-cream"><div class="tripCardTop"><div><span class="tripBadge">尚未開始</span><h3>還沒有旅程</h3></div></div><div class="meta">先在下方新增第一趟旅程。</div></div>'}</div>
+    ${archived.length?`<details class="tripCreateCard" open><summary style="cursor:pointer;font-weight:950">封存旅程</summary><div class="tripGrid">${archived.map(v63TripCard).join('')}</div></details>`:''}
+    <div class="tripCreateCard"><h3>＋ 新增旅程</h3><div class="tripCreateGrid"><div><label>旅程名稱</label><input id="newTripTitle" placeholder="例：2026 釜山自由行"></div><div><label>國家 / 區域</label><select id="newTripCountry" onchange="v63NewTripCountryChanged()">${Object.keys(currencyMap).map(c=>`<option value="${c}">${c}</option>`).join('')}<option value="其他">其他</option></select></div><div><label>城市 / 路線</label><input id="newTripCity" value="釜山"></div><div><label>卡片色系</label><input id="newTripColor" type="hidden" value="cream"><div id="newTripColorDots" class="newTripColorDots">${v637ColorDotSet('cream','','new')}</div></div><div><label>出發日</label><input id="newTripStart" type="date"></div><div><label>回程日</label><input id="newTripEnd" type="date"></div><div style="align-self:end"><button class="btn dark" style="width:100%" onclick="createTrip()">建立旅程</button></div></div><div class="cloudHint">建立後會先進入旅遊地設定；完成旅遊地後才會解鎖其他功能。旅程卡片色系只影響清單外觀，不會改變旅行資料。</div></div>
+    <div class="btns"><button class="btn soft" onclick="firebaseSignOut()">登出</button></div>
+  </div>`;
+  if(typeof v631BrandTitle==='function')v631BrandTitle();
+  v637EnsureFooter();
+};
+
+v63TripCard = function(t){
+  const dateText=t.start&&t.end?`${esc(short(t.start))} - ${esc(short(t.end))}`:'尚未完成';
+  const destText=t.dest||'未設定目的地';
+  const color=typeof v636ColorKey==='function'?v636ColorKey(t.cardColor):'cream';
+  return `<div class="tripListCard tripColor-${color} ${t.archived?'archived':''}">
+    <div class="tripCardTop"><div><span class="tripBadge">${t.archived?'已封存':'旅程'}</span><h3>${esc(t.title||'未命名旅程')}</h3></div></div>
+    <div class="tripCardMetaGrid"><div><span>目的地</span><b>${esc(destText)}</b></div><div><span>日期</span><b>${dateText}</b></div></div>
+    <div class="meta">${t.updatedAtClient?`最後更新：${new Date(t.updatedAtClient).toLocaleDateString('zh-TW')}`:'尚未同步更新時間'}</div>
+    <div class="tripCardTools"><div class="tripColorControl"><span>卡片色系</span>${v637ColorDotSet(color,t.id,'trip')}</div></div>
+    <div class="btns">
+      <button class="btn dark compact" onclick="selectTrip('${t.id}')">繼續編輯</button>
+      ${t.archived?`<button class="btn blue compact" onclick="restoreTrip('${t.id}')">還原</button>`:`<button class="btn soft compact" onclick="archiveTrip('${t.id}')">封存</button>`}
+      <button class="btn danger compact" onclick="deleteTrip('${t.id}')">刪除</button>
+    </div>
+  </div>`;
+};
+
+const v637Style=document.createElement('style');
+v637Style.textContent=`
+  .legacyFooter{display:none!important;}
+  .siteFooter{max-width:1160px;margin:22px auto 26px;padding:18px 14px 26px;text-align:center;color:var(--theme-muted,var(--muted));font-size:12px;line-height:1.7;}
+  .siteFooterBrand{font-weight:950;color:var(--theme-ink,var(--ink));letter-spacing:.03em;}
+  .siteFooterBrand span{font-weight:750;color:var(--theme-muted,var(--muted));}
+  .siteFooterVersion{margin-top:4px;}
+  .siteFooterLinks{display:flex;justify-content:center;align-items:center;gap:6px;margin-top:6px;flex-wrap:wrap;}
+  .siteFooterLinks button{border:0;background:transparent;color:var(--theme-muted,var(--muted));font-size:12px;font-weight:850;padding:4px 5px;border-radius:999px;}
+  .siteFooterLinks button:hover{color:var(--theme-ink,var(--ink));background:rgba(255,255,255,.55);}
+  .siteFooterCopy{margin-top:4px;color:color-mix(in srgb,var(--theme-muted,var(--muted)) 76%, transparent);}
+  .titleEditModal{position:fixed;inset:0;background:rgba(44,38,32,.38);display:none;align-items:center;justify-content:center;padding:18px;z-index:180;}
+  .titleEditModal.show{display:flex;}
+  .titleEditBox{width:min(560px,100%);max-height:86vh;overflow:auto;background:rgba(255,255,255,.98);border:1px solid rgba(255,255,255,.9);box-shadow:0 24px 70px rgba(44,42,41,.16);border-radius:24px;padding:18px;}
+  .titleEditHead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;}
+  .titleEditHead h3{margin:4px 0 0;font-size:22px;}
+  .titleEditKicker{display:inline-flex;border-radius:999px;background:var(--theme-primary-weak,#edf8f3);color:var(--theme-primary,#4A5D4E);padding:5px 9px;font-size:12px;font-weight:950;}
+  .titleEditBody textarea{min-height:130px;line-height:1.65;}
+  .titleEditActions{justify-content:flex-end;}
+  .tripColorSelect{display:none!important;}
+  .tripCardTools{justify-content:flex-start!important;}
+  .newTripColorDots{padding-top:5px;}
+  @media(max-width:620px){
+    .siteFooter{margin:18px auto 24px;padding-bottom:calc(24px + env(safe-area-inset-bottom));font-size:11.5px;}
+    .titleEditBox{border-radius:22px;padding:16px;}
+    .titleEditActions .btn{flex:1 1 auto;}
+    .tripColorControl{justify-content:space-between;width:100%;}
+  }
+  @media print{.siteFooter,.titleEditModal{display:none!important;}}
+`;
+document.head.appendChild(v637Style);
+
+document.addEventListener('DOMContentLoaded',()=>{
+  v637EnsureFooter();
+  v637EnsureEditModal();
+});
+setTimeout(v637EnsureFooter, 300);
+</script>
+
 </body></html>
