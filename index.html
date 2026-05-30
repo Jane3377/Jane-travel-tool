@@ -17540,4 +17540,325 @@ setTimeout(()=>{
 },500);
 </script>
 
+
+
+<style>
+/* ===== v64.1 AI health check refinement only ===== */
+#v64AiPromptModal{z-index:360!important;}
+#v64SpotExploreModal{z-index:300!important;}
+.v641Prefs{
+  margin-top:10px;
+  border:1px solid var(--theme-line,#E2DDD5);
+  border-radius:18px;
+  background:#fffdf9;
+  padding:10px;
+}
+.v641PrefsTitle{
+  font-size:12px;
+  font-weight:950;
+  color:var(--theme-ink,#2C2A29);
+  margin-bottom:7px;
+}
+.v641PrefsGrid{
+  display:grid;
+  grid-template-columns:1.2fr .9fr .9fr;
+  gap:8px;
+}
+.v641PrefsGrid label{
+  font-size:11px;
+  margin:0 0 4px;
+}
+.v641PrefsGrid select{
+  min-height:34px;
+  padding:6px 8px;
+  font-size:13px;
+  border-radius:12px;
+}
+.v641ReviewList{
+  margin-top:10px;
+  display:grid;
+  gap:8px;
+}
+.v641ReviewCard{
+  border:1px solid var(--theme-line,#E2DDD5);
+  border-radius:18px;
+  background:linear-gradient(135deg,#fffdf9,#f7fbf8);
+  padding:11px;
+}
+.v641ReviewHead{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:flex-start;
+}
+.v641ReviewHead b{display:block;font-size:14px;margin-bottom:3px;}
+.v641ReviewHead span{display:block;color:var(--theme-muted,#8B827A);font-size:11px;line-height:1.45;}
+.v641ReviewCard .box{margin-top:8px;}
+.v641ReviewItems{
+  display:grid;
+  gap:6px;
+  margin-top:8px;
+}
+.v641ReviewItem{
+  border:1px solid var(--theme-line,#E2DDD5);
+  border-radius:14px;
+  background:#fff;
+  padding:8px;
+  font-size:12px;
+  line-height:1.55;
+}
+.v641ReviewItem strong{display:block;margin-bottom:3px;color:var(--theme-ink,#2C2A29);}
+.v641ReviewItem em{font-style:normal;color:var(--theme-primary,#4A5D4E);font-weight:900;}
+@media(max-width:620px){
+  .v641PrefsGrid{grid-template-columns:1fr;}
+  .v641ReviewHead{display:block;}
+}
+@media print{.v641Prefs,.v641ReviewList{display:none!important;}}
+</style>
+
+<script>
+/* ===== v64.1 AI health check refinement only =====
+   - AI 健檢只使用已排入行程，不把口袋景點列入健檢資料
+   - 新增非必填旅遊偏好 / MBTI / 星座，僅用於 prompt 參考
+   - 行程健檢匯入後顯示在行程頁的「AI 健檢建議」卡片，不再無感
+   - 修正口袋景點探索內 AI 摘要彈窗層級
+*/
+const V641_VERSION_SHORT = '版本：v64.1｜2026-05-31';
+const V641_VERSION_TEXT = 'v64.1｜2026-05-31｜AI 健檢偏好與匯入顯示優化版';
+const V641_PREF_KEY = 'janeselectAiPrefs_v1';
+
+function v641LoadPrefs(){
+  try{return JSON.parse(localStorage.getItem(V641_PREF_KEY)||'{}')||{};}catch(e){return {};}
+}
+function v641SavePrefsFromDom(){
+  const prefs={
+    style:$('v641TravelStyle')?.value||'',
+    mbti:$('v641Mbti')?.value||'',
+    zodiac:$('v641Zodiac')?.value||''
+  };
+  try{localStorage.setItem(V641_PREF_KEY,JSON.stringify(prefs));}catch(e){}
+  return prefs;
+}
+function v641PrefsText(){
+  const p=v641SavePrefsFromDom();
+  const parts=[];
+  if(p.style) parts.push('旅遊風格偏好：'+p.style);
+  if(p.mbti) parts.push('MBTI：'+p.mbti);
+  if(p.zodiac) parts.push('星座：'+p.zodiac);
+  return parts.length ? parts.join('\n') : '未填寫，請以一般旅遊者需求判斷。';
+}
+function v641PrefsHtml(){
+  const p=v641LoadPrefs();
+  const styles=['','輕鬆慢旅','高效率踩點','美食咖啡優先','拍照打卡優先','親子友善','購物優先','文化歷史優先','自然風景優先','雨天備案優先'];
+  const mbtis=['','INTJ','INTP','ENTJ','ENTP','INFJ','INFP','ENFJ','ENFP','ISTJ','ISFJ','ESTJ','ESFJ','ISTP','ISFP','ESTP','ESFP'];
+  const zodiacs=['','牡羊座','金牛座','雙子座','巨蟹座','獅子座','處女座','天秤座','天蠍座','射手座','摩羯座','水瓶座','雙魚座'];
+  const opts=(arr,val)=>arr.map(x=>`<option value="${esc(x)}" ${x===(val||'')?'selected':''}>${x?esc(x):'不指定'}</option>`).join('');
+  return `<div class="v641Prefs">
+    <div class="v641PrefsTitle">偏好參考（非必填）</div>
+    <div class="v641PrefsGrid">
+      <div><label>旅遊風格</label><select id="v641TravelStyle" onchange="v641SavePrefsFromDom()">${opts(styles,p.style)}</select></div>
+      <div><label>MBTI</label><select id="v641Mbti" onchange="v641SavePrefsFromDom()">${opts(mbtis,p.mbti)}</select></div>
+      <div><label>星座</label><select id="v641Zodiac" onchange="v641SavePrefsFromDom()">${opts(zodiacs,p.zodiac)}</select></div>
+    </div>
+  </div>`;
+}
+function v641EnsureAiReviews(){
+  if(!data.aiReviews || typeof data.aiReviews!=='object') data.aiReviews={};
+  if(!Array.isArray(data.aiReviews.itinerary)) data.aiReviews.itinerary=[];
+  return data.aiReviews.itinerary;
+}
+function v641SaveItineraryReview(obj){
+  const reviews=v641EnsureAiReviews();
+  const review={
+    id:uid(),
+    createdAt:new Date().toISOString(),
+    summary:String(obj.summary||''),
+    items:Array.isArray(obj.items)?obj.items.map(x=>({
+      day:String(x.day||''),
+      level:String(x.level||'建議'),
+      title:String(x.title||'AI 建議'),
+      memo:String(x.memo||'')
+    })).filter(x=>x.title||x.memo):[]
+  };
+  if(!review.summary && review.items.length){
+    review.summary=review.items.map(x=>`${x.day||''} ${x.title}：${x.memo}`).join('\n');
+  }
+  reviews.unshift(review);
+  data.aiReviews.itinerary=reviews.slice(0,5);
+  return review;
+}
+function v641DeleteReview(id){
+  if(!data.aiReviews?.itinerary) return;
+  data.aiReviews.itinerary=data.aiReviews.itinerary.filter(x=>x.id!==id);
+  save();
+}
+function v641ReviewHtml(){
+  const reviews=(data.aiReviews?.itinerary||[]).slice(0,3);
+  if(!reviews.length) return '';
+  return `<div class="v641ReviewList">
+    ${reviews.map(r=>`<div class="v641ReviewCard">
+      <div class="v641ReviewHead"><div><b>AI 健檢建議</b><span>${esc((r.createdAt||'').slice(0,10))}｜只作為調整參考，不會自動覆蓋行程。</span></div><button class="small" onclick="v641DeleteReview('${r.id}')">刪除</button></div>
+      ${r.summary?`<div class="box mint">${esc(r.summary)}</div>`:''}
+      ${r.items?.length?`<div class="v641ReviewItems">${r.items.map(x=>`<div class="v641ReviewItem"><em>${esc(x.day||'全旅程')}｜${esc(x.level||'建議')}</em><strong>${esc(x.title||'AI 建議')}</strong>${esc(x.memo||'')}</div>`).join('')}</div>`:''}
+    </div>`).join('')}
+  </div>`;
+}
+
+/* 重新定義 AI prompt 內容：行程健檢不再包含口袋景點 */
+const v641OriginalBuildPrompt = typeof v64BuildPrompt==='function' ? v64BuildPrompt : null;
+v64BuildPrompt = function(type, spotId){
+  if(type!=='itinerary') return v641OriginalBuildPrompt ? v641OriginalBuildPrompt(type, spotId) : '';
+  const c=v64TripContext();
+  const dest=data.trip?.dest||'未設定';
+  const country=data.trip?.country||'未設定';
+  const dates=`${data.trip?.start||''} ～ ${data.trip?.end||''}`;
+  const travelers=(data.trip?.travelers||[]).join('、') || '未設定';
+  return `旅行資料：
+- 目的地：${dest}
+- 國家 / 區域：${country}
+- 日期：${dates}
+- 旅伴：${travelers}
+- 幣別：${data.trip?.currency||''}
+
+使用者偏好（非必填，僅供調整口吻與建議方向）：
+${v641PrefsText()}
+
+旅行日期：
+${c.days}
+
+住宿：
+${c.hotels}
+
+已排入行程（只檢查這些，不要把口袋景點當成已排行程）：
+${c.plans}
+
+請幫我檢查「已排入行程」是否順路、是否太趕、是否有交通時間或安排順序不合理的地方。若行程看起來太空或使用者可能不知道怎麼排，請給我無腦可執行的安排原則，但不要自行加入未列入行程的口袋景點，也不要要求我一定照做。
+
+請輸出兩段：
+1. 白話健檢摘要。
+2. 純 JSON，格式如下：
+{
+  "janeselect_import_type": "itinerary_review",
+  "summary": "整體建議摘要",
+  "items": [
+    {
+      "day": "YYYY-MM-DD",
+      "level": "提醒/建議/注意",
+      "title": "建議標題",
+      "memo": "具體調整建議"
+    }
+  ]
+}`;
+};
+
+/* 重設 AI 工具列：保留短按鈕，但在行程加偏好欄位 */
+const v641OriginalAiBarHtml = typeof v64AiBarHtml==='function' ? v64AiBarHtml : null;
+v64AiBarHtml = function(kind){
+  if(kind==='planner'){
+    return `<div class="v64AiBar" id="v64AiBar-planner">
+      <div class="v64AiBarHead"><div><b>AI 輔助</b><span>只檢查已排入行程；偏好欄位可不填。</span></div></div>
+      <div class="v64AiActions">
+        <button class="btn pink compact" onclick="v64ShowPrompt('itinerary','AI 健檢','請 AI 檢查已排入行程的順路性與節奏。')">AI 健檢</button>
+        <button class="btn blue compact" onclick="v64OpenImportModal('itinerary')">AI 匯入</button>
+      </div>
+      ${v641PrefsHtml()}
+    </div>`;
+  }
+  return v641OriginalAiBarHtml ? v641OriginalAiBarHtml(kind) : '';
+};
+
+/* 匯入視窗支援指定目前期待的匯入類型，讓行程健檢不再無感 */
+const v641OriginalOpenImportModal = typeof v64OpenImportModal==='function' ? v64OpenImportModal : null;
+v64OpenImportModal = function(expectedType){
+  v64EnsureImportModal();
+  $('v64AiImportText').value='';
+  const msg = expectedType==='itinerary'
+    ? '請貼上 AI 健檢回傳的 JSON。匯入後會出現在行程頁的「AI 健檢建議」卡片，不會自動改時間或重排行程。'
+    : '支援：口袋景點、行李清單、預算草稿。AI 不會直接覆蓋既有資料。';
+  $('v64AiImportPreview').textContent=msg;
+  $('v64AiImportModal').dataset.expectedType=expectedType||'';
+  $('v64AiImportModal').classList.add('show');
+  $('v64AiImportModal').setAttribute('aria-hidden','false');
+};
+
+const v641OriginalImportAiObject = typeof v64ImportAiObject==='function' ? v64ImportAiObject : null;
+v64ImportAiObject = function(obj){
+  const type=String(obj.janeselect_import_type || obj.type || '').trim();
+  if(type==='itinerary_review'){
+    const review=v641SaveItineraryReview(obj);
+    return {count:1, label:'AI 健檢建議', reviewId:review.id, keepModal:false};
+  }
+  return v641OriginalImportAiObject ? v641OriginalImportAiObject(obj) : {count:0,label:'資料'};
+};
+
+v64ImportAiText = function(){
+  const raw=$('v64AiImportText')?.value || '';
+  if(!raw.trim()) return toast('請先貼上 AI 回覆');
+  try{
+    const obj=JSON.parse(v64JsonText(raw));
+    const result=v64ImportAiObject(obj);
+    if(!result.count) throw new Error('no items');
+    silentSave();
+    render();
+    v64CloseImportModal();
+    if(result.label==='AI 健檢建議'){
+      setTimeout(()=>go('planner'),80);
+      toast('已匯入 AI 健檢建議');
+    }else{
+      toast(`已匯入 ${result.count} 筆${result.label}`);
+    }
+  }catch(e){
+    $('v64AiImportPreview').textContent='匯入失敗：請確認貼上的是純 JSON，且格式符合 AI 提示詞要求。';
+  }
+};
+
+/* 將 AI 健檢建議卡片接在行程 AI 區塊下方 */
+const v641OriginalInsertAiBar = typeof v64InsertAiBar==='function' ? v64InsertAiBar : null;
+v64InsertAiBar = function(viewId, kind){
+  const root=$(viewId);
+  if(!root) return;
+  if(v641OriginalInsertAiBar) v641OriginalInsertAiBar(viewId, kind);
+  if(kind==='planner'){
+    root.querySelectorAll('#v641ReviewBlock').forEach(x=>x.remove());
+    const bar=root.querySelector('#v64AiBar-planner');
+    const html=v641ReviewHtml();
+    if(bar && html) bar.insertAdjacentHTML('afterend', `<div id="v641ReviewBlock">${html}</div>`);
+  }
+};
+
+/* 修正探索中 AI 摘要彈窗層級；點 AI 摘要時提示詞一定在最上層 */
+const v641OriginalShowPrompt = typeof v64ShowPrompt==='function' ? v64ShowPrompt : null;
+v64ShowPrompt = function(type, title, desc, spotId){
+  if(v641OriginalShowPrompt) v641OriginalShowPrompt(type,title,desc,spotId);
+  const modal=$('v64AiPromptModal');
+  if(modal){
+    modal.style.zIndex='360';
+    modal.classList.add('show');
+  }
+};
+
+/* 更新說明頁與頁尾版本，只保留最新版紀錄 */
+v64UpdateFooterVersion = function(){
+  document.querySelectorAll('footer strong,.siteFooterVersion').forEach(el=>el.textContent=V641_VERSION_SHORT);
+  if(typeof v637EnsureFooter === 'function') v637EnsureFooter();
+};
+renderHelp = function(){
+  const allowed = (typeof ALLOWED_EMAIL !== 'undefined') ? ALLOWED_EMAIL : '';
+  $('helpView').innerHTML=`<div class="section"><div><h2>說明與備份</h2><div class="hint">工具使用方式、AI 輔助、資料備份與還原放在這裡。</div></div></div>
+  <div class="card" id="v64UpdateLog">
+    <h3>最新更新紀錄</h3>
+    <div class="box mint"><b>${esc(V641_VERSION_TEXT)}</b><br>AI 健檢改為只檢查已排入行程，不再把口袋景點視為正式行程；新增非必填的旅遊風格、MBTI、星座偏好；AI 健檢匯入後會顯示在行程頁建議卡片；修正口袋景點探索內 AI 摘要彈窗層級。</div>
+  </div>
+  <div class="card"><h3>AI 輔助使用方式</h3><div class="box blue">在口袋景點、行程、行李、預算頁使用 AI 按鈕。ChatGPT / Gemini 會先複製提示詞再開新分頁；AI 回覆 JSON 後可用「AI 匯入」貼回網站。匯入只新增資料，不會自動覆蓋既有內容。</div></div>
+  <div class="card"><h3>Firebase 跨裝置同步</h3><div class="box mint">登入授權 Google 帳號後，旅遊資料會同步到 Firestore。照片本體仍存在 Cloudinary，Firestore 只保存圖片網址與旅行資料。</div><div class="btns"><button class="btn dark" onclick="saveToCloudNow()">立即同步到雲端</button><button class="btn blue" onclick="loadFromCloud()">載入雲端資料</button></div>${allowed?`<div class="cloudHint">目前授權 email：${esc(allowed)}</div>`:''}</div>
+  <div class="card"><h3>備份資料</h3><div class="box blue">匯出備份會下載 JSON。匯入備份會覆蓋目前資料。若要修改國家或日期，建議先匯出備份。</div><div class="btns"><button class="btn dark" onclick="exportBackup()">匯出備份</button><label class="btn soft" style="display:inline-block">匯入備份<input type="file" accept=".json,application/json" onchange="importBackup(this.files[0])" style="display:none"></label></div></div>`;
+  if(typeof v641PatchAnchorTargets === 'function') v641PatchAnchorTargets($('helpView'));
+  v64UpdateFooterVersion();
+};
+
+setTimeout(()=>{
+  try{v64AfterRender?.(); v64UpdateFooterVersion(); if(typeof render==='function')render();}catch(e){console.warn(e)}
+},250);
+</script>
+
 </body></html>
