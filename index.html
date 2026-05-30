@@ -17164,4 +17164,281 @@ setTimeout(()=>{
 .koreaMapHint::after{content:" 若瀏覽器阻擋新分頁，會自動改用目前頁面開啟。";}
 </style>
 
+
+
+<script>
+/* ===== v64 brand system + UI consistency layer =====
+   目標：品牌視覺一致，但保留外觀自訂。
+   安全範圍：只調整 CSS / 顯示文字 / 頁尾版本 / 既有彈窗外觀。
+   不變：data 結構、localStorage key、Firestore 路徑、Cloudinary、行程/預算/照片書資料格式。
+*/
+const V640_VERSION_TEXT = '版本：v64｜2026-05-31｜品牌視覺一致與外觀自訂整理版';
+
+function v64BrandMarkSvg(){
+  return `<span class="brandMark" aria-hidden="true"><svg viewBox="0 0 64 64" focusable="false"><rect x="10" y="13" width="40" height="43" rx="10"></rect><path d="M22 13c1.7-5.4 13.9-5.4 15.6 0"></path><path d="M21 28h18M21 38h14"></path><circle cx="45" cy="18" r="6"></circle><path d="M45 14v4l3 2"></path></svg></span>`;
+}
+function v64ApplyBrandText(){
+  document.title = (document.title || '').includes('｜') ? document.title : '貞選旅管家｜Janeselect Travel Manager';
+  document.querySelectorAll('.badge').forEach(el=>{
+    if(!el.dataset.v64Brand){
+      el.innerHTML = `${v64BrandMarkSvg()}<span>貞選旅管家</span>`;
+      el.dataset.v64Brand='1';
+    }
+  });
+  document.querySelectorAll('.loginBrand').forEach(el=>{
+    el.innerHTML = `${v64BrandMarkSvg()}<span><b>貞選旅管家</b><small>Janeselect Travel Manager</small></span>`;
+    el.dataset.v64Brand='1';
+  });
+  const fav=document.getElementById('janeselectFavicon');
+  if(fav && !fav.dataset.v64){
+    fav.href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%234A5D4E'/%3E%3Cpath d='M20 18h25a5 5 0 0 1 5 5v27a5 5 0 0 1-5 5H20a6 6 0 0 1-6-6V24a6 6 0 0 1 6-6z' fill='%23FFFAF2'/%3E%3Cpath d='M22 16c2-7 17-7 19 0' fill='none' stroke='%23FFFAF2' stroke-width='4' stroke-linecap='round'/%3E%3Cpath d='M24 31h17M24 40h13' stroke='%234A5D4E' stroke-width='4' stroke-linecap='round'/%3E%3Ccircle cx='45' cy='19' r='7' fill='%23E5ECE9'/%3E%3Cpath d='M45 15v5l4 2' stroke='%234A5D4E' stroke-width='2.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E";
+    fav.dataset.v64='1';
+  }
+}
+function v64UpdateFooterVersion(){
+  document.querySelectorAll('footer strong,.siteFooterVersion').forEach(el=>el.textContent=V640_VERSION_TEXT);
+  if(typeof v637EnsureFooter==='function') v637EnsureFooter();
+}
+if(typeof v637FooterHtml==='function'){
+  v637FooterHtml = function(){
+    return `<footer id="siteFooter" class="siteFooter noPrint">
+      <div class="siteFooterBrand">貞選旅管家 <span>Janeselect Travel Manager</span></div>
+      <div class="siteFooterVersion">${esc(V640_VERSION_TEXT)}</div>
+      <div class="siteFooterLinks">
+        <button type="button" onclick="v637PolicyToast('服務條款')">服務條款</button><span>・</span>
+        <button type="button" onclick="v637PolicyToast('隱私權政策')">隱私權政策</button><span>・</span>
+        <button type="button" onclick="v637PolicyToast('聯絡我們')">聯絡我們</button>
+      </div>
+      <div class="siteFooterCopy">© 2026 Janeselect Travel Manager. All rights reserved.</div>
+    </footer>`;
+  };
+}
+function v64PolishAfterRender(){
+  v64ApplyBrandText();
+  v64UpdateFooterVersion();
+}
+const v64OriginalRenderLoginView = typeof renderLoginView === 'function' ? renderLoginView : null;
+if(v64OriginalRenderLoginView){
+  renderLoginView = function(...args){
+    const r = v64OriginalRenderLoginView.apply(this,args);
+    v64PolishAfterRender();
+    return r;
+  };
+}
+const v64OriginalRenderTripList = typeof renderTripList === 'function' ? renderTripList : null;
+if(v64OriginalRenderTripList){
+  renderTripList = function(...args){
+    const r = v64OriginalRenderTripList.apply(this,args);
+    v64PolishAfterRender();
+    return r;
+  };
+}
+const v64OriginalRenderHead = typeof renderHead === 'function' ? renderHead : null;
+if(v64OriginalRenderHead){
+  renderHead = function(...args){
+    const r = v64OriginalRenderHead.apply(this,args);
+    v64PolishAfterRender();
+    return r;
+  };
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  v64PolishAfterRender();
+  setTimeout(v64PolishAfterRender,300);
+  setTimeout(v64PolishAfterRender,900);
+});
+</script>
+
+<style>
+/* ===== v64 brand system + UI consistency CSS =====
+   品牌骨架固定，外觀皮膚仍由 data-theme-palette / data-theme-mode / data-card-style 控制。
+   不寫入旅行資料；外觀設定仍只走既有 theme prefs localStorage。
+*/
+:root{
+  --v64-brand-primary:var(--theme-primary,#4A5D4E);
+  --v64-brand-primary-soft:var(--theme-primary-soft,#E5ECE9);
+  --v64-brand-primary-weak:var(--theme-primary-weak,#F2F6F4);
+  --v64-brand-accent:var(--theme-accent,#EFE6E6);
+  --v64-brand-bg:var(--theme-bg,#F7F3EC);
+  --v64-brand-card:var(--theme-card,#FFFFFF);
+  --v64-brand-ink:var(--theme-ink,#2C2A29);
+  --v64-brand-muted:var(--theme-muted,#8B827A);
+  --v64-brand-line:var(--theme-line,#E2DDD5);
+  --v64-danger:#C85B5B;
+  --v64-radius-xl:28px;
+  --v64-radius-lg:22px;
+  --v64-radius-md:18px;
+  --v64-radius-sm:14px;
+  --v64-btn-h:44px;
+  --v64-btn-h-sm:34px;
+  --v64-input-h:42px;
+  --v64-shadow-card:0 16px 42px rgba(44,42,41,.07);
+  --v64-shadow-soft:0 8px 24px rgba(44,42,41,.055);
+}
+body[data-theme-palette="rose"]{
+  --theme-primary:#8E5A67;
+  --theme-primary-soft:#F3DCE4;
+  --theme-primary-weak:#FFF3F7;
+  --theme-accent:#E7EFEA;
+  --theme-bg:#F8F2F4;
+  --theme-card:#FFFFFF;
+  --theme-ink:#332B2E;
+  --theme-muted:#907F85;
+  --theme-line:#E8D8DE;
+  --theme-shadow:0 18px 44px rgba(93,55,67,.06);
+}
+body[data-theme-palette="forest"]{
+  --theme-primary:#3E5E4B;
+  --theme-primary-soft:#DDEADF;
+  --theme-primary-weak:#F1F7F2;
+  --theme-accent:#E9E2D5;
+  --theme-bg:#F3F5F0;
+  --theme-card:#FFFFFF;
+  --theme-ink:#29332D;
+  --theme-muted:#7F8A80;
+  --theme-line:#DDE6DC;
+  --theme-shadow:0 18px 44px rgba(46,72,53,.06);
+}
+body[data-theme-mode],body[data-theme-palette]{
+  --v64-brand-primary:var(--theme-primary,#4A5D4E);
+  --v64-brand-primary-soft:var(--theme-primary-soft,#E5ECE9);
+  --v64-brand-primary-weak:var(--theme-primary-weak,#F2F6F4);
+  --v64-brand-accent:var(--theme-accent,#EFE6E6);
+  --v64-brand-bg:var(--theme-bg,#F7F3EC);
+  --v64-brand-card:var(--theme-card,#FFFFFF);
+  --v64-brand-ink:var(--theme-ink,#2C2A29);
+  --v64-brand-muted:var(--theme-muted,#8B827A);
+  --v64-brand-line:var(--theme-line,#E2DDD5);
+}
+body{font-size:15px;line-height:1.55;}
+h1{font-size:30px!important;line-height:1.16!important;letter-spacing:-.45px!important;font-weight:760!important;}
+h2{font-size:22px!important;line-height:1.25!important;font-weight:760!important;}
+h3{font-size:18px!important;line-height:1.3!important;font-weight:760!important;}
+.hint,.mini,.sub,.meta{line-height:1.62!important;}
+header,.panel,.main,.card,.loginCard,.tripListHero,.tripListCard,.tripCreateCard,.storyPanel,.photoBookSectionCard{
+  border-radius:var(--v64-radius-lg)!important;
+  border-color:var(--v64-brand-line)!important;
+  box-shadow:var(--v64-shadow-card)!important;
+}
+header{padding:20px!important;}
+.badge,.loginBrand{
+  display:inline-flex!important;
+  align-items:center!important;
+  gap:9px!important;
+  border-radius:999px!important;
+  background:var(--v64-brand-primary-weak)!important;
+  color:var(--v64-brand-primary)!important;
+  border:1px solid color-mix(in srgb,var(--v64-brand-primary-soft) 70%, var(--v64-brand-line) 30%)!important;
+  font-weight:900!important;
+  letter-spacing:.2px!important;
+}
+.badge{padding:7px 12px!important;}
+.loginBrand{padding:9px 13px!important;margin-bottom:12px!important;}
+.loginBrand small{display:block;font-size:10.5px;line-height:1.1;color:var(--v64-brand-muted);letter-spacing:.35px;margin-top:2px;}
+.brandMark{width:26px;height:26px;display:inline-grid;place-items:center;flex:0 0 auto;}
+.brandMark svg{width:100%;height:100%;display:block;}
+.brandMark rect{fill:var(--v64-brand-primary);stroke:none;}
+.brandMark path{fill:none;stroke:var(--v64-brand-card);stroke-width:4;stroke-linecap:round;stroke-linejoin:round;}
+.brandMark circle{fill:var(--v64-brand-primary-soft);stroke:var(--v64-brand-card);stroke-width:2;}
+input,select,textarea{
+  min-height:var(--v64-input-h)!important;
+  border-radius:var(--v64-radius-sm)!important;
+  border-color:var(--v64-brand-line)!important;
+  font-size:15px!important;
+  line-height:1.35!important;
+}
+label{font-size:13px!important;line-height:1.3!important;color:var(--v64-brand-ink);}
+.btn,.themeOpenBtn,.photoInlineUpload,.dayCoverUploadLabel{
+  min-height:var(--v64-btn-h)!important;
+  border-radius:var(--v64-radius-sm)!important;
+  padding:10px 14px!important;
+  font-size:14px!important;
+  line-height:1.2!important;
+  font-weight:850!important;
+  letter-spacing:.1px!important;
+  border:1px solid var(--v64-brand-line)!important;
+  box-shadow:var(--v64-shadow-soft)!important;
+}
+.btn.compact,.small,.accountMenu button,.themeToggleBtn{
+  min-height:var(--v64-btn-h-sm)!important;
+  border-radius:999px!important;
+  font-size:12.5px!important;
+  padding:8px 11px!important;
+}
+.small{border:1px solid var(--v64-brand-line)!important;background:rgba(255,255,255,.72)!important;color:var(--v64-brand-muted)!important;}
+.btn.dark{background:var(--v64-brand-ink)!important;color:var(--v64-brand-card)!important;border-color:var(--v64-brand-ink)!important;}
+.btn.soft{background:var(--v64-brand-primary-weak)!important;color:var(--v64-brand-primary)!important;}
+.btn.blue{background:#F0F6FA!important;color:#405A6B!important;}
+.btn.pink{background:#FFF3F7!important;color:#8E5A67!important;}
+.btn.danger{background:#FFF1F1!important;color:var(--v64-danger)!important;border-color:#F3D1D1!important;}
+.tabs{gap:10px!important;margin:16px 0!important;}
+.tab,.mobileTopNav .nav{
+  min-height:44px!important;
+  border-radius:999px!important;
+  font-size:15px!important;
+  padding:11px 16px!important;
+  border:1px solid var(--v64-brand-line)!important;
+  box-shadow:var(--v64-shadow-soft)!important;
+}
+.tab.active,.mobileTopNav .nav.active{background:var(--v64-brand-ink)!important;color:var(--v64-brand-card)!important;border-color:var(--v64-brand-ink)!important;}
+.card,.tripListCard,.tripCreateCard{padding:15px!important;}
+.tripListCard{transition:transform .22s ease, box-shadow .22s ease;}
+.tripListCard:hover{transform:translateY(-1px);}
+.tripListCard .btns{align-items:center;}
+.tripCardTools{border-top:1px solid color-mix(in srgb,var(--v64-brand-line) 75%, transparent);padding-top:10px;margin-top:10px;}
+.tripColorSelect{display:none!important;}
+.tripColorDot{width:24px!important;height:24px!important;}
+.themePanelBackdrop,.editModalBackdrop,.koreaMapModal,.resetModal,.optionModal,.countryResetModal,.aiPromptModal,.aiModal{
+  background:rgba(39,34,29,.38)!important;
+  backdrop-filter:blur(4px);
+}
+.themePanel,.editModalBox,.koreaMapBox,.resetBox,.optionBox,.countryResetBox,.aiPromptBox,.aiModalBox{
+  border-radius:var(--v64-radius-xl)!important;
+  border:1px solid rgba(255,255,255,.92)!important;
+  box-shadow:0 28px 80px rgba(44,42,41,.20)!important;
+  background:color-mix(in srgb,var(--v64-brand-card) 96%, white 4%)!important;
+  color:var(--v64-brand-ink)!important;
+}
+.themePanelHead h3,.editModalBox h3,.koreaMapBox h3,.resetBox h3,.optionBox h3,.countryResetBox h3{font-size:20px!important;}
+.siteFooter{
+  margin-top:18px!important;
+  border-top:1px solid color-mix(in srgb,var(--v64-brand-line) 70%, transparent)!important;
+  padding:22px 12px 26px!important;
+}
+.siteFooterBrand{font-weight:900!important;color:var(--v64-brand-ink)!important;}
+.siteFooterVersion{font-size:12px!important;color:var(--v64-brand-muted)!important;margin-top:5px!important;}
+.siteFooterLinks button{font-size:12px!important;color:var(--v64-brand-muted)!important;}
+.accountWidget{z-index:230!important;}
+.accountBtn{min-height:44px!important;border-color:var(--v64-brand-line)!important;box-shadow:var(--v64-shadow-soft)!important;}
+.accountMenu{border-color:var(--v64-brand-line)!important;border-radius:var(--v64-radius-md)!important;box-shadow:0 18px 48px rgba(44,42,41,.14)!important;}
+@media(max-width:620px){
+  body{font-size:14px;}
+  .app{padding:10px 10px calc(90px + env(safe-area-inset-bottom,0px))!important;}
+  h1{font-size:25px!important;}
+  h2{font-size:20px!important;}
+  h3{font-size:17px!important;}
+  header,.panel,.main,.card,.loginCard,.tripListHero,.tripListCard,.tripCreateCard{border-radius:20px!important;}
+  header{padding:15px!important;margin-bottom:10px!important;}
+  .sub{font-size:13px!important;}
+  .heroStats{grid-template-columns:1fr 1fr!important;}
+  .heroStats div{padding:10px!important;}
+  .mobileTopNav{gap:8px!important;scroll-padding:10px;padding:8px 2px 10px!important;}
+  .mobileTopNav .nav{min-width:96px!important;font-size:13.5px!important;padding:10px 14px!important;}
+  .btn{width:auto;}
+  .btns{gap:8px!important;}
+  .tripCreateGrid,.grid2,.grid3,.two,.three,.four{grid-template-columns:1fr!important;}
+  .tripListHero{display:block!important;padding:16px!important;}
+  .tripListCount{margin-top:10px!important;}
+  .tripListCard .btns{display:grid!important;grid-template-columns:1fr!important;}
+  .tripListCard .btns .btn{width:100%!important;}
+  .themePanelBackdrop,.editModalBackdrop,.koreaMapModal,.resetModal,.optionModal,.countryResetModal,.aiPromptModal,.aiModal{align-items:flex-end!important;padding:12px!important;}
+  .themePanel,.editModalBox,.koreaMapBox,.resetBox,.optionBox,.countryResetBox,.aiPromptBox,.aiModalBox{width:100%!important;max-height:84vh!important;border-radius:24px!important;padding:16px!important;}
+  input,select,textarea{font-size:16px!important;}
+  .siteFooter{padding-bottom:calc(26px + env(safe-area-inset-bottom,0px))!important;}
+}
+@media print{
+  .brandMark{display:none!important;}
+  .themePanelBackdrop,.editModalBackdrop,.koreaMapModal{display:none!important;}
+}
+</style>
+
 </body></html>
