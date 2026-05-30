@@ -16985,4 +16985,183 @@ setTimeout(()=>{ if(typeof v637EnsureFooter==='function')v637EnsureFooter(); },4
 @media print{.koreaTransitCard,.koreaMapModal{display:none!important;}}
 </style>
 
+
+
+<script>
+/* ===== v63.9 Korea map open hotfix only =====
+   修正 v63.8 韓國地圖點擊失敗：
+   - 不再把完整 URL 塞進 inline onclick，避免特殊字元/編碼造成按鈕失效
+   - 修正 Google 備用也走同一套安全開啟函式
+   - Kakao 改用 link/search 格式；Naver / Google 保留網頁搜尋備用
+   - 不改 data / Firebase / Cloudinary / localStorage / 航班住宿資料結構
+*/
+const V639_VERSION_TEXT = '版本：v63.9｜2026-05-31｜韓國地圖連結修正版';
+
+function v639CleanText(v){
+  return String(v || '').replace(/\s+/g, ' ').trim();
+}
+function v639DecodeMaybe(v){
+  const raw = String(v || '');
+  try { return decodeURIComponent(raw); } catch(e) { return raw; }
+}
+function v639OpenUrl(url){
+  const u = String(url || '').trim();
+  if(!u){ toast && toast('沒有可開啟的地圖連結'); return; }
+  const win = window.open(u, '_blank', 'noopener,noreferrer');
+  if(!win){
+    // iOS / Safari 偶爾會擋新視窗，改用同頁跳轉作為 fallback
+    window.location.href = u;
+  }
+}
+function v639SearchUrl(provider, query){
+  const q = v639CleanText(query);
+  const enc = encodeURIComponent(q);
+  if(provider === 'naver') return 'https://map.naver.com/p/search/' + enc;
+  if(provider === 'kakao') return 'https://map.kakao.com/link/search/' + enc;
+  return 'https://www.google.com/maps/search/?api=1&query=' + enc;
+}
+function v639GoogleRouteUrl(origin, destination, mode){
+  const o = v639CleanText(v639DecodeMaybe(origin));
+  const d = v639CleanText(v639DecodeMaybe(destination));
+  const travelmode = mode === '走路' ? 'walking' : mode === '開車/計程車' ? 'driving' : 'transit';
+  return 'https://www.google.com/maps/dir/?api=1&origin=' + encodeURIComponent(o) + '&destination=' + encodeURIComponent(d) + '&travelmode=' + travelmode;
+}
+function v639KoreaRouteQuery(origin, destination, mode){
+  const o = v639CleanText(v639DecodeMaybe(origin));
+  const d = v639CleanText(v639DecodeMaybe(destination));
+  const modeText = mode === '走路' ? '도보' : mode === '開車/計程車' ? '택시' : '대중교통';
+  // Naver/Kakao 在沒有座標的狀況下，用自然語言搜尋比硬塞 directions URL 穩定
+  return v639CleanText(`${o} ${d} ${modeText}`);
+}
+function v639CopyText(text){
+  const t = String(text || '');
+  if(navigator.clipboard && window.isSecureContext){
+    navigator.clipboard.writeText(t).then(()=>toast('已複製查詢文字')).catch(()=>v639FallbackCopy(t));
+  }else{
+    v639FallbackCopy(t);
+  }
+}
+function v639FallbackCopy(text){
+  const ta=document.createElement('textarea');
+  ta.value=text;
+  ta.style.position='fixed';
+  ta.style.left='-9999px';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  try{ document.execCommand('copy'); toast('已複製查詢文字'); }
+  catch(e){ toast('複製失敗，請手動複製'); }
+  ta.remove();
+}
+
+// 覆寫 v63.8 的地圖選擇彈窗：改用 addEventListener，不用 inline onclick 放 URL
+openKoreaMapChoice = function(options={}){
+  ensureKoreaMapModal();
+  const type = options.type || 'search';
+  const origin = v639CleanText(v639DecodeMaybe(options.origin || ''));
+  const destination = v639CleanText(v639DecodeMaybe(options.destination || options.query || ''));
+  const mode = options.mode || '大眾運輸';
+  const query = type === 'route' ? v639KoreaRouteQuery(origin, destination, mode) : v639CleanText(v639DecodeMaybe(options.query || destination));
+  const title = type === 'route' ? '查詢兩地交通' : '查詢地點';
+  const routeText = $('koreaMapRouteText');
+  const actions = $('koreaMapActions');
+  $('koreaMapTitle').textContent = title;
+  routeText.innerHTML = type === 'route'
+    ? `<span>起點</span><b>${esc(origin || '未設定')}</b><span>終點</span><b>${esc(destination || '未設定')}</b><span>交通方式</span><b>${esc(mode)}</b><span>查詢字</span><b>${esc(query || '未設定')}</b>`
+    : `<span>查詢內容</span><b>${esc(query || '未設定')}</b>`;
+
+  const googleUrl = type === 'route' ? v639GoogleRouteUrl(origin, destination, mode) : v639SearchUrl('google', query);
+  const choices = [
+    {label:'Naver Map 查詢', cls:'dark', url:v639SearchUrl('naver', query)},
+    {label:'KakaoMap 查詢', cls:'blue', url:v639SearchUrl('kakao', query)},
+    {label:'複製查詢文字', cls:'soft', copy:query},
+    {label:'Google 備用', cls:'', url:googleUrl}
+  ];
+  actions.innerHTML = choices.map((x,i)=>`<button class="btn ${x.cls}" type="button" data-v639-map-action="${i}">${esc(x.label)}</button>`).join('');
+  actions.querySelectorAll('[data-v639-map-action]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const item = choices[Number(btn.dataset.v639MapAction)];
+      if(item.copy !== undefined) return v639CopyText(item.copy);
+      v639OpenUrl(item.url);
+    });
+  });
+  $('koreaMapModal').classList.add('show');
+  $('koreaMapModal').setAttribute('aria-hidden','false');
+};
+
+// 韓國旅程：地圖搜尋。非韓國仍回到原 Google 行為。
+map = function(q){
+  const query = v639CleanText(v639DecodeMaybe(q));
+  if(isKoreaTrip()) return openKoreaMapChoice({type:'search', query});
+  v639OpenUrl(v639SearchUrl('google', query));
+};
+routeCurrent = function(q){
+  const query = v639CleanText(v639DecodeMaybe(q));
+  if(isKoreaTrip()) return openKoreaMapChoice({type:'search', query});
+  v639OpenUrl(v639SearchUrl('google', query));
+};
+route = function(a,b,m){
+  const origin = v639CleanText(v639DecodeMaybe(a));
+  const destination = v639CleanText(v639DecodeMaybe(b));
+  if(isKoreaTrip()) return openKoreaMapChoice({type:'route', origin, destination, mode:m || '大眾運輸'});
+  v639OpenUrl(v639GoogleRouteUrl(origin, destination, m || '大眾運輸'));
+};
+function v639GoogleBackupFromEncoded(originEncoded, destEncoded, mode){
+  v639OpenUrl(v639GoogleRouteUrl(originEncoded, destEncoded, mode || '大眾運輸'));
+}
+
+// 修正交通卡上的 Google 備用按鈕，避免直接把 URL 寫進 onclick 造成整個按鈕失效。
+koreaRouteButtonsHtml = function(a,b,c){
+  const originText = ((a.address || a.addr || a.name || '') + ' ' + (data.trip.dest || '')).trim();
+  const destText = ((b.address || b.addr || b.name || '') + ' ' + (data.trip.dest || '')).trim();
+  const origin = encodeURIComponent(originText);
+  const dest = encodeURIComponent(destText);
+  const mode = (c && c.mode) || '大眾運輸';
+  if(!isKoreaTrip()){
+    return `<button class="btn blue" onclick="route('${origin}','${dest}','${mode}')">Google Maps 查路線</button>`;
+  }
+  return `<button class="btn dark" onclick="route('${origin}','${dest}','${mode}')">Naver / Kakao 查交通</button><button class="btn soft" onclick="v639GoogleBackupFromEncoded('${origin}','${dest}','${mode}')">Google 備用</button>`;
+};
+
+// 重新覆寫 connHtml，讓新 koreaRouteButtonsHtml 生效；原時間/車資/自動調整資料邏輯不變。
+connHtml = function(a,b){
+  let c=data.conns.find(x=>x.a==a.id&&x.b==b.id);
+  if(!c){c={id:uid(),a:a.id,b:b.id,mode:'大眾運輸',h:0,m:30,memo:'',fareForeign:0,fareTwd:0,payer:'未定',payMethod:'未定'};data.conns.push(c);silentSave();}
+  const arrival=addMinutes(a.end,(Number(c.h||0)*60+Number(c.m||0)));
+  const taxiBlock=c.mode==='開車/計程車'?`<div class="four" style="margin-top:8px"><div><label>車資 ${esc(data.trip.currency)}</label><input value="${c.fareForeign||''}" type="number" oninput="updConn('${c.id}','fareForeign',this.value)"></div><div><label>車資 TWD</label><input value="${c.fareTwd||''}" type="number" oninput="updConn('${c.id}','fareTwd',this.value)"></div><div><label>付款人</label><select onchange="updConn('${c.id}','payer',this.value)">${optsPayer(c.payer)}</select></div><div><label>付款方式</label><select onchange="updConn('${c.id}','payMethod',this.value)">${optsPayMethod(c.payMethod)}</select></div></div>`:'';
+  const koreaHint=isKoreaTrip()?`<div class="koreaConnHint">韓國交通建議用 Naver / Kakao 查詢；如果按鈕沒有開啟，請用「複製查詢文字」貼到地圖 App。</div>`:'';
+  return `<div class="connector"><div class="arrow">↓</div><div class="connbox ${isKoreaTrip()?'koreaConnbox':''}"><div class="three"><div><label>交通</label><select onchange="changeConnMode('${c.id}',this.value)"><option ${c.mode==='大眾運輸'?'selected':''}>大眾運輸</option><option ${c.mode==='走路'?'selected':''}>走路</option><option ${c.mode==='開車/計程車'?'selected':''}>開車/計程車</option></select></div><div><label>預估時間</label><div class="two"><select onchange="updConn('${c.id}','h',this.value)">${hourOptions(c.h)}</select><select onchange="updConn('${c.id}','m',this.value)">${minuteOptions(c.m)}</select></div></div><div><label>預估抵達</label><input value="${arrival||''}" disabled></div></div>${taxiBlock}${koreaHint}<div class="btns koreaRouteBtns">${koreaRouteButtonsHtml(a,b,c)}</div><input value="${esc(c.memo)}" placeholder="交通備註" oninput="updConn('${c.id}','memo',this.value)"></div></div>`;
+};
+
+// 頁尾版本更新
+if(typeof v637FooterHtml==='function'){
+  v637FooterHtml = function(){
+    return `<footer id="siteFooter" class="siteFooter noPrint">
+      <div class="siteFooterBrand">貞選旅管家 <span>Janeselect Travel Manager</span></div>
+      <div class="siteFooterVersion">${esc(V639_VERSION_TEXT)}</div>
+      <div class="siteFooterLinks">
+        <button type="button" onclick="v637PolicyToast('服務條款')">服務條款</button><span>・</span>
+        <button type="button" onclick="v637PolicyToast('隱私權政策')">隱私權政策</button><span>・</span>
+        <button type="button" onclick="v637PolicyToast('聯絡我們')">聯絡我們</button>
+      </div>
+      <div class="siteFooterCopy">© 2026 Janeselect Travel Manager. All rights reserved.</div>
+    </footer>`;
+  };
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  document.querySelectorAll('footer strong').forEach(el=>el.textContent=V639_VERSION_TEXT);
+  if(typeof v637EnsureFooter==='function') v637EnsureFooter();
+});
+setTimeout(()=>{
+  document.querySelectorAll('footer strong').forEach(el=>el.textContent=V639_VERSION_TEXT);
+  if(typeof v637EnsureFooter==='function') v637EnsureFooter();
+},500);
+</script>
+
+<style>
+/* ===== v63.9 Korea map hotfix style only ===== */
+.koreaMapActions button[data-v639-map-action]{cursor:pointer;}
+.koreaMapHint::after{content:" 若瀏覽器阻擋新分頁，會自動改用目前頁面開啟。";}
+</style>
+
 </body></html>
