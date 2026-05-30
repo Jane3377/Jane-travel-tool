@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#f4f2ee">
-<title>VoyageMemo. PDF 出版頁 v62</title>
+<title>VoyageMemo. PDF 出版頁 v63</title>
 <style>
 :root{
   --bg:#f4f2ee;
@@ -158,6 +158,193 @@ button.soft{background:#fff9ea;color:#6d5a35}
   .a4Page{box-shadow:none!important;border-radius:0!important;margin:0!important;width:210mm!important;height:297mm!important;break-after:page!important;page-break-after:always!important;overflow:hidden!important}
   .a4Page:last-child{break-after:auto!important;page-break-after:auto!important}
 }
+
+.exportFooterBar{
+  margin:16px auto 0;
+  max-width:1240px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  padding:10px 14px 18px;
+  color:var(--muted);
+  font-size:12px;
+}
+.exportFooterBrand{
+  font-weight:900;
+  letter-spacing:.5px;
+  color:var(--ink);
+}
+.exportFooterMeta{
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.72);
+  border-radius:999px;
+  padding:5px 10px;
+  font-weight:800;
+}
+
+/* ===== v63 style expansion ===== */
+body[data-export-style="sakura"]{
+  --paper:#fff8fb;
+  --primary:#9a5e76;
+  --primarySoft:#f7d9e5;
+  --accent:#fdecc8;
+  --line:#eed8df;
+}
+body[data-export-style="sakura"] .a4Page{
+  background:
+    radial-gradient(circle at 24mm 24mm, rgba(247,217,229,.55) 0 10mm, transparent 11mm),
+    radial-gradient(circle at 178mm 46mm, rgba(253,236,200,.55) 0 8mm, transparent 9mm),
+    #fff8fb;
+}
+body[data-export-style="sakura"] .coverShade{
+  background:linear-gradient(90deg,rgba(255,248,251,.96) 0%,rgba(255,248,251,.82) 38%,rgba(255,248,251,.1) 78%);
+}
+body[data-export-style="sakura"] .a4Page::after{content:"✿ Sakura Trip Story ✿"}
+body[data-export-style="sakura"] .eyebrow,
+body[data-export-style="sakura"] .metaChips span,
+body[data-export-style="sakura"] .infoCard,
+body[data-export-style="sakura"] .miniDay,
+body[data-export-style="sakura"] .photoCard,
+body[data-export-style="sakura"] .dayStats{
+  border-radius:18px;
+  border-color:rgba(238,216,223,.95);
+}
+body[data-export-style="sakura"] .coverContent h1::after{content:" ❀"}
+body[data-export-style="sakura"] .photoTags span{background:#fdeef4;color:#8e5e70}
+
+body[data-export-style="oceanic"]{
+  --paper:#f5fbff;
+  --primary:#2d6c8f;
+  --primarySoft:#d9eef7;
+  --accent:#fbe6ba;
+  --line:#d5e7ef;
+}
+body[data-export-style="oceanic"] .a4Page{
+  background:
+    linear-gradient(180deg, rgba(217,238,247,.55) 0, rgba(245,251,255,0) 42mm),
+    #f5fbff;
+}
+body[data-export-style="oceanic"] .a4Page::before{border-color:rgba(45,108,143,.13)}
+body[data-export-style="oceanic"] .a4Page::after{content:"~ Ocean Holiday Journal ~"}
+body[data-export-style="oceanic"] .coverShade{
+  background:linear-gradient(90deg,rgba(245,251,255,.95) 0%,rgba(245,251,255,.8) 38%,rgba(245,251,255,.12) 78%);
+}
+body[data-export-style="oceanic"] .pageHeader h2::after,
+body[data-export-style="oceanic"] .coverContent h1::after{content:" 〰"; color:#7ab3cf}
+body[data-export-style="oceanic"] .chapterHero,
+body[data-export-style="oceanic"] .photoCard img{filter:saturate(1.02) contrast(1.03)}
+body[data-export-style="oceanic"] .photoTags span{background:#e4f4fb;color:#376d8d}
+
+body[data-export-style="botanical"]{
+  --paper:#fbfcf7;
+  --primary:#556b4b;
+  --primarySoft:#e3eddc;
+  --accent:#f1e5c8;
+  --line:#dde4d5;
+}
+body[data-export-style="botanical"] .a4Page{
+  background:
+    radial-gradient(circle at 185mm 250mm, rgba(227,237,220,.7) 0 16mm, transparent 17mm),
+    #fbfcf7;
+}
+body[data-export-style="botanical"] .a4Page::after{content:"❋ Botanical Travel Notes ❋"}
+body[data-export-style="botanical"] .coverShade{
+  background:linear-gradient(90deg,rgba(251,252,247,.96) 0%,rgba(251,252,247,.82) 38%,rgba(251,252,247,.12) 78%);
+}
+body[data-export-style="botanical"] .eyebrow,
+body[data-export-style="botanical"] .metaChips span,
+body[data-export-style="botanical"] .infoCard,
+body[data-export-style="botanical"] .miniDay,
+body[data-export-style="botanical"] .photoCard{
+  border-style:solid;
+  box-shadow:0 10px 22px rgba(85,107,75,.05);
+}
+body[data-export-style="botanical"] .coverContent h1::before{content:"❋ "; color:#7f9775}
+body[data-export-style="botanical"] .photoTags span{background:#eef5e9;color:#53684b}
+
+body[data-export-style="midnight"]{
+  --paper:#171b24;
+  --primary:#d8c38c;
+  --primarySoft:#2a3040;
+  --accent:#2d3851;
+  --ink:#f4efe3;
+  --muted:#b4b1aa;
+  --line:#3a4256;
+}
+body[data-export-style="midnight"] .publisherBar,
+body[data-export-style="midnight"] .statusCard,
+body[data-export-style="midnight"] .pageNav,
+body[data-export-style="midnight"] .exportFooterMeta{
+  background:rgba(24,28,37,.92);
+  color:#f4efe3;
+}
+body[data-export-style="midnight"] .brand p,
+body[data-export-style="midnight"] .statusCard span,
+body[data-export-style="midnight"] .exportFooterBar{
+  color:#c9c5bb;
+}
+body[data-export-style="midnight"] .styleSelect,
+body[data-export-style="midnight"] .btnLink,
+body[data-export-style="midnight"] button.soft,
+body[data-export-style="midnight"] .editTextBtn{
+  background:#232939!important;
+  color:#f4efe3!important;
+  border-color:#3a4256!important;
+}
+body[data-export-style="midnight"] .btnLink,
+body[data-export-style="midnight"] button.dark{
+  border-color:#4b556c!important;
+}
+body[data-export-style="midnight"] .a4Page{
+  background:
+    radial-gradient(circle at 182mm 24mm, rgba(216,195,140,.18) 0 10mm, transparent 11mm),
+    #171b24;
+  color:#f4efe3;
+}
+body[data-export-style="midnight"] .a4Page::before{border-color:rgba(216,195,140,.22)}
+body[data-export-style="midnight"] .a4Page::after{content:"✦ Midnight Voyage Edition ✦"; color:#bfa56b}
+body[data-export-style="midnight"] .coverShade{
+  background:linear-gradient(90deg,rgba(23,27,36,.96) 0%,rgba(23,27,36,.82) 38%,rgba(23,27,36,.18) 78%);
+}
+body[data-export-style="midnight"] .eyebrow,
+body[data-export-style="midnight"] .metaChips span,
+body[data-export-style="midnight"] .infoCard,
+body[data-export-style="midnight"] .miniDay,
+body[data-export-style="midnight"] .photoCard,
+body[data-export-style="midnight"] .dayStats{
+  background:rgba(35,41,57,.88);
+  border-color:#3a4256;
+  color:#f4efe3;
+}
+body[data-export-style="midnight"] .pageHeader p,
+body[data-export-style="midnight"] .photoMeta,
+body[data-export-style="midnight"] .photoNote,
+body[data-export-style="midnight"] .chapterSummary,
+body[data-export-style="midnight"] .sectionLead,
+body[data-export-style="midnight"] .miniDay span,
+body[data-export-style="midnight"] .infoCard span,
+body[data-export-style="midnight"] .dayStats span,
+body[data-export-style="midnight"] .storyClosing,
+body[data-export-style="midnight"] .closingCard p{
+  color:#c9c5bb;
+}
+body[data-export-style="midnight"] .photoTags span{background:#2e3850;color:#f0e5bc}
+
+@media screen and (max-width:980px){
+  .exportFooterBar{
+    flex-direction:column;
+    align-items:flex-start;
+    padding:8px 2px 18px;
+  }
+  .exportFooterMeta{
+    font-size:11px;
+  }
+}
+@media print{
+  .exportFooterBar{display:none!important}
+}
+
 </style>
 
 <style>
@@ -598,7 +785,7 @@ body[data-export-style="sticker"] .coverContent h1::after{
       <div class="logo">VM</div>
       <div>
         <h1>VoyageMemo. 出版工作台</h1>
-        <p>固定 A4 旅遊小書預覽與 PDF 匯出｜建議用電腦 Chrome 另存 PDF</p><span class="versionPill">v62｜PDF 出版頁風格與手機預覽優化版</span>
+        <p>固定 A4 旅遊小書預覽與 PDF 匯出｜建議用電腦 Chrome 另存 PDF</p>
       </div>
     </div>
     <div class="actions">
@@ -609,6 +796,10 @@ body[data-export-style="sticker"] .coverContent h1::after{
         <option value="magazine">精品雜誌</option>
         <option value="polaroid">拍立得回憶</option>
         <option value="sticker">活潑貼紙</option>
+        <option value="sakura">櫻花日記</option>
+        <option value="oceanic">海岸假期</option>
+        <option value="botanical">植物圖鑑</option>
+        <option value="midnight">午夜旅刊</option>
       </select>
       <button class="dark" onclick="printBook()">匯出 / 另存 PDF</button>
     </div>
@@ -622,6 +813,11 @@ body[data-export-style="sticker"] .coverContent h1::after{
   <div class="bookViewport">
     <aside class="pageNav" id="pageNav"><h2>頁面</h2></aside>
     <main class="previewStack" id="bookRoot"></main>
+  </div>
+
+  <div class="exportFooterBar">
+    <div class="exportFooterBrand">VoyageMemo. Travel Book Export</div>
+    <div class="exportFooterMeta">版本：v63｜PDF 風格擴充與底部版本列</div>
   </div>
 </div>
 
