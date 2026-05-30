@@ -16805,1624 +16805,739 @@ setTimeout(v637EnsureFooter, 300);
 </script>
 
 
-
-<script>
-/* ===== v63.8 Korea transit mode only =====
-   - 只針對韓國旅程改善交通查詢，不改 data / Firebase / Cloudinary / localStorage 結構
-   - 韓國旅程改以 Naver Map / KakaoMap 查詢交通；Google 僅保留備用
-   - 查完交通時間後，仍手動填回「預估時間」，保留現有自動調整行程邏輯
-*/
-const V638_VERSION_TEXT = '版本：v63.8｜2026-05-31｜韓國交通查詢優化版';
-
-function isKoreaTrip(){
-  const country=String(data?.trip?.country||'').trim();
-  const dest=String(data?.trip?.dest||'').trim();
-  return country.includes('韓國') || country.toLowerCase().includes('korea') || dest.includes('韓國') || dest.includes('首爾') || dest.includes('釜山') || dest.includes('濟州');
-}
-function safeDecodeQuery(q){
-  try{return decodeURIComponent(String(q||''));}catch(e){return String(q||'');}
-}
-function koreaCleanQuery(q){
-  return String(q||'').replace(/\s+/g,' ').trim();
-}
-function koreaSearchUrl(provider, q){
-  const clean=koreaCleanQuery(q);
-  const enc=encodeURIComponent(clean);
-  if(provider==='naver')return 'https://map.naver.com/p/search/'+enc;
-  if(provider==='kakao')return 'https://map.kakao.com/?q='+enc;
-  return 'https://www.google.com/maps/search/?api=1&query='+enc;
-}
-function koreaDirectionQuery(origin,destination,mode){
-  const modeText=mode==='走路'?'도보':mode==='開車/計程車'?'택시':'대중교통';
-  return koreaCleanQuery(`${origin} → ${destination} ${modeText}`);
-}
-function koreaTransitNoteHtml(){
-  if(!isKoreaTrip())return '';
-  return `<div class="koreaTransitCard noPrint">
-    <div class="koreaTransitIcon">🇰🇷</div>
-    <div><b>韓國交通模式已啟用</b><p>韓國行程建議用 Naver Map / KakaoMap 查交通時間。查完後，把時間填回「預估時間」，貞選旅管家會繼續幫你推算下一段行程。</p></div>
-  </div>`;
-}
-function ensureKoreaMapModal(){
-  if($('koreaMapModal'))return;
-  document.body.insertAdjacentHTML('beforeend', `<div class="koreaMapModal noPrint" id="koreaMapModal" aria-hidden="true">
-    <div class="koreaMapBox">
-      <div class="koreaMapHead"><div><span>🇰🇷 韓國交通查詢</span><h3 id="koreaMapTitle">選擇地圖服務</h3></div><button type="button" class="iconBtn" onclick="closeKoreaMapModal()">×</button></div>
-      <div class="koreaMapContent">
-        <div class="koreaMapRouteText" id="koreaMapRouteText"></div>
-        <div class="koreaMapHint">Naver / Kakao 查到交通時間後，請回到行程中填寫「預估時間」。Google 在韓國的交通路線可能不完整，因此只作為備用。</div>
-        <div class="koreaMapActions" id="koreaMapActions"></div>
-      </div>
-    </div>
-  </div>`);
-}
-function closeKoreaMapModal(){
-  const m=$('koreaMapModal');
-  if(m){m.classList.remove('show');m.setAttribute('aria-hidden','true');}
-}
-function openKoreaMapChoice(options={}){
-  ensureKoreaMapModal();
-  const type=options.type||'search';
-  const origin=koreaCleanQuery(options.origin||'');
-  const destination=koreaCleanQuery(options.destination||options.query||'');
-  const mode=options.mode||'大眾運輸';
-  const query=type==='route'?koreaDirectionQuery(origin,destination,mode):koreaCleanQuery(options.query||destination);
-  const title=type==='route'?'查詢兩地交通':'查詢地點';
-  $('koreaMapTitle').textContent=title;
-  $('koreaMapRouteText').innerHTML=type==='route'
-    ? `<span>起點</span><b>${esc(origin||'未設定')}</b><span>終點</span><b>${esc(destination||'未設定')}</b><span>交通方式</span><b>${esc(mode)}</b>`
-    : `<span>查詢內容</span><b>${esc(query||'未設定')}</b>`;
-  const naver=koreaSearchUrl('naver',query);
-  const kakao=koreaSearchUrl('kakao',query);
-  const google= type==='route'
-    ? `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&travelmode=${mode==='走路'?'walking':mode==='開車/計程車'?'driving':'transit'}`
-    : koreaSearchUrl('google',query);
-  $('koreaMapActions').innerHTML=`
-    <button class="btn dark" type="button" onclick="open('${naver}','_blank')">Naver Map 查詢</button>
-    <button class="btn blue" type="button" onclick="open('${kakao}','_blank')">KakaoMap 查詢</button>
-    <button class="btn soft" type="button" onclick="navigator.clipboard?.writeText('${String(query).replace(/'/g,"\\'")}'); toast('已複製查詢文字')">複製查詢文字</button>
-    <button class="btn" type="button" onclick="open('${google}','_blank')">Google 備用</button>`;
-  $('koreaMapModal').classList.add('show');
-  $('koreaMapModal').setAttribute('aria-hidden','false');
-}
-
-/* 韓國旅程：地圖查詢預設轉為在地地圖選擇，不影響其他國家 */
-const __v638OriginalMap = typeof map==='function'?map:null;
-map = function(q){
-  const query=safeDecodeQuery(q);
-  if(isKoreaTrip()) return openKoreaMapChoice({type:'search',query});
-  if(__v638OriginalMap) return __v638OriginalMap(q);
-  open('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(query),'_blank');
-};
-routeCurrent = function(q){
-  const query=safeDecodeQuery(q);
-  if(isKoreaTrip()) return openKoreaMapChoice({type:'search',query});
-  return map(q);
-};
-route = function(a,b,m){
-  const origin=safeDecodeQuery(a);
-  const destination=safeDecodeQuery(b);
-  if(isKoreaTrip()) return openKoreaMapChoice({type:'route',origin,destination,mode:m||'大眾運輸'});
-  const mode=m==='走路'?'walking':m==='開車/計程車'?'driving':'transit';
-  open(`https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&travelmode=${mode}`,'_blank');
-};
-
-function koreaRouteButtonsHtml(a,b,c){
-  if(!isKoreaTrip()){
-    return `<button class="btn blue" onclick="route('${encodeURIComponent((a.name||'')+' '+(data.trip.dest||''))}','${encodeURIComponent((b.name||'')+' '+(data.trip.dest||''))}','${c.mode}')">Google Maps 查路線</button>`;
-  }
-  const origin=encodeURIComponent((a.address||a.addr||a.name||'')+' '+(data.trip.dest||''));
-  const dest=encodeURIComponent((b.address||b.addr||b.name||'')+' '+(data.trip.dest||''));
-  return `<button class="btn dark" onclick="route('${origin}','${dest}','${c.mode}')">Naver / Kakao 查交通</button><button class="btn soft" onclick="open('https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${dest}&travelmode=${c.mode==='走路'?'walking':c.mode==='開車/計程車'?'driving':'transit'}','_blank')">Google 備用</button>`;
-}
-
-/* 覆寫行程連接交通卡：只替換查詢按鈕與提示，原本預估時間 / 抵達 / 車資邏輯保留 */
-connHtml = function(a,b){
-  let c=data.conns.find(x=>x.a==a.id&&x.b==b.id);
-  if(!c){c={id:uid(),a:a.id,b:b.id,mode:'大眾運輸',h:0,m:30,memo:'',fareForeign:0,fareTwd:0,payer:'未定',payMethod:'未定'};data.conns.push(c);silentSave();}
-  const arrival=addMinutes(a.end,(Number(c.h||0)*60+Number(c.m||0)));
-  const taxiBlock=c.mode==='開車/計程車'?`<div class="four" style="margin-top:8px"><div><label>車資 ${esc(data.trip.currency)}</label><input value="${c.fareForeign||''}" type="number" oninput="updConn('${c.id}','fareForeign',this.value)"></div><div><label>車資 TWD</label><input value="${c.fareTwd||''}" type="number" oninput="updConn('${c.id}','fareTwd',this.value)"></div><div><label>付款人</label><select onchange="updConn('${c.id}','payer',this.value)">${optsPayer(c.payer)}</select></div><div><label>付款方式</label><select onchange="updConn('${c.id}','payMethod',this.value)">${optsPayMethod(c.payMethod)}</select></div></div>`:'';
-  const koreaHint=isKoreaTrip()?`<div class="koreaConnHint">韓國交通建議用 Naver / Kakao 查詢；查完後請手動填回預估時間。</div>`:'';
-  return `<div class="connector"><div class="arrow">↓</div><div class="connbox ${isKoreaTrip()?'koreaConnbox':''}"><div class="three"><div><label>交通</label><select onchange="changeConnMode('${c.id}',this.value)"><option ${c.mode==='大眾運輸'?'selected':''}>大眾運輸</option><option ${c.mode==='走路'?'selected':''}>走路</option><option ${c.mode==='開車/計程車'?'selected':''}>開車/計程車</option></select></div><div><label>預估時間</label><div class="two"><select onchange="updConn('${c.id}','h',this.value)">${hourOptions(c.h)}</select><select onchange="updConn('${c.id}','m',this.value)">${minuteOptions(c.m)}</select></div></div><div><label>預估抵達</label><input value="${arrival||''}" disabled></div></div>${taxiBlock}${koreaHint}<div class="btns koreaRouteBtns">${koreaRouteButtonsHtml(a,b,c)}</div><input value="${esc(c.memo)}" placeholder="交通備註" oninput="updConn('${c.id}','memo',this.value)"></div></div>`;
-};
-
-/* 行程頁上方加韓國交通提醒卡，保留原 renderPlanner */
-const __v638RenderPlanner = typeof renderPlanner==='function'?renderPlanner:null;
-if(__v638RenderPlanner){
-  renderPlanner = function(options={}){
-    __v638RenderPlanner(options);
-    const viewEl=$('plannerView');
-    if(viewEl && isKoreaTrip() && !viewEl.querySelector('.koreaTransitCard')){
-      viewEl.insertAdjacentHTML('afterbegin', koreaTransitNoteHtml());
-    }
-  };
-}
-
-/* 頁尾版本更新 */
-if(typeof v637FooterHtml==='function'){
-  v637FooterHtml = function(){
-    return `<footer id="siteFooter" class="siteFooter noPrint">
-      <div class="siteFooterBrand">貞選旅管家 <span>Janeselect Travel Manager</span></div>
-      <div class="siteFooterVersion">${esc(V638_VERSION_TEXT)}</div>
-      <div class="siteFooterLinks">
-        <button type="button" onclick="v637PolicyToast('服務條款')">服務條款</button><span>・</span>
-        <button type="button" onclick="v637PolicyToast('隱私權政策')">隱私權政策</button><span>・</span>
-        <button type="button" onclick="v637PolicyToast('聯絡我們')">聯絡我們</button>
-      </div>
-      <div class="siteFooterCopy">© 2026 Janeselect Travel Manager. All rights reserved.</div>
-    </footer>`;
-  };
-}
-document.addEventListener('DOMContentLoaded',()=>{
-  document.querySelectorAll('footer strong').forEach(el=>el.textContent=V638_VERSION_TEXT);
-  if(typeof v637EnsureFooter==='function')v637EnsureFooter();
-});
-setTimeout(()=>{ if(typeof v637EnsureFooter==='function')v637EnsureFooter(); },450);
-</script>
-
 <style>
-/* ===== v63.8 Korea transit mode style only ===== */
-.koreaTransitCard{display:grid;grid-template-columns:42px minmax(0,1fr);gap:10px;align-items:start;border:1px solid var(--theme-line,var(--line));border-radius:20px;background:linear-gradient(135deg,#fffdf8,#eef8f3);padding:12px;margin:0 0 12px;box-shadow:0 10px 26px rgba(44,42,41,.045);}
-.koreaTransitIcon{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:#fff;border:1px solid var(--theme-line,var(--line));font-size:21px;}
-.koreaTransitCard b{display:block;font-size:15px;margin-bottom:4px;color:var(--theme-ink,var(--ink));}
-.koreaTransitCard p{margin:0;color:var(--theme-muted,var(--muted));font-size:12.5px;line-height:1.55;}
-.koreaConnbox{background:linear-gradient(135deg,#f8fffb,#fffdf8)!important;border-style:solid!important;}
-.koreaConnHint{margin:8px 0 0;padding:8px 10px;border-radius:14px;background:#fff8ea;color:#7b653b;font-size:12px;font-weight:850;line-height:1.5;}
-.koreaRouteBtns .btn{margin-right:0;}
-.koreaMapModal{position:fixed;inset:0;background:rgba(44,38,32,.38);display:none;align-items:center;justify-content:center;padding:18px;z-index:230;}
-.koreaMapModal.show{display:flex;}
-.koreaMapBox{width:min(560px,100%);max-height:86vh;overflow:auto;background:rgba(255,255,255,.98);border:1px solid rgba(255,255,255,.9);box-shadow:0 24px 70px rgba(44,42,41,.16);border-radius:24px;padding:18px;}
-.koreaMapHead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;}
-.koreaMapHead span{display:inline-flex;border-radius:999px;background:var(--theme-primary-weak,#edf8f3);color:var(--theme-primary,#4A5D4E);padding:5px 9px;font-size:12px;font-weight:950;}
-.koreaMapHead h3{margin:5px 0 0;font-size:22px;}
-.koreaMapRouteText{display:grid;grid-template-columns:72px 1fr;gap:7px 10px;border:1px solid var(--theme-line,var(--line));border-radius:18px;background:#fffdf9;padding:12px;margin-bottom:10px;}
-.koreaMapRouteText span{color:var(--theme-muted,var(--muted));font-size:12px;font-weight:900;}
-.koreaMapRouteText b{min-width:0;word-break:break-word;font-size:14px;}
-.koreaMapHint{border-radius:16px;background:#fff8ea;color:#6f6257;padding:10px 12px;font-size:12.5px;line-height:1.6;margin-bottom:12px;}
-.koreaMapActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-.koreaMapActions .btn{width:100%;}
-@media(max-width:620px){.koreaTransitCard{grid-template-columns:36px 1fr;padding:11px;border-radius:18px}.koreaTransitIcon{width:36px;height:36px;font-size:18px}.koreaMapModal{align-items:flex-end;padding:12px}.koreaMapBox{border-radius:24px;max-height:82vh;padding:16px}.koreaMapActions{grid-template-columns:1fr}.koreaMapRouteText{grid-template-columns:58px 1fr}.koreaRouteBtns{display:grid!important;grid-template-columns:1fr!important}.koreaRouteBtns .btn{width:100%;}}
-@media print{.koreaTransitCard,.koreaMapModal{display:none!important;}}
-</style>
-
-
-
-<script>
-/* ===== v63.9 Korea map open hotfix only =====
-   修正 v63.8 韓國地圖點擊失敗：
-   - 不再把完整 URL 塞進 inline onclick，避免特殊字元/編碼造成按鈕失效
-   - 修正 Google 備用也走同一套安全開啟函式
-   - Kakao 改用 link/search 格式；Naver / Google 保留網頁搜尋備用
-   - 不改 data / Firebase / Cloudinary / localStorage / 航班住宿資料結構
+/* ===== v64 AI assistant integration + pocket spot exploration only =====
+   不改 Firebase / Firestore / localStorage key / Cloudinary / 旅程主資料結構。
+   AI 採提示詞 + 使用者貼回 JSON 匯入草稿；不串 API、不放金鑰。
 */
-const V639_VERSION_TEXT = '版本：v63.9｜2026-05-31｜韓國地圖連結修正版';
-
-function v639CleanText(v){
-  return String(v || '').replace(/\s+/g, ' ').trim();
+.v64AiBar{
+  border:1px solid var(--theme-line,#E2DDD5);
+  background:color-mix(in srgb,var(--theme-card,#fff) 94%, var(--theme-primary-weak,#F2F6F4) 6%);
+  border-radius:20px;
+  padding:12px;
+  margin:0 0 12px;
+  box-shadow:0 10px 26px rgba(44,42,41,.045);
 }
-function v639DecodeMaybe(v){
-  const raw = String(v || '');
-  try { return decodeURIComponent(raw); } catch(e) { return raw; }
+.v64AiBarHead{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:flex-start;
+  margin-bottom:9px;
 }
-function v639OpenUrl(url){
-  const u = String(url || '').trim();
-  if(!u){ toast && toast('沒有可開啟的地圖連結'); return; }
-  const win = window.open(u, '_blank', 'noopener,noreferrer');
-  if(!win){
-    // iOS / Safari 偶爾會擋新視窗，改用同頁跳轉作為 fallback
-    window.location.href = u;
-  }
+.v64AiBarHead b{
+  display:block;
+  font-size:15px;
+  color:var(--theme-ink,#2C2A29);
 }
-function v639SearchUrl(provider, query){
-  const q = v639CleanText(query);
-  const enc = encodeURIComponent(q);
-  if(provider === 'naver') return 'https://map.naver.com/p/search/' + enc;
-  if(provider === 'kakao') return 'https://map.kakao.com/link/search/' + enc;
-  return 'https://www.google.com/maps/search/?api=1&query=' + enc;
+.v64AiBarHead span{
+  display:block;
+  margin-top:2px;
+  color:var(--theme-muted,#8B827A);
+  font-size:12px;
+  line-height:1.45;
 }
-function v639GoogleRouteUrl(origin, destination, mode){
-  const o = v639CleanText(v639DecodeMaybe(origin));
-  const d = v639CleanText(v639DecodeMaybe(destination));
-  const travelmode = mode === '走路' ? 'walking' : mode === '開車/計程車' ? 'driving' : 'transit';
-  return 'https://www.google.com/maps/dir/?api=1&origin=' + encodeURIComponent(o) + '&destination=' + encodeURIComponent(d) + '&travelmode=' + travelmode;
+.v64AiActions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
 }
-function v639KoreaRouteQuery(origin, destination, mode){
-  const o = v639CleanText(v639DecodeMaybe(origin));
-  const d = v639CleanText(v639DecodeMaybe(destination));
-  const modeText = mode === '走路' ? '도보' : mode === '開車/計程車' ? '택시' : '대중교통';
-  // Naver/Kakao 在沒有座標的狀況下，用自然語言搜尋比硬塞 directions URL 穩定
-  return v639CleanText(`${o} ${d} ${modeText}`);
+.v64AiActions .btn,
+.v64SpotExploreBtn{
+  white-space:nowrap;
 }
-function v639CopyText(text){
-  const t = String(text || '');
-  if(navigator.clipboard && window.isSecureContext){
-    navigator.clipboard.writeText(t).then(()=>toast('已複製查詢文字')).catch(()=>v639FallbackCopy(t));
-  }else{
-    v639FallbackCopy(t);
-  }
-}
-function v639FallbackCopy(text){
-  const ta=document.createElement('textarea');
-  ta.value=text;
-  ta.style.position='fixed';
-  ta.style.left='-9999px';
-  document.body.appendChild(ta);
-  ta.focus();
-  ta.select();
-  try{ document.execCommand('copy'); toast('已複製查詢文字'); }
-  catch(e){ toast('複製失敗，請手動複製'); }
-  ta.remove();
-}
-
-// 覆寫 v63.8 的地圖選擇彈窗：改用 addEventListener，不用 inline onclick 放 URL
-openKoreaMapChoice = function(options={}){
-  ensureKoreaMapModal();
-  const type = options.type || 'search';
-  const origin = v639CleanText(v639DecodeMaybe(options.origin || ''));
-  const destination = v639CleanText(v639DecodeMaybe(options.destination || options.query || ''));
-  const mode = options.mode || '大眾運輸';
-  const query = type === 'route' ? v639KoreaRouteQuery(origin, destination, mode) : v639CleanText(v639DecodeMaybe(options.query || destination));
-  const title = type === 'route' ? '查詢兩地交通' : '查詢地點';
-  const routeText = $('koreaMapRouteText');
-  const actions = $('koreaMapActions');
-  $('koreaMapTitle').textContent = title;
-  routeText.innerHTML = type === 'route'
-    ? `<span>起點</span><b>${esc(origin || '未設定')}</b><span>終點</span><b>${esc(destination || '未設定')}</b><span>交通方式</span><b>${esc(mode)}</b><span>查詢字</span><b>${esc(query || '未設定')}</b>`
-    : `<span>查詢內容</span><b>${esc(query || '未設定')}</b>`;
-
-  const googleUrl = type === 'route' ? v639GoogleRouteUrl(origin, destination, mode) : v639SearchUrl('google', query);
-  const choices = [
-    {label:'Naver Map 查詢', cls:'dark', url:v639SearchUrl('naver', query)},
-    {label:'KakaoMap 查詢', cls:'blue', url:v639SearchUrl('kakao', query)},
-    {label:'複製查詢文字', cls:'soft', copy:query},
-    {label:'Google 備用', cls:'', url:googleUrl}
-  ];
-  actions.innerHTML = choices.map((x,i)=>`<button class="btn ${x.cls}" type="button" data-v639-map-action="${i}">${esc(x.label)}</button>`).join('');
-  actions.querySelectorAll('[data-v639-map-action]').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      const item = choices[Number(btn.dataset.v639MapAction)];
-      if(item.copy !== undefined) return v639CopyText(item.copy);
-      v639OpenUrl(item.url);
-    });
-  });
-  $('koreaMapModal').classList.add('show');
-  $('koreaMapModal').setAttribute('aria-hidden','false');
-};
-
-// 韓國旅程：地圖搜尋。非韓國仍回到原 Google 行為。
-map = function(q){
-  const query = v639CleanText(v639DecodeMaybe(q));
-  if(isKoreaTrip()) return openKoreaMapChoice({type:'search', query});
-  v639OpenUrl(v639SearchUrl('google', query));
-};
-routeCurrent = function(q){
-  const query = v639CleanText(v639DecodeMaybe(q));
-  if(isKoreaTrip()) return openKoreaMapChoice({type:'search', query});
-  v639OpenUrl(v639SearchUrl('google', query));
-};
-route = function(a,b,m){
-  const origin = v639CleanText(v639DecodeMaybe(a));
-  const destination = v639CleanText(v639DecodeMaybe(b));
-  if(isKoreaTrip()) return openKoreaMapChoice({type:'route', origin, destination, mode:m || '大眾運輸'});
-  v639OpenUrl(v639GoogleRouteUrl(origin, destination, m || '大眾運輸'));
-};
-function v639GoogleBackupFromEncoded(originEncoded, destEncoded, mode){
-  v639OpenUrl(v639GoogleRouteUrl(originEncoded, destEncoded, mode || '大眾運輸'));
-}
-
-// 修正交通卡上的 Google 備用按鈕，避免直接把 URL 寫進 onclick 造成整個按鈕失效。
-koreaRouteButtonsHtml = function(a,b,c){
-  const originText = ((a.address || a.addr || a.name || '') + ' ' + (data.trip.dest || '')).trim();
-  const destText = ((b.address || b.addr || b.name || '') + ' ' + (data.trip.dest || '')).trim();
-  const origin = encodeURIComponent(originText);
-  const dest = encodeURIComponent(destText);
-  const mode = (c && c.mode) || '大眾運輸';
-  if(!isKoreaTrip()){
-    return `<button class="btn blue" onclick="route('${origin}','${dest}','${mode}')">Google Maps 查路線</button>`;
-  }
-  return `<button class="btn dark" onclick="route('${origin}','${dest}','${mode}')">Naver / Kakao 查交通</button><button class="btn soft" onclick="v639GoogleBackupFromEncoded('${origin}','${dest}','${mode}')">Google 備用</button>`;
-};
-
-// 重新覆寫 connHtml，讓新 koreaRouteButtonsHtml 生效；原時間/車資/自動調整資料邏輯不變。
-connHtml = function(a,b){
-  let c=data.conns.find(x=>x.a==a.id&&x.b==b.id);
-  if(!c){c={id:uid(),a:a.id,b:b.id,mode:'大眾運輸',h:0,m:30,memo:'',fareForeign:0,fareTwd:0,payer:'未定',payMethod:'未定'};data.conns.push(c);silentSave();}
-  const arrival=addMinutes(a.end,(Number(c.h||0)*60+Number(c.m||0)));
-  const taxiBlock=c.mode==='開車/計程車'?`<div class="four" style="margin-top:8px"><div><label>車資 ${esc(data.trip.currency)}</label><input value="${c.fareForeign||''}" type="number" oninput="updConn('${c.id}','fareForeign',this.value)"></div><div><label>車資 TWD</label><input value="${c.fareTwd||''}" type="number" oninput="updConn('${c.id}','fareTwd',this.value)"></div><div><label>付款人</label><select onchange="updConn('${c.id}','payer',this.value)">${optsPayer(c.payer)}</select></div><div><label>付款方式</label><select onchange="updConn('${c.id}','payMethod',this.value)">${optsPayMethod(c.payMethod)}</select></div></div>`:'';
-  const koreaHint=isKoreaTrip()?`<div class="koreaConnHint">韓國交通建議用 Naver / Kakao 查詢；如果按鈕沒有開啟，請用「複製查詢文字」貼到地圖 App。</div>`:'';
-  return `<div class="connector"><div class="arrow">↓</div><div class="connbox ${isKoreaTrip()?'koreaConnbox':''}"><div class="three"><div><label>交通</label><select onchange="changeConnMode('${c.id}',this.value)"><option ${c.mode==='大眾運輸'?'selected':''}>大眾運輸</option><option ${c.mode==='走路'?'selected':''}>走路</option><option ${c.mode==='開車/計程車'?'selected':''}>開車/計程車</option></select></div><div><label>預估時間</label><div class="two"><select onchange="updConn('${c.id}','h',this.value)">${hourOptions(c.h)}</select><select onchange="updConn('${c.id}','m',this.value)">${minuteOptions(c.m)}</select></div></div><div><label>預估抵達</label><input value="${arrival||''}" disabled></div></div>${taxiBlock}${koreaHint}<div class="btns koreaRouteBtns">${koreaRouteButtonsHtml(a,b,c)}</div><input value="${esc(c.memo)}" placeholder="交通備註" oninput="updConn('${c.id}','memo',this.value)"></div></div>`;
-};
-
-// 頁尾版本更新
-if(typeof v637FooterHtml==='function'){
-  v637FooterHtml = function(){
-    return `<footer id="siteFooter" class="siteFooter noPrint">
-      <div class="siteFooterBrand">貞選旅管家 <span>Janeselect Travel Manager</span></div>
-      <div class="siteFooterVersion">${esc(V639_VERSION_TEXT)}</div>
-      <div class="siteFooterLinks">
-        <button type="button" onclick="v637PolicyToast('服務條款')">服務條款</button><span>・</span>
-        <button type="button" onclick="v637PolicyToast('隱私權政策')">隱私權政策</button><span>・</span>
-        <button type="button" onclick="v637PolicyToast('聯絡我們')">聯絡我們</button>
-      </div>
-      <div class="siteFooterCopy">© 2026 Janeselect Travel Manager. All rights reserved.</div>
-    </footer>`;
-  };
-}
-document.addEventListener('DOMContentLoaded',()=>{
-  document.querySelectorAll('footer strong').forEach(el=>el.textContent=V639_VERSION_TEXT);
-  if(typeof v637EnsureFooter==='function') v637EnsureFooter();
-});
-setTimeout(()=>{
-  document.querySelectorAll('footer strong').forEach(el=>el.textContent=V639_VERSION_TEXT);
-  if(typeof v637EnsureFooter==='function') v637EnsureFooter();
-},500);
-</script>
-
-<style>
-/* ===== v63.9 Korea map hotfix style only ===== */
-.koreaMapActions button[data-v639-map-action]{cursor:pointer;}
-.koreaMapHint::after{content:" 若瀏覽器阻擋新分頁，會自動改用目前頁面開啟。";}
-</style>
-
-
-
-<script>
-/* ===== v64 brand system + UI consistency layer =====
-   目標：品牌視覺一致，但保留外觀自訂。
-   安全範圍：只調整 CSS / 顯示文字 / 頁尾版本 / 既有彈窗外觀。
-   不變：data 結構、localStorage key、Firestore 路徑、Cloudinary、行程/預算/照片書資料格式。
-*/
-const V640_VERSION_TEXT = '版本：v64｜2026-05-31｜品牌視覺一致與外觀自訂整理版';
-
-function v64BrandMarkSvg(){
-  return `<span class="brandMark" aria-hidden="true"><svg viewBox="0 0 64 64" focusable="false"><rect x="10" y="13" width="40" height="43" rx="10"></rect><path d="M22 13c1.7-5.4 13.9-5.4 15.6 0"></path><path d="M21 28h18M21 38h14"></path><circle cx="45" cy="18" r="6"></circle><path d="M45 14v4l3 2"></path></svg></span>`;
-}
-function v64ApplyBrandText(){
-  document.title = (document.title || '').includes('｜') ? document.title : '貞選旅管家｜Janeselect Travel Manager';
-  document.querySelectorAll('.badge').forEach(el=>{
-    if(!el.dataset.v64Brand){
-      el.innerHTML = `${v64BrandMarkSvg()}<span>貞選旅管家</span>`;
-      el.dataset.v64Brand='1';
-    }
-  });
-  document.querySelectorAll('.loginBrand').forEach(el=>{
-    el.innerHTML = `${v64BrandMarkSvg()}<span><b>貞選旅管家</b><small>Janeselect Travel Manager</small></span>`;
-    el.dataset.v64Brand='1';
-  });
-  const fav=document.getElementById('janeselectFavicon');
-  if(fav && !fav.dataset.v64){
-    fav.href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%234A5D4E'/%3E%3Cpath d='M20 18h25a5 5 0 0 1 5 5v27a5 5 0 0 1-5 5H20a6 6 0 0 1-6-6V24a6 6 0 0 1 6-6z' fill='%23FFFAF2'/%3E%3Cpath d='M22 16c2-7 17-7 19 0' fill='none' stroke='%23FFFAF2' stroke-width='4' stroke-linecap='round'/%3E%3Cpath d='M24 31h17M24 40h13' stroke='%234A5D4E' stroke-width='4' stroke-linecap='round'/%3E%3Ccircle cx='45' cy='19' r='7' fill='%23E5ECE9'/%3E%3Cpath d='M45 15v5l4 2' stroke='%234A5D4E' stroke-width='2.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E";
-    fav.dataset.v64='1';
-  }
-}
-function v64UpdateFooterVersion(){
-  document.querySelectorAll('footer strong,.siteFooterVersion').forEach(el=>el.textContent=V640_VERSION_TEXT);
-  if(typeof v637EnsureFooter==='function') v637EnsureFooter();
-}
-if(typeof v637FooterHtml==='function'){
-  v637FooterHtml = function(){
-    return `<footer id="siteFooter" class="siteFooter noPrint">
-      <div class="siteFooterBrand">貞選旅管家 <span>Janeselect Travel Manager</span></div>
-      <div class="siteFooterVersion">${esc(V640_VERSION_TEXT)}</div>
-      <div class="siteFooterLinks">
-        <button type="button" onclick="v637PolicyToast('服務條款')">服務條款</button><span>・</span>
-        <button type="button" onclick="v637PolicyToast('隱私權政策')">隱私權政策</button><span>・</span>
-        <button type="button" onclick="v637PolicyToast('聯絡我們')">聯絡我們</button>
-      </div>
-      <div class="siteFooterCopy">© 2026 Janeselect Travel Manager. All rights reserved.</div>
-    </footer>`;
-  };
-}
-function v64PolishAfterRender(){
-  v64ApplyBrandText();
-  v64UpdateFooterVersion();
-}
-const v64OriginalRenderLoginView = typeof renderLoginView === 'function' ? renderLoginView : null;
-if(v64OriginalRenderLoginView){
-  renderLoginView = function(...args){
-    const r = v64OriginalRenderLoginView.apply(this,args);
-    v64PolishAfterRender();
-    return r;
-  };
-}
-const v64OriginalRenderTripList = typeof renderTripList === 'function' ? renderTripList : null;
-if(v64OriginalRenderTripList){
-  renderTripList = function(...args){
-    const r = v64OriginalRenderTripList.apply(this,args);
-    v64PolishAfterRender();
-    return r;
-  };
-}
-const v64OriginalRenderHead = typeof renderHead === 'function' ? renderHead : null;
-if(v64OriginalRenderHead){
-  renderHead = function(...args){
-    const r = v64OriginalRenderHead.apply(this,args);
-    v64PolishAfterRender();
-    return r;
-  };
-}
-document.addEventListener('DOMContentLoaded',()=>{
-  v64PolishAfterRender();
-  setTimeout(v64PolishAfterRender,300);
-  setTimeout(v64PolishAfterRender,900);
-});
-</script>
-
-<style>
-/* ===== v64 brand system + UI consistency CSS =====
-   品牌骨架固定，外觀皮膚仍由 data-theme-palette / data-theme-mode / data-card-style 控制。
-   不寫入旅行資料；外觀設定仍只走既有 theme prefs localStorage。
-*/
-:root{
-  --v64-brand-primary:var(--theme-primary,#4A5D4E);
-  --v64-brand-primary-soft:var(--theme-primary-soft,#E5ECE9);
-  --v64-brand-primary-weak:var(--theme-primary-weak,#F2F6F4);
-  --v64-brand-accent:var(--theme-accent,#EFE6E6);
-  --v64-brand-bg:var(--theme-bg,#F7F3EC);
-  --v64-brand-card:var(--theme-card,#FFFFFF);
-  --v64-brand-ink:var(--theme-ink,#2C2A29);
-  --v64-brand-muted:var(--theme-muted,#8B827A);
-  --v64-brand-line:var(--theme-line,#E2DDD5);
-  --v64-danger:#C85B5B;
-  --v64-radius-xl:28px;
-  --v64-radius-lg:22px;
-  --v64-radius-md:18px;
-  --v64-radius-sm:14px;
-  --v64-btn-h:44px;
-  --v64-btn-h-sm:34px;
-  --v64-input-h:42px;
-  --v64-shadow-card:0 16px 42px rgba(44,42,41,.07);
-  --v64-shadow-soft:0 8px 24px rgba(44,42,41,.055);
-}
-body[data-theme-palette="rose"]{
-  --theme-primary:#8E5A67;
-  --theme-primary-soft:#F3DCE4;
-  --theme-primary-weak:#FFF3F7;
-  --theme-accent:#E7EFEA;
-  --theme-bg:#F8F2F4;
-  --theme-card:#FFFFFF;
-  --theme-ink:#332B2E;
-  --theme-muted:#907F85;
-  --theme-line:#E8D8DE;
-  --theme-shadow:0 18px 44px rgba(93,55,67,.06);
-}
-body[data-theme-palette="forest"]{
-  --theme-primary:#3E5E4B;
-  --theme-primary-soft:#DDEADF;
-  --theme-primary-weak:#F1F7F2;
-  --theme-accent:#E9E2D5;
-  --theme-bg:#F3F5F0;
-  --theme-card:#FFFFFF;
-  --theme-ink:#29332D;
-  --theme-muted:#7F8A80;
-  --theme-line:#DDE6DC;
-  --theme-shadow:0 18px 44px rgba(46,72,53,.06);
-}
-body[data-theme-mode],body[data-theme-palette]{
-  --v64-brand-primary:var(--theme-primary,#4A5D4E);
-  --v64-brand-primary-soft:var(--theme-primary-soft,#E5ECE9);
-  --v64-brand-primary-weak:var(--theme-primary-weak,#F2F6F4);
-  --v64-brand-accent:var(--theme-accent,#EFE6E6);
-  --v64-brand-bg:var(--theme-bg,#F7F3EC);
-  --v64-brand-card:var(--theme-card,#FFFFFF);
-  --v64-brand-ink:var(--theme-ink,#2C2A29);
-  --v64-brand-muted:var(--theme-muted,#8B827A);
-  --v64-brand-line:var(--theme-line,#E2DDD5);
-}
-body{font-size:15px;line-height:1.55;}
-h1{font-size:30px!important;line-height:1.16!important;letter-spacing:-.45px!important;font-weight:760!important;}
-h2{font-size:22px!important;line-height:1.25!important;font-weight:760!important;}
-h3{font-size:18px!important;line-height:1.3!important;font-weight:760!important;}
-.hint,.mini,.sub,.meta{line-height:1.62!important;}
-header,.panel,.main,.card,.loginCard,.tripListHero,.tripListCard,.tripCreateCard,.storyPanel,.photoBookSectionCard{
-  border-radius:var(--v64-radius-lg)!important;
-  border-color:var(--v64-brand-line)!important;
-  box-shadow:var(--v64-shadow-card)!important;
-}
-header{padding:20px!important;}
-.badge,.loginBrand{
-  display:inline-flex!important;
-  align-items:center!important;
-  gap:9px!important;
-  border-radius:999px!important;
-  background:var(--v64-brand-primary-weak)!important;
-  color:var(--v64-brand-primary)!important;
-  border:1px solid color-mix(in srgb,var(--v64-brand-primary-soft) 70%, var(--v64-brand-line) 30%)!important;
-  font-weight:900!important;
-  letter-spacing:.2px!important;
-}
-.badge{padding:7px 12px!important;}
-.loginBrand{padding:9px 13px!important;margin-bottom:12px!important;}
-.loginBrand small{display:block;font-size:10.5px;line-height:1.1;color:var(--v64-brand-muted);letter-spacing:.35px;margin-top:2px;}
-.brandMark{width:26px;height:26px;display:inline-grid;place-items:center;flex:0 0 auto;}
-.brandMark svg{width:100%;height:100%;display:block;}
-.brandMark rect{fill:var(--v64-brand-primary);stroke:none;}
-.brandMark path{fill:none;stroke:var(--v64-brand-card);stroke-width:4;stroke-linecap:round;stroke-linejoin:round;}
-.brandMark circle{fill:var(--v64-brand-primary-soft);stroke:var(--v64-brand-card);stroke-width:2;}
-input,select,textarea{
-  min-height:var(--v64-input-h)!important;
-  border-radius:var(--v64-radius-sm)!important;
-  border-color:var(--v64-brand-line)!important;
-  font-size:15px!important;
-  line-height:1.35!important;
-}
-label{font-size:13px!important;line-height:1.3!important;color:var(--v64-brand-ink);}
-.btn,.themeOpenBtn,.photoInlineUpload,.dayCoverUploadLabel{
-  min-height:var(--v64-btn-h)!important;
-  border-radius:var(--v64-radius-sm)!important;
-  padding:10px 14px!important;
-  font-size:14px!important;
-  line-height:1.2!important;
-  font-weight:850!important;
-  letter-spacing:.1px!important;
-  border:1px solid var(--v64-brand-line)!important;
-  box-shadow:var(--v64-shadow-soft)!important;
-}
-.btn.compact,.small,.accountMenu button,.themeToggleBtn{
-  min-height:var(--v64-btn-h-sm)!important;
-  border-radius:999px!important;
-  font-size:12.5px!important;
-  padding:8px 11px!important;
-}
-.small{border:1px solid var(--v64-brand-line)!important;background:rgba(255,255,255,.72)!important;color:var(--v64-brand-muted)!important;}
-.btn.dark{background:var(--v64-brand-ink)!important;color:var(--v64-brand-card)!important;border-color:var(--v64-brand-ink)!important;}
-.btn.soft{background:var(--v64-brand-primary-weak)!important;color:var(--v64-brand-primary)!important;}
-.btn.blue{background:#F0F6FA!important;color:#405A6B!important;}
-.btn.pink{background:#FFF3F7!important;color:#8E5A67!important;}
-.btn.danger{background:#FFF1F1!important;color:var(--v64-danger)!important;border-color:#F3D1D1!important;}
-.tabs{gap:10px!important;margin:16px 0!important;}
-.tab,.mobileTopNav .nav{
-  min-height:44px!important;
-  border-radius:999px!important;
-  font-size:15px!important;
-  padding:11px 16px!important;
-  border:1px solid var(--v64-brand-line)!important;
-  box-shadow:var(--v64-shadow-soft)!important;
-}
-.tab.active,.mobileTopNav .nav.active{background:var(--v64-brand-ink)!important;color:var(--v64-brand-card)!important;border-color:var(--v64-brand-ink)!important;}
-.card,.tripListCard,.tripCreateCard{padding:15px!important;}
-.tripListCard{transition:transform .22s ease, box-shadow .22s ease;}
-.tripListCard:hover{transform:translateY(-1px);}
-.tripListCard .btns{align-items:center;}
-.tripCardTools{border-top:1px solid color-mix(in srgb,var(--v64-brand-line) 75%, transparent);padding-top:10px;margin-top:10px;}
-.tripColorSelect{display:none!important;}
-.tripColorDot{width:24px!important;height:24px!important;}
-.themePanelBackdrop,.editModalBackdrop,.koreaMapModal,.resetModal,.optionModal,.countryResetModal,.aiPromptModal,.aiModal{
-  background:rgba(39,34,29,.38)!important;
-  backdrop-filter:blur(4px);
-}
-.themePanel,.editModalBox,.koreaMapBox,.resetBox,.optionBox,.countryResetBox,.aiPromptBox,.aiModalBox{
-  border-radius:var(--v64-radius-xl)!important;
-  border:1px solid rgba(255,255,255,.92)!important;
-  box-shadow:0 28px 80px rgba(44,42,41,.20)!important;
-  background:color-mix(in srgb,var(--v64-brand-card) 96%, white 4%)!important;
-  color:var(--v64-brand-ink)!important;
-}
-.themePanelHead h3,.editModalBox h3,.koreaMapBox h3,.resetBox h3,.optionBox h3,.countryResetBox h3{font-size:20px!important;}
-.siteFooter{
-  margin-top:18px!important;
-  border-top:1px solid color-mix(in srgb,var(--v64-brand-line) 70%, transparent)!important;
-  padding:22px 12px 26px!important;
-}
-.siteFooterBrand{font-weight:900!important;color:var(--v64-brand-ink)!important;}
-.siteFooterVersion{font-size:12px!important;color:var(--v64-brand-muted)!important;margin-top:5px!important;}
-.siteFooterLinks button{font-size:12px!important;color:var(--v64-brand-muted)!important;}
-.accountWidget{z-index:230!important;}
-.accountBtn{min-height:44px!important;border-color:var(--v64-brand-line)!important;box-shadow:var(--v64-shadow-soft)!important;}
-.accountMenu{border-color:var(--v64-brand-line)!important;border-radius:var(--v64-radius-md)!important;box-shadow:0 18px 48px rgba(44,42,41,.14)!important;}
-@media(max-width:620px){
-  body{font-size:14px;}
-  .app{padding:10px 10px calc(90px + env(safe-area-inset-bottom,0px))!important;}
-  h1{font-size:25px!important;}
-  h2{font-size:20px!important;}
-  h3{font-size:17px!important;}
-  header,.panel,.main,.card,.loginCard,.tripListHero,.tripListCard,.tripCreateCard{border-radius:20px!important;}
-  header{padding:15px!important;margin-bottom:10px!important;}
-  .sub{font-size:13px!important;}
-  .heroStats{grid-template-columns:1fr 1fr!important;}
-  .heroStats div{padding:10px!important;}
-  .mobileTopNav{gap:8px!important;scroll-padding:10px;padding:8px 2px 10px!important;}
-  .mobileTopNav .nav{min-width:96px!important;font-size:13.5px!important;padding:10px 14px!important;}
-  .btn{width:auto;}
-  .btns{gap:8px!important;}
-  .tripCreateGrid,.grid2,.grid3,.two,.three,.four{grid-template-columns:1fr!important;}
-  .tripListHero{display:block!important;padding:16px!important;}
-  .tripListCount{margin-top:10px!important;}
-  .tripListCard .btns{display:grid!important;grid-template-columns:1fr!important;}
-  .tripListCard .btns .btn{width:100%!important;}
-  .themePanelBackdrop,.editModalBackdrop,.koreaMapModal,.resetModal,.optionModal,.countryResetModal,.aiPromptModal,.aiModal{align-items:flex-end!important;padding:12px!important;}
-  .themePanel,.editModalBox,.koreaMapBox,.resetBox,.optionBox,.countryResetBox,.aiPromptBox,.aiModalBox{width:100%!important;max-height:84vh!important;border-radius:24px!important;padding:16px!important;}
-  input,select,textarea{font-size:16px!important;}
-  .siteFooter{padding-bottom:calc(26px + env(safe-area-inset-bottom,0px))!important;}
-}
-@media print{
-  .brandMark{display:none!important;}
-  .themePanelBackdrop,.editModalBackdrop,.koreaMapModal{display:none!important;}
-}
-</style>
-
-
-
-<script>
-/* ===== v64.1 external link behavior + update log only =====
-   目標：外部連結與跨頁工具一律新分頁開啟，避免地圖覆蓋目前旅程頁面。
-   體驗原則：不在前台按鈕文字加「另開」，不彈提示視窗；詳細修改紀錄放在說明頁。
-   安全範圍：不改 data 結構、localStorage key、Firestore 路徑、Cloudinary、行程/預算/照片書資料格式。
-*/
-const V641_VERSION_SHORT = '版本：v64.1｜2026-05-31';
-const V641_VERSION_TEXT = '版本：v64.1｜2026-05-31｜外部連結新分頁與更新紀錄整理版';
-
-function openExternal(url){
-  const u = String(url || '').trim();
-  if(!u) return;
-  try{
-    const a = document.createElement('a');
-    a.href = u;
-    a.target = '_blank';
-    a.rel = 'noopener noreferrer';
-    a.style.position = 'fixed';
-    a.style.left = '-9999px';
-    a.style.top = '-9999px';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  }catch(e){
-    try{ window.open(u, '_blank', 'noopener,noreferrer'); }catch(_e){}
-  }
-}
-
-/* 外部地圖與查詢：保留原按鈕文字，只改開啟行為 */
-function v641CleanText(q){
-  if(typeof v639CleanText === 'function') return v639CleanText(q);
-  return String(q || '').replace(/\s+/g,' ').trim();
-}
-function v641DecodeMaybe(q){
-  if(typeof v639DecodeMaybe === 'function') return v639DecodeMaybe(q);
-  try{return decodeURIComponent(String(q || ''));}catch(e){return String(q || '');}
-}
-function v641GoogleSearchUrl(query){
-  const q = encodeURIComponent(v641CleanText(v641DecodeMaybe(query)));
-  return 'https://www.google.com/maps/search/?api=1&query=' + q;
-}
-function v641GoogleRouteUrl(origin, destination, mode){
-  if(typeof v639GoogleRouteUrl === 'function') return v639GoogleRouteUrl(origin, destination, mode);
-  const o = encodeURIComponent(v641CleanText(v641DecodeMaybe(origin)));
-  const d = encodeURIComponent(v641CleanText(v641DecodeMaybe(destination)));
-  const travelmode = mode === '走路' ? 'walking' : mode === '開車/計程車' ? 'driving' : 'transit';
-  return `https://www.google.com/maps/dir/?api=1&origin=${o}&destination=${d}&travelmode=${travelmode}`;
-}
-
-/* v63.9 的地圖開啟函式改成純新分頁，不再 fallback 到目前頁面 */
-v639OpenUrl = function(url){ openExternal(url); };
-
-openRateSearch = function(){
-  openExternal(`https://www.google.com/search?q=${encodeURIComponent((data.trip.currency||'KRW')+' TWD 匯率')}`);
-};
-
-map = function(q){
-  const query = v641CleanText(v641DecodeMaybe(q));
-  if(typeof isKoreaTrip === 'function' && isKoreaTrip()) return openKoreaMapChoice({type:'search', query});
-  openExternal(v641GoogleSearchUrl(query));
-};
-routeCurrent = function(q){
-  const query = v641CleanText(v641DecodeMaybe(q));
-  if(typeof isKoreaTrip === 'function' && isKoreaTrip()) return openKoreaMapChoice({type:'search', query});
-  openExternal(v641GoogleSearchUrl(query));
-};
-route = function(a,b,m){
-  const origin = v641CleanText(v641DecodeMaybe(a));
-  const destination = v641CleanText(v641DecodeMaybe(b));
-  if(typeof isKoreaTrip === 'function' && isKoreaTrip()) return openKoreaMapChoice({type:'route', origin, destination, mode:m || '大眾運輸'});
-  openExternal(v641GoogleRouteUrl(origin, destination, m || '大眾運輸'));
-};
-function v639GoogleBackupFromEncoded(originEncoded, destEncoded, mode){
-  openExternal(v641GoogleRouteUrl(originEncoded, destEncoded, mode || '大眾運輸'));
-}
-
-/* export.html 屬於跨頁工具，也固定新分頁，避免離開目前旅程 */
-openPdfPublisher = function(autoPrint=false){
-  try{ save(); }catch(e){}
-  openExternal(autoPrint ? 'export.html?print=1' : 'export.html');
-};
-exportPhotoBookPDF = function(){ openPdfPublisher(false); };
-
-/* 靜態 <a> 外部連結安全屬性：只補行為，不新增 UI 文案 */
-function v641PatchAnchorTargets(root=document){
-  root.querySelectorAll('a[href]').forEach(a=>{
-    const href = a.getAttribute('href') || '';
-    if(/^https?:\/\//i.test(href) || href.endsWith('.html') || href.includes('export.html')){
-      a.target = '_blank';
-      a.rel = 'noopener noreferrer';
-    }
-  });
-}
-
-function v641UpdateFooterVersion(){
-  document.querySelectorAll('footer strong,.siteFooterVersion').forEach(el=>el.textContent=V641_VERSION_SHORT);
-  if(typeof v637EnsureFooter === 'function') v637EnsureFooter();
-}
-if(typeof v637FooterHtml === 'function'){
-  v637FooterHtml = function(){
-    return `<footer id="siteFooter" class="siteFooter noPrint">
-      <div class="siteFooterBrand">貞選旅管家 <span>Janeselect Travel Manager</span></div>
-      <div class="siteFooterVersion">${esc(V641_VERSION_SHORT)}</div>
-      <div class="siteFooterLinks">
-        <button type="button" onclick="v637PolicyToast('服務條款')">服務條款</button><span>・</span>
-        <button type="button" onclick="v637PolicyToast('隱私權政策')">隱私權政策</button><span>・</span>
-        <button type="button" onclick="v637PolicyToast('聯絡我們')">聯絡我們</button>
-      </div>
-      <div class="siteFooterCopy">© 2026 Janeselect Travel Manager. All rights reserved.</div>
-    </footer>`;
-  };
-}
-
-const v641OriginalRenderHelp = typeof renderHelp === 'function' ? renderHelp : null;
-if(v641OriginalRenderHelp){
-  renderHelp = function(...args){
-    const r = v641OriginalRenderHelp.apply(this,args);
-    const el = $('helpView');
-    if(el && !$('v641UpdateLog')){
-      el.insertAdjacentHTML('afterbegin', `<div class="card" id="v641UpdateLog">
-        <h3>最新更新紀錄</h3>
-        <div class="box mint">
-          <b>v64.1｜2026-05-31｜外部連結新分頁與更新紀錄整理版</b><br>
-          地圖、Naver / Kakao、Google 備用、匯率查詢與旅遊書匯出等跨頁操作改為新分頁開啟，避免覆蓋目前旅程頁面。前台按鈕文字維持簡潔，不額外顯示工程提示。<br><br>
-          <b>v64｜2026-05-31｜品牌視覺一致與外觀自訂整理版</b><br>
-          統一 Logo、按鈕、彈窗、頁籤與手機版視覺規格，同時保留外觀設定與旅程卡片色系。<br><br>
-          <b>v63.9｜2026-05-31｜韓國地圖連結修正版</b><br>
-          修正韓國旅程中 Naver Map、KakaoMap 與 Google 備用連結開啟失敗問題。
-        </div>
-      </div>`);
-    }
-    v641PatchAnchorTargets(el || document);
-    v641UpdateFooterVersion();
-    return r;
-  };
-}
-
-function v641AfterRender(){
-  v641PatchAnchorTargets(document);
-  v641UpdateFooterVersion();
-}
-
-['render','renderHead','renderTripList','renderLoginView'].forEach(fnName=>{
-  const original = window[fnName];
-  if(typeof original === 'function' && !original.__v641Wrapped){
-    const wrapped = function(...args){
-      const result = original.apply(this,args);
-      setTimeout(v641AfterRender,0);
-      return result;
-    };
-    wrapped.__v641Wrapped = true;
-    window[fnName] = wrapped;
-  }
-});
-
-document.addEventListener('DOMContentLoaded',()=>{
-  v641AfterRender();
-  setTimeout(v641AfterRender,300);
-  setTimeout(v641AfterRender,900);
-});
-setTimeout(v641AfterRender,500);
-</script>
-
-<style>
-/* ===== v64.1 UX text cleanup only ===== */
-.koreaMapHint::after{content:none!important;}
-#v641UpdateLog .box{line-height:1.72;}
-</style>
-
-
-
-<style>
-/* ===== v64.2 modal consistency + safe delete layer only =====
-   只統一彈窗與危險操作確認，不改 data / localStorage / Firestore / Cloudinary 資料結構。
-*/
-.jtmModalBackdrop{
+.v64AiModal{
   position:fixed;
   inset:0;
   display:none;
   align-items:center;
   justify-content:center;
   padding:16px;
-  background:rgba(39,34,29,.38);
-  backdrop-filter:blur(4px);
-  z-index:420;
+  background:rgba(44,38,32,.36);
+  z-index:260;
 }
-.jtmModalBackdrop.show{display:flex;}
-.jtmModalBox{
-  width:min(560px,100%);
+.v64AiModal.show{display:flex;}
+.v64AiBox{
+  width:min(760px,100%);
   max-height:86vh;
   overflow:auto;
-  background:color-mix(in srgb,var(--v64-brand-card,#FFFDFC) 96%, white 4%);
-  color:var(--v64-brand-ink,#2C2A29);
+  background:rgba(255,255,255,.98);
+  color:var(--theme-ink,#2C2A29);
   border:1px solid rgba(255,255,255,.92);
-  box-shadow:0 28px 80px rgba(44,42,41,.20);
-  border-radius:28px;
+  box-shadow:0 24px 70px rgba(44,42,41,.18);
+  border-radius:26px;
   padding:18px;
 }
-.jtmModalHead{
+.v64AiHead{
   display:flex;
-  align-items:flex-start;
   justify-content:space-between;
   gap:12px;
-  margin-bottom:10px;
+  align-items:flex-start;
+  margin-bottom:12px;
 }
-.jtmModalTitle{
+.v64AiHead h3{
   margin:0;
   font-size:20px;
   line-height:1.25;
-  font-weight:850;
 }
-.jtmModalClose{
-  width:34px;
-  height:34px;
-  border:0;
-  border-radius:50%;
-  background:#f3eee8;
-  color:#5d554e;
-  font-weight:950;
+.v64AiHead p{
+  margin:5px 0 0;
+  color:var(--theme-muted,#8B827A);
+  font-size:13px;
+  line-height:1.55;
 }
-.jtmModalMessage{
-  color:var(--v64-brand-muted,#8B827A);
-  font-size:14px;
-  line-height:1.72;
-  white-space:pre-wrap;
-}
-.jtmModalField{
-  margin-top:12px;
-}
-.jtmModalField input,
-.jtmModalField textarea{
+.v64AiBox textarea{
   width:100%;
-  border:1px solid var(--v64-brand-line,#E2DDD5);
-  border-radius:14px;
+  min-height:320px;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+  font-size:12px;
+  line-height:1.55;
+}
+.v64ExploreGrid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:9px;
+  margin-top:10px;
+}
+.v64ExploreGrid .btn{
+  width:100%;
+}
+.v64ExploreQuery{
+  border:1px solid var(--theme-line,#E2DDD5);
+  border-radius:16px;
   background:#fffdf9;
-  color:var(--v64-brand-ink,#2C2A29);
-  padding:10px 11px;
-  font-size:15px;
+  padding:10px;
+  color:var(--theme-muted,#8B827A);
+  font-size:12px;
+  line-height:1.55;
 }
-.jtmModalField textarea{min-height:110px;resize:vertical;}
-.jtmModalActions{
-  display:flex;
-  justify-content:flex-end;
-  gap:8px;
-  flex-wrap:wrap;
-  margin-top:16px;
-}
-.jtmModalActions .btn{min-height:40px;}
-.jtmModalActions .btn.danger{
-  background:#FFF1F1!important;
-  color:var(--v64-danger,#C85B5B)!important;
-  border-color:#F3D1D1!important;
+.v64ImportPreview{
+  margin-top:10px;
+  border:1px solid var(--theme-line,#E2DDD5);
+  border-radius:16px;
+  padding:10px;
+  background:#fffdf9;
+  color:var(--theme-muted,#8B827A);
+  font-size:12px;
+  line-height:1.65;
 }
 @media(max-width:620px){
-  .jtmModalBackdrop{align-items:flex-end;padding:12px;}
-  .jtmModalBox{width:100%;max-height:84vh;border-radius:24px;padding:16px;}
-  .jtmModalActions{display:grid;grid-template-columns:1fr;}
-  .jtmModalActions .btn{width:100%;}
+  .v64AiModal{
+    align-items:flex-end;
+    padding:12px;
+  }
+  .v64AiBox{
+    width:100%;
+    max-height:84vh;
+    border-radius:24px;
+    padding:16px;
+  }
+  .v64AiBarHead{
+    display:block;
+  }
+  .v64AiActions{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+  }
+  .v64AiActions .btn,
+  .v64SpotExploreBtn{
+    width:100%;
+  }
+  .v64ExploreGrid{
+    grid-template-columns:1fr;
+  }
 }
-@media print{.jtmModalBackdrop{display:none!important;}}
-#v642UpdateLog .box{line-height:1.72;}
+@media print{
+  .v64AiBar,.v64AiModal,.v64SpotExploreBtn{display:none!important;}
+}
 </style>
 
 <script>
-/* ===== v64.2 modal consistency + safe delete behavior only ===== */
-const V642_VERSION_SHORT = '版本：v64.2｜2026-05-31';
-const V642_VERSION_TEXT = '版本：v64.2｜2026-05-31｜彈窗一致性與刪除安全版';
+/* ===== v64 AI assistant integration + pocket spot exploration only ===== */
+const V64_VERSION_SHORT = '版本：v64｜2026-05-31';
+const V64_VERSION_TEXT = 'v64｜2026-05-31｜AI 輔助整合與口袋景點探索版';
 
-function jtmEnsureModal(){
-  let el=document.getElementById('jtmModalBackdrop');
-  if(el)return el;
-  el=document.createElement('div');
-  el.id='jtmModalBackdrop';
-  el.className='jtmModalBackdrop noPrint';
-  el.innerHTML=`<div class="jtmModalBox" role="dialog" aria-modal="true">
-    <div class="jtmModalHead">
-      <h3 class="jtmModalTitle" id="jtmModalTitle"></h3>
-      <button type="button" class="jtmModalClose" id="jtmModalClose">×</button>
-    </div>
-    <div class="jtmModalMessage" id="jtmModalMessage"></div>
-    <div class="jtmModalField hidden" id="jtmModalField"></div>
-    <div class="jtmModalActions" id="jtmModalActions"></div>
-  </div>`;
-  document.body.appendChild(el);
-  return el;
+function v64SafeOpen(url){
+  if(typeof openExternal === 'function') return openExternal(url);
+  try{ window.open(String(url||''), '_blank', 'noopener,noreferrer'); }catch(e){}
 }
-function jtmModal(options={}){
-  const modal=jtmEnsureModal();
-  const titleEl=document.getElementById('jtmModalTitle');
-  const msgEl=document.getElementById('jtmModalMessage');
-  const fieldEl=document.getElementById('jtmModalField');
-  const actionsEl=document.getElementById('jtmModalActions');
-  const closeEl=document.getElementById('jtmModalClose');
-  titleEl.textContent=options.title || '提醒';
-  msgEl.textContent=options.message || '';
-  fieldEl.innerHTML='';
-  fieldEl.classList.add('hidden');
-  actionsEl.innerHTML='';
-  let inputEl=null;
-  if(options.input){
-    fieldEl.classList.remove('hidden');
-    if(options.inputType==='textarea'){
-      inputEl=document.createElement('textarea');
-    }else{
-      inputEl=document.createElement('input');
-      inputEl.type='text';
-    }
-    inputEl.value=options.defaultValue || '';
-    inputEl.placeholder=options.placeholder || '';
-    fieldEl.appendChild(inputEl);
+function v64Copy(text, doneText='已複製'){
+  const t=String(text||'');
+  if(navigator.clipboard && window.isSecureContext){
+    return navigator.clipboard.writeText(t).then(()=>toast(doneText)).catch(()=>v64FallbackCopy(t,doneText));
   }
-  return new Promise(resolve=>{
-    let done=false;
-    const cleanup=(value)=>{
-      if(done)return;
-      done=true;
-      modal.classList.remove('show');
-      modal.removeEventListener('click',onBackdrop);
-      document.removeEventListener('keydown',onKey);
-      closeEl.onclick=null;
-      resolve(value);
-    };
-    const onBackdrop=(e)=>{ if(e.target===modal && options.dismissible!==false) cleanup(options.input?null:false); };
-    const onKey=(e)=>{
-      if(e.key==='Escape' && options.dismissible!==false) cleanup(options.input?null:false);
-      if(e.key==='Enter' && inputEl && options.inputType!=='textarea') cleanup(inputEl.value);
-    };
-    closeEl.onclick=()=>cleanup(options.input?null:false);
-    if(options.showCancel!==false){
-      const cancel=document.createElement('button');
-      cancel.type='button';
-      cancel.className='btn soft';
-      cancel.textContent=options.cancelText || '取消';
-      cancel.onclick=()=>cleanup(options.input?null:false);
-      actionsEl.appendChild(cancel);
+  return Promise.resolve(v64FallbackCopy(t,doneText));
+}
+function v64FallbackCopy(text, doneText){
+  const ta=document.createElement('textarea');
+  ta.value=String(text||'');
+  ta.style.position='fixed';
+  ta.style.left='-9999px';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  try{ document.execCommand('copy'); toast(doneText || '已複製'); }
+  catch(e){ toast('複製失敗，請手動複製'); }
+  ta.remove();
+}
+function v64Clean(v){ return String(v||'').replace(/\s+/g,' ').trim(); }
+function v64JsonText(raw){
+  if(typeof normalizeImportedJsonText === 'function') return normalizeImportedJsonText(raw);
+  let t=String(raw||'').trim();
+  if(t.startsWith('```')) t=t.replace(/^```json/i,'').replace(/^```/,'').replace(/```$/,'').trim();
+  const first=t.indexOf('{'), last=t.lastIndexOf('}');
+  if(first>=0 && last>first) t=t.slice(first,last+1);
+  return t;
+}
+function v64TripContext(){
+  const days=(data.days||[]).map(d=>`${d.key}（${d.title}｜${d.label}）`).join('\n') || '尚未設定日期';
+  const hotels=(data.hotels||[]).map(h=>`${short(h.start)}~${short(h.end)} ${h.name}${h.addr?'｜'+h.addr:''}${h.note?'｜'+h.note:''}`).join('\n') || '尚未設定住宿';
+  const plans=(data.plans||[]).sort((a,b)=>String(a.day).localeCompare(String(b.day))||String(a.start).localeCompare(String(b.start))).map(p=>`${p.day} ${p.start||''}-${p.end||''}｜${p.type||'行程'}｜${p.name}${p.address||p.addr?'｜地址：'+(p.address||p.addr):''}${p.note?'｜注意：'+p.note:''}`).join('\n') || '尚未建立行程';
+  const spots=(data.spots||[]).map(s=>`${s.name}｜${s.type||'景點'}｜${s.day||'未排'}｜${s.addr||''}｜${s.memo||''}`).join('\n') || '尚未加入口袋景點';
+  const expenses=(data.expenses||[]).map(x=>`${x.type||'費用'}｜${x.name||''}｜TWD ${moneyTwd(x)||0}｜${x.memo||''}`).join('\n') || '尚未新增額外費用';
+  const packing=(data.packing||[]).map(x=>`${x.type==='out'?'離開飯店':'出國前'}｜${x.name}｜${x.note||''}`).join('\n') || '尚未建立行李清單';
+  return {days,hotels,plans,spots,expenses,packing};
+}
+function v64BuildPrompt(type, spotId){
+  const c=v64TripContext();
+  const dest=data.trip?.dest||'未設定';
+  const country=data.trip?.country||'未設定';
+  const dates=`${data.trip?.start||''} ～ ${data.trip?.end||''}`;
+  const travelers=(data.trip?.travelers||[]).join('、') || '未設定';
+  const baseInfo=`旅行資料：
+- 目的地：${dest}
+- 國家 / 區域：${country}
+- 日期：${dates}
+- 旅伴：${travelers}
+- 幣別：${data.trip?.currency||''}
+
+旅行日期：
+${c.days}
+
+住宿：
+${c.hotels}`;
+  if(type==='spots'){
+    return `${baseInfo}
+
+請幫我推薦適合這趟旅程的口袋景點、餐廳、咖啡廳、購物點與雨天備案。請考慮交通順路性、旅遊節奏、熱門程度與是否適合第一次造訪。
+
+請只輸出純 JSON，不要 Markdown，不要解釋文字。格式如下：
+{
+  "janeselect_import_type": "spots",
+  "spots": [
+    {
+      "name": "景點或店名",
+      "type": "景點/餐廳/咖啡廳/購物/雨天備案/其他",
+      "day": "YYYY-MM-DD，可留空",
+      "addr": "地址或區域",
+      "memo": "推薦理由、玩法重點、適合時段或注意事項",
+      "krName": "若為韓國景點可填韓文名稱，否則留空",
+      "krAddress": "若為韓國景點可填韓文地址，否則留空"
     }
-    const ok=document.createElement('button');
-    ok.type='button';
-    ok.className=options.danger ? 'btn danger' : 'btn dark';
-    ok.textContent=options.confirmText || '確認';
-    ok.onclick=()=>cleanup(options.input ? (inputEl ? inputEl.value : '') : true);
-    actionsEl.appendChild(ok);
-    modal.addEventListener('click',onBackdrop);
-    document.addEventListener('keydown',onKey);
-    modal.classList.add('show');
-    setTimeout(()=>{ (inputEl || ok).focus?.(); if(inputEl)inputEl.select?.(); },40);
+  ]
+}`;
+  }
+  if(type==='itinerary'){
+    return `${baseInfo}
+
+目前行程：
+${c.plans}
+
+口袋景點：
+${c.spots}
+
+請幫我檢查這趟行程是否順路、是否太趕、是否有交通時間或安排順序不合理的地方。請提出實用調整建議，但不要替我寫旅遊日記，也不要要求我一定照做。
+
+請輸出兩段：
+1. 白話健檢摘要。
+2. 純 JSON，格式如下：
+{
+  "janeselect_import_type": "itinerary_review",
+  "summary": "整體建議摘要",
+  "items": [
+    {
+      "day": "YYYY-MM-DD",
+      "level": "提醒/建議/注意",
+      "title": "建議標題",
+      "memo": "具體調整建議"
+    }
+  ]
+}`;
+  }
+  if(type==='packing'){
+    return `${baseInfo}
+
+目前行李清單：
+${c.packing}
+
+目前行程：
+${c.plans}
+
+請依據目的地、日期、天數、行程型態與住宿移動，補強行李清單。請避免太浮誇，優先列出真的會用到的東西。
+
+請只輸出純 JSON，不要 Markdown，不要解釋文字。格式如下：
+{
+  "janeselect_import_type": "packing",
+  "items": [
+    {
+      "type": "pre",
+      "name": "物品名稱",
+      "note": "為什麼建議帶，或使用提醒",
+      "checked": false
+    },
+    {
+      "type": "out",
+      "name": "離開飯店前要檢查的物品",
+      "note": "檢查提醒",
+      "checked": false
+    }
+  ]
+}`;
+  }
+  if(type==='budget'){
+    return `${baseInfo}
+
+目前行程：
+${c.plans}
+
+目前預算 / 額外費用：
+${c.expenses}
+
+請幫我檢查這趟旅程可能漏掉哪些預算項目，例如網卡、機場交通、市區交通、票券、保險、咖啡甜點、伴手禮、行李加購等。金額不要亂估，請預設 TWD 0，讓我匯入後自行調整。
+
+請只輸出純 JSON，不要 Markdown，不要解釋文字。格式如下：
+{
+  "janeselect_import_type": "budget",
+  "items": [
+    {
+      "type": "交通票券/景點票券/餐飲/購物/網路/旅平險/其他",
+      "name": "建議補充的預算項目",
+      "mode": "TWD",
+      "twd": 0,
+      "memo": "為什麼建議補這筆"
+    }
+  ]
+}`;
+  }
+  if(type==='spot_summary'){
+    const s=(data.spots||[]).find(x=>x.id===spotId)||{};
+    const q=v64SpotQuery(s);
+    return `我正在規劃 ${dest} 旅程，想快速了解這個景點是否值得排入行程。
+
+景點：${s.name||''}
+分類：${s.type||''}
+地址 / 區域：${s.addr||''}
+備註：${s.memo||''}
+
+請幫我整理：
+1. 這個景點大概長什麼樣、適合怎麼玩。
+2. 建議停留時間。
+3. 適合安排在早上、下午或晚上。
+4. 附近可順遊的方向。
+5. 可能要注意的排隊、交通、天氣或公休日問題。
+6. 如果我貼上遊記或搜尋結果連結，請幫我整理重點，不要直接複製原文。
+
+搜尋關鍵字參考：${q}`;
+  }
+  return '';
+}
+function v64EnsureAiPromptModal(){
+  if($('v64AiPromptModal')) return;
+  document.body.insertAdjacentHTML('beforeend', `<div class="v64AiModal noPrint" id="v64AiPromptModal" aria-hidden="true">
+    <div class="v64AiBox">
+      <div class="v64AiHead">
+        <div><h3 id="v64AiPromptTitle">AI 輔助</h3><p id="v64AiPromptDesc">複製提示詞後，可貼到 ChatGPT 或 Gemini 使用。</p></div>
+        <button type="button" class="iconBtn" onclick="v64CloseAiPrompt()">×</button>
+      </div>
+      <textarea id="v64AiPromptText"></textarea>
+      <div class="btns">
+        <button class="btn dark" type="button" onclick="v64OpenAiTarget('chatgpt')">ChatGPT</button>
+        <button class="btn blue" type="button" onclick="v64OpenAiTarget('gemini')">Gemini</button>
+        <button class="btn soft" type="button" onclick="v64CopyAiPrompt()">複製</button>
+        <button class="btn" type="button" onclick="v64CloseAiPrompt()">關閉</button>
+      </div>
+    </div>
+  </div>`);
+}
+function v64ShowPrompt(type, title, desc, spotId){
+  v64EnsureAiPromptModal();
+  $('v64AiPromptTitle').textContent=title||'AI 輔助';
+  $('v64AiPromptDesc').textContent=desc||'複製提示詞後，可貼到 ChatGPT 或 Gemini 使用。';
+  $('v64AiPromptText').value=v64BuildPrompt(type, spotId);
+  $('v64AiPromptModal').classList.add('show');
+  $('v64AiPromptModal').setAttribute('aria-hidden','false');
+}
+function v64CloseAiPrompt(){
+  $('v64AiPromptModal')?.classList.remove('show');
+  $('v64AiPromptModal')?.setAttribute('aria-hidden','true');
+}
+function v64CopyAiPrompt(){
+  const t=$('v64AiPromptText')?.value || '';
+  v64Copy(t,'已複製提示詞');
+}
+function v64OpenAiTarget(target){
+  const t=$('v64AiPromptText')?.value || '';
+  v64Copy(t,'已複製提示詞');
+  v64SafeOpen(target==='gemini' ? 'https://gemini.google.com/app' : 'https://chatgpt.com/');
+}
+
+function v64EnsureImportModal(){
+  if($('v64AiImportModal')) return;
+  document.body.insertAdjacentHTML('beforeend', `<div class="v64AiModal noPrint" id="v64AiImportModal" aria-hidden="true">
+    <div class="v64AiBox">
+      <div class="v64AiHead">
+        <div><h3>AI 匯入</h3><p>貼上 AI 回傳的 JSON，系統會先解析成可調整的資料，再新增到目前旅程。</p></div>
+        <button type="button" class="iconBtn" onclick="v64CloseImportModal()">×</button>
+      </div>
+      <textarea id="v64AiImportText" placeholder="請貼上 AI 回傳的 JSON"></textarea>
+      <div class="v64ImportPreview" id="v64AiImportPreview">支援：口袋景點、行李清單、預算草稿。AI 不會直接覆蓋既有資料。</div>
+      <div class="btns">
+        <button class="btn dark" type="button" onclick="v64ImportAiText()">匯入</button>
+        <button class="btn soft" type="button" onclick="v64CloseImportModal()">關閉</button>
+      </div>
+    </div>
+  </div>`);
+}
+function v64OpenImportModal(){
+  v64EnsureImportModal();
+  $('v64AiImportText').value='';
+  $('v64AiImportPreview').textContent='支援：口袋景點、行李清單、預算草稿。AI 不會直接覆蓋既有資料。';
+  $('v64AiImportModal').classList.add('show');
+  $('v64AiImportModal').setAttribute('aria-hidden','false');
+}
+function v64CloseImportModal(){
+  $('v64AiImportModal')?.classList.remove('show');
+  $('v64AiImportModal')?.setAttribute('aria-hidden','true');
+}
+function v64ArrayFromImport(obj, fallbackKey){
+  if(Array.isArray(obj)) return obj;
+  if(Array.isArray(obj.items)) return obj.items;
+  if(fallbackKey && Array.isArray(obj[fallbackKey])) return obj[fallbackKey];
+  if(Array.isArray(obj.spots)) return obj.spots;
+  return [];
+}
+function v64ImportAiObject(obj){
+  const type=String(obj.janeselect_import_type || obj.type || '').trim();
+  let count=0;
+  if(type==='spots' || Array.isArray(obj.spots)){
+    const items=v64ArrayFromImport(obj,'spots');
+    items.forEach(s=>{
+      if(!s || !s.name) return;
+      data.spots.push({
+        id:uid(),
+        name:String(s.name||''),
+        type:String(s.type||'景點'),
+        day:String(s.day||''),
+        addr:String(s.addr||s.address||''),
+        memo:String(s.memo||s.note||s.reason||''),
+        krName:String(s.krName||s.kr_name||''),
+        krAddress:String(s.krAddress||s.kr_address||''),
+        source:'ai'
+      });
+      count++;
+    });
+    if(count) return {count, label:'口袋景點'};
+  }
+  if(type==='packing'){
+    const items=v64ArrayFromImport(obj,'items');
+    items.forEach(x=>{
+      if(!x || !x.name) return;
+      data.packing.push({
+        id:uid(),
+        type:String(x.type||data.packView||'pre'),
+        name:String(x.name||''),
+        note:String(x.note||x.memo||'AI 建議'),
+        checked:!!x.checked,
+        source:'ai'
+      });
+      count++;
+    });
+    if(count) return {count, label:'行李項目'};
+  }
+  if(type==='budget'){
+    const items=v64ArrayFromImport(obj,'items');
+    items.forEach(x=>{
+      if(!x || !x.name) return;
+      data.expenses.push({
+        id:uid(),
+        source:'AI建議',
+        type:String(x.type||'其他'),
+        name:String(x.name||''),
+        payer:'未定',
+        payMethod:'未定',
+        day:String(x.day||''),
+        mode:String(x.mode||'TWD'),
+        foreign:Number(x.foreign||0),
+        twd:Number(x.twd||0),
+        memo:String(x.memo||x.note||'AI 建議補充，請自行調整金額')
+      });
+      count++;
+    });
+    if(count) return {count, label:'預算草稿'};
+  }
+  if(type==='itinerary_review'){
+    const summary = obj.summary || (Array.isArray(obj.items) ? obj.items.map(x=>`${x.day||''} ${x.title||''}：${x.memo||''}`).join('\n') : '');
+    if(summary){
+      v64ShowImportReview(summary);
+      return {count:1, label:'行程健檢摘要'};
+    }
+  }
+  return {count:0, label:'資料'};
+}
+function v64ShowImportReview(summary){
+  v64EnsureImportModal();
+  $('v64AiImportPreview').innerHTML = `<b>行程健檢結果</b><br>${esc(summary)}`;
+}
+function v64ImportAiText(){
+  const raw=$('v64AiImportText')?.value || '';
+  if(!raw.trim()) return toast('請先貼上 AI 回覆');
+  try{
+    const obj=JSON.parse(v64JsonText(raw));
+    const result=v64ImportAiObject(obj);
+    if(!result.count) throw new Error('no items');
+    silentSave();
+    render();
+    v64CloseImportModal();
+    toast(`已匯入 ${result.count} 筆${result.label}`);
+  }catch(e){
+    $('v64AiImportPreview').textContent='匯入失敗：請確認貼上的是純 JSON，且格式符合 AI 提示詞要求。';
+  }
+}
+
+function v64SpotQuery(s){
+  return v64Clean([s?.name, s?.addr, data.trip?.dest].filter(Boolean).join(' '));
+}
+function v64GoogleSearchUrl(q){
+  return 'https://www.google.com/search?q=' + encodeURIComponent(v64Clean(q));
+}
+function v64YoutubeSearchUrl(q){
+  return 'https://www.youtube.com/results?search_query=' + encodeURIComponent(v64Clean(q));
+}
+function v64GoogleImageUrl(q){
+  return 'https://www.google.com/search?tbm=isch&q=' + encodeURIComponent(v64Clean(q));
+}
+function v64OfficialSearchUrl(q){
+  return 'https://www.google.com/search?q=' + encodeURIComponent(v64Clean(q + ' official tourism'));
+}
+function v64OpenSpotExplore(id){
+  const s=(data.spots||[]).find(x=>x.id===id);
+  if(!s) return toast('找不到景點');
+  if(!$('v64SpotExploreModal')){
+    document.body.insertAdjacentHTML('beforeend', `<div class="v64AiModal noPrint" id="v64SpotExploreModal" aria-hidden="true">
+      <div class="v64AiBox">
+        <div class="v64AiHead">
+          <div><h3 id="v64ExploreTitle">景點探索</h3><p id="v64ExploreDesc"></p></div>
+          <button type="button" class="iconBtn" onclick="v64CloseSpotExplore()">×</button>
+        </div>
+        <div class="v64ExploreQuery" id="v64ExploreQuery"></div>
+        <div class="v64ExploreGrid" id="v64ExploreActions"></div>
+      </div>
+    </div>`);
+  }
+  const q=v64SpotQuery(s);
+  $('v64ExploreTitle').textContent=s.name || '景點探索';
+  $('v64ExploreDesc').textContent=[s.type, s.addr].filter(Boolean).join('｜') || '快速查找遊記、影片、打卡與官方資料。';
+  $('v64ExploreQuery').innerHTML=`搜尋關鍵字：<b>${esc(q)}</b>`;
+  const actions=[
+    ['遊記', v64GoogleSearchUrl(q + ' 遊記 怎麼玩')],
+    ['影片', v64YoutubeSearchUrl(q + ' vlog')],
+    ['打卡', v64GoogleImageUrl(q + ' 打卡 照片')],
+    ['官方', v64OfficialSearchUrl(q)],
+    ['AI 摘要', null]
+  ];
+  $('v64ExploreActions').innerHTML=actions.map((a,i)=>`<button class="btn ${i===0?'dark':i===4?'pink':'soft'}" type="button" data-v64-explore="${i}">${esc(a[0])}</button>`).join('');
+  $('v64ExploreActions').querySelectorAll('[data-v64-explore]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const idx=Number(btn.dataset.v64Explore);
+      if(idx===4) return v64ShowPrompt('spot_summary','AI 摘要','可把搜尋結果或遊記連結一起貼給 AI，整理成玩法重點。',id);
+      v64SafeOpen(actions[idx][1]);
+    });
+  });
+  $('v64SpotExploreModal').classList.add('show');
+  $('v64SpotExploreModal').setAttribute('aria-hidden','false');
+}
+function v64CloseSpotExplore(){
+  $('v64SpotExploreModal')?.classList.remove('show');
+  $('v64SpotExploreModal')?.setAttribute('aria-hidden','true');
+}
+
+function v64AiBarHtml(kind){
+  if(kind==='spots'){
+    return `<div class="v64AiBar" id="v64AiBar-spots">
+      <div class="v64AiBarHead"><div><b>AI 輔助</b><span>找景點、匯入 AI 回覆，或針對單一景點探索遊記與影片。</span></div></div>
+      <div class="v64AiActions">
+        <button class="btn pink compact" onclick="v64ShowPrompt('spots','AI 找景點','請 AI 依目前旅程推薦口袋景點，並回傳可匯入 JSON。')">AI 找景點</button>
+        <button class="btn blue compact" onclick="v64OpenImportModal()">AI 匯入</button>
+      </div>
+    </div>`;
+  }
+  if(kind==='planner'){
+    return `<div class="v64AiBar" id="v64AiBar-planner">
+      <div class="v64AiBarHead"><div><b>AI 輔助</b><span>檢查行程順路性與節奏，不會自動改動你的行程。</span></div></div>
+      <div class="v64AiActions">
+        <button class="btn pink compact" onclick="v64ShowPrompt('itinerary','AI 健檢','請 AI 檢查行程順不順、會不會太趕。')">AI 健檢</button>
+        <button class="btn blue compact" onclick="v64OpenImportModal()">AI 匯入</button>
+      </div>
+    </div>`;
+  }
+  if(kind==='packing'){
+    return `<div class="v64AiBar" id="v64AiBar-packing">
+      <div class="v64AiBarHead"><div><b>AI 輔助</b><span>依目的地、天數與行程補強行李清單。</span></div></div>
+      <div class="v64AiActions">
+        <button class="btn pink compact" onclick="v64ShowPrompt('packing','AI 行李','請 AI 產生可匯入的行李清單。')">AI 行李</button>
+        <button class="btn blue compact" onclick="v64OpenImportModal()">AI 匯入</button>
+      </div>
+    </div>`;
+  }
+  if(kind==='budget'){
+    return `<div class="v64AiBar" id="v64AiBar-budget">
+      <div class="v64AiBarHead"><div><b>AI 輔助</b><span>檢查可能漏掉的預算項目，匯入後金額預設 0 讓你自行調整。</span></div></div>
+      <div class="v64AiActions">
+        <button class="btn pink compact" onclick="v64ShowPrompt('budget','AI 預算','請 AI 檢查可能漏掉的預算項目。')">AI 預算</button>
+        <button class="btn blue compact" onclick="v64OpenImportModal()">AI 匯入</button>
+      </div>
+    </div>`;
+  }
+  return '';
+}
+function v64ReplaceOldSpotAiBar(){
+  const root=$('spotsView');
+  if(!root) return;
+  root.querySelectorAll('#v64AiBar-spots').forEach(x=>x.remove());
+  const old=[...root.querySelectorAll('.card')].find(card=>/AI 景點提示詞|匯入口袋景點/.test(card.textContent||''));
+  if(old){
+    old.outerHTML=v64AiBarHtml('spots');
+  }else{
+    const section=root.querySelector('.section');
+    section?.insertAdjacentHTML('afterend', v64AiBarHtml('spots'));
+  }
+}
+function v64AddSpotExploreButtons(){
+  const root=$('spotsView');
+  if(!root) return;
+  root.querySelectorAll('.card').forEach(card=>{
+    if(!card.querySelector('.place')) return;
+    if(card.querySelector('[data-v64-spot-explore]')) return;
+    const btns=card.querySelector('.btns');
+    if(!btns) return;
+    const m=(btns.innerHTML||'').match(/editSpot\('([^']+)'\)/) || (btns.innerHTML||'').match(/useSpot\('([^']+)'\)/);
+    if(!m) return;
+    const id=m[1];
+    btns.insertAdjacentHTML('afterbegin', `<button class="btn soft compact v64SpotExploreBtn" data-v64-spot-explore="${id}" onclick="v64OpenSpotExplore('${id}')">探索</button>`);
   });
 }
-function jtmConfirm(title,message,opts={}){return jtmModal({title,message,confirmText:opts.confirmText||'確認',cancelText:opts.cancelText||'取消',danger:!!opts.danger});}
-function jtmNotice(title,message){return jtmModal({title,message,showCancel:false,confirmText:'知道了'});}
-function jtmPrompt(title,message,defaultValue='',opts={}){return jtmModal({title,message,input:true,inputType:opts.inputType||'text',defaultValue,placeholder:opts.placeholder||'',confirmText:opts.confirmText||'儲存',cancelText:'取消'});}
-
-/* 原生 alert 改成品牌彈窗，讓驗證/錯誤訊息不再跳系統框。 */
-window.alert=function(message){ jtmNotice('提醒', String(message||'')); };
-
-/* 標題 / 副標維持自製彈窗 */
-editTitle = async function(){
-  const v=await jtmPrompt('修改旅程標題','請輸入這趟旅程的標題。', data?.meta?.title || '我的旅跡手帳');
-  if(v!==null && String(v).trim()){ data.meta.title=String(v).trim(); save(); }
-};
-editSubtitle = async function(){
-  const v=await jtmPrompt('修改旅程副標','可以寫下這趟旅行的心情、主題或提醒。', data?.meta?.subtitle || (base?.meta?.subtitle || ''), {inputType:'textarea'});
-  if(v!==null && String(v).trim()){ data.meta.subtitle=String(v).trim(); save(); }
-};
-
-/* 刪除 / 清除類操作：改成自製確認彈窗。 */
-delHotel = async function(id){
-  const item=data.hotels?.find(x=>x.id==id);
-  const ok=await jtmConfirm('刪除住宿',`確定要刪除「${item?.name || '這筆住宿'}」嗎？`,{danger:true,confirmText:'確認刪除'});
-  if(!ok)return;
-  data.hotels=data.hotels.filter(x=>x.id!=id);
-  if(editingHotelId==id)editingHotelId=null;
-  save();
-};
-delSpot = async function(id){
-  const item=data.spots?.find(x=>x.id==id);
-  const ok=await jtmConfirm('刪除景點',`確定要刪除「${item?.name || '這個景點'}」嗎？`,{danger:true,confirmText:'確認刪除'});
-  if(!ok)return;
-  data.spots=data.spots.filter(x=>x.id!=id);
-  if(editingSpotId==id)editingSpotId=null;
-  save();
-};
-delPlan = async function(id){
-  const item=data.plans?.find(x=>x.id==id);
-  const ok=await jtmConfirm('刪除行程',`確定要刪除「${item?.name || '這筆行程'}」嗎？\n相關的行程間交通連線也會一起移除。`,{danger:true,confirmText:'確認刪除'});
-  if(!ok)return;
-  data.plans=data.plans.filter(x=>x.id!=id);
-  data.conns=data.conns.filter(c=>c.a!=id&&c.b!=id);
-  if(editingPlanId==id)editingPlanId=null;
-  save();
-};
-delExpense = async function(id){
-  const item=data.expenses?.find(x=>x.id==id);
-  const ok=await jtmConfirm('刪除費用',`確定要刪除「${item?.name || '這筆費用'}」嗎？`,{danger:true,confirmText:'確認刪除'});
-  if(!ok)return;
-  data.expenses=data.expenses.filter(x=>x.id!=id);
-  if(editingExpenseId==id)editingExpenseId=null;
-  save();
-};
-delPhoto = async function(id){
-  const item=data.photos?.find(x=>x.id==id);
-  const ok=await jtmConfirm('刪除照片',`確定要刪除「${item?.title || '這張照片'}」嗎？`,{danger:true,confirmText:'確認刪除'});
-  if(!ok)return;
-  data.photos=data.photos.filter(p=>p.id!=id);
-  save();
-};
-resetAll = async function(){
-  const ok=await jtmConfirm('清除目前旅程資料','這會清除目前這趟旅程在此裝置上的資料。建議先確認已同步或已匯出備份。',{danger:true,confirmText:'確認清除'});
-  if(!ok)return;
-  localStorage.removeItem(typeof getLocalTripKey==='function' ? getLocalTripKey() : 'travel_book_v8');
-  localStorage.removeItem('travel_book_v8');
-  data=loadData();
-  cur=data.days?.[0]?.key || data.trip?.start;
-  render();
-  toast('已清除本機資料');
-};
-clearAllPlans = async function(){
-  const ok=await jtmConfirm('清除所有行程','這會刪除目前已排入的行程卡片與行程間交通連線。建議先到「說明」匯出備份。',{danger:true,confirmText:'確認清除'});
-  if(!ok)return;
-  data.plans=[];
-  data.conns=[];
-  editingPlanId=null;
-  save();
-  toast('已清除所有行程');
-};
-returnSpotToPocket = async function(id){
-  const s=data.spots?.find(x=>x.id==id);
-  if(!s || !s.planId)return;
-  const ok=await jtmConfirm('放回口袋景點',`要把「${s.name || '這個景點'}」放回口袋，並移除已排入的行程嗎？`,{danger:true,confirmText:'確認移除行程'});
-  if(!ok)return;
-  data.plans=data.plans.filter(p=>p.id!=s.planId);
-  data.conns=data.conns.filter(c=>c.a!=s.planId && c.b!=s.planId);
-  delete s.planId;
-  save();
-};
-
-/* 交通方式變更改成 toast，不中斷流程。 */
-changeConnMode = function(id,v){
-  let c=data.conns.find(x=>x.id==id);
-  if(c)c.mode=v;
-  save();
-  toast('已變更交通方式，可重新查詢路線');
-};
-
-/* 備份匯入 / 雲端載入改用自製確認。 */
-importBackup = async function(file){
-  if(!file)return;
-  const ok=await jtmConfirm('匯入備份','匯入備份會覆蓋目前這趟旅程資料。建議先確認已同步或已匯出目前資料。',{danger:true,confirmText:'確認匯入'});
-  if(!ok)return;
-  let r=new FileReader();
-  r.onload=e=>{
-    try{
-      data=JSON.parse(e.target.result);
-      if(!data.days?.length)data.days=mkDays(data.trip.start,data.trip.end);
-      localStorage.setItem(typeof getLocalTripKey==='function' ? getLocalTripKey() : 'travel_book_v8',JSON.stringify(data));
-      localStorage.setItem('travel_book_v8',JSON.stringify(data));
-      cur=data.days?.[0]?.key||data.trip?.start;
-      render();
-      toast('已匯入備份');
-    }catch(err){toast('備份檔格式錯誤');}
-  };
-  r.readAsText(file);
-};
-const __v642LoadFromCloud = typeof loadFromCloud==='function' ? loadFromCloud : null;
-if(__v642LoadFromCloud){
-  loadFromCloud = async function(options={}){
-    const silent=!!options.silent;
-    if(!silent && !options.force){
-      const ok=await jtmConfirm('載入雲端資料','載入雲端資料會覆蓋目前此裝置上的同一趟旅程資料。建議先確認已同步或已匯出備份。',{danger:true,confirmText:'確認載入'});
-      if(!ok)return false;
-      return __v642LoadFromCloud({...options,force:true});
-    }
-    return __v642LoadFromCloud(options);
-  };
+function v64PatchSpots(){
+  v64ReplaceOldSpotAiBar();
+  v64AddSpotExploreButtons();
 }
-
-/* 旅程清單封存 / 刪除改用自製確認。 */
-archiveTrip = async function(id){
-  const t=tripList?.find(x=>x.id===id);
-  const ok=await jtmConfirm('封存旅程',`確定要封存「${t?.title || '這趟旅程'}」嗎？\n資料不會刪除，可在封存旅程中還原。`,{confirmText:'確認封存'});
-  if(!ok)return;
-  if(t)t.archived=true;
-  if(currentTripId===id){currentTripId='';localStorage.removeItem(V63_CURRENT_TRIP_KEY);}
-  await v63SaveTripListCloud?.();
-  renderTripList?.();
-};
-deleteTrip = async function(id){
-  const t=tripList?.find(x=>x.id===id);
-  if(!t)return;
-  const ok=await jtmConfirm('刪除旅程',`確定要刪除「${t.title || '這趟旅程'}」嗎？\n刪除後會從旅程清單移除，並嘗試刪除雲端旅程資料。`,{danger:true,confirmText:'確認刪除'});
-  if(!ok)return;
-  try{
-    if(fbUser && fbDb && typeof v636DeleteTripCloud==='function')await v636DeleteTripCloud(id);
-    tripList=tripList.filter(x=>x.id!==id);
-    try{localStorage.removeItem(getLocalTripKey(id));}catch(e){}
-    try{localStorage.removeItem(`${getLocalTripKey(id)}__meta`);}catch(e){}
-    if(currentTripId===id){
-      currentTripId='';
-      localStorage.removeItem(V63_CURRENT_TRIP_KEY);
-      if(cloudUnsub){cloudUnsub();cloudUnsub=null;}
-      cloudReady=false;
-    }
-    await v63SaveTripListCloud?.();
-    renderTripList?.();
-    toast('已刪除旅程');
-  }catch(e){
-    jtmNotice('刪除失敗', e?.message || String(e));
-  }
-};
-
-/* 頁尾與說明頁更新紀錄 */
-function v642UpdateFooterVersion(){
-  document.querySelectorAll('footer strong,.siteFooterVersion').forEach(el=>el.textContent=V642_VERSION_SHORT);
-  if(typeof v637EnsureFooter==='function')v637EnsureFooter();
+function v64InsertAiBar(viewId, kind){
+  const root=$(viewId);
+  if(!root) return;
+  root.querySelectorAll(`#v64AiBar-${kind}`).forEach(x=>x.remove());
+  const section=root.querySelector('.section');
+  if(section) section.insertAdjacentHTML('afterend', v64AiBarHtml(kind));
 }
-if(typeof v637FooterHtml==='function'){
-  v637FooterHtml=function(){
-    return `<footer id="siteFooter" class="siteFooter noPrint">
-      <div class="siteFooterBrand">貞選旅管家 <span>Janeselect Travel Manager</span></div>
-      <div class="siteFooterVersion">${esc(V642_VERSION_SHORT)}</div>
-      <div class="siteFooterLinks">
-        <button type="button" onclick="v637PolicyToast('服務條款')">服務條款</button><span>・</span>
-        <button type="button" onclick="v637PolicyToast('隱私權政策')">隱私權政策</button><span>・</span>
-        <button type="button" onclick="v637PolicyToast('聯絡我們')">聯絡我們</button>
-      </div>
-      <div class="siteFooterCopy">© 2026 Janeselect Travel Manager. All rights reserved.</div>
-    </footer>`;
-  };
+function v64UpdateFooterVersion(){
+  document.querySelectorAll('footer strong,.siteFooterVersion').forEach(el=>el.textContent=V64_VERSION_SHORT);
+  if(typeof v637EnsureFooter === 'function') v637EnsureFooter();
 }
-const __v642RenderHelp = typeof renderHelp==='function' ? renderHelp : null;
-if(__v642RenderHelp){
-  renderHelp=function(...args){
-    const r=__v642RenderHelp.apply(this,args);
-    const el=$('helpView');
-    if(el && !$('v642UpdateLog')){
-      el.insertAdjacentHTML('afterbegin', `<div class="card" id="v642UpdateLog">
-        <h3>最新更新紀錄</h3>
-        <div class="box mint">
-          <b>v64.2｜2026-05-31｜彈窗一致性與刪除安全版</b><br>
-          刪除、清除、匯入備份與載入雲端等操作改為貞選旅管家風格彈窗，減少瀏覽器原生對話框造成的不一致體驗；交通方式變更改為輕提示，不中斷操作流程。<br><br>
-          <b>v64.1｜2026-05-31｜外部連結新分頁與更新紀錄整理版</b><br>
-          地圖、Naver / Kakao、Google 備用、匯率查詢與旅遊書匯出等跨頁操作改為新分頁開啟，避免覆蓋目前旅程頁面。<br><br>
-          <b>v64｜2026-05-31｜品牌視覺一致與外觀自訂整理版</b><br>
-          統一 Logo、按鈕、彈窗、頁籤與手機版視覺規格，同時保留外觀設定與旅程卡片色系。
+try{
+  if(typeof v637FooterHtml === 'function'){
+    v637FooterHtml = function(){
+      return `<footer id="siteFooter" class="siteFooter noPrint">
+        <div class="siteFooterBrand">貞選旅管家 <span>Janeselect Travel Manager</span></div>
+        <div class="siteFooterVersion">${esc(V64_VERSION_SHORT)}</div>
+        <div class="siteFooterLinks">
+          <button type="button" onclick="v637PolicyToast('服務條款')">服務條款</button><span>・</span>
+          <button type="button" onclick="v637PolicyToast('隱私權政策')">隱私權政策</button><span>・</span>
+          <button type="button" onclick="v637PolicyToast('聯絡我們')">聯絡我們</button>
         </div>
-      </div>`);
-    }
-    v642UpdateFooterVersion();
+        <div class="siteFooterCopy">© 2026 Janeselect Travel Manager. All rights reserved.</div>
+      </footer>`;
+    };
+  }
+  if(typeof v641UpdateFooterVersion === 'function'){
+    v641UpdateFooterVersion = v64UpdateFooterVersion;
+  }
+}catch(e){}
+
+const v64OriginalRenderSpots = typeof renderSpots === 'function' ? renderSpots : null;
+if(v64OriginalRenderSpots && !v64OriginalRenderSpots.__v64AiWrapped){
+  renderSpots = function(...args){
+    const r=v64OriginalRenderSpots.apply(this,args);
+    setTimeout(v64PatchSpots,0);
     return r;
   };
+  renderSpots.__v64AiWrapped=true;
 }
-function v642AfterRender(){
-  v642UpdateFooterVersion();
-  if(typeof v641PatchAnchorTargets==='function')v641PatchAnchorTargets(document);
-}
-['render','renderHead','renderTripList','renderLoginView'].forEach(fnName=>{
-  const original=window[fnName];
-  if(typeof original==='function' && !original.__v642Wrapped){
-    const wrapped=function(...args){
-      const result=original.apply(this,args);
-      setTimeout(v642AfterRender,0);
-      return result;
-    };
-    wrapped.__v642Wrapped=true;
-    window[fnName]=wrapped;
-  }
-});
-document.addEventListener('DOMContentLoaded',()=>{
-  v642AfterRender();
-  setTimeout(v642AfterRender,300);
-  setTimeout(v642AfterRender,900);
-});
-setTimeout(v642AfterRender,500);
-</script>
-
-
-<script>
-/* ===== v64.3 Korea-only transit precision + Korean fields =====
-   目標：只針對韓國旅程改善 Naver / Kakao 查詢精準度。
-   安全範圍：不改 Firebase 路徑、localStorage key、Cloudinary、預算/照片書/航班主結構。
-   資料相容：僅在既有 hotel / spot / plan 物件中新增選填欄位 krName / krAddr；舊資料沒有欄位仍正常。
-*/
-const V643_VERSION_SHORT = '版本：v64.3｜2026-05-31';
-const V643_VERSION_TEXT = '版本：v64.3｜2026-05-31｜韓國交通查詢精準化版';
-
-function v643IsKorea(){
-  return typeof isKoreaTrip === 'function' && isKoreaTrip();
-}
-function v643Clean(v){
-  const raw = String(v || '');
-  let decoded = raw;
-  try{ decoded = decodeURIComponent(raw); }catch(e){}
-  return decoded.replace(/\s+/g,' ').trim();
-}
-function v643HasHangul(v){
-  return /[\u3131-\u318E\uAC00-\uD7A3]/.test(String(v || ''));
-}
-function v643TripSuffix(){
-  const dest = v643Clean(data?.trip?.dest || '');
-  const country = v643Clean(data?.trip?.country || '');
-  return [dest, country].filter(Boolean).join(' ');
-}
-function v643PreferredPlaceText(item, fallback){
-  const obj = item || {};
-  const chosen = v643Clean(obj.krAddr || obj.krAddress || obj.krName || obj.address || obj.addr || obj.name || fallback || '');
-  if(!chosen) return v643Clean(fallback || '');
-  // 已有韓文欄位時直接使用；否則加上目的地，避免中文景點名太泛。
-  if(v643HasHangul(chosen)) return chosen;
-  const suffix = v643TripSuffix();
-  return v643Clean([chosen, suffix].filter(Boolean).join(' '));
-}
-function v643FindKnownPlace(query){
-  const q = v643Clean(query);
-  if(!q) return null;
-  const all = [];
-  (data?.plans || []).forEach(x=>all.push(x));
-  (data?.spots || []).forEach(x=>all.push(x));
-  (data?.hotels || []).forEach(x=>all.push(x));
-  return all.find(x=>{
-    const vals = [x.name, x.addr, x.address, x.krName, x.krAddr, x.krAddress].map(v643Clean).filter(Boolean);
-    return vals.some(v=> q.includes(v) || v.includes(q));
-  }) || null;
-}
-function v643KoreaSearchText(query){
-  const known = v643FindKnownPlace(query);
-  return known ? v643PreferredPlaceText(known, query) : v643Clean(query);
-}
-function v643NaverSearchUrl(query){
-  return 'https://map.naver.com/p/search/' + encodeURIComponent(v643Clean(query));
-}
-function v643KakaoSearchUrl(query){
-  return 'https://map.kakao.com/link/search/' + encodeURIComponent(v643Clean(query));
-}
-function v643KakaoRouteUrl(origin, destination){
-  // Kakao 網頁版可用 sName / eName 帶入起終點名稱；沒有座標時仍由 Kakao 判斷最接近地點。
-  return 'https://map.kakao.com/?sName=' + encodeURIComponent(v643Clean(origin)) + '&eName=' + encodeURIComponent(v643Clean(destination));
-}
-function v643GoogleRouteUrl(origin, destination, mode){
-  if(typeof v641GoogleRouteUrl === 'function') return v641GoogleRouteUrl(origin, destination, mode);
-  if(typeof v639GoogleRouteUrl === 'function') return v639GoogleRouteUrl(origin, destination, mode);
-  const travelmode = mode === '走路' ? 'walking' : mode === '開車/計程車' ? 'driving' : 'transit';
-  return 'https://www.google.com/maps/dir/?api=1&origin=' + encodeURIComponent(v643Clean(origin)) + '&destination=' + encodeURIComponent(v643Clean(destination)) + '&travelmode=' + travelmode;
-}
-function v643Open(url){
-  if(typeof openExternal === 'function') return openExternal(url);
-  if(typeof v639OpenUrl === 'function') return v639OpenUrl(url);
-  window.open(url,'_blank','noopener,noreferrer');
-}
-function v643CopyRoute(origin,destination){
-  const text = `起點：${v643Clean(origin)}\n終點：${v643Clean(destination)}`;
-  if(typeof v639CopyText === 'function') return v639CopyText(text);
-  navigator.clipboard?.writeText(text).then(()=>toast('已複製起終點')).catch(()=>toast(text));
-}
-function v643KrFieldsHtml(prefix, obj={}){
-  if(!v643IsKorea()) return '';
-  return `<div class="two koreaKrFields noPrint" data-v643-kr-fields="${prefix}">
-    <div><label>韓文名稱</label><input id="${prefix}krName" value="${esc(obj.krName || '')}" placeholder="例如 해운대 블루라인파크"></div>
-    <div><label>韓文地址</label><input id="${prefix}krAddr" value="${esc(obj.krAddr || obj.krAddress || '')}" placeholder="可貼上 Naver / Kakao 上的韓文地址"></div>
-  </div>`;
-}
-function v643ReadKr(prefix){
-  return {
-    krName: v643Clean($(prefix+'krName')?.value || ''),
-    krAddr: v643Clean($(prefix+'krAddr')?.value || '')
-  };
-}
-function v643ApplyKr(target, kr){
-  if(!target || !v643IsKorea()) return;
-  target.krName = kr.krName || '';
-  target.krAddr = kr.krAddr || '';
-}
-
-/* 韓國旅程才注入韓文欄位；其他國家完全不顯示、不讀寫。 */
-function v643InjectKoreaFields(){
-  if(!v643IsKorea()) return;
-  const planObj = editingPlanId ? (data.plans || []).find(x=>x.id===editingPlanId) : null;
-  if($('pname') && !$('pkrName')){
-    $('pname').insertAdjacentHTML('afterend', v643KrFieldsHtml('p', planObj || {}));
-  }
-  const spotObj = editingSpotId ? (data.spots || []).find(x=>x.id===editingSpotId) : null;
-  if($('sa') && !$('skrName')){
-    const row = $('sa').closest('.two') || $('sa');
-    row.insertAdjacentHTML('afterend', v643KrFieldsHtml('s', spotObj || {}));
-  }
-  const hotelObj = editingHotelId ? (data.hotels || []).find(x=>x.id===editingHotelId) : null;
-  if($('haddr') && !$('hkrName')){
-    const row = $('haddr').closest('.two') || $('haddr');
-    row.insertAdjacentHTML('afterend', v643KrFieldsHtml('h', hotelObj || {}));
-  }
-}
-
-/* 表單儲存：只在韓國旅程把韓文欄位存進該物件，舊資料向下相容。 */
-const __v643SavePlanForm = typeof savePlanForm === 'function' ? savePlanForm : null;
-if(__v643SavePlanForm){
-  savePlanForm = function(...args){
-    const wasKorea = v643IsKorea();
-    const editId = editingPlanId;
-    const snapshot = wasKorea ? {day:$('pday')?.value, start:$('ps')?.value, name:$('pname')?.value, kr:v643ReadKr('p')} : null;
-    const result = __v643SavePlanForm.apply(this,args);
-    if(wasKorea && snapshot){
-      let target = editId ? (data.plans || []).find(x=>x.id===editId) : null;
-      if(!target){
-        const matches = (data.plans || []).filter(x=>x.day===snapshot.day && x.start===snapshot.start && x.name===snapshot.name);
-        target = matches[matches.length-1] || (data.plans || [])[data.plans.length-1];
-      }
-      if(target){
-        v643ApplyKr(target, snapshot.kr);
-        silentSave?.();
-        render?.();
-      }
-    }
-    return result;
-  };
-}
-const __v643FillPlanForm = typeof fillPlanForm === 'function' ? fillPlanForm : null;
-if(__v643FillPlanForm){
-  fillPlanForm = function(id){
-    const result = __v643FillPlanForm.apply(this,arguments);
-    setTimeout(()=>{
-      v643InjectKoreaFields();
-      const p=(data.plans || []).find(x=>x.id===id);
-      if(p && $('pkrName')) $('pkrName').value=p.krName || '';
-      if(p && $('pkrAddr')) $('pkrAddr').value=p.krAddr || p.krAddress || '';
-    },0);
-    return result;
-  };
-}
-const __v643SaveSpot = typeof saveSpot === 'function' ? saveSpot : null;
-if(__v643SaveSpot){
-  saveSpot = function(...args){
-    const wasKorea = v643IsKorea();
-    const editId = editingSpotId;
-    const snapshot = wasKorea ? {name:$('sn')?.value, day:$('sd')?.value, toPlan:$('sToPlan')?.value, kr:v643ReadKr('s')} : null;
-    const result = __v643SaveSpot.apply(this,args);
-    if(wasKorea && snapshot){
-      let target = editId ? (data.spots || []).find(x=>x.id===editId) : null;
-      if(!target){
-        const matches = (data.spots || []).filter(x=>x.name===snapshot.name && x.day===snapshot.day);
-        target = matches[matches.length-1] || (data.spots || [])[data.spots.length-1];
-      }
-      if(target) v643ApplyKr(target, snapshot.kr);
-      // 如果同時排入行程，也把韓文欄位同步到剛建立的行程。
-      if(snapshot.toPlan === 'yes'){
-        const plans=(data.plans || []).filter(x=>x.name===snapshot.name && x.day===(snapshot.day || cur));
-        const p=plans[plans.length-1];
-        if(p) v643ApplyKr(p, snapshot.kr);
-      }
-      silentSave?.();
-      render?.();
-    }
-    return result;
-  };
-}
-const __v643SaveHotel = typeof saveHotel === 'function' ? saveHotel : null;
-if(__v643SaveHotel){
-  saveHotel = function(...args){
-    const wasKorea = v643IsKorea();
-    const editId = editingHotelId;
-    const snapshot = wasKorea ? {name:$('hname')?.value, start:$('hstart')?.value, kr:v643ReadKr('h')} : null;
-    const result = __v643SaveHotel.apply(this,args);
-    if(wasKorea && snapshot){
-      let target = editId ? (data.hotels || []).find(x=>x.id===editId) : null;
-      if(!target){
-        const matches = (data.hotels || []).filter(x=>x.name===snapshot.name && x.start===snapshot.start);
-        target = matches[matches.length-1] || (data.hotels || [])[data.hotels.length-1];
-      }
-      if(target){
-        v643ApplyKr(target, snapshot.kr);
-        silentSave?.();
-        render?.();
-      }
-    }
-    return result;
-  };
-}
-
-/* 搜尋草稿：韓國旅程優先使用韓文欄位；其他國家維持原本 Google 行為。 */
-mapSpotDraft = function(){
-  if(!$('sn')?.value) return toast('請先輸入景點名稱');
-  const kr = v643ReadKr('s');
-  const q = v643IsKorea() ? (kr.krAddr || kr.krName || [$('sn').value,$('sa')?.value,data.trip.dest].join(' ')) : [$('sn').value,$('sa')?.value,data.trip.dest].join(' ');
-  map(encodeURIComponent(q));
-};
-searchHotelAddress = function(){
-  if(!$('hname')?.value) return toast('請先輸入住宿名稱');
-  const kr = v643ReadKr('h');
-  const q = v643IsKorea() ? (kr.krAddr || kr.krName || [$('hname').value,$('haddr')?.value,data.trip.dest].join(' ')) : [$('hname').value,data.trip.dest].join(' ');
-  map(encodeURIComponent(q));
-};
-
-/* 口袋景點帶入行程時，韓文欄位也帶入表單。 */
-const __v643UseSpot = typeof useSpot === 'function' ? useSpot : null;
-if(__v643UseSpot){
-  useSpot = function(id){
-    const s=(data.spots || []).find(x=>x.id===id);
-    const result = __v643UseSpot.apply(this,arguments);
-    if(v643IsKorea() && s){
-      setTimeout(()=>{
-        v643InjectKoreaFields();
-        if($('pkrName')) $('pkrName').value=s.krName || '';
-        if($('pkrAddr')) $('pkrAddr').value=s.krAddr || s.krAddress || '';
-      },80);
-    }
-    return result;
-  };
-}
-
-/* 韓國地圖：單點搜尋與路線查詢優先使用韓文欄位；其他國家不改。 */
-map = function(q){
-  const query = v643Clean(q);
-  if(v643IsKorea()) return openKoreaMapChoice({type:'search', query:v643KoreaSearchText(query)});
-  openExternal?.(v641GoogleSearchUrl ? v641GoogleSearchUrl(query) : ('https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(query)));
-};
-routeCurrent = function(q){
-  const query = v643Clean(q);
-  if(v643IsKorea()) return openKoreaMapChoice({type:'search', query:v643KoreaSearchText(query)});
-  openExternal?.(v641GoogleSearchUrl ? v641GoogleSearchUrl(query) : ('https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(query)));
-};
-route = function(a,b,m){
-  const originRaw = v643Clean(a);
-  const destRaw = v643Clean(b);
-  if(v643IsKorea()){
-    const originObj = v643FindKnownPlace(originRaw);
-    const destObj = v643FindKnownPlace(destRaw);
-    return openKoreaMapChoice({
-      type:'route',
-      origin:v643PreferredPlaceText(originObj, originRaw),
-      destination:v643PreferredPlaceText(destObj, destRaw),
-      mode:m || '大眾運輸'
-    });
-  }
-  v643Open(v643GoogleRouteUrl(originRaw,destRaw,m || '大眾運輸'));
-};
-function v643GoogleBackup(origin,destination,mode){
-  v643Open(v643GoogleRouteUrl(origin,destination,mode || '大眾運輸'));
-}
-
-/* 重新覆寫韓國地圖彈窗：路線不再把起終點合成一長串搜尋字；Kakao 用 sName/eName，Naver 搜尋終點。 */
-openKoreaMapChoice = function(options={}){
-  ensureKoreaMapModal();
-  const type = options.type || 'search';
-  const mode = options.mode || '大眾運輸';
-  const origin = v643Clean(options.origin || '');
-  const destination = v643Clean(options.destination || options.query || '');
-  const searchQuery = v643Clean(options.query || destination);
-  const title = type === 'route' ? '查詢兩地交通' : '查詢地點';
-  const routeText = $('koreaMapRouteText');
-  const actions = $('koreaMapActions');
-  const hint = document.querySelector('#koreaMapModal .koreaMapHint');
-  $('koreaMapTitle').textContent = title;
-  if(type === 'route'){
-    routeText.innerHTML = `<span>起點</span><b>${esc(origin || '未設定')}</b><span>終點</span><b>${esc(destination || '未設定')}</b><span>交通方式</span><b>${esc(mode)}</b>`;
-    if(hint) hint.textContent = '韓國交通會優先使用韓文名稱或韓文地址。Kakao 會嘗試帶入起終點；Naver 若未直接進入路線，請用複製起終點後貼入路線查詢。';
-    const choices = [
-      {label:'Naver Map', cls:'dark', url:v643NaverSearchUrl(destination || origin)},
-      {label:'KakaoMap', cls:'blue', url:v643KakaoRouteUrl(origin,destination)},
-      {label:'複製起終點', cls:'soft', copyRoute:true},
-      {label:'Google 備用', cls:'', url:v643GoogleRouteUrl(origin,destination,mode)}
-    ];
-    actions.innerHTML = choices.map((x,i)=>`<button class="btn ${x.cls}" type="button" data-v643-map-action="${i}">${esc(x.label)}</button>`).join('');
-    actions.querySelectorAll('[data-v643-map-action]').forEach(btn=>{
-      btn.addEventListener('click',()=>{
-        const item=choices[Number(btn.dataset.v643MapAction)];
-        if(item.copyRoute) return v643CopyRoute(origin,destination);
-        v643Open(item.url);
-      });
-    });
-  }else{
-    routeText.innerHTML = `<span>查詢內容</span><b>${esc(searchQuery || '未設定')}</b>`;
-    if(hint) hint.textContent = '韓國地點會優先使用韓文名稱或韓文地址搜尋，沒有填寫時才使用原本名稱與地址。';
-    const choices = [
-      {label:'Naver Map', cls:'dark', url:v643NaverSearchUrl(searchQuery)},
-      {label:'KakaoMap', cls:'blue', url:v643KakaoSearchUrl(searchQuery)},
-      {label:'複製查詢文字', cls:'soft', copy:searchQuery},
-      {label:'Google 備用', cls:'', url:(typeof v639SearchUrl==='function'?v639SearchUrl('google',searchQuery):('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(searchQuery)))}
-    ];
-    actions.innerHTML = choices.map((x,i)=>`<button class="btn ${x.cls}" type="button" data-v643-map-action="${i}">${esc(x.label)}</button>`).join('');
-    actions.querySelectorAll('[data-v643-map-action]').forEach(btn=>{
-      btn.addEventListener('click',()=>{
-        const item=choices[Number(btn.dataset.v643MapAction)];
-        if(item.copy !== undefined) return (typeof v639CopyText==='function' ? v639CopyText(item.copy) : navigator.clipboard?.writeText(item.copy));
-        v643Open(item.url);
-      });
-    });
-  }
-  $('koreaMapModal').classList.add('show');
-  $('koreaMapModal').setAttribute('aria-hidden','false');
-};
-
-koreaRouteButtonsHtml = function(a,b,c){
-  const mode = (c && c.mode) || '大眾運輸';
-  const originText = v643PreferredPlaceText(a, ((a?.address || a?.addr || a?.name || '') + ' ' + (data.trip.dest || '')).trim());
-  const destText = v643PreferredPlaceText(b, ((b?.address || b?.addr || b?.name || '') + ' ' + (data.trip.dest || '')).trim());
-  if(!v643IsKorea()){
-    return `<button class="btn blue" onclick="route('${encodeURIComponent(originText)}','${encodeURIComponent(destText)}','${mode}')">Google Maps 查路線</button>`;
-  }
-  return `<button class="btn dark" onclick="route('${encodeURIComponent(originText)}','${encodeURIComponent(destText)}','${mode}')">Naver / Kakao 查交通</button><button class="btn soft" onclick="v643GoogleBackup('${encodeURIComponent(originText)}','${encodeURIComponent(destText)}','${mode}')">Google 備用</button>`;
-};
-
-/* 重新覆寫 connHtml，套用韓文優先起終點，但保留時間/車資/自動調整邏輯。 */
-connHtml = function(a,b){
-  let c=data.conns.find(x=>x.a==a.id&&x.b==b.id);
-  if(!c){c={id:uid(),a:a.id,b:b.id,mode:'大眾運輸',h:0,m:30,memo:'',fareForeign:0,fareTwd:0,payer:'未定',payMethod:'未定'};data.conns.push(c);silentSave();}
-  const arrival=addMinutes(a.end,(Number(c.h||0)*60+Number(c.m||0)));
-  const taxiBlock=c.mode==='開車/計程車'?`<div class="four" style="margin-top:8px"><div><label>車資 ${esc(data.trip.currency)}</label><input value="${c.fareForeign||''}" type="number" oninput="updConn('${c.id}','fareForeign',this.value)"></div><div><label>車資 TWD</label><input value="${c.fareTwd||''}" type="number" oninput="updConn('${c.id}','fareTwd',this.value)"></div><div><label>付款人</label><select onchange="updConn('${c.id}','payer',this.value)">${optsPayer(c.payer)}</select></div><div><label>付款方式</label><select onchange="updConn('${c.id}','payMethod',this.value)">${optsPayMethod(c.payMethod)}</select></div></div>`:'';
-  const koreaHint=v643IsKorea()?`<div class="koreaConnHint">韓國交通查詢會優先使用韓文名稱 / 地址。</div>`:'';
-  return `<div class="connector"><div class="arrow">↓</div><div class="connbox ${v643IsKorea()?'koreaConnbox':''}"><div class="three"><div><label>交通</label><select onchange="changeConnMode('${c.id}',this.value)"><option ${c.mode==='大眾運輸'?'selected':''}>大眾運輸</option><option ${c.mode==='走路'?'selected':''}>走路</option><option ${c.mode==='開車/計程車'?'selected':''}>開車/計程車</option></select></div><div><label>預估時間</label><div class="two"><select onchange="updConn('${c.id}','h',this.value)">${hourOptions(c.h)}</select><select onchange="updConn('${c.id}','m',this.value)">${minuteOptions(c.m)}</select></div></div><div><label>預估抵達</label><input value="${arrival||''}" disabled></div></div>${taxiBlock}${koreaHint}<div class="btns koreaRouteBtns">${koreaRouteButtonsHtml(a,b,c)}</div><input value="${esc(c.memo)}" placeholder="交通備註" oninput="updConn('${c.id}','memo',this.value)"></div></div>`;
-};
-
-/* 頁尾與說明頁 */
-function v643UpdateFooterVersion(){
-  document.querySelectorAll('footer strong,.siteFooterVersion').forEach(el=>el.textContent=V643_VERSION_SHORT);
-  if(typeof v637EnsureFooter==='function') v637EnsureFooter();
-}
-if(typeof v637FooterHtml==='function'){
-  v637FooterHtml=function(){
-    return `<footer id="siteFooter" class="siteFooter noPrint">
-      <div class="siteFooterBrand">貞選旅管家 <span>Janeselect Travel Manager</span></div>
-      <div class="siteFooterVersion">${esc(V643_VERSION_SHORT)}</div>
-      <div class="siteFooterLinks">
-        <button type="button" onclick="v637PolicyToast('服務條款')">服務條款</button><span>・</span>
-        <button type="button" onclick="v637PolicyToast('隱私權政策')">隱私權政策</button><span>・</span>
-        <button type="button" onclick="v637PolicyToast('聯絡我們')">聯絡我們</button>
-      </div>
-      <div class="siteFooterCopy">© 2026 Janeselect Travel Manager. All rights reserved.</div>
-    </footer>`;
-  };
-}
-const __v643RenderHelp = typeof renderHelp === 'function' ? renderHelp : null;
-if(__v643RenderHelp){
-  renderHelp=function(...args){
-    const r=__v643RenderHelp.apply(this,args);
-    const el=$('helpView');
-    if(el && !$('v643UpdateLog')){
-      el.insertAdjacentHTML('afterbegin', `<div class="card" id="v643UpdateLog">
-        <h3>最新更新紀錄</h3>
-        <div class="box mint">
-          <b>v64.3｜2026-05-31｜韓國交通查詢精準化版</b><br>
-          韓國旅程新增韓文名稱與韓文地址欄位；Naver / Kakao 查詢會優先使用韓文資料，交通查詢不再把起點、終點與交通方式合成一長串搜尋字。其他國家地圖與交通查詢維持原本 Google Maps 流程。<br><br>
-          <b>v64.2｜2026-05-31｜彈窗一致性與刪除安全版</b><br>
-          刪除、清除、匯入備份與載入雲端等操作改為貞選旅管家風格彈窗。
-        </div>
-      </div>`);
-    }
-    v643UpdateFooterVersion();
+const v64OriginalRenderPlanner = typeof renderPlanner === 'function' ? renderPlanner : null;
+if(v64OriginalRenderPlanner && !v64OriginalRenderPlanner.__v64AiWrapped){
+  renderPlanner = function(...args){
+    const r=v64OriginalRenderPlanner.apply(this,args);
+    setTimeout(()=>v64InsertAiBar('plannerView','planner'),0);
     return r;
   };
+  renderPlanner.__v64AiWrapped=true;
 }
-function v643AfterRender(){
-  v643InjectKoreaFields();
-  v643UpdateFooterVersion();
-  if(typeof v641PatchAnchorTargets==='function') v641PatchAnchorTargets(document);
+const v64OriginalRenderPacking = typeof renderPacking === 'function' ? renderPacking : null;
+if(v64OriginalRenderPacking && !v64OriginalRenderPacking.__v64AiWrapped){
+  renderPacking = function(...args){
+    const r=v64OriginalRenderPacking.apply(this,args);
+    setTimeout(()=>v64InsertAiBar('packingView','packing'),0);
+    return r;
+  };
+  renderPacking.__v64AiWrapped=true;
 }
-['render','renderHead','renderTrip','renderPlanner','renderSpots','renderLoginView','renderTripList'].forEach(fnName=>{
-  const original=window[fnName];
-  if(typeof original==='function' && !original.__v643Wrapped){
-    const wrapped=function(...args){
-      const result=original.apply(this,args);
-      setTimeout(v643AfterRender,0);
-      return result;
-    };
-    wrapped.__v643Wrapped=true;
-    window[fnName]=wrapped;
-  }
-});
-document.addEventListener('DOMContentLoaded',()=>{
-  v643AfterRender();
-  setTimeout(v643AfterRender,300);
-  setTimeout(v643AfterRender,900);
-});
-setTimeout(v643AfterRender,500);
-</script>
+const v64OriginalRenderBudget = typeof renderBudget === 'function' ? renderBudget : null;
+if(v64OriginalRenderBudget && !v64OriginalRenderBudget.__v64AiWrapped){
+  renderBudget = function(...args){
+    const r=v64OriginalRenderBudget.apply(this,args);
+    setTimeout(()=>v64InsertAiBar('budgetView','budget'),0);
+    return r;
+  };
+  renderBudget.__v64AiWrapped=true;
+}
 
-<style>
-/* ===== v64.3 Korea-only fields style ===== */
-.koreaKrFields{margin:8px 0 2px!important;padding:10px;border:1px dashed var(--theme-line,var(--line));border-radius:16px;background:linear-gradient(135deg,#fffdf9,#f6fbf8);}
-.koreaKrFields label{color:var(--theme-primary,#4A5D4E)!important;}
-#v643UpdateLog .box{line-height:1.72;}
-@media(max-width:620px){.koreaKrFields{grid-template-columns:1fr!important;padding:9px;border-radius:15px;}}
-@media print{.koreaKrFields{display:none!important;}}
-</style>
+/* 說明頁：最新更新紀錄只保留最新版，其他歷史更新移除。 */
+renderHelp = function(){
+  const allowed = (typeof ALLOWED_EMAIL !== 'undefined') ? ALLOWED_EMAIL : '';
+  $('helpView').innerHTML=`<div class="section"><div><h2>說明與備份</h2><div class="hint">工具使用方式、AI 輔助、資料備份與還原放在這裡。</div></div></div>
+  <div class="card" id="v64UpdateLog">
+    <h3>最新更新紀錄</h3>
+    <div class="box mint"><b>${esc(V64_VERSION_TEXT)}</b><br>AI 輔助整合到各功能頁：口袋景點可 AI 找景點與匯入，行程可 AI 健檢，行李與預算可由 AI 產生 JSON 後貼回匯入；口袋景點新增「探索」快速開啟遊記、影片、打卡、官方資料與 AI 摘要。旅遊書日記不交給 AI，保留個人回憶。</div>
+  </div>
+  <div class="card"><h3>AI 輔助使用方式</h3><div class="box blue">在口袋景點、行程、行李、預算頁使用 AI 按鈕。ChatGPT / Gemini 會先複製提示詞再開新分頁；AI 回覆 JSON 後可用「AI 匯入」貼回網站。匯入只新增資料，不會自動覆蓋既有內容。</div></div>
+  <div class="card"><h3>Firebase 跨裝置同步</h3><div class="box mint">登入授權 Google 帳號後，旅遊資料會同步到 Firestore。照片本體仍存在 Cloudinary，Firestore 只保存圖片網址與旅行資料。</div><div class="btns"><button class="btn dark" onclick="saveToCloudNow()">立即同步到雲端</button><button class="btn blue" onclick="loadFromCloud()">載入雲端資料</button></div>${allowed?`<div class="cloudHint">目前授權 email：${esc(allowed)}</div>`:''}</div>
+  <div class="card"><h3>備份資料</h3><div class="box blue">匯出備份會下載 JSON。匯入備份會覆蓋目前資料。若要修改國家或日期，建議先匯出備份。</div><div class="btns"><button class="btn dark" onclick="exportBackup()">匯出備份</button><label class="btn soft" style="display:inline-block">匯入備份<input type="file" accept=".json,application/json" onchange="importBackup(this.files[0])" style="display:none"></label></div></div>`;
+  if(typeof v641PatchAnchorTargets === 'function') v641PatchAnchorTargets($('helpView'));
+  v64UpdateFooterVersion();
+};
+
+function v64AfterRender(){
+  v64PatchSpots();
+  v64InsertAiBar('plannerView','planner');
+  v64InsertAiBar('packingView','packing');
+  v64InsertAiBar('budgetView','budget');
+  v64UpdateFooterVersion();
+  if(typeof v641PatchAnchorTargets === 'function') v641PatchAnchorTargets(document);
+}
+const v64OriginalRender = typeof render === 'function' ? render : null;
+if(v64OriginalRender && !v64OriginalRender.__v64AiWrapped){
+  render = function(...args){
+    const r=v64OriginalRender.apply(this,args);
+    setTimeout(v64AfterRender,0);
+    return r;
+  };
+  render.__v64AiWrapped=true;
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  setTimeout(v64AfterRender,300);
+  setTimeout(v64AfterRender,900);
+});
+setTimeout(()=>{
+  v64AfterRender();
+  try{ if(typeof render === 'function') render(); }catch(e){}
+},500);
+</script>
 
 </body></html>
