@@ -17441,4 +17441,175 @@ label{font-size:13px!important;line-height:1.3!important;color:var(--v64-brand-i
 }
 </style>
 
+
+
+<script>
+/* ===== v64.1 external link behavior + update log only =====
+   目標：外部連結與跨頁工具一律新分頁開啟，避免地圖覆蓋目前旅程頁面。
+   體驗原則：不在前台按鈕文字加「另開」，不彈提示視窗；詳細修改紀錄放在說明頁。
+   安全範圍：不改 data 結構、localStorage key、Firestore 路徑、Cloudinary、行程/預算/照片書資料格式。
+*/
+const V641_VERSION_SHORT = '版本：v64.1｜2026-05-31';
+const V641_VERSION_TEXT = '版本：v64.1｜2026-05-31｜外部連結新分頁與更新紀錄整理版';
+
+function openExternal(url){
+  const u = String(url || '').trim();
+  if(!u) return;
+  try{
+    const a = document.createElement('a');
+    a.href = u;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    a.style.position = 'fixed';
+    a.style.left = '-9999px';
+    a.style.top = '-9999px';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }catch(e){
+    try{ window.open(u, '_blank', 'noopener,noreferrer'); }catch(_e){}
+  }
+}
+
+/* 外部地圖與查詢：保留原按鈕文字，只改開啟行為 */
+function v641CleanText(q){
+  if(typeof v639CleanText === 'function') return v639CleanText(q);
+  return String(q || '').replace(/\s+/g,' ').trim();
+}
+function v641DecodeMaybe(q){
+  if(typeof v639DecodeMaybe === 'function') return v639DecodeMaybe(q);
+  try{return decodeURIComponent(String(q || ''));}catch(e){return String(q || '');}
+}
+function v641GoogleSearchUrl(query){
+  const q = encodeURIComponent(v641CleanText(v641DecodeMaybe(query)));
+  return 'https://www.google.com/maps/search/?api=1&query=' + q;
+}
+function v641GoogleRouteUrl(origin, destination, mode){
+  if(typeof v639GoogleRouteUrl === 'function') return v639GoogleRouteUrl(origin, destination, mode);
+  const o = encodeURIComponent(v641CleanText(v641DecodeMaybe(origin)));
+  const d = encodeURIComponent(v641CleanText(v641DecodeMaybe(destination)));
+  const travelmode = mode === '走路' ? 'walking' : mode === '開車/計程車' ? 'driving' : 'transit';
+  return `https://www.google.com/maps/dir/?api=1&origin=${o}&destination=${d}&travelmode=${travelmode}`;
+}
+
+/* v63.9 的地圖開啟函式改成純新分頁，不再 fallback 到目前頁面 */
+v639OpenUrl = function(url){ openExternal(url); };
+
+openRateSearch = function(){
+  openExternal(`https://www.google.com/search?q=${encodeURIComponent((data.trip.currency||'KRW')+' TWD 匯率')}`);
+};
+
+map = function(q){
+  const query = v641CleanText(v641DecodeMaybe(q));
+  if(typeof isKoreaTrip === 'function' && isKoreaTrip()) return openKoreaMapChoice({type:'search', query});
+  openExternal(v641GoogleSearchUrl(query));
+};
+routeCurrent = function(q){
+  const query = v641CleanText(v641DecodeMaybe(q));
+  if(typeof isKoreaTrip === 'function' && isKoreaTrip()) return openKoreaMapChoice({type:'search', query});
+  openExternal(v641GoogleSearchUrl(query));
+};
+route = function(a,b,m){
+  const origin = v641CleanText(v641DecodeMaybe(a));
+  const destination = v641CleanText(v641DecodeMaybe(b));
+  if(typeof isKoreaTrip === 'function' && isKoreaTrip()) return openKoreaMapChoice({type:'route', origin, destination, mode:m || '大眾運輸'});
+  openExternal(v641GoogleRouteUrl(origin, destination, m || '大眾運輸'));
+};
+function v639GoogleBackupFromEncoded(originEncoded, destEncoded, mode){
+  openExternal(v641GoogleRouteUrl(originEncoded, destEncoded, mode || '大眾運輸'));
+}
+
+/* export.html 屬於跨頁工具，也固定新分頁，避免離開目前旅程 */
+openPdfPublisher = function(autoPrint=false){
+  try{ save(); }catch(e){}
+  openExternal(autoPrint ? 'export.html?print=1' : 'export.html');
+};
+exportPhotoBookPDF = function(){ openPdfPublisher(false); };
+
+/* 靜態 <a> 外部連結安全屬性：只補行為，不新增 UI 文案 */
+function v641PatchAnchorTargets(root=document){
+  root.querySelectorAll('a[href]').forEach(a=>{
+    const href = a.getAttribute('href') || '';
+    if(/^https?:\/\//i.test(href) || href.endsWith('.html') || href.includes('export.html')){
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+    }
+  });
+}
+
+function v641UpdateFooterVersion(){
+  document.querySelectorAll('footer strong,.siteFooterVersion').forEach(el=>el.textContent=V641_VERSION_SHORT);
+  if(typeof v637EnsureFooter === 'function') v637EnsureFooter();
+}
+if(typeof v637FooterHtml === 'function'){
+  v637FooterHtml = function(){
+    return `<footer id="siteFooter" class="siteFooter noPrint">
+      <div class="siteFooterBrand">貞選旅管家 <span>Janeselect Travel Manager</span></div>
+      <div class="siteFooterVersion">${esc(V641_VERSION_SHORT)}</div>
+      <div class="siteFooterLinks">
+        <button type="button" onclick="v637PolicyToast('服務條款')">服務條款</button><span>・</span>
+        <button type="button" onclick="v637PolicyToast('隱私權政策')">隱私權政策</button><span>・</span>
+        <button type="button" onclick="v637PolicyToast('聯絡我們')">聯絡我們</button>
+      </div>
+      <div class="siteFooterCopy">© 2026 Janeselect Travel Manager. All rights reserved.</div>
+    </footer>`;
+  };
+}
+
+const v641OriginalRenderHelp = typeof renderHelp === 'function' ? renderHelp : null;
+if(v641OriginalRenderHelp){
+  renderHelp = function(...args){
+    const r = v641OriginalRenderHelp.apply(this,args);
+    const el = $('helpView');
+    if(el && !$('v641UpdateLog')){
+      el.insertAdjacentHTML('afterbegin', `<div class="card" id="v641UpdateLog">
+        <h3>最新更新紀錄</h3>
+        <div class="box mint">
+          <b>v64.1｜2026-05-31｜外部連結新分頁與更新紀錄整理版</b><br>
+          地圖、Naver / Kakao、Google 備用、匯率查詢與旅遊書匯出等跨頁操作改為新分頁開啟，避免覆蓋目前旅程頁面。前台按鈕文字維持簡潔，不額外顯示工程提示。<br><br>
+          <b>v64｜2026-05-31｜品牌視覺一致與外觀自訂整理版</b><br>
+          統一 Logo、按鈕、彈窗、頁籤與手機版視覺規格，同時保留外觀設定與旅程卡片色系。<br><br>
+          <b>v63.9｜2026-05-31｜韓國地圖連結修正版</b><br>
+          修正韓國旅程中 Naver Map、KakaoMap 與 Google 備用連結開啟失敗問題。
+        </div>
+      </div>`);
+    }
+    v641PatchAnchorTargets(el || document);
+    v641UpdateFooterVersion();
+    return r;
+  };
+}
+
+function v641AfterRender(){
+  v641PatchAnchorTargets(document);
+  v641UpdateFooterVersion();
+}
+
+['render','renderHead','renderTripList','renderLoginView'].forEach(fnName=>{
+  const original = window[fnName];
+  if(typeof original === 'function' && !original.__v641Wrapped){
+    const wrapped = function(...args){
+      const result = original.apply(this,args);
+      setTimeout(v641AfterRender,0);
+      return result;
+    };
+    wrapped.__v641Wrapped = true;
+    window[fnName] = wrapped;
+  }
+});
+
+document.addEventListener('DOMContentLoaded',()=>{
+  v641AfterRender();
+  setTimeout(v641AfterRender,300);
+  setTimeout(v641AfterRender,900);
+});
+setTimeout(v641AfterRender,500);
+</script>
+
+<style>
+/* ===== v64.1 UX text cleanup only ===== */
+.koreaMapHint::after{content:none!important;}
+#v641UpdateLog .box{line-height:1.72;}
+</style>
+
 </body></html>
