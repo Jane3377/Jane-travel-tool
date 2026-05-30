@@ -18017,4 +18017,412 @@ document.addEventListener('DOMContentLoaded',()=>{
 });
 setTimeout(v642AfterRender,500);
 </script>
+
+
+<script>
+/* ===== v64.3 Korea-only transit precision + Korean fields =====
+   目標：只針對韓國旅程改善 Naver / Kakao 查詢精準度。
+   安全範圍：不改 Firebase 路徑、localStorage key、Cloudinary、預算/照片書/航班主結構。
+   資料相容：僅在既有 hotel / spot / plan 物件中新增選填欄位 krName / krAddr；舊資料沒有欄位仍正常。
+*/
+const V643_VERSION_SHORT = '版本：v64.3｜2026-05-31';
+const V643_VERSION_TEXT = '版本：v64.3｜2026-05-31｜韓國交通查詢精準化版';
+
+function v643IsKorea(){
+  return typeof isKoreaTrip === 'function' && isKoreaTrip();
+}
+function v643Clean(v){
+  const raw = String(v || '');
+  let decoded = raw;
+  try{ decoded = decodeURIComponent(raw); }catch(e){}
+  return decoded.replace(/\s+/g,' ').trim();
+}
+function v643HasHangul(v){
+  return /[\u3131-\u318E\uAC00-\uD7A3]/.test(String(v || ''));
+}
+function v643TripSuffix(){
+  const dest = v643Clean(data?.trip?.dest || '');
+  const country = v643Clean(data?.trip?.country || '');
+  return [dest, country].filter(Boolean).join(' ');
+}
+function v643PreferredPlaceText(item, fallback){
+  const obj = item || {};
+  const chosen = v643Clean(obj.krAddr || obj.krAddress || obj.krName || obj.address || obj.addr || obj.name || fallback || '');
+  if(!chosen) return v643Clean(fallback || '');
+  // 已有韓文欄位時直接使用；否則加上目的地，避免中文景點名太泛。
+  if(v643HasHangul(chosen)) return chosen;
+  const suffix = v643TripSuffix();
+  return v643Clean([chosen, suffix].filter(Boolean).join(' '));
+}
+function v643FindKnownPlace(query){
+  const q = v643Clean(query);
+  if(!q) return null;
+  const all = [];
+  (data?.plans || []).forEach(x=>all.push(x));
+  (data?.spots || []).forEach(x=>all.push(x));
+  (data?.hotels || []).forEach(x=>all.push(x));
+  return all.find(x=>{
+    const vals = [x.name, x.addr, x.address, x.krName, x.krAddr, x.krAddress].map(v643Clean).filter(Boolean);
+    return vals.some(v=> q.includes(v) || v.includes(q));
+  }) || null;
+}
+function v643KoreaSearchText(query){
+  const known = v643FindKnownPlace(query);
+  return known ? v643PreferredPlaceText(known, query) : v643Clean(query);
+}
+function v643NaverSearchUrl(query){
+  return 'https://map.naver.com/p/search/' + encodeURIComponent(v643Clean(query));
+}
+function v643KakaoSearchUrl(query){
+  return 'https://map.kakao.com/link/search/' + encodeURIComponent(v643Clean(query));
+}
+function v643KakaoRouteUrl(origin, destination){
+  // Kakao 網頁版可用 sName / eName 帶入起終點名稱；沒有座標時仍由 Kakao 判斷最接近地點。
+  return 'https://map.kakao.com/?sName=' + encodeURIComponent(v643Clean(origin)) + '&eName=' + encodeURIComponent(v643Clean(destination));
+}
+function v643GoogleRouteUrl(origin, destination, mode){
+  if(typeof v641GoogleRouteUrl === 'function') return v641GoogleRouteUrl(origin, destination, mode);
+  if(typeof v639GoogleRouteUrl === 'function') return v639GoogleRouteUrl(origin, destination, mode);
+  const travelmode = mode === '走路' ? 'walking' : mode === '開車/計程車' ? 'driving' : 'transit';
+  return 'https://www.google.com/maps/dir/?api=1&origin=' + encodeURIComponent(v643Clean(origin)) + '&destination=' + encodeURIComponent(v643Clean(destination)) + '&travelmode=' + travelmode;
+}
+function v643Open(url){
+  if(typeof openExternal === 'function') return openExternal(url);
+  if(typeof v639OpenUrl === 'function') return v639OpenUrl(url);
+  window.open(url,'_blank','noopener,noreferrer');
+}
+function v643CopyRoute(origin,destination){
+  const text = `起點：${v643Clean(origin)}\n終點：${v643Clean(destination)}`;
+  if(typeof v639CopyText === 'function') return v639CopyText(text);
+  navigator.clipboard?.writeText(text).then(()=>toast('已複製起終點')).catch(()=>toast(text));
+}
+function v643KrFieldsHtml(prefix, obj={}){
+  if(!v643IsKorea()) return '';
+  return `<div class="two koreaKrFields noPrint" data-v643-kr-fields="${prefix}">
+    <div><label>韓文名稱</label><input id="${prefix}krName" value="${esc(obj.krName || '')}" placeholder="例如 해운대 블루라인파크"></div>
+    <div><label>韓文地址</label><input id="${prefix}krAddr" value="${esc(obj.krAddr || obj.krAddress || '')}" placeholder="可貼上 Naver / Kakao 上的韓文地址"></div>
+  </div>`;
+}
+function v643ReadKr(prefix){
+  return {
+    krName: v643Clean($(prefix+'krName')?.value || ''),
+    krAddr: v643Clean($(prefix+'krAddr')?.value || '')
+  };
+}
+function v643ApplyKr(target, kr){
+  if(!target || !v643IsKorea()) return;
+  target.krName = kr.krName || '';
+  target.krAddr = kr.krAddr || '';
+}
+
+/* 韓國旅程才注入韓文欄位；其他國家完全不顯示、不讀寫。 */
+function v643InjectKoreaFields(){
+  if(!v643IsKorea()) return;
+  const planObj = editingPlanId ? (data.plans || []).find(x=>x.id===editingPlanId) : null;
+  if($('pname') && !$('pkrName')){
+    $('pname').insertAdjacentHTML('afterend', v643KrFieldsHtml('p', planObj || {}));
+  }
+  const spotObj = editingSpotId ? (data.spots || []).find(x=>x.id===editingSpotId) : null;
+  if($('sa') && !$('skrName')){
+    const row = $('sa').closest('.two') || $('sa');
+    row.insertAdjacentHTML('afterend', v643KrFieldsHtml('s', spotObj || {}));
+  }
+  const hotelObj = editingHotelId ? (data.hotels || []).find(x=>x.id===editingHotelId) : null;
+  if($('haddr') && !$('hkrName')){
+    const row = $('haddr').closest('.two') || $('haddr');
+    row.insertAdjacentHTML('afterend', v643KrFieldsHtml('h', hotelObj || {}));
+  }
+}
+
+/* 表單儲存：只在韓國旅程把韓文欄位存進該物件，舊資料向下相容。 */
+const __v643SavePlanForm = typeof savePlanForm === 'function' ? savePlanForm : null;
+if(__v643SavePlanForm){
+  savePlanForm = function(...args){
+    const wasKorea = v643IsKorea();
+    const editId = editingPlanId;
+    const snapshot = wasKorea ? {day:$('pday')?.value, start:$('ps')?.value, name:$('pname')?.value, kr:v643ReadKr('p')} : null;
+    const result = __v643SavePlanForm.apply(this,args);
+    if(wasKorea && snapshot){
+      let target = editId ? (data.plans || []).find(x=>x.id===editId) : null;
+      if(!target){
+        const matches = (data.plans || []).filter(x=>x.day===snapshot.day && x.start===snapshot.start && x.name===snapshot.name);
+        target = matches[matches.length-1] || (data.plans || [])[data.plans.length-1];
+      }
+      if(target){
+        v643ApplyKr(target, snapshot.kr);
+        silentSave?.();
+        render?.();
+      }
+    }
+    return result;
+  };
+}
+const __v643FillPlanForm = typeof fillPlanForm === 'function' ? fillPlanForm : null;
+if(__v643FillPlanForm){
+  fillPlanForm = function(id){
+    const result = __v643FillPlanForm.apply(this,arguments);
+    setTimeout(()=>{
+      v643InjectKoreaFields();
+      const p=(data.plans || []).find(x=>x.id===id);
+      if(p && $('pkrName')) $('pkrName').value=p.krName || '';
+      if(p && $('pkrAddr')) $('pkrAddr').value=p.krAddr || p.krAddress || '';
+    },0);
+    return result;
+  };
+}
+const __v643SaveSpot = typeof saveSpot === 'function' ? saveSpot : null;
+if(__v643SaveSpot){
+  saveSpot = function(...args){
+    const wasKorea = v643IsKorea();
+    const editId = editingSpotId;
+    const snapshot = wasKorea ? {name:$('sn')?.value, day:$('sd')?.value, toPlan:$('sToPlan')?.value, kr:v643ReadKr('s')} : null;
+    const result = __v643SaveSpot.apply(this,args);
+    if(wasKorea && snapshot){
+      let target = editId ? (data.spots || []).find(x=>x.id===editId) : null;
+      if(!target){
+        const matches = (data.spots || []).filter(x=>x.name===snapshot.name && x.day===snapshot.day);
+        target = matches[matches.length-1] || (data.spots || [])[data.spots.length-1];
+      }
+      if(target) v643ApplyKr(target, snapshot.kr);
+      // 如果同時排入行程，也把韓文欄位同步到剛建立的行程。
+      if(snapshot.toPlan === 'yes'){
+        const plans=(data.plans || []).filter(x=>x.name===snapshot.name && x.day===(snapshot.day || cur));
+        const p=plans[plans.length-1];
+        if(p) v643ApplyKr(p, snapshot.kr);
+      }
+      silentSave?.();
+      render?.();
+    }
+    return result;
+  };
+}
+const __v643SaveHotel = typeof saveHotel === 'function' ? saveHotel : null;
+if(__v643SaveHotel){
+  saveHotel = function(...args){
+    const wasKorea = v643IsKorea();
+    const editId = editingHotelId;
+    const snapshot = wasKorea ? {name:$('hname')?.value, start:$('hstart')?.value, kr:v643ReadKr('h')} : null;
+    const result = __v643SaveHotel.apply(this,args);
+    if(wasKorea && snapshot){
+      let target = editId ? (data.hotels || []).find(x=>x.id===editId) : null;
+      if(!target){
+        const matches = (data.hotels || []).filter(x=>x.name===snapshot.name && x.start===snapshot.start);
+        target = matches[matches.length-1] || (data.hotels || [])[data.hotels.length-1];
+      }
+      if(target){
+        v643ApplyKr(target, snapshot.kr);
+        silentSave?.();
+        render?.();
+      }
+    }
+    return result;
+  };
+}
+
+/* 搜尋草稿：韓國旅程優先使用韓文欄位；其他國家維持原本 Google 行為。 */
+mapSpotDraft = function(){
+  if(!$('sn')?.value) return toast('請先輸入景點名稱');
+  const kr = v643ReadKr('s');
+  const q = v643IsKorea() ? (kr.krAddr || kr.krName || [$('sn').value,$('sa')?.value,data.trip.dest].join(' ')) : [$('sn').value,$('sa')?.value,data.trip.dest].join(' ');
+  map(encodeURIComponent(q));
+};
+searchHotelAddress = function(){
+  if(!$('hname')?.value) return toast('請先輸入住宿名稱');
+  const kr = v643ReadKr('h');
+  const q = v643IsKorea() ? (kr.krAddr || kr.krName || [$('hname').value,$('haddr')?.value,data.trip.dest].join(' ')) : [$('hname').value,data.trip.dest].join(' ');
+  map(encodeURIComponent(q));
+};
+
+/* 口袋景點帶入行程時，韓文欄位也帶入表單。 */
+const __v643UseSpot = typeof useSpot === 'function' ? useSpot : null;
+if(__v643UseSpot){
+  useSpot = function(id){
+    const s=(data.spots || []).find(x=>x.id===id);
+    const result = __v643UseSpot.apply(this,arguments);
+    if(v643IsKorea() && s){
+      setTimeout(()=>{
+        v643InjectKoreaFields();
+        if($('pkrName')) $('pkrName').value=s.krName || '';
+        if($('pkrAddr')) $('pkrAddr').value=s.krAddr || s.krAddress || '';
+      },80);
+    }
+    return result;
+  };
+}
+
+/* 韓國地圖：單點搜尋與路線查詢優先使用韓文欄位；其他國家不改。 */
+map = function(q){
+  const query = v643Clean(q);
+  if(v643IsKorea()) return openKoreaMapChoice({type:'search', query:v643KoreaSearchText(query)});
+  openExternal?.(v641GoogleSearchUrl ? v641GoogleSearchUrl(query) : ('https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(query)));
+};
+routeCurrent = function(q){
+  const query = v643Clean(q);
+  if(v643IsKorea()) return openKoreaMapChoice({type:'search', query:v643KoreaSearchText(query)});
+  openExternal?.(v641GoogleSearchUrl ? v641GoogleSearchUrl(query) : ('https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(query)));
+};
+route = function(a,b,m){
+  const originRaw = v643Clean(a);
+  const destRaw = v643Clean(b);
+  if(v643IsKorea()){
+    const originObj = v643FindKnownPlace(originRaw);
+    const destObj = v643FindKnownPlace(destRaw);
+    return openKoreaMapChoice({
+      type:'route',
+      origin:v643PreferredPlaceText(originObj, originRaw),
+      destination:v643PreferredPlaceText(destObj, destRaw),
+      mode:m || '大眾運輸'
+    });
+  }
+  v643Open(v643GoogleRouteUrl(originRaw,destRaw,m || '大眾運輸'));
+};
+function v643GoogleBackup(origin,destination,mode){
+  v643Open(v643GoogleRouteUrl(origin,destination,mode || '大眾運輸'));
+}
+
+/* 重新覆寫韓國地圖彈窗：路線不再把起終點合成一長串搜尋字；Kakao 用 sName/eName，Naver 搜尋終點。 */
+openKoreaMapChoice = function(options={}){
+  ensureKoreaMapModal();
+  const type = options.type || 'search';
+  const mode = options.mode || '大眾運輸';
+  const origin = v643Clean(options.origin || '');
+  const destination = v643Clean(options.destination || options.query || '');
+  const searchQuery = v643Clean(options.query || destination);
+  const title = type === 'route' ? '查詢兩地交通' : '查詢地點';
+  const routeText = $('koreaMapRouteText');
+  const actions = $('koreaMapActions');
+  const hint = document.querySelector('#koreaMapModal .koreaMapHint');
+  $('koreaMapTitle').textContent = title;
+  if(type === 'route'){
+    routeText.innerHTML = `<span>起點</span><b>${esc(origin || '未設定')}</b><span>終點</span><b>${esc(destination || '未設定')}</b><span>交通方式</span><b>${esc(mode)}</b>`;
+    if(hint) hint.textContent = '韓國交通會優先使用韓文名稱或韓文地址。Kakao 會嘗試帶入起終點；Naver 若未直接進入路線，請用複製起終點後貼入路線查詢。';
+    const choices = [
+      {label:'Naver Map', cls:'dark', url:v643NaverSearchUrl(destination || origin)},
+      {label:'KakaoMap', cls:'blue', url:v643KakaoRouteUrl(origin,destination)},
+      {label:'複製起終點', cls:'soft', copyRoute:true},
+      {label:'Google 備用', cls:'', url:v643GoogleRouteUrl(origin,destination,mode)}
+    ];
+    actions.innerHTML = choices.map((x,i)=>`<button class="btn ${x.cls}" type="button" data-v643-map-action="${i}">${esc(x.label)}</button>`).join('');
+    actions.querySelectorAll('[data-v643-map-action]').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const item=choices[Number(btn.dataset.v643MapAction)];
+        if(item.copyRoute) return v643CopyRoute(origin,destination);
+        v643Open(item.url);
+      });
+    });
+  }else{
+    routeText.innerHTML = `<span>查詢內容</span><b>${esc(searchQuery || '未設定')}</b>`;
+    if(hint) hint.textContent = '韓國地點會優先使用韓文名稱或韓文地址搜尋，沒有填寫時才使用原本名稱與地址。';
+    const choices = [
+      {label:'Naver Map', cls:'dark', url:v643NaverSearchUrl(searchQuery)},
+      {label:'KakaoMap', cls:'blue', url:v643KakaoSearchUrl(searchQuery)},
+      {label:'複製查詢文字', cls:'soft', copy:searchQuery},
+      {label:'Google 備用', cls:'', url:(typeof v639SearchUrl==='function'?v639SearchUrl('google',searchQuery):('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(searchQuery)))}
+    ];
+    actions.innerHTML = choices.map((x,i)=>`<button class="btn ${x.cls}" type="button" data-v643-map-action="${i}">${esc(x.label)}</button>`).join('');
+    actions.querySelectorAll('[data-v643-map-action]').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const item=choices[Number(btn.dataset.v643MapAction)];
+        if(item.copy !== undefined) return (typeof v639CopyText==='function' ? v639CopyText(item.copy) : navigator.clipboard?.writeText(item.copy));
+        v643Open(item.url);
+      });
+    });
+  }
+  $('koreaMapModal').classList.add('show');
+  $('koreaMapModal').setAttribute('aria-hidden','false');
+};
+
+koreaRouteButtonsHtml = function(a,b,c){
+  const mode = (c && c.mode) || '大眾運輸';
+  const originText = v643PreferredPlaceText(a, ((a?.address || a?.addr || a?.name || '') + ' ' + (data.trip.dest || '')).trim());
+  const destText = v643PreferredPlaceText(b, ((b?.address || b?.addr || b?.name || '') + ' ' + (data.trip.dest || '')).trim());
+  if(!v643IsKorea()){
+    return `<button class="btn blue" onclick="route('${encodeURIComponent(originText)}','${encodeURIComponent(destText)}','${mode}')">Google Maps 查路線</button>`;
+  }
+  return `<button class="btn dark" onclick="route('${encodeURIComponent(originText)}','${encodeURIComponent(destText)}','${mode}')">Naver / Kakao 查交通</button><button class="btn soft" onclick="v643GoogleBackup('${encodeURIComponent(originText)}','${encodeURIComponent(destText)}','${mode}')">Google 備用</button>`;
+};
+
+/* 重新覆寫 connHtml，套用韓文優先起終點，但保留時間/車資/自動調整邏輯。 */
+connHtml = function(a,b){
+  let c=data.conns.find(x=>x.a==a.id&&x.b==b.id);
+  if(!c){c={id:uid(),a:a.id,b:b.id,mode:'大眾運輸',h:0,m:30,memo:'',fareForeign:0,fareTwd:0,payer:'未定',payMethod:'未定'};data.conns.push(c);silentSave();}
+  const arrival=addMinutes(a.end,(Number(c.h||0)*60+Number(c.m||0)));
+  const taxiBlock=c.mode==='開車/計程車'?`<div class="four" style="margin-top:8px"><div><label>車資 ${esc(data.trip.currency)}</label><input value="${c.fareForeign||''}" type="number" oninput="updConn('${c.id}','fareForeign',this.value)"></div><div><label>車資 TWD</label><input value="${c.fareTwd||''}" type="number" oninput="updConn('${c.id}','fareTwd',this.value)"></div><div><label>付款人</label><select onchange="updConn('${c.id}','payer',this.value)">${optsPayer(c.payer)}</select></div><div><label>付款方式</label><select onchange="updConn('${c.id}','payMethod',this.value)">${optsPayMethod(c.payMethod)}</select></div></div>`:'';
+  const koreaHint=v643IsKorea()?`<div class="koreaConnHint">韓國交通查詢會優先使用韓文名稱 / 地址。</div>`:'';
+  return `<div class="connector"><div class="arrow">↓</div><div class="connbox ${v643IsKorea()?'koreaConnbox':''}"><div class="three"><div><label>交通</label><select onchange="changeConnMode('${c.id}',this.value)"><option ${c.mode==='大眾運輸'?'selected':''}>大眾運輸</option><option ${c.mode==='走路'?'selected':''}>走路</option><option ${c.mode==='開車/計程車'?'selected':''}>開車/計程車</option></select></div><div><label>預估時間</label><div class="two"><select onchange="updConn('${c.id}','h',this.value)">${hourOptions(c.h)}</select><select onchange="updConn('${c.id}','m',this.value)">${minuteOptions(c.m)}</select></div></div><div><label>預估抵達</label><input value="${arrival||''}" disabled></div></div>${taxiBlock}${koreaHint}<div class="btns koreaRouteBtns">${koreaRouteButtonsHtml(a,b,c)}</div><input value="${esc(c.memo)}" placeholder="交通備註" oninput="updConn('${c.id}','memo',this.value)"></div></div>`;
+};
+
+/* 頁尾與說明頁 */
+function v643UpdateFooterVersion(){
+  document.querySelectorAll('footer strong,.siteFooterVersion').forEach(el=>el.textContent=V643_VERSION_SHORT);
+  if(typeof v637EnsureFooter==='function') v637EnsureFooter();
+}
+if(typeof v637FooterHtml==='function'){
+  v637FooterHtml=function(){
+    return `<footer id="siteFooter" class="siteFooter noPrint">
+      <div class="siteFooterBrand">貞選旅管家 <span>Janeselect Travel Manager</span></div>
+      <div class="siteFooterVersion">${esc(V643_VERSION_SHORT)}</div>
+      <div class="siteFooterLinks">
+        <button type="button" onclick="v637PolicyToast('服務條款')">服務條款</button><span>・</span>
+        <button type="button" onclick="v637PolicyToast('隱私權政策')">隱私權政策</button><span>・</span>
+        <button type="button" onclick="v637PolicyToast('聯絡我們')">聯絡我們</button>
+      </div>
+      <div class="siteFooterCopy">© 2026 Janeselect Travel Manager. All rights reserved.</div>
+    </footer>`;
+  };
+}
+const __v643RenderHelp = typeof renderHelp === 'function' ? renderHelp : null;
+if(__v643RenderHelp){
+  renderHelp=function(...args){
+    const r=__v643RenderHelp.apply(this,args);
+    const el=$('helpView');
+    if(el && !$('v643UpdateLog')){
+      el.insertAdjacentHTML('afterbegin', `<div class="card" id="v643UpdateLog">
+        <h3>最新更新紀錄</h3>
+        <div class="box mint">
+          <b>v64.3｜2026-05-31｜韓國交通查詢精準化版</b><br>
+          韓國旅程新增韓文名稱與韓文地址欄位；Naver / Kakao 查詢會優先使用韓文資料，交通查詢不再把起點、終點與交通方式合成一長串搜尋字。其他國家地圖與交通查詢維持原本 Google Maps 流程。<br><br>
+          <b>v64.2｜2026-05-31｜彈窗一致性與刪除安全版</b><br>
+          刪除、清除、匯入備份與載入雲端等操作改為貞選旅管家風格彈窗。
+        </div>
+      </div>`);
+    }
+    v643UpdateFooterVersion();
+    return r;
+  };
+}
+function v643AfterRender(){
+  v643InjectKoreaFields();
+  v643UpdateFooterVersion();
+  if(typeof v641PatchAnchorTargets==='function') v641PatchAnchorTargets(document);
+}
+['render','renderHead','renderTrip','renderPlanner','renderSpots','renderLoginView','renderTripList'].forEach(fnName=>{
+  const original=window[fnName];
+  if(typeof original==='function' && !original.__v643Wrapped){
+    const wrapped=function(...args){
+      const result=original.apply(this,args);
+      setTimeout(v643AfterRender,0);
+      return result;
+    };
+    wrapped.__v643Wrapped=true;
+    window[fnName]=wrapped;
+  }
+});
+document.addEventListener('DOMContentLoaded',()=>{
+  v643AfterRender();
+  setTimeout(v643AfterRender,300);
+  setTimeout(v643AfterRender,900);
+});
+setTimeout(v643AfterRender,500);
+</script>
+
+<style>
+/* ===== v64.3 Korea-only fields style ===== */
+.koreaKrFields{margin:8px 0 2px!important;padding:10px;border:1px dashed var(--theme-line,var(--line));border-radius:16px;background:linear-gradient(135deg,#fffdf9,#f6fbf8);}
+.koreaKrFields label{color:var(--theme-primary,#4A5D4E)!important;}
+#v643UpdateLog .box{line-height:1.72;}
+@media(max-width:620px){.koreaKrFields{grid-template-columns:1fr!important;padding:9px;border-radius:15px;}}
+@media print{.koreaKrFields{display:none!important;}}
+</style>
+
 </body></html>
