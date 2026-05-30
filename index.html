@@ -5260,6 +5260,193 @@ body[data-theme-mode] .btn.pink{
 </style>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<style>
+
+/* ===== v63.4 UI refinement: theme settings + larger tabs only ===== */
+/* 只調整外觀設定入口與頁籤可讀性，不改 data / localStorage / Firebase / Cloudinary 資料結構 */
+.tabs{
+  gap:10px !important;
+  margin:16px 0 14px !important;
+}
+.tab{
+  font-size:15px !important;
+  line-height:1.15 !important;
+  padding:12px 17px !important;
+  min-height:44px !important;
+  border-radius:999px !important;
+  letter-spacing:.2px !important;
+}
+.tab.lockedTab{
+  opacity:.58;
+}
+.mobileTopNav .nav{
+  font-size:14px !important;
+  min-width:96px !important;
+  padding:11px 15px !important;
+  min-height:42px !important;
+  letter-spacing:.15px !important;
+}
+.mobileTopNav .nav.lockedTab{
+  opacity:.58;
+}
+.themeWidget{
+  display:flex !important;
+  justify-content:flex-end !important;
+  align-items:center !important;
+  gap:8px !important;
+  width:100% !important;
+  margin:-4px 0 12px !important;
+  padding:0 !important;
+  border:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+}
+.themeOpenBtn{
+  border:1px solid var(--theme-line, var(--line)) !important;
+  background:rgba(255,255,255,.92) !important;
+  color:var(--theme-ink,#2C2A29) !important;
+  border-radius:999px !important;
+  padding:9px 13px !important;
+  font-size:13px !important;
+  font-weight:900 !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  gap:7px !important;
+  box-shadow:0 8px 20px rgba(44,42,41,.06) !important;
+}
+.themeOpenBtn .themeCurrentText{
+  color:var(--theme-muted,#9A928A);
+  font-size:12px;
+  font-weight:800;
+}
+.themePanelBackdrop{
+  position:fixed;
+  inset:0;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:16px;
+  background:rgba(44,38,32,.34);
+  z-index:170;
+}
+.themePanelBackdrop.show{
+  display:flex;
+}
+.themePanel{
+  width:min(560px,100%);
+  max-height:86vh;
+  overflow:auto;
+  background:rgba(255,255,255,.98);
+  border:1px solid rgba(255,255,255,.92);
+  box-shadow:0 24px 70px rgba(44,42,41,.18);
+  border-radius:26px;
+  padding:18px;
+  color:var(--theme-ink,#2C2A29);
+}
+.themePanelHead{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:12px;
+  margin-bottom:13px;
+}
+.themePanelHead h3{
+  margin:0;
+  font-size:20px;
+  line-height:1.25;
+}
+.themePanelHead p{
+  margin:5px 0 0;
+  color:var(--theme-muted,#9A928A);
+  font-size:13px;
+  line-height:1.55;
+}
+.themeCloseBtn{
+  width:34px;
+  height:34px;
+  border:0;
+  border-radius:50%;
+  background:#f3eee8;
+  color:#5d554e;
+  font-weight:950;
+}
+.themePanelControls{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:10px;
+}
+.themePanelControls .themeField{
+  border:1px solid var(--theme-line, var(--line));
+  border-radius:18px;
+  background:#fffdf9;
+  padding:11px;
+}
+.themePanelControls label{
+  margin:0 0 6px;
+  font-size:13px;
+}
+.themePanelControls select{
+  min-height:40px;
+  font-size:15px;
+}
+.themePanelSwatches{
+  display:flex;
+  gap:8px;
+  margin-top:10px;
+}
+.themePanelSwatches .themeSwatch{
+  width:26px;
+  height:26px;
+}
+.themePanelNote{
+  margin-top:12px;
+  padding:10px 12px;
+  border-radius:16px;
+  background:#f7f3ec;
+  color:var(--theme-muted,#9A928A);
+  font-size:12px;
+  line-height:1.55;
+}
+@media(min-width:760px){
+  .themePanelControls{
+    grid-template-columns:1fr 1fr 1fr;
+  }
+}
+@media(max-width:620px){
+  .tabs{
+    display:none !important;
+  }
+  .mobileTopNav{
+    margin:10px 0 8px !important;
+  }
+  .mobileTopNav .nav{
+    min-width:94px !important;
+    font-size:13.5px !important;
+    padding:10px 14px !important;
+  }
+  .themeWidget{
+    justify-content:flex-start !important;
+    margin:0 0 10px !important;
+  }
+  .themeOpenBtn{
+    width:100%;
+    justify-content:center;
+    border-radius:18px !important;
+    padding:10px 12px !important;
+  }
+  .themeOpenBtn .themeCurrentText{
+    display:none;
+  }
+  .themePanel{
+    border-radius:22px;
+    padding:16px;
+  }
+}
+@media print{
+  .themeWidget,.themePanelBackdrop{display:none!important;}
+}
+
+</style>
 </head>
 <body>
 <div id="loginView" class="gateView noPrint hidden"></div>
@@ -16069,6 +16256,73 @@ renderHelp=function(){
 document.addEventListener("DOMContentLoaded",()=>{
   const footer=document.querySelector("footer strong");
   if(footer && !footer.textContent.includes("v63.2"))footer.textContent="版本：v63.2｜2026-05-30｜多旅程雲端同步穩定修正版";
+});
+
+
+/* ===== v63.4 UI refinement: move theme settings into clear modal + larger tabs ===== */
+function v634ThemeLabel(){
+  const prefs=applyThemePrefs(getThemePrefs());
+  const mode=THEME_CONFIG.modes[prefs.mode]?.label || "淺色";
+  const palette=THEME_CONFIG.palettes[prefs.palette]?.label || "韓系清新";
+  return `${palette}・${mode}`;
+}
+function renderThemeWidget(){
+  const prefs=applyThemePrefs(getThemePrefs());
+  return `<div class="themeWidget noPrint" id="themeWidget">
+    <button class="themeOpenBtn" type="button" onclick="openThemePanel()">
+      <span>🎨 外觀設定</span><span class="themeCurrentText" id="themeCurrentText">${esc(v634ThemeLabel())}</span>
+    </button>
+  </div>
+  <div class="themePanelBackdrop noPrint" id="themePanelBackdrop" onclick="if(event.target===this)closeThemePanel()">
+    <div class="themePanel" role="dialog" aria-modal="true" aria-labelledby="themePanelTitle">
+      <div class="themePanelHead">
+        <div><h3 id="themePanelTitle">🎨 外觀設定</h3><p>調整整體色系、明暗與卡片風格。這只會改畫面外觀，不會影響旅程資料。</p></div>
+        <button class="themeCloseBtn" type="button" onclick="closeThemePanel()">×</button>
+      </div>
+      <div class="themePanelControls">
+        <div class="themeField"><label>明暗模式</label><select id="themeModeSelect" onchange="setThemePrefs({mode:this.value})">${themeOptions(THEME_CONFIG.modes,prefs.mode)}</select></div>
+        <div class="themeField"><label>色系風格</label><select id="themePaletteSelect" onchange="setThemePrefs({palette:this.value})">${themeOptions(THEME_CONFIG.palettes,prefs.palette)}</select></div>
+        <div class="themeField"><label>卡片樣式</label><select id="themeCardStyleSelect" onchange="setThemePrefs({cardStyle:this.value})">${themeOptions(THEME_CONFIG.cardStyles,prefs.cardStyle)}</select></div>
+      </div>
+      <div class="themePanelSwatches"><span class="themeSwatch seoul"></span><span class="themeSwatch ocean"></span><span class="themeSwatch latte"></span></div>
+      <div class="themePanelNote">目前先維持本機外觀偏好設定；未來如果要做多人共享旅程，也可以再改成 Firestore 使用者設定。</div>
+    </div>
+  </div>`;
+}
+function openThemePanel(){
+  const el=$("themePanelBackdrop");
+  if(el){renderThemeWidgetState();el.classList.add("show");}
+}
+function closeThemePanel(){
+  const el=$("themePanelBackdrop");
+  if(el)el.classList.remove("show");
+}
+function toggleThemeWidget(){openThemePanel();}
+function renderThemeWidgetState(){
+  const prefs=applyThemePrefs(getThemePrefs());
+  if($("themeModeSelect")) $("themeModeSelect").value = prefs.mode;
+  if($("themePaletteSelect")) $("themePaletteSelect").value = prefs.palette;
+  if($("themeCardStyleSelect")) $("themeCardStyleSelect").value = prefs.cardStyle;
+  if($("themeCurrentText")) $("themeCurrentText").textContent = v634ThemeLabel();
+}
+function injectThemeWidget(){
+  if(!document.body)return;
+  if($("themeWidget")){
+    renderThemeWidgetState();
+    return;
+  }
+  const anchor=$("mobileTopNav") || $("tabs") || document.querySelector("#mainApp header") || document.querySelector(".app header");
+  if(anchor){
+    anchor.insertAdjacentHTML("afterend", renderThemeWidget());
+    renderThemeWidgetState();
+  }
+}
+document.addEventListener("keydown", function(e){
+  if(e.key==="Escape")closeThemePanel();
+});
+document.addEventListener("DOMContentLoaded",()=>{
+  const footer=document.querySelector("footer strong");
+  if(footer)footer.textContent="版本：v63.4｜2026-05-30｜外觀設定與頁籤可讀性優化版";
 });
 </script>
 
