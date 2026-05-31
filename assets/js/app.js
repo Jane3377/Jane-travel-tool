@@ -12811,8 +12811,8 @@ setTimeout(()=>{try{v650UpdateFooterVersion(); if(typeof render==='function') re
 ;/* ===== next original script block ===== */
 
 /* ===== v65.3 itinerary share action restore + sticky footer only ===== */
-const V653_VERSION_SHORT = "v66.1.1｜2026-05-31｜拆檔載入順序修正版";
-const V653_VERSION_TEXT = "v66.1.1｜拆檔載入順序修正版";
+const V653_VERSION_SHORT = "v66.1｜2026-05-31｜拆檔與載入效率優化版";
+const V653_VERSION_TEXT = "v66.1｜拆檔與載入效率優化版";
 
 function v653Html(v){
   return String(v ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
@@ -13053,7 +13053,7 @@ function v653UpdateFooterVersion(){
 function v653UpdateHelpLog(){
   const log=document.getElementById('v64UpdateLog') || document.getElementById('helpView')?.querySelector('.card');
   if(log){
-    log.innerHTML=`<h3>最新更新紀錄</h3><div class="box mint"><b>${esc(V653_VERSION_TEXT)}</b><br>修正拆檔後 app.js 載入順序，避免初始化早於頁面彈窗與帳號選單 DOM，造成畫面只剩空殼、按鈕無法點。資料結構、Firebase、Cloudinary、localStorage key、Firestore 與介面資料未更動。</div>`;
+    log.innerHTML=`<h3>最新更新紀錄</h3><div class="box mint"><b>${esc(V653_VERSION_TEXT)}</b><br>本版僅整理簡易行程分享區的歷史疊加補丁：移除已被目前分享功能取代的 v65.1 / v65.2 舊版分享腳本，保留現行分享彈窗、複製分享文字、匯出 PDF / 列印、按鈕固定、內層卡片樣式與手機版顯示。既有 Logo、AI 輔助、照片旅遊書、同步鎖、Firebase、Cloudinary、localStorage key、Firestore 與資料結構未更動。</div>`;
   }
 }
 window.v651OpenItineraryShare = v653OpenItineraryShare;
@@ -13089,8 +13089,8 @@ setTimeout(()=>{try{v653UpdateFooterVersion(); v653InsertPlannerShareButton(); v
 ;/* ===== next original script block ===== */
 
 /* ===== v65.4 itinerary share statistics removal only ===== */
-const V654_VERSION_SHORT = "v66.1.1｜2026-05-31｜拆檔載入順序修正版";
-const V654_VERSION_TEXT = "v66.1.1｜拆檔載入順序修正版";
+const V654_VERSION_SHORT = "v66.1｜2026-05-31｜拆檔與載入效率優化版";
+const V654_VERSION_TEXT = "v66.1｜拆檔與載入效率優化版";
 
 function v654ShareHtml(){
   const title=v653Clean(data?.meta?.title)||'我的旅行行程';
@@ -13154,7 +13154,7 @@ function v654UpdateFooterVersion(){
 function v654UpdateHelpLog(){
   const log=document.getElementById('v64UpdateLog') || document.getElementById('helpView')?.querySelector('.card');
   if(log){
-    log.innerHTML=`<h3>最新更新紀錄</h3><div class="box mint"><b>${esc(V654_VERSION_TEXT)}</b><br>修正拆檔後 app.js 載入順序，避免初始化早於頁面彈窗與帳號選單 DOM，造成畫面只剩空殼、按鈕無法點。資料結構、Firebase、Cloudinary、localStorage key、Firestore 與介面資料未更動。</div>`;
+    log.innerHTML=`<h3>最新更新紀錄</h3><div class="box mint"><b>${esc(V654_VERSION_TEXT)}</b><br>本版僅整理簡易行程分享區的歷史疊加補丁：移除已被目前分享功能取代的 v65.1 / v65.2 舊版分享腳本，保留現行分享彈窗、複製分享文字、匯出 PDF / 列印、按鈕固定、內層卡片樣式與手機版顯示。既有 Logo、AI 輔助、照片旅遊書、同步鎖、Firebase、Cloudinary、localStorage key、Firestore 與資料結構未更動。</div>`;
   }
 }
 
