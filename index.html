@@ -5486,6 +5486,125 @@ body[data-theme-mode] .btn.pink{
 }
 </style>
 
+
+<style>
+/* ===== v64.6 flight direct + photo book cover/photo UI fixes ===== */
+/* 只修航班顯示與照片書視覺/操作，不改 Firebase、localStorage key、Cloudinary 或旅行資料主結構。 */
+.v646-hidden-segment{display:none!important;}
+#photoBookView .storyOnlyIntro{
+  align-items:flex-start;
+}
+@media(min-width:621px){
+  #photoBookView .storyOnlyIntro{
+    display:flex!important;
+    justify-content:space-between!important;
+    gap:16px!important;
+    width:100%!important;
+  }
+  #photoBookView .storyOnlyActions{
+    margin-left:auto!important;
+    flex:0 0 auto!important;
+    display:flex!important;
+    justify-content:flex-end!important;
+  }
+}
+.storyCoverActions,
+.storyDayCoverActions{
+  position:absolute;
+  z-index:4;
+  display:flex;
+  gap:7px;
+  flex-wrap:wrap;
+}
+.storyCoverActions{
+  right:18px;
+  top:18px;
+}
+.storyDayHero{position:relative;}
+.storyDayCoverActions{
+  right:12px;
+  top:12px;
+}
+.storyCoverActions .photoInlineUpload,
+.storyDayCoverActions .photoInlineUpload,
+.storyCoverActions button,
+.storyDayCoverActions button{
+  border-radius:999px!important;
+  min-height:34px;
+  padding:7px 11px!important;
+  background:rgba(255,255,255,.9)!important;
+  border:1px solid var(--theme-line,#E2DDD5)!important;
+  color:var(--theme-ink,#2C2A29)!important;
+  box-shadow:0 8px 20px rgba(44,42,41,.08)!important;
+  font-size:12px!important;
+  font-weight:900!important;
+}
+.storyCoverActions button.danger,
+.storyDayCoverActions button.danger{
+  color:#a85252!important;
+}
+.storyPhotoCard.orientation-portrait .storyPhotoImage{
+  aspect-ratio:4/5!important;
+  height:auto!important;
+}
+.storyPhotoCard.orientation-landscape .storyPhotoImage{
+  aspect-ratio:4/3!important;
+  height:auto!important;
+}
+.storyPhotoCard.orientation-square .storyPhotoImage{
+  aspect-ratio:1/1!important;
+  height:auto!important;
+}
+.storyPhotoCard.featured.orientation-portrait .storyPhotoImage{
+  aspect-ratio:4/5!important;
+  height:auto!important;
+}
+.storyPhotoCard.featured.orientation-landscape .storyPhotoImage{
+  aspect-ratio:4/3!important;
+  height:auto!important;
+}
+.storyPhotoCard.featured.orientation-square .storyPhotoImage{
+  aspect-ratio:1/1!important;
+  height:auto!important;
+}
+.storyPhotoCard .storyPhotoImage img{
+  width:100%!important;
+  height:100%!important;
+  object-fit:cover!important;
+}
+@media(max-width:620px){
+  .storyCoverActions,
+  .storyDayCoverActions{
+    position:static;
+    justify-content:flex-start;
+    margin:10px 0 0;
+  }
+  .storyBookCover .storyCoverActions{
+    position:relative;
+    right:auto;
+    top:auto;
+  }
+  #photoBookView .storyPhotoCard.orientation-portrait .storyPhotoImage,
+  #photoBookView .storyPhotoCard.featured.orientation-portrait .storyPhotoImage{
+    aspect-ratio:4/5!important;
+    height:auto!important;
+  }
+  #photoBookView .storyPhotoCard.orientation-landscape .storyPhotoImage,
+  #photoBookView .storyPhotoCard.featured.orientation-landscape .storyPhotoImage{
+    aspect-ratio:4/3!important;
+    height:auto!important;
+  }
+  #photoBookView .storyPhotoCard.orientation-square .storyPhotoImage,
+  #photoBookView .storyPhotoCard.featured.orientation-square .storyPhotoImage{
+    aspect-ratio:1/1!important;
+    height:auto!important;
+  }
+}
+@media print{
+  .storyCoverActions,.storyDayCoverActions{display:none!important;}
+}
+</style>
+
 </head>
 <body>
 <div id="loginView" class="gateView noPrint hidden"></div>
@@ -18682,6 +18801,199 @@ function v645UpdateFooterVersion(){
   document.querySelectorAll('footer strong,.siteFooterVersion').forEach(el=>el.textContent=V645_VERSION_SHORT);
 }
 setTimeout(()=>{try{v645UpdateFooterVersion(); if(typeof render==='function') render();}catch(e){console.warn(e)}},360);
+
+
+/* ===== v64.6 flight direct + photo book cover/photo UI fixes ===== */
+const V646_VERSION_SHORT = "v64.6｜2026-05-31";
+const V646_VERSION_TEXT = "v64.6｜航班直飛與照片書操作修正版";
+
+/* 航班：直飛只顯示第一段，轉機才顯示第二段；資料讀取仍沿用 readFlightForm 的 type/count。 */
+flightForm = function(k){
+  const f=normalizeFlightObj(data.flights[k],k);
+  const segs=[f.segments[0]||{}, f.segments[1]||{}];
+  const isOut=k==="out";
+  const type=f.type||"direct";
+  return `<div class="flightTransferBlock" data-flight-dir="${k}" data-flight-type="${type}">
+    ${airportDatalistHtml()}
+    <label>航班型態</label>${flightTypeSelect(k,type)}
+    <div class="flightTypeHint">直飛只填第 1 段；轉機時才會顯示第 2 段航班。航班日期允許落在出發日前 3 天～回程日後 3 天。</div>
+    <div id="${k}segmentsWrap">
+      ${flightSegmentForm(k,0,segs[0])}
+      <div class="${type==='transfer'?'':'v646-hidden-segment'}" id="${k}segExtraWrap1">${flightSegmentForm(k,1,segs[1])}</div>
+    </div>
+    <label>${isOut?"抵達出發機場方式":"前往回程機場方式"}</label>
+    <textarea id="${k}toAirport" placeholder="${isOut?"例：14:00 從家出發，搭機捷到桃園機場":"例：從飯店搭地鐵／計程車到機場"}">${esc(f.toAirport||f.transfer||"")}</textarea>
+    <label>${isOut?"降落後到市區／飯店":"抵達後回家方式"}</label>
+    <textarea id="${k}fromAirport" placeholder="${isOut?"例：金海機場搭輕軌轉地鐵到飯店":"例：抵達桃園後搭機捷／接送回家"}">${esc(f.fromAirport||"")}</textarea>
+  </div>`;
+};
+
+const v646PrevToggleFlightSegments = typeof toggleFlightSegments==='function' ? toggleFlightSegments : null;
+toggleFlightSegments = function(k){
+  const type=$(k+"type")?.value || normalizeFlightObj(data.flights[k],k).type || "direct";
+  const wrap=document.querySelector(`[data-flight-dir="${k}"]`);
+  if(wrap) wrap.setAttribute('data-flight-type', type);
+  const extra=$(k+"segExtraWrap1") || $(k+"segBox1");
+  if(extra){
+    extra.classList.toggle('v646-hidden-segment', type!=="transfer");
+    if(extra.style) extra.style.display = type==="transfer" ? "" : "none";
+  }
+  if(v646PrevToggleFlightSegments && !$(k+"segExtraWrap1")){
+    try{v646PrevToggleFlightSegments(k);}catch(e){}
+  }
+};
+
+/* 照片書：封面與每日封面可刪除後重傳。 */
+function removeTripCover(){
+  if(!data.tripCover)return;
+  if(!confirm('確定刪除整本旅遊書封面照片？刪除後可以重新上傳。'))return;
+  delete data.tripCover;
+  delete data.tripCoverMeta;
+  save();
+  toast('已刪除整本封面照片');
+}
+function removeDayCover(day){
+  if(!data.dayCovers || !data.dayCovers[day])return;
+  if(!confirm('確定刪除這一天的封面照片？刪除後可以重新上傳。'))return;
+  delete data.dayCovers[day];
+  if(data.dayCoverMeta) delete data.dayCoverMeta[day];
+  save();
+  toast('已刪除本日封面照片');
+}
+
+function v646PhotoOrientation(p){
+  const w=Number(p?.width||0), h=Number(p?.height||0);
+  if(w && h){
+    if(h > w*1.08) return 'portrait';
+    if(w > h*1.08) return 'landscape';
+    return 'square';
+  }
+  return 'landscape';
+}
+
+storyBookPhotoCard = function(p, idx){
+  const ori=v646PhotoOrientation(p);
+  return `<div class="storyPhotoCard ${idx===0?'featured':''} orientation-${ori}">
+    <div class="storyPhotoImage"><img src="${p.src}"></div>
+    <div class="storyPhotoText">
+      <h3>${esc(p.title||'照片紀錄')}</h3>
+      ${storyTagsHtml(p.tags)}
+      <p>${esc(p.memo||'')}</p>
+      <button class="small noPrint" onclick="delPhoto('${p.id}')">刪除</button>
+    </div>
+  </div>`;
+};
+
+storyBookCoverHtml = function(){
+  const cover=data.tripCover;
+  if(cover){
+    return `<section class="storyBookCover">
+      <img class="storyBookCoverImage" src="${cover}">
+      <div class="storyBookCoverOverlay"></div>
+      <div class="storyCoverActions noPrint">
+        <label class="photoInlineUpload">更換封面<input type="file" accept="image/*" onchange="addTripCover(this.files[0])"></label>
+        <button type="button" class="danger" onclick="removeTripCover()">刪除封面</button>
+        <div class="photoUploadStatus" id="coverUploadStatus"></div>
+      </div>
+      <div class="storyBookCoverText">
+        <span class="eyebrow">JANESELECT</span>
+        <h1>${esc(data.meta.title)}</h1>
+        <p>${esc(data.meta.subtitle)}</p>
+        <div class="storyBookCoverMeta">
+          <span>目的地：${esc(data.trip.dest||'未設定')}</span>
+          <span>日期：${short(data.trip.start)} - ${short(data.trip.end)}</span>
+          <span>${data.days.length} 天旅行</span>
+        </div>
+      </div>
+    </section>`;
+  }
+  return `<section class="storyBookCover storyInlineEmpty noPrint">
+    <div>
+      <span class="eyebrow">JANESELECT</span>
+      <h1>${esc(data.meta.title)}</h1>
+      <p>${esc(data.meta.subtitle)}</p>
+      <div style="margin-top:16px">
+        <label class="photoInlineUpload">
+          ＋ 上傳整本封面
+          <input type="file" accept="image/*" onchange="addTripCover(this.files[0])">
+        </label>
+        <div class="photoUploadStatus" id="coverUploadStatus"></div>
+      </div>
+    </div>
+  </section>`;
+};
+
+storyBookDay = function(d){
+  if(!data.dayCovers) data.dayCovers={};
+  const plans=sortedPlans(d.key);
+  const photos=(data.photos||[]).filter(p=>p.day==d.key);
+  const dayCover=data.dayCovers[d.key] || '';
+  const cover=dayCover || photos[0]?.src || '';
+  const count=photos.length;
+  const canUpload=count<10;
+  const hasCustomDayCover=!!dayCover;
+  return `<section class="storyDay">
+    <div class="storyDayHeader">
+      <div>
+        <span class="eyebrow">${d.title}</span>
+        <h2>${d.label} 的旅行故事</h2>
+        <p>住宿：${hotelFor(d.key)?.name||'未設定'}。今天收錄 ${plans.length} 個行程與 ${photos.length} 張照片。</p>
+      </div>
+      <div class="bookDayBadge">${plans.length} 行程｜${photos.length} 照片</div>
+    </div>
+    <div class="storyDayHero ${cover?'':'storyInlineEmpty'}">
+      ${cover?`<img src="${cover}">`:`<div><div>尚未上傳本日封面圖</div><label class="photoInlineUpload" style="margin-top:10px">＋ 上傳本日封面<input type="file" accept="image/*" onchange="addDayCover('${d.key}',this.files[0])"></label><div class="photoUploadStatus" id="dayCoverStatus-${d.key}"></div></div>`}
+      ${cover?`<div class="storyDayCoverActions noPrint">
+        <label class="photoInlineUpload">${hasCustomDayCover?'更換封面':'設定為每日封面'}<input type="file" accept="image/*" onchange="addDayCover('${d.key}',this.files[0])"></label>
+        ${hasCustomDayCover?`<button type="button" class="danger" onclick="removeDayCover('${d.key}')">刪除封面</button>`:''}
+        <div class="photoUploadStatus" id="dayCoverStatus-${d.key}"></div>
+      </div>`:''}
+    </div>
+    <div class="storyDayBody">
+      <div>
+        <div class="storyTimelineTitle">今天的路線</div>
+        ${storyTimelineHtml(plans)}
+      </div>
+      <div>
+        <div class="storyPhotoUploadRow">
+          <div>
+            <div class="storyPhotosTitle">今日照片日記</div>
+            <div class="storyPhotoLimit">${count}/10 張照片${canUpload?'，可繼續上傳':'，已達上限'}</div>
+          </div>
+        </div>
+        ${canUpload?`<div class="storyPhotoUploadCard noPrint">
+          <div class="storyPhotoQuickFields">
+            <input id="storyPhotoTitle-${d.key}" placeholder="照片標題，例如：海雲台散步">
+            <input id="storyPhotoTags-${d.key}" placeholder="標籤，例如：🌊 海邊 咖啡">
+          </div>
+          <input id="storyPhotoMemo-${d.key}" placeholder="一句照片日記">
+          <label class="photoInlineUpload">
+            ＋ 上傳照片到 ${d.title}
+            <input type="file" accept="image/*" onchange="addPhotoToDay('${d.key}',this.files[0])">
+          </label>
+          <div class="photoUploadStatus" id="storyPhotoStatus-${d.key}"></div>
+        </div>`:''}
+        ${photos.length?`<div class="storyPhotoLayout">${photos.map(storyBookPhotoCard).join('')}</div>`:`<div class="storyEmpty">還沒有照片日記，先上傳幾張今天的代表照片吧。</div>`}
+      </div>
+    </div>
+  </section>`;
+};
+
+const v646PrevRenderHelp = typeof renderHelp==='function' ? renderHelp : null;
+renderHelp = function(...args){
+  const r = v646PrevRenderHelp ? v646PrevRenderHelp.apply(this,args) : undefined;
+  const log=$('v64UpdateLog') || $('helpView')?.querySelector('.card');
+  if(log){
+    log.innerHTML=`<h3>最新更新紀錄</h3><div class="box mint"><b>${esc(V646_VERSION_TEXT)}</b><br>直飛航班只顯示第 1 段，轉機才開放第 2 段；照片旅遊書的整本封面與每日封面可以刪除後重新上傳，照片縮圖也改為依直式／橫式照片比例顯示。</div>`;
+  }
+  v646UpdateFooterVersion();
+  return r;
+};
+function v646UpdateFooterVersion(){
+  document.querySelectorAll('footer strong,.siteFooterVersion').forEach(el=>el.textContent=V646_VERSION_SHORT);
+}
+setTimeout(()=>{try{v646UpdateFooterVersion(); if(typeof render==='function') render();}catch(e){console.warn(e)}},380);
+
 </script>
 
 </body></html>
