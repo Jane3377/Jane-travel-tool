@@ -19743,4 +19743,347 @@ setTimeout(()=>{try{v649UpdateFooterVersion(); v649ApplyLockBanner();}catch(e){c
 window.addEventListener('beforeunload',()=>{v649StopHeartbeat();});
 </script>
 
+
+
+<style>
+/* ===== v65 photo book cover + diary simplification =====
+   只調整照片旅遊書：每日封面選擇、照片日記欄位、標籤顯示。
+   不改 Firebase 路徑、不改 localStorage key、不改 Cloudinary、不改旅程 data 主結構。
+*/
+.v65DayCoverEmpty{
+  display:block!important;
+  padding:18px!important;
+  min-height:220px;
+  color:var(--theme-ink,#2C2A29)!important;
+  text-align:left!important;
+}
+.v65DayCoverEmptyInner{
+  width:100%;
+  display:grid;
+  gap:12px;
+}
+.v65DayCoverTitle{
+  font-size:17px;
+  font-weight:850;
+  color:var(--theme-ink,#2C2A29);
+}
+.v65DayCoverHint{
+  color:var(--theme-muted,#9A928A);
+  font-size:12px;
+  line-height:1.6;
+}
+.v65DayCoverActions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.v65CoverCandidates{
+  margin-top:6px;
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(118px,1fr));
+  gap:8px;
+}
+.v65CoverCandidate{
+  border:1px solid var(--theme-line,#E2DDD5);
+  border-radius:16px;
+  background:#fff;
+  padding:7px;
+  box-shadow:0 8px 22px rgba(44,42,41,.045);
+}
+.v65CoverCandidate img{
+  width:100%;
+  aspect-ratio:4/3;
+  object-fit:cover;
+  border-radius:12px;
+  display:block;
+  background:#F4F2EE;
+}
+.v65CoverCandidate button{
+  width:100%;
+  margin-top:6px;
+  border:1px solid var(--theme-line,#E2DDD5);
+  background:var(--theme-primary-weak,#F2F6F4);
+  color:var(--theme-primary,#4A5D4E);
+  border-radius:999px;
+  padding:6px 8px;
+  font-size:11.5px;
+  font-weight:850;
+}
+.v65PhotoCoverPill{
+  border:1px solid var(--theme-line,#E2DDD5)!important;
+  background:var(--theme-primary-weak,#F2F6F4)!important;
+  color:var(--theme-primary,#4A5D4E)!important;
+}
+#photoBookView .storyPhotoQuickFields.v65NoTags{
+  grid-template-columns:1fr!important;
+}
+#photoBookView .photoEditBox .v65RemovedField,
+#photoBookView .v65RemovedTags{
+  display:none!important;
+}
+@media(max-width:620px){
+  .v65DayCoverEmpty{padding:14px!important;min-height:180px;}
+  .v65CoverCandidates{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .v65DayCoverActions{display:grid;grid-template-columns:1fr;}
+  .v65DayCoverActions .photoInlineUpload,
+  .v65DayCoverActions button{width:100%;}
+}
+@media print{
+  .v65CoverCandidates,.v65DayCoverActions,.v65PhotoCoverPill{display:none!important;}
+}
+</style>
+
+<script>
+/* ===== v65.0 photo book cover + photo diary flow ===== */
+const V650_VERSION_SHORT = "v65.0｜2026-05-31";
+const V650_VERSION_TEXT = "v65.0｜照片旅遊書封面與照片日記流程整理版";
+
+/* 標籤欄位從 UI 移除；舊資料保留但不顯示、不再編輯。 */
+function photoTagsHtml(){ return ""; }
+function storyTagsHtml(){ return ""; }
+function pdfTagsHtml(){ return ""; }
+function pdfTags(){ return ""; }
+
+function v65PhotoAttr(v){
+  return String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function v65PhotosForDay(day){
+  return (data.photos||[]).filter(p=>p.day==day);
+}
+function v65PhotoCountForDay(day){
+  return v65PhotosForDay(day).length;
+}
+function v65SetDayCoverFromPhoto(day, photoId){
+  const p=(data.photos||[]).find(x=>x.id===photoId);
+  if(!p || !p.src) return toast('找不到這張照片');
+  if(!data.dayCovers) data.dayCovers={};
+  if(!data.dayCoverMeta) data.dayCoverMeta={};
+  data.dayCovers[day]=p.src;
+  data.dayCoverMeta[day]={source:'photo', photoId:p.id, updatedAtClient:Date.now()};
+  save();
+  toast('已設為今日封面');
+}
+function setDayCoverFromPhoto(day, photoId){
+  return v65SetDayCoverFromPhoto(day, photoId);
+}
+
+function v65DayCoverCandidates(day, photos){
+  if(!photos || !photos.length) return `<div class="v65DayCoverHint">今日照片日記還沒有照片。你可以先自行上傳封面，或稍後從今日照片中挑選。</div>`;
+  return `<div>
+    <div class="v65DayCoverHint">也可以從今日照片日記選一張當封面：</div>
+    <div class="v65CoverCandidates">
+      ${photos.slice(0,10).map(p=>`<div class="v65CoverCandidate">
+        <img src="${p.src}" alt="">
+        <button type="button" onclick="setDayCoverFromPhoto('${day}','${p.id}')">設為今日封面</button>
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+function storyPhotoUploadForm(day, count){
+  if(count>=10) return '';
+  const file = (typeof storyPendingPhotoFiles !== 'undefined') ? storyPendingPhotoFiles[day] : null;
+  const previewUrl = (typeof storyPhotoPreviewUrls !== 'undefined' && storyPhotoPreviewUrls[day]) ? storyPhotoPreviewUrls[day] : '';
+  return `<div class="storyPhotoUploadCard noPrint">
+    <div class="storyPhotoPickBox">
+      <label class="storyPhotoPickLabel">
+        ${file ? '已選擇照片，可繼續補標題與日記' : '＋ 先選擇要上傳的照片'}
+        <input id="storyPhotoFile-${day}" type="file" accept="image/*" onchange="selectStoryPhotoFile('${day}',this.files[0])">
+      </label>
+      <div class="storyPhotoPickMeta" id="storyPhotoPickMeta-${day}">${file ? '已選擇：' + v65PhotoAttr(file.name) : '請先選擇 1 張照片，再輸入標題與一句照片日記。'}</div>
+      <div class="storyPhotoPickPreview ${previewUrl?'show':''}" id="storyPhotoPickPreview-${day}">${previewUrl?`<img src="${previewUrl}"><div>預覽照片：新增後會上傳到照片日記</div>`:''}</div>
+    </div>
+    <div class="storyPhotoQuickFields v65NoTags">
+      <input id="storyPhotoTitle-${day}" placeholder="照片標題，例如：海雲台散步">
+    </div>
+    <input id="storyPhotoMemo-${day}" placeholder="一句照片日記">
+    <div class="storyPhotoUploadActions">
+      <button class="btn soft" type="button" onclick="clearPendingStoryPhoto('${day}')">清除照片</button>
+      <button class="btn dark" type="button" onclick="addPhotoToDay('${day}')">新增到 ${dayTitle(day)}</button>
+    </div>
+    <div class="photoUploadStatus" id="storyPhotoStatus-${day}"></div>
+  </div>`;
+}
+
+addPhotoToDay = async function(day){
+  const file = (typeof storyPendingPhotoFiles !== 'undefined') ? storyPendingPhotoFiles[day] : null;
+  if(!file) return toast('請先選擇照片');
+  const count = v65PhotoCountForDay(day);
+  if(count>=10) return toast('這天最多上傳 10 張照片');
+  try{
+    setPhotoUploadStatus(`storyPhotoStatus-${day}`, '上傳中...');
+    const img = await uploadImageFileForPhotoBook(file, {maxWidth:1600, quality:.82}, `storyPhotoStatus-${day}`);
+    data.photos.unshift({
+      id:uid(),
+      day,
+      title:document.getElementById(`storyPhotoTitle-${day}`)?.value || '',
+      memo:document.getElementById(`storyPhotoMemo-${day}`)?.value || '',
+      tags:'',
+      src:img.src,
+      publicId:img.publicId,
+      cloudinary:true,
+      width:img.width,
+      height:img.height,
+      bytes:img.bytes
+    });
+    if(typeof clearPendingStoryPhoto === 'function') clearPendingStoryPhoto(day);
+    ['storyPhotoTitle-'+day,'storyPhotoMemo-'+day,'storyPhotoFile-'+day].forEach(id=>{const el=document.getElementById(id); if(el) el.value='';});
+    save();
+    toast('照片已加入這天的照片日記');
+  }catch(err){
+    setPhotoUploadStatus(`storyPhotoStatus-${day}`, '');
+    alert('照片上傳失敗：' + (err?.message || err));
+  }
+};
+
+function openPhotoEditModal(id){
+  const p=(data.photos||[]).find(x=>x.id===id);
+  if(!p) return;
+  window.activePhotoEditId = id;
+  let modal=document.getElementById('photoEditModal');
+  if(!modal){
+    modal=document.createElement('div');
+    modal.id='photoEditModal';
+    modal.className='photoEditModal noPrint';
+    document.body.appendChild(modal);
+  }
+  modal.innerHTML=`<div class="photoEditBox">
+    <div class="photoEditHeader">
+      <div>
+        <h3>編輯照片日記</h3>
+        <p>只修改照片標題與一句照片日記，不會更換原照片。</p>
+      </div>
+      <button class="photoEditClose" onclick="closePhotoEditModal()">×</button>
+    </div>
+    <img class="photoEditPreview" src="${p.src}">
+    <label>照片標題</label>
+    <input id="modalPhotoTitle" value="${v65PhotoAttr(p.title||'')}">
+    <label>一句照片日記</label>
+    <textarea id="modalPhotoMemo">${esc(p.memo||'')}</textarea>
+    <div class="photoEditActions">
+      <button class="btn dark" onclick="savePhotoEditModal()">儲存修改</button>
+      <button class="btn soft" onclick="closePhotoEditModal()">取消</button>
+    </div>
+  </div>`;
+  modal.classList.add('show');
+}
+function savePhotoEditModal(){
+  const id=window.activePhotoEditId;
+  const p=(data.photos||[]).find(x=>x.id===id);
+  if(!p) return;
+  p.title=document.getElementById('modalPhotoTitle')?.value || '';
+  p.memo=document.getElementById('modalPhotoMemo')?.value || '';
+  if(typeof closePhotoEditModal === 'function') closePhotoEditModal();
+  save();
+  toast('照片日記已更新');
+}
+
+storyBookPhotoCard = function(p, idx){
+  const ori = typeof v646PhotoOrientation === 'function' ? v646PhotoOrientation(p) : 'landscape';
+  const editBtn = `<button class="small" onclick="openPhotoEditModal('${p.id}')">編輯</button>`;
+  return `<div class="storyPhotoCard ${idx===0?'featured':''} orientation-${ori}">
+    <div class="storyPhotoImage"><img src="${p.src}"></div>
+    <div class="storyPhotoText">
+      <h3>${esc(p.title||'照片紀錄')}</h3>
+      <p>${esc(p.memo||'')}</p>
+      <div class="storyPhotoCardActions noPrint">
+        <button class="small v65PhotoCoverPill" onclick="setDayCoverFromPhoto('${p.day}','${p.id}')">設為今日封面</button>
+        ${editBtn}
+        <button class="small" onclick="delPhoto('${p.id}')">刪除</button>
+      </div>
+    </div>
+  </div>`;
+};
+
+storyBookDay = function(d){
+  if(!data.dayCovers) data.dayCovers={};
+  const plans=sortedPlans(d.key);
+  const photos=v65PhotosForDay(d.key);
+  const cover=data.dayCovers[d.key] || '';
+  const count=photos.length;
+  return `<section class="storyDay">
+    <div class="storyDayHeader">
+      <div>
+        <span class="eyebrow">${d.title}</span>
+        <h2>${d.label} 的旅行故事</h2>
+        <p>住宿：${hotelFor(d.key)?.name||'未設定'}。今天收錄 ${plans.length} 個行程與 ${photos.length} 張照片。</p>
+      </div>
+      <div class="bookDayBadge">${plans.length} 行程｜${photos.length} 照片</div>
+    </div>
+    <div class="storyDayHero ${cover?'':'storyInlineEmpty v65DayCoverEmpty'}">
+      ${cover?`<img src="${cover}">`:`<div class="v65DayCoverEmptyInner">
+        <div>
+          <div class="v65DayCoverTitle">尚未設定今日封面</div>
+          <div class="v65DayCoverHint">今日封面可以自行上傳，也可以從今日照片日記挑一張。沒有設定前，不會自動拿照片代替封面。</div>
+        </div>
+        <div class="v65DayCoverActions noPrint">
+          <label class="photoInlineUpload">＋ 自行上傳封面<input type="file" accept="image/*" onchange="addDayCover('${d.key}',this.files[0])"></label>
+          <div class="photoUploadStatus" id="dayCoverStatus-${d.key}"></div>
+        </div>
+        ${v65DayCoverCandidates(d.key, photos)}
+      </div>`}
+      ${cover?`<div class="storyDayCoverActions noPrint">
+        <label class="photoInlineUpload">更換封面<input type="file" accept="image/*" onchange="addDayCover('${d.key}',this.files[0])"></label>
+        <button type="button" class="danger" onclick="removeDayCover('${d.key}')">刪除封面</button>
+        <div class="photoUploadStatus" id="dayCoverStatus-${d.key}"></div>
+      </div>`:''}
+    </div>
+    <div class="storyDayBody">
+      <div>
+        <div class="storyTimelineTitle">今天的路線</div>
+        ${storyTimelineHtml(plans)}
+      </div>
+      <div>
+        <div class="storyPhotoUploadRow">
+          <div>
+            <div class="storyPhotosTitle">今日照片日記</div>
+            <div class="storyPhotoLimit">${count}/10 張照片${count<10?'，可繼續上傳':'，已達上限'}</div>
+          </div>
+        </div>
+        ${storyPhotoUploadForm(d.key,count)}
+        ${photos.length?`<div class="storyPhotoLayout">${photos.map(storyBookPhotoCard).join('')}</div>`:`<div class="storyEmpty">還沒有照片日記，先上傳幾張今天的代表照片吧。</div>`}
+      </div>
+    </div>
+  </section>`;
+};
+
+const v650PrevRenderPhotoBook = typeof renderPhotoBook === 'function' ? renderPhotoBook : null;
+renderPhotoBook = function(){
+  const el=document.getElementById('photoBookView');
+  if(!el) return v650PrevRenderPhotoBook ? v650PrevRenderPhotoBook() : undefined;
+  el.innerHTML = `<div class="section">
+    <div class="storyOnlyIntro">
+      <div>
+        <h2>📖 照片旅遊書</h2>
+        <div class="hint">照片旅遊書定位為「旅遊中快速記錄、旅遊後整理回憶」。今日封面可自行上傳，或從當天照片日記挑選；照片日記已簡化為照片標題與一句日記。</div>
+      </div>
+      <div class="storyOnlyActions noPrint">
+        <button class="btn soft" onclick="exportPhotoBookPDF()">匯出 PDF</button>
+      </div>
+    </div>
+  </div>
+  <div class="storyBookPreview bookStyle-${data.meta.bookStyle||'fresh'}">
+    <div class="storyBook">
+      ${storyBookCoverHtml()}
+      ${data.days.map(storyBookDay).join('')}
+    </div>
+  </div>`;
+};
+
+const v650PrevRenderHelp = typeof renderHelp === 'function' ? renderHelp : null;
+renderHelp = function(...args){
+  const r = v650PrevRenderHelp ? v650PrevRenderHelp.apply(this,args) : undefined;
+  const log=document.getElementById('v64UpdateLog') || document.getElementById('helpView')?.querySelector('.card');
+  if(log){
+    log.innerHTML=`<h3>最新更新紀錄</h3><div class="box mint"><b>${esc(V650_VERSION_TEXT)}</b><br>照片旅遊書今日封面不再自動套用第一張照片；可自行上傳封面，或從今日照片日記挑選一張設為封面。今日照片日記移除標籤輸入與顯示，保留照片標題、一句照片日記、編輯與刪除功能。</div>`;
+  }
+  v650UpdateFooterVersion();
+  return r;
+};
+function v650UpdateFooterVersion(){
+  document.querySelectorAll('footer strong,.siteFooterVersion').forEach(el=>el.textContent=V650_VERSION_SHORT);
+}
+setTimeout(()=>{try{v650UpdateFooterVersion(); if(typeof render==='function') render();}catch(e){console.warn(e)}},560);
+</script>
+
 </body></html>
