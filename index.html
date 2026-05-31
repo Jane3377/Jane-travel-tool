@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- 貞選旅管家現行功能基準：保留既有資料結構、同步、圖片與介面設定；後台建議獨立 admin.html / admin.js 擴充。 -->
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
@@ -23,8 +24,6 @@
   .panel .hint{display:none}
   .panel .section{margin-bottom:6px}
   .app{padding:10px 10px 84px}header{padding:14px;border-radius:22px}h1{font-size:27px}.sub{font-size:13px;line-height:1.55}.tabs{display:none}.panel{padding:12px;border-radius:20px;position:static}.main{padding:12px;border-radius:20px}.layout{gap:10px}.two,.three,.four,.stats,.grid2,.grid3,.heroStats{grid-template-columns:1fr}.heroStats{gap:7px}.heroStats div{padding:9px}.section{display:block}.section h2{font-size:20px}.card{padding:12px;border-radius:18px}details.card{padding:0}.detailBody{padding:0 12px 12px}.mobile{display:grid}.dayCover{height:180px}}@media print{@page{size:A4;margin:12mm}body{background:#fff}.tabs,.panel,.mobile,.btns,.small,.iconBtn,.noPrint,footer{display:none!important}.layout{display:block}.app{max-width:none;padding:0}header,.main,.card{box-shadow:none;border:0;background:#fff}header{border-bottom:2px solid #eee;border-radius:0;margin-bottom:12px}.main{padding:0}.card{page-break-inside:avoid;border:1px solid #eee;border-radius:18px;margin-bottom:12px}.bookDay{page-break-before:auto}.dayCover{height:260px}}
-
-/* ===== v14 mobile/PWA cleanup overrides ===== */
 html,body{max-width:100%;overflow-x:hidden}
 .app{width:100%;max-width:1120px}
 input,select,textarea{max-width:100%}
@@ -54,9 +53,6 @@ input,select,textarea{max-width:100%}
 .bookTemplate.diary .bookDay{background:repeating-linear-gradient(#fffdf8 0,#fffdf8 29px,#f0e7dd 30px);border:1px solid #d8cbbd}
 .bookTemplate.diary .box{border:1px dashed #b9aa9b;background:rgba(255,255,255,.72)}
 .bookTemplate.diary .photo img{border-radius:6px}
-
-
-/* ===== v15 mobile UX refinements ===== */
 html, body { max-width: 100%; overflow-x: hidden; }
 :root { --safeBottom: env(safe-area-inset-bottom, 0px); }
 
@@ -239,9 +235,6 @@ html, body { max-width: 100%; overflow-x: hidden; }
     padding:0 12px 12px;
   }
 }
-
-
-/* ===== v16 focused fixes ===== */
 .spot-added{
   background:#f3f1ec !important;
   border-color:#d7d0c7 !important;
@@ -269,9 +262,6 @@ html, body { max-width: 100%; overflow-x: hidden; }
     margin-top:0;
   }
 }
-
-
-/* ===== Cloudinary upload status ===== */
 .uploadStatus{
   display:none;
   margin-top:8px;
@@ -283,9 +273,6 @@ html, body { max-width: 100%; overflow-x: hidden; }
   font-weight:900;
 }
 .uploadStatus.show{display:block}
-
-
-/* ===== v18 print book + country reset modal + hotel/date refinements ===== */
 .countryResetModal{
   position:fixed;
   inset:0;
@@ -507,9 +494,6 @@ html, body { max-width: 100%; overflow-x: hidden; }
     font-size:15px;
   }
 }
-
-
-/* ===== v19 modal consistency + hotel actions + prettier PDF book ===== */
 .resetModal,
 .countryResetModal{
   position:fixed;
@@ -676,9 +660,6 @@ html, body { max-width: 100%; overflow-x: hidden; }
     padding:5mm!important;
   }
 }
-
-
-/* ===== v21 modal toggles + locked source rows ===== */
 .optionModal{
   position:fixed;
   inset:0;
@@ -758,9 +739,6 @@ html, body { max-width: 100%; overflow-x: hidden; }
   background:#f3f1ec!important;
   color:#7a716a!important;
 }
-
-
-/* ===== v22 Firebase sync UI ===== */
 .syncBar{
   margin-top:12px;
   display:flex;
@@ -799,9 +777,6 @@ html, body { max-width: 100%; overflow-x: hidden; }
   .syncBar{display:grid;grid-template-columns:1fr}
   .syncBar .btn{width:100%}
 }
-
-
-/* ===== v23 validation UX ===== */
 .validationHint{
   color:#c85b5b;
   font-size:12px;
@@ -814,9 +789,6 @@ html, body { max-width: 100%; overflow-x: hidden; }
   font-size:12px;
   margin-top:4px;
 }
-
-
-/* ===== v24 UI micro adjustments ===== */
 .syncBar{
   padding:7px 9px !important;
   border-radius:14px !important;
@@ -882,9 +854,6 @@ html, body { max-width: 100%; overflow-x: hidden; }
 @media(max-width:620px){
   .flightStatusGrid{grid-template-columns:1fr;}
 }
-
-
-/* ===== v25 account avatar menu + compact sync ===== */
 .syncBar{
   display:none !important;
 }
@@ -1005,9 +974,6 @@ html, body { max-width: 100%; overflow-x: hidden; }
 @media print{
   .accountWidget,.syncMini{display:none!important}
 }
-
-
-/* ===== v26 itinerary/budget simplification + account sync line ===== */
 .accountSyncLine{
   padding:7px 9px 8px;
   margin:0 0 5px;
@@ -1043,9 +1009,6 @@ html, body { max-width: 100%; overflow-x: hidden; }
 .planCardMeta{
   margin-top:6px;
 }
-
-
-/* ===== v29 fixed flight transfer UI ===== */
 .segmentBox{
   border:1px solid var(--line);
   border-radius:16px;
@@ -1082,9 +1045,6 @@ html, body { max-width: 100%; overflow-x: hidden; }
     grid-template-columns:1fr;
   }
 }
-
-
-/* ===== v30 budget cards + dense flight UI ===== */
 :root{
   --space-section:16px;
   --space-card:12px;
@@ -1318,9 +1278,6 @@ textarea{min-height:58px}
     padding:0 9px 9px;
   }
 }
-
-
-/* ===== v31 airport / terminal compact UI ===== */
 .airportQuickHint{
   font-size:11px;
   color:var(--muted);
@@ -1337,9 +1294,6 @@ textarea{min-height:58px}
     grid-template-columns:1fr;
   }
 }
-
-
-/* ===== v32 flight compact spacing + timezone date flexibility ===== */
 .flightDense{
   --flight-field-gap:6px;
   --flight-label-gap:3px;
@@ -1434,9 +1388,6 @@ textarea{min-height:58px}
     min-height:34px !important;
   }
 }
-
-
-/* ===== v33 responsive budget detail: desktop table + mobile aligned cards ===== */
 .budgetDesktopTable{
   display:block;
 }
@@ -1551,10 +1502,6 @@ textarea{min-height:58px}
     grid-column:1/-1;
   }
 }
-
-
-/* ===== v35 flight card spacing fix only ===== */
-/* 只針對旅遊地 > 航班與機場接送，避免 .box 的 white-space:pre-wrap 造成大片空白 */
 .flightDense .box{
   white-space:normal !important;
   line-height:1.35 !important;
@@ -1655,10 +1602,6 @@ textarea{min-height:58px}
     padding:8px !important;
   }
 }
-
-
-/* ===== v37 mobile-only flight field overflow/dropdown fix ===== */
-/* 只修手機版航班區，不影響桌機版與資料結構 */
 @media(max-width:620px){
   #tripView .flightDense,
   #tripView .flightDense *{
@@ -1741,9 +1684,6 @@ textarea{min-height:58px}
     max-width:100% !important;
   }
 }
-
-
-/* ===== v38 mobile flight form UI only: select airports + split date/time ===== */
 /* 桌機維持原欄位；手機改用較穩定的 select / date / time 呈現，資料仍存回原欄位結構 */
 .flightMobileOnly{display:none!important}
 .flightDesktopOnly{display:block!important}
@@ -1809,9 +1749,6 @@ textarea{min-height:58px}
     margin-top:3px;
   }
 }
-
-
-/* ===== v39 flight save-first workflow only ===== */
 .flightSavedHint{
   font-size:12px;
   line-height:1.45;
@@ -1843,10 +1780,6 @@ textarea{min-height:58px}
   background:#f3eee8;
   color:#6f6257;
 }
-
-
-/* ===== v40 mobile-only flight date/time field visual fix ===== */
-/* 只修手機版航班起飛/抵達的日期時間欄位呈現，不改資料結構與邏輯 */
 @media(max-width:620px){
   #tripView .flightDense .mobileTimeGrid{
     gap:8px!important;
@@ -1923,10 +1856,6 @@ textarea{min-height:58px}
     text-align:center;
   }
 }
-
-
-/* ===== v41 mobile-only flight datetime app-like row ===== */
-/* 只改手機版航班時間呈現，不改桌機、不改資料結構 */
 @media(max-width:620px){
   #tripView .flightDense .mobileTimeGrid{
     gap:8px!important;
@@ -2037,9 +1966,6 @@ textarea{min-height:58px}
     line-height:1.35!important;
   }
 }
-
-
-/* ===== v42 photo book UI only ===== */
 .photoBookSectionCard{
   border:1px solid var(--line);
   background:rgba(255,255,255,.94);
@@ -2208,9 +2134,6 @@ textarea{min-height:58px}
     object-fit:cover!important;
   }
 }
-
-
-/* ===== v43 photo story book redesign only ===== */
 .photoBookEditor{
   display:grid;
   gap:12px;
@@ -2635,10 +2558,6 @@ textarea{min-height:58px}
     -webkit-print-color-adjust:exact;
   }
 }
-
-
-/* ===== v44 photo book PDF booklet refinement only ===== */
-/* 只調整照片旅遊書列印 / PDF 版面，不改資料結構與其他頁面 */
 @media print{
   @page{
     size:A4 portrait;
@@ -2651,9 +2570,7 @@ textarea{min-height:58px}
     -webkit-print-color-adjust:exact!important;
     print-color-adjust:exact!important;
   }
-
-  /* 只在照片旅遊書列印時保留故事書預覽，其他編輯工具全部隱藏 */
-  .photoBookEditor,
+.photoBookEditor,
   .photoBookEditor *,
   .storyPanel,
   .storyPanel *,
@@ -3058,9 +2975,6 @@ textarea{min-height:58px}
     page-break-inside:avoid!important;
   }
 }
-
-
-/* ===== v45 photo book PDF preview mode only ===== */
 .photoBookModeSwitch{
   display:inline-flex;
   gap:6px;
@@ -3471,16 +3385,6 @@ textarea{min-height:58px}
     max-height:17mm!important;
   }
 }
-
-
-/* ===== v46 theme switcher UI layer only ===== */
-/*
-主題結構設計：
-- 不寫入旅行資料 data，不改原資料結構
-- 使用 body 的 data-theme-mode / data-theme-palette / data-card-style 控制 UI
-- 使用 CSS variables 覆蓋主色、邊框、卡片樣式
-- 設定存放於 localStorage key: travelBookThemePrefs
-*/
 :root{
   --theme-primary:#628f80;
   --theme-primary-soft:#d9efe6;
@@ -3763,10 +3667,6 @@ body[data-card-style] .storyPanel{
 @media print{
   .themeWidget{display:none!important}
 }
-
-
-/* ===== v47 mobile photo book compact fix only ===== */
-/* 只調整照片旅遊書手機版，不改資料結構、不影響其他頁籤 */
 @media(max-width:620px){
   #photoBookView,
   #photoBookView *{
@@ -4000,16 +3900,6 @@ body[data-card-style] .storyPanel{
     padding:9px 10px !important;
   }
 }
-
-
-/* ===== v48 boutique visual + photo book premium PDF refinement ===== */
-/*
-v48 設計原則：
-- 不更動 data / localStorage 旅行資料結構
-- 不更動 Firebase / Cloudinary / 行程 / 航班 / 住宿 / 預算關聯
-- 僅以 CSS 視覺層與照片書 PDF 呈現覆蓋
-*/
-
 /* 1) 精品感低飽和主題重調 */
 body[data-theme-palette="seoul"]{
   --theme-primary:#4A5D4E;
@@ -4539,10 +4429,6 @@ body[data-theme-mode] .btn.pink{
     font-size:30px!important;
   }
 }
-
-
-/* ===== v49 photo story direct upload mode only ===== */
-/* 只調整照片書：移除上方編輯/PDF預覽，直接在故事預覽內上傳封面與照片 */
 .photoInlineUpload{
   display:inline-flex;
   align-items:center;
@@ -4641,10 +4527,6 @@ body[data-theme-mode] .btn.pink{
     display:none!important;
   }
 }
-
-
-/* ===== v50 photo book story-only cleanup ===== */
-/* 只調整照片書：移除 PDF 預覽/切換感，匯出直接使用故事預覽 */
 #photoBookView .photoBookModeSwitch,
 #photoBookView .pdfPreviewHint,
 #photoBookView .pdfPreviewWrap{
@@ -4755,10 +4637,6 @@ body[data-theme-mode] .btn.pink{
     break-before:auto!important;
   }
 }
-
-
-/* ===== v51-map itinerary OpenStreetMap route card only ===== */
-/* 只新增行程頁今日路線地圖，不改資料結構 */
 .routeMapCard{
   border:1px solid var(--theme-line,#E2DDD5);
   border-radius:22px;
@@ -4914,10 +4792,6 @@ body[data-theme-mode] .btn.pink{
     display:none!important;
   }
 }
-
-
-/* ===== v52 premium itinerary timeline UI only ===== */
-/* 只美化行程頁的每日行程清單，不改資料結構與核心 CRUD 邏輯 */
 .itineraryTimeline{
   position:relative;
   display:grid;
@@ -5216,9 +5090,6 @@ body[data-theme-mode] .btn.pink{
     display:none!important;
   }
 }
-
-
-/* ===== v54 optional plan address field + OSM targeting ===== */
 /* 最小資料擴充：僅新增行程 address 選填欄位；不改預算、照片書、航班/住宿關聯 */
 .planAddressHint{
   color:var(--theme-muted,#9A928A);
@@ -5249,9 +5120,6 @@ body[data-theme-mode] .btn.pink{
     font-size:11.5px;
   }
 }
-
-
-/* ===== v55 map pause, keep address field only ===== */
 /* 暫停今日路線地圖顯示；保留 address 欄位與未來地圖串接彈性 */
 .routeMapCard{
   display:none!important;
@@ -5261,9 +5129,6 @@ body[data-theme-mode] .btn.pink{
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 <style>
-
-/* ===== v63.4 UI refinement: theme settings + larger tabs only ===== */
-/* 只調整外觀設定入口與頁籤可讀性，不改 data / localStorage / Firebase / Cloudinary 資料結構 */
 .tabs{
   gap:10px !important;
   margin:16px 0 14px !important;
@@ -5449,7 +5314,6 @@ body[data-theme-mode] .btn.pink{
 </style>
 
 <style>
-/* ===== v63.5 theme settings placement fix only ===== */
 /* 不再把外觀設定入口放在主視覺/旅程卡片區，改收進右上帳號選單。 */
 .themeWidget{
   display:none !important;
@@ -5488,8 +5352,6 @@ body[data-theme-mode] .btn.pink{
 
 
 <style>
-/* ===== v64.6 flight direct + photo book cover/photo UI fixes ===== */
-/* 只修航班顯示與照片書視覺/操作，不改 Firebase、localStorage key、Cloudinary 或旅行資料主結構。 */
 .v646-hidden-segment{display:none!important;}
 #photoBookView .storyOnlyIntro{
   align-items:flex-start;
@@ -5617,7 +5479,7 @@ body[data-theme-mode] .btn.pink{
   <button class="btn blue compact hidden" id="cloudLoadBtn" onclick="loadFromCloud()">載入雲端</button>
   <button class="btn pink compact hidden" id="cloudSaveBtn" onclick="saveToCloudNow()">立即同步</button>
 </div>
-<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="stayView" class="hidden"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>貞選旅管家 Janeselect Travel Manager｜LocalStorage + Firebase + Cloudinary<br><strong>版本：v65.5｜2026-05-31｜程式碼整理與重複補丁清理版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
+<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="stayView" class="hidden"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>貞選旅管家 Janeselect Travel Manager｜LocalStorage + Firebase + Cloudinary<br><strong>版本：v66.0｜2026-05-31｜現行功能基準整理版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
 
 <!-- Firebase SDK for cross-device sync -->
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -5658,8 +5520,6 @@ function renderPacking(){let current=data.packView||"pre";let list=data.packing.
 function renderPhotoBook(){$("photoBookView").innerHTML=`<div class="section"><div><h2>照片旅遊書</h2><div class="hint">可選匯出風格，列印或存 PDF 時更像旅行書。</div></div><button class="btn soft noPrint" onclick="print()">匯出 PDF</button></div><div class="card noPrint"><div class="three"><div><label>照片書風格</label><select id="bookStyle" onchange="data.meta.bookStyle=this.value;save()"><option value="fresh" ${data.meta.bookStyle=="fresh"?"selected":""}>韓系清新</option><option value="fun" ${data.meta.bookStyle=="fun"?"selected":""}>活潑可愛</option><option value="diary" ${data.meta.bookStyle=="diary"?"selected":""}>手帳日記</option></select></div><div><label>照片日期</label><select id="phd">${optsDays(cur)}</select></div><div><label>照片標題</label><input id="pht"></div></div><label>選擇照片</label><input id="phf" type="file" accept="image/*"><label>照片日記</label><textarea id="phm" placeholder="這天的天氣、心情、最好吃的一餐、最喜歡的瞬間……"></textarea><div class="btns"><button class="btn dark" onclick="addPhoto()">壓縮並加入照片書</button></div></div><div class="bookStyle-${data.meta.bookStyle||"fresh"}"><div class="card"><h2>${esc(data.meta.title)}</h2><div class="box mint">${esc(data.meta.subtitle)}</div></div>${data.days.map(d=>photoBookDay(d)).join("")}</div>`}function photoBookDay(d){let plans=sortedPlans(d.key),photos=data.photos.filter(p=>p.day==d.key),cover=data.dayCovers[d.key];return `<div class="card bookDay"><div class="section"><div><h2>${d.title}｜${d.label}</h2><div class="hint">本日住宿：${hotelFor(d.key)?.name||"未設定"}</div></div><div class="noPrint"><input type="file" accept="image/*" onchange="addDayCover('${d.key}',this.files[0])"></div></div>${cover?`<img class="dayCover" src="${cover}">`:`<div class="dayCover" style="display:grid;place-items:center;color:#999">尚未上傳本日封面圖</div>`}<div>${plans.map(p=>`<div class="box blue" style="margin-bottom:8px"><b>${p.start}-${p.end}｜${esc(p.name)}</b><br>${esc(p.note||"")}</div>`).join("")||'<div class="empty">這天還沒有行程</div>'}</div><div class="grid2" style="margin-top:10px">${photos.map(p=>`<div class="photo"><img src="${p.src}"><h3>${esc(p.title||"照片紀錄")}</h3><p class="mini">${esc(p.memo)}</p><button class="small noPrint" onclick="delPhoto('${p.id}')">刪除</button></div>`).join("")||""}</div></div>`}async function addDayCover(day,file){if(!file)return;data.dayCovers[day]=await compress(file,1400,.78);save()}async function addPhoto(){let f=$("phf").files[0];if(!f)return toast("請選照片");let src=await compress(f,1200,.75);data.photos.unshift({id:uid(),day:$("phd").value,title:$("pht").value,memo:$("phm").value,src});save()}function delPhoto(id){data.photos=data.photos.filter(p=>p.id!=id);save()}function compress(file,maxW=1200,q=.75){return new Promise(res=>{let r=new FileReader();r.onload=e=>{let img=new Image();img.onload=()=>{let scale=Math.min(1,maxW/img.width),c=document.createElement("canvas");c.width=img.width*scale;c.height=img.height*scale;c.getContext("2d").drawImage(img,0,0,c.width,c.height);res(c.toDataURL("image/jpeg",q))};img.src=e.target.result};r.readAsDataURL(file)})}
 function renderHelp(){$("helpView").innerHTML=`<div class="section"><div><h2>說明與備份</h2><div class="hint">工具使用方式、資料備份與還原放在這裡。</div></div></div><div class="card"><h3>備份資料</h3><div class="box mint">匯出備份會下載 JSON 檔。匯入備份會覆蓋目前資料。</div><div class="btns"><button class="btn dark" onclick="exportBackup()">匯出備份</button><label class="btn soft" style="display:inline-block">匯入備份<input type="file" accept=".json,application/json" onchange="importBackup(this.files[0])" style="display:none"></label></div></div><div class="card"><h3>使用提醒</h3><div class="box blue">目前不使用付費 Google Maps API，所以地圖功能採用開啟 Google Maps 查詢，再手動貼地址或調整時間。</div></div>`}function exportBackup(){let blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`travel-book-backup-${new Date().toISOString().slice(0,10)}.json`;a.click();URL.revokeObjectURL(a.href)}function importBackup(file){if(!file)return;if(!confirm("匯入備份會覆蓋目前資料，確定繼續？"))return;let r=new FileReader();r.onload=e=>{try{data=JSON.parse(e.target.result);if(!data.days?.length)data.days=mkDays(data.trip.start,data.trip.end);localStorage.setItem("travel_book_v8",JSON.stringify(data));cur=data.days[0]?.key||data.trip.start;render();toast("已匯入備份")}catch(err){toast("備份檔格式錯誤")}};r.readAsText(file)}
 function sample(){data=structuredClone(base);data.meta.title="釜山小旅行手帳";data.meta.subtitle="把海風、咖啡廳、夜市小吃和想拍的街景慢慢收進行程裡，準備一趟剛剛好的釜山旅行。";data.trip={dest:"韓國釜山",country:"韓國",currency:"KRW",start:"2026-06-04",end:"2026-06-10",rate:.023,travelerCount:2,travelers:["Jane","Allen"]};data.days=mkDays(data.trip.start,data.trip.end);data.flights.out={no:"BX 範例去程",from:"TPE 桃園",to:"PUS 金海",dep:"2026-06-04T10:00",arr:"2026-06-04T13:20",transfer:"抵達後搭機場輕軌或計程車前往飯店。"};data.flights.back={no:"BX 範例回程",from:"PUS 金海",to:"TPE 桃園",dep:"2026-06-10T14:30",arr:"2026-06-10T16:10",transfer:"建議提早 3 小時出發。"};data.hotels=[{id:uid(),name:"城市律動",start:"2026-06-05",end:"2026-06-07",addr:"釜山西面站附近",note:"近地鐵，晚上回飯店方便。"}];data.expenses=[{id:uid(),source:"住宿",type:"住宿",name:"6/5~6/7 城市律動",payer:"1",payMethod:"card",day:"",mode:"TWD",foreign:0,twd:18000,memo:"範例"}];data.spots=[["甘川洞文化村","景點","2026-06-05"],["海雲台","景點","2026-06-06"],["西面商圈","購物","2026-06-07"]].map(x=>({id:uid(),name:x[0],type:x[1],day:x[2],addr:"釜山",memo:"範例口袋景點"}));cur=data.days[0].key;save();toast("已加入範例")}function resetAll(){if(!confirm("確定清除全部資料？"))return;localStorage.removeItem("travel_book_v8");data=loadData();cur=data.days[0].key;render()}
-
-/* ===== v9 UX overrides: city presets, compact map buttons, flight-to-itinerary, visible photo book style ===== */
 const cityMap={
   "韓國":["釜山","首爾","濟州","大邱","仁川"],
   "日本":["東京","大阪","京都","福岡","札幌","沖繩","名古屋"],
@@ -5802,9 +5662,6 @@ function renderPhotoBook(){
   <div class="card noPrint"><div class="stylePreview"><span class="styleChip">🌿 韓系清新</span><span class="styleChip">🌈 活潑可愛</span><span class="styleChip">✎ 手帳日記</span></div><div class="three"><div><label>照片書風格</label><select id="bookStyle" onchange="data.meta.bookStyle=this.value;save()"><option value="fresh" ${data.meta.bookStyle=="fresh"?"selected":""}>🌿 韓系清新</option><option value="fun" ${data.meta.bookStyle=="fun"?"selected":""}>🌈 活潑可愛</option><option value="diary" ${data.meta.bookStyle=="diary"?"selected":""}>✎ 手帳日記</option></select></div><div><label>照片日期</label><select id="phd">${optsDays(cur)}</select></div><div><label>照片標題</label><input id="pht"></div></div><label>選擇照片</label><input id="phf" type="file" accept="image/*"><label>照片日記</label><textarea id="phm" placeholder="這天的天氣、心情、最好吃的一餐、最喜歡的瞬間……"></textarea><div class="btns"><button class="btn dark" onclick="addPhoto()">壓縮並加入照片書</button></div></div>
   <div class="bookStyle-${data.meta.bookStyle||"fresh"}"><div class="card"><h2>${esc(data.meta.title)}</h2><div class="box mint">${esc(data.meta.subtitle)}</div></div>${data.days.map(d=>photoBookDay(d)).join("")}</div>`;
 }
-
-
-/* ===== v10 refinements: destination logic, airport presets, hotel itinerary, AI prompt/import ===== */
 const cityMapV10={
   "韓國":["釜山","首爾","濟州","大邱","仁川"],
   "日本":["東京","大阪","京都","福岡","札幌","沖繩","名古屋"],
@@ -6016,9 +5873,6 @@ function addHotelsToPlans(){
   });
   save();toast("已將住宿出發／回飯店節點帶入行程");
 }
-
-
-/* ===== v10.1 AI itinerary prompt + import, remove sample from side calendar ===== */
 function renderSide(){
   $("days").innerHTML=data.days.map(d=>{
     let h=hotelFor(d.key),n=data.plans.filter(p=>p.day==d.key).length;
@@ -6146,9 +6000,6 @@ function renderHelp(){
   <div class="card"><h3>機場與地圖</h3><div class="box blue">選擇國家與城市後，航班欄位會提供常用機場快速選單。飯店與景點的地圖功能目前採用開啟 Google Maps 查詢，再手動貼地址。</div></div>
   <div class="card"><h3>住宿與航班帶入行程</h3><div class="box pink">航班可以帶入首尾交通節點；住宿可以帶入入住、每日出發、回飯店節點。這些卡片仍可到行程頁編輯時間與內容。</div></div>`;
 }
-
-
-/* ===== v11: simplified destination, spot AI import, clear plans, mobile calendar UX ===== */
 function countryOptions(){
   return Object.keys(cityMapV10).map(c=>`<option value="${c}" ${data.trip.country==c?"selected":""}>${c==="歐洲"?"歐洲區域":c}</option>`).join("")+
     `<option value="其他" ${data.trip.country=="其他"?"selected":""}>其他</option>`;
@@ -6366,9 +6217,6 @@ function renderHelp(){
   <div class="card"><h3>手機版介面</h3><div class="box blue">旅行日曆在手機版改成橫向滑動，不再一直置頂，避免佔住畫面。主要操作可用底部導覽切換。</div></div>
   <div class="card"><h3>機場與地圖</h3><div class="box blue">選擇國家與城市後，航班欄位會提供常用機場快速選單。飯店與景點的地圖功能目前採用開啟 Google Maps 查詢，再手動貼地址。</div></div>`;
 }
-
-
-/* ===== v14 stable overrides based on uploaded v11 file ===== */
 const cityMapFinal={
   "韓國":["釜山","首爾","濟州","大邱","仁川"],
   "日本":["東京","大阪","京都","福岡","札幌","沖繩","名古屋"],
@@ -6585,10 +6433,6 @@ function renderHelp(){
   <div class="card"><h3>手機版介面</h3><div class="box blue">旅行日曆在手機版是橫向滑動日期卡，不再一直置頂。行程頁已移除本日統計卡，預算統計集中在預算頁。</div></div>
   <div class="card"><h3>機場與地圖</h3><div class="box blue">目前不使用付費 Google Maps API，所以地圖功能採用開啟 Google Maps 查詢，再手動貼地址或調整交通時間。</div></div>`;
 }
-
-
-/* ===== v15 overrides: card collapsed, currency label, mobile top tabs, compact forms, AI spot modal ===== */
-
 function v15CountryCityMaps(){
   return {
     cityMap:{
@@ -6956,10 +6800,6 @@ function renderPhotoBook(){
 function templateCard(k,title,desc){
   return `<div class="templateCard ${data.meta.bookStyle==k?"active":""}" onclick="data.meta.bookStyle='${k}';save()"><b>${title}</b><span class="mini">${desc}</span></div>`;
 }
-
-
-/* ===== v16 overrides: calendar only in planner, flight auto-add option, hotel auto itinerary, spot link state ===== */
-
 let v16KeepHotelOpen = false;
 let v16PendingSpotId = null;
 
@@ -7333,9 +7173,6 @@ function saveSpot(){
   }
   save();
 }
-
-
-/* ===== v17 Cloudinary photo upload ===== */
 const CLOUDINARY_CONFIG = {
   cloudName: "dtpgutlmt",
   uploadPreset: "travel_book_unsigned",
@@ -7500,9 +7337,6 @@ function photoBookDay(d){
     <div class="grid2" style="margin-top:10px">${photos.map(p=>`<div class="photo"><img src="${p.src}"><h3>${esc(p.title||"照片紀錄")}</h3><p class="mini">${esc(p.memo)}</p><div class="tags">${p.cloudinary?'<span class="tag green">☁️ Cloudinary</span>':''}</div><button class="small noPrint" onclick="delPhoto('${p.id}')">刪除</button></div>`).join("")||""}</div>
   </div>`;
 }
-
-
-/* ===== v18 overrides: print photo book, silent plan delete, guarded country change, hotel date/sort ===== */
 let v18PendingCountry = null;
 
 function v18SortHotels(){
@@ -7757,9 +7591,6 @@ function photoBookDay(d){
     <div class="photoGridPrint">${photos.map(p=>`<div class="photo"><img src="${p.src}"><h3>${esc(p.title||"照片紀錄")}</h3><p class="mini">${esc(p.memo)}</p><div class="tags">${p.cloudinary?'<span class="tag green">☁️ Cloudinary</span>':''}</div><button class="small noPrint" onclick="delPhoto('${p.id}')">刪除</button></div>`).join("")||""}</div>
   </div>`;
 }
-
-
-/* ===== v19 overrides: date reset guard, hotel optional actions, budget toggles, trip cover, refined PDF ===== */
 let v19PendingDates = null;
 
 function v19ResetVariableData(){
@@ -8038,14 +7869,8 @@ function photoBookDay(d){
     <div class="photoGridPrint">${photos.map(p=>`<div class="photo"><img src="${p.src}"><h3>${esc(p.title||"照片紀錄")}</h3><p class="mini">${esc(p.memo)}</p><div class="tags">${p.cloudinary?'<span class="tag green">☁️ Cloudinary</span>':''}</div><button class="small noPrint" onclick="delPhoto('${p.id}')">刪除</button></div>`).join("")||""}</div>
   </div>`;
 }
-
-
-/* ===== Version marker ===== */
 const APP_VERSION = "v63｜2026-05-30｜登入白名單與多旅程架構版";
 console.log("貞選旅管家", APP_VERSION);
-
-
-/* ===== v21 overrides: country reset on save, option modals, locked names, budget exclusion ===== */
 let v21PendingFlightOptions = false;
 let v21PendingHotelId = null;
 
@@ -8415,9 +8240,6 @@ function renderBudget(){
   $("budgetView").innerHTML=`<div class="section"><div><h2>預算總覽</h2><div class="hint">住宿若已從住宿卡片帶入預算，住宿行程節點不會重複列入行程預算。</div></div><button class="iconBtn smallIcon" onclick="clearExpenseForm()">＋</button></div><div class="card"><div class="three"><div><label>費用類型</label><select id="etype"><option>機票</option><option>住宿</option><option>網路</option><option>旅平險</option><option>交通票券</option><option>景點票券</option><option>餐飲</option><option>購物</option><option>其他</option></select></div><div><label>項目</label><input id="ename"></div><div><label>付款人</label><select id="epayer">${optsPayer("未定")}</select></div></div><div class="four"><div><label>${esc(data.trip.currency)} 金額</label><input id="eforeign" type="number" oninput="syncExpenseMoney('f')"></div><div><label>TWD</label><input id="etwd" type="number" oninput="syncExpenseMoney('t')"></div><div><label>付款方式</label><select id="epm">${optsPayMethod("未定")}</select></div><div><label>日期</label><select id="eday"><option value="">不指定日期</option>${optsDays()}</select></div></div><label>備註</label><input id="ememo"><div class="btns"><button class="btn dark" onclick="saveExpenseForm()">${editingExpenseId?"儲存預算":"新增費用"}</button>${editingExpenseId?'<button class="btn soft" onclick="clearExpenseForm()">取消編輯 / 新增</button>':""}<button class="btn blue" onclick="openRateSearch()">查看現在匯率</button></div></div><div class="stats"><div class="stat"><span>額外費用 TWD</span><strong>${fmt(expTotal)}</strong></div><div class="stat"><span>行程 TWD</span><strong>${fmt(planTotal)}</strong></div><div class="stat"><span>計程車 TWD</span><strong>${fmt(taxiTotal)}</strong></div><div class="stat"><span>總 TWD</span><strong>${fmt(expTotal+planTotal+taxiTotal)}</strong></div></div><div class="table"><table><thead><tr><th>來源</th><th>日期</th><th>類型</th><th>項目</th><th>付款人</th><th>付款方式</th><th>${esc(data.trip.currency)}</th><th>TWD</th><th></th></tr></thead><tbody>${budgetRows()}</tbody></table></div>`;
   if(editingExpenseId)fillExpenseForm(editingExpenseId);
 }
-
-
-/* ===== v22 Firebase single-user cross-device sync ===== */
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyDVmuktIzd29IqgOum2KOchgFZi0ofn4tY",
   authDomain: "travel-tool-50e41.firebaseapp.com",
@@ -8640,9 +8462,6 @@ renderHelp = function(){
   <div class="card"><h3>AI 口袋景點</h3><div class="box mint">在「景點」頁按 AI 景點提示詞，複製給 AI。AI 回傳純 JSON 後，存成 .txt 或 .json，再匯入口袋景點。</div></div>
   <div class="card"><h3>備份資料</h3><div class="box blue">匯出備份會下載 JSON。匯入備份會覆蓋目前資料。若要修改國家或日期，建議先匯出備份。</div><div class="btns"><button class="btn dark" onclick="exportBackup()">匯出備份</button><label class="btn soft" style="display:inline-block">匯入備份<input type="file" accept=".json,application/json" onchange="importBackup(this.files[0])" style="display:none"></label></div></div>`;
 };
-
-
-/* ===== v23 validation layer: flight / hotel / plan / imported spots / free budget date ===== */
 function v23ParseDateOnly(s){
   if(!s)return null;
   const [y,m,d]=String(s).split("-").map(Number);
@@ -8928,10 +8747,6 @@ function budgetRows(){
   data.conns.filter(c=>Number(c.fareTwd||0)>0||Number(c.fareForeign||0)>0).forEach(c=>rows.push(`<tr><td>交通</td><td>—</td><td>${esc(c.mode)}</td><td>行程間交通</td><td>${esc(travelerName(c.payer))}</td><td>${esc(payMethodLabel(c.payMethod))}</td><td>${fmt(c.fareForeign||0)}</td><td>${fmt(c.fareTwd||0)}</td><td></td></tr>`));
   return rows.join("")||'<tr><td colspan="9">尚未新增預算</td></tr>';
 }
-
-
-/* ===== v24 overrides: flight import status/actions, smaller sync copy, friendlier labels ===== */
-
 function v24IsFlightPlan(p){
   return p?.sourceType==="flight" || p?.memo==="由航班資料帶入";
 }
@@ -9148,9 +8963,6 @@ async function saveToCloudNow(){
     setSyncStatus("off","同步失敗",err.message || "請檢查 Firestore Rules 與白名單。");
   }
 }
-
-
-/* ===== v25 overrides: account avatar menu, mini sync status, round-trip flight budget ===== */
 function toggleAccountMenu(){
   $("accountMenu")?.classList.toggle("show");
 }
@@ -9287,9 +9099,6 @@ initFirebaseSync = function(){
   renderAccountWidget(null);
   __oldInitFirebaseSync_v25();
 };
-
-
-/* ===== v26 overrides: remove plan money/payer, independent budget, account sync state ===== */
 let syncStatus = "idle";
 let lastSyncTime = null;
 
@@ -9594,9 +9403,6 @@ function ensureAccountMenuSyncLine(){
   }
   updateAccountSyncLine();
 }
-
-
-/* ===== v27 type stability + currentDay UX; no new id/source structure ===== */
 let currentDay = cur || data?.days?.[0]?.key || data?.trip?.start || "";
 
 const PLAN_TYPES = ["景點","餐廳","咖啡廳","購物","交通","航班","住宿","雨天備案","其他"];
@@ -9973,9 +9779,6 @@ function render(){
   cur=currentDay;
   renderHead();renderSide();renderTrip();renderPlanner();renderSpots();renderBudget();renderPacking();renderPhotoBook();renderHelp();
 }
-
-
-/* ===== v28 data structure refactor: plan id/source + flight/hotel upsert sync ===== */
 /*
 新行程資料結構：
 {
@@ -10403,34 +10206,6 @@ function render(){
   cur=currentDay;
   renderHead();renderSide();renderTrip();renderPlanner();renderSpots();renderBudget();renderPacking();renderPhotoBook();renderHelp();
 }
-
-/* ===== v28 reference examples for future maintenance =====
-新的資料結構：
-plan = {
-  id: "flight-out-plane",
-  source: "flight",
-  sourceType: "flight", // 舊 UI 相容
-  day: "2026-06-04",
-  start: "16:00",
-  end: "19:00",
-  type: "航班",
-  name: "搭乘去程航班 BXxxx",
-  note: "TPE → PUS",
-  memo: "由航班資料帶入"
-}
-
-更新邏輯：
-v28UpsertPlan(plan)
-- 有相同 plan.id：更新既有行程
-- 沒有相同 plan.id：新增行程
-
-刪除流程：
-v28DeletePlansBySource("flight")
-v28DeletePlansBySource("hotel", p => p.hotelId == hotelId)
-*/
-
-
-/* ===== v29 fixed: flight transfer support without inline script tag ===== */
 /*
 新資料結構：
 data.flights.out / data.flights.back = {
@@ -10766,10 +10541,6 @@ renderTrip = function(){
   __renderTripBeforeV29();
   afterRenderFlightForms();
 };
-
-
-/* ===== v30 overrides: budget cards + dense collapsible flight segments ===== */
-
 function budgetAllItems(){
   const items=[];
   (data.expenses||[]).forEach(x=>{
@@ -10930,9 +10701,6 @@ renderTrip = function(){
   }
   afterRenderFlightForms();
 };
-
-
-/* ===== v31 airport and terminal options for flight segments ===== */
 function airportOptionsList(){
   return [
     "台灣｜TPE 桃園國際機場",
@@ -11196,9 +10964,6 @@ function flightPlanTemplates(){
 
   return templates;
 }
-
-
-/* ===== v32 overrides: compact flight copy + flexible flight date range ===== */
 function v32DateAdd(dateStr, days){
   const d=parseLocalDate(dateStr);
   d.setDate(d.getDate()+days);
@@ -11299,9 +11064,6 @@ function flightSegmentForm(k, idx, seg){
     </div>
   </details>`;
 }
-
-
-/* ===== v33 budget details: desktop table + aligned mobile cards ===== */
 function budgetAllItems(){
   const items=[];
   (data.expenses||[]).forEach(x=>{
@@ -11447,10 +11209,6 @@ function renderBudget(){
   ${budgetDetailsHtml(items)}`;
   if(editingExpenseId)fillExpenseForm(editingExpenseId);
 }
-
-
-/* ===== v34 targeted fixes: source plan budget skip, no delete confirm, China cities ===== */
-
 // 1) 航班 / 住宿來源行程不自動建立預算；口袋景點 / 手動行程仍會建立。
 // 不改資料結構，只調整建立預算的小邏輯。
 function createBudgetFromPlanSnapshot(plan){
@@ -11589,11 +11347,6 @@ function countryChanged(){
     if(destInput)destInput.value=dest;
   }
 }
-
-
-/* ===== v36 fix flight-to-plan date/time + cleaner direct flight labels ===== */
-/* 只修航班帶入行程邏輯，不改資料結構 */
-
 function v36DateFromDT(dt, fallback){
   if(!dt)return fallback || data.trip.start;
   return String(dt).split("T")[0] || fallback || data.trip.start;
@@ -11743,9 +11496,6 @@ function saveFlights(){
   v16CollapseTripDetail(1);
   toast("已幫你存好航班囉！");
 }
-
-
-/* ===== v38 mobile-only flight UI helpers; data structure unchanged ===== */
 function v38AirportOptions(){
   return typeof airportOptionsList==="function" ? airportOptionsList() : [
     "台灣｜TPE 桃園國際機場","台灣｜TSA 台北松山機場","台灣｜KHH 高雄小港機場",
@@ -11906,11 +11656,6 @@ function readFlightForm(k){
     transfer:$(k+"toAirport")?.value||""
   };
 }
-
-
-/* ===== v39 flight save-first workflow + flight plan time rules ===== */
-/* 只調整航班與機場接送區塊，不改資料結構 */
-
 let v39FlightDirty = false;
 
 function v39ParseLocalDT(dt){
@@ -12219,9 +11964,6 @@ function saveFlights(){
   v16CollapseTripDetail(1);
   toast(alreadyHasPlans ? "已存好航班，並更新行程囉！" : "已幫你存好航班囉！");
 }
-
-
-/* ===== v41 override mobile flight datetime markup only ===== */
 function flightSegmentForm(k, idx, seg){
   seg = seg || {};
   const defaultOpen = idx===0 ? "open" : "";
@@ -12280,9 +12022,6 @@ function flightSegmentForm(k, idx, seg){
     </div>
   </details>`;
 }
-
-
-/* ===== v42 photo book only overrides ===== */
 function setPhotoUploadStatus(id, message){
   const el=$(id);
   if(!el)return;
@@ -12468,9 +12207,6 @@ function photoBookDay(d){
       </div>`).join("")||""}</div>
   </div>`;
 }
-
-
-/* ===== v43 photo travel book story redesign only ===== */
 function exportPhotoBookPDF(){
   alert("匯出 PDF 建議使用電腦下載或列印，版面會比較穩定。這版已改成故事書列印版面，會盡量避免照片與段落被切頁。");
   print();
@@ -12621,16 +12357,10 @@ function renderPhotoBook(){
     </div>
   </div>`;
 }
-
-
-/* ===== v44 photo book PDF export hint only ===== */
 function exportPhotoBookPDF(){
   alert("建議使用電腦 Chrome 匯出 PDF，版面最穩定。平板可預覽與簡單匯出，但 Safari 可能會讓背景、分頁或照片比例略有落差。");
   print();
 }
-
-
-/* ===== v45 photo book PDF preview mode only ===== */
 let photoBookMode = "story";
 
 function setPhotoBookMode(mode){
@@ -12746,9 +12476,6 @@ renderPhotoBook = function(){
     preview.insertAdjacentHTML("afterbegin", pdfPreviewHtml());
   }
 };
-
-
-/* ===== v46 theme switcher: UI-only settings, no travel data structure changes ===== */
 /*
 theme config 範例：
 const THEME_CONFIG = {
@@ -12888,9 +12615,6 @@ init = function(){
   __initBeforeV46();
   injectThemeWidget();
 };
-
-
-/* ===== v48 brand wording + boutique PDF export hint only ===== */
 function exportPhotoBookPDF(){
   if(typeof photoBookMode !== "undefined" && photoBookMode !== "pdf"){
     photoBookMode = "pdf";
@@ -12899,9 +12623,6 @@ function exportPhotoBookPDF(){
   alert("已切換到 PDF 預覽模式。建議使用電腦 Chrome 匯出 PDF，會最接近貞選旅管家的 A4 小冊子排版。");
   print();
 }
-
-
-/* ===== v49 photo book direct story upload only ===== */
 function photoCountForDay(day){
   return (data.photos||[]).filter(p=>p.day==day).length;
 }
@@ -13035,9 +12756,6 @@ function renderPhotoBook(){
     </div>
   </div>`;
 }
-
-
-/* ===== v50 photo book story-only render/export ===== */
 function exportPhotoBookPDF(){
   // 不再切換 PDF 預覽；直接用目前故事預覽列印
   alert("將使用目前故事預覽版面匯出 PDF。正式輸出建議使用電腦 Chrome，版面最穩定。");
@@ -13064,9 +12782,6 @@ function renderPhotoBook(){
     </div>
   </div>`;
 }
-
-
-/* ===== v51-map OpenStreetMap / Leaflet itinerary route card ===== */
 /* 不新增原旅行 data 欄位；定位快取獨立存在 localStorage: travelBookMapCache */
 const MAP_CACHE_KEY = "travelBookMapCache";
 let routeMap = null;
@@ -13250,12 +12965,6 @@ function routeMapHtml(dayKey){
     </div>
   </div>`;
 }
-
-/* 只覆寫行程頁 renderPlanner，插入地圖卡；不更動 data 結構 */
-
-/* ===== v52 premium itinerary timeline rendering only ===== */
-/* 只覆寫每日行程清單的 HTML 渲染；不更動 CRUD 函數、不更動資料結構 */
-
 function itineraryTimeText(p){
   const s = p.start || "--:--";
   const e = p.end || "";
@@ -13314,10 +13023,6 @@ function planCards(plans){
   html += '</div>';
   return html;
 }
-
-
-/* ===== v53 remove timeline map pin icon only ===== */
-/* 只移除行程標題前的 📍 視覺圖示，不動資料結構與 CRUD 邏輯 */
 function premiumPlanCard(p){
   const t = itineraryTimeText(p);
   return `<div class="itineraryItem" data-id="${p.id}">
@@ -13361,9 +13066,6 @@ renderPlanner = function(){
     heading.insertAdjacentHTML("afterend", routeMapHtml(cur));
   }
 };
-
-
-/* ===== v54 optional address field for itinerary + OSM priority search ===== */
 /*
 資料結構最小擴充：
 plan.address = ""  // 選填；舊資料沒有 address 時自動視為空字串
@@ -13635,9 +13337,6 @@ function routePlanCandidates(dayKey){
     .filter(p => p && p.name && !["航班"].includes(p.type))
     .slice(0, 10);
 }
-
-
-/* ===== v55 pause map UI, keep address field and future map flexibility ===== */
 /*
 保留：
 - plan.address 選填欄位
@@ -13800,7 +13499,6 @@ initFirebaseSync();
 
 
 <style>
-/* ===== v56 photo book only micro refinements ===== */
 #photoBookView .storyBookCoverText h1{
   text-shadow:0 3px 18px rgba(255,255,255,.28);
 }
@@ -13902,7 +13600,6 @@ initFirebaseSync();
 
 
 <script>
-/* ===== v56 photo book only refinements: clearer cover subtitle + photo add flow + editable journal ===== */
 let storyPendingPhotoFiles = window.storyPendingPhotoFiles || {};
 let storyEditingPhotoId = null;
 
@@ -14110,7 +13807,6 @@ try{
 
 
 <style>
-/* ===== v57 photo book polish only: preview thumbnail + edit modal + magazine cover text ===== */
 #photoBookView .storyBookCoverText{
   max-width:min(92%, 860px);
 }
@@ -14269,7 +13965,6 @@ try{
 
 
 <script>
-/* ===== v57 photo book polish only ===== */
 let storyPhotoPreviewUrls = window.storyPhotoPreviewUrls || {};
 let activePhotoEditId = null;
 
@@ -14488,8 +14183,6 @@ try{
 
 
 <style>
-/* ===== v58 PDF-only travel book engine ===== */
-/* 只影響照片旅遊書匯出 PDF；螢幕版故事預覽不變 */
 #pdfBookPrintMount{
   display:none;
 }
@@ -14988,9 +14681,6 @@ try{
 
 
 <script>
-/* ===== v58 PDF-only travel book engine ===== */
-/* 不改照片書資料，只在匯出 PDF 時產生 print-only A4 DOM */
-
 function pdfEsc(v){
   return String(v ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 }
@@ -15175,7 +14865,6 @@ window.addEventListener("afterprint", ()=>{
 
 
 <script>
-/* ===== v59 split PDF export to standalone export.html ===== */
 /* index.html 保持旅行工具；照片書匯出改為開啟獨立出版頁 */
 function openPdfPublisher(autoPrint=false){
   const url = autoPrint ? "export.html?print=1" : "export.html";
@@ -15191,7 +14880,6 @@ function exportPhotoBookPDF(){
 
 
 <style>
-/* ===== v60 index photo book export button alignment only ===== */
 #photoBookView .storyOnlyIntro{
   display:flex!important;
   align-items:flex-start!important;
@@ -15217,7 +14905,6 @@ function exportPhotoBookPDF(){
 }
 </style>
 <script>
-/* ===== v60 index: open publisher page, do not auto-print ===== */
 function openPdfPublisher(autoPrint=false){
   try{ save(); }catch(e){}
   window.open("export.html", "_blank");
@@ -15230,7 +14917,6 @@ function exportPhotoBookPDF(){
 
 
 <style>
-/* ===== v63 login gate + multi-trip shell ===== */
 .gateView{
   min-height:100vh;
   padding:24px 14px 80px;
@@ -15305,7 +14991,6 @@ function exportPhotoBookPDF(){
 </style>
 
 <script>
-/* ===== v63 login whitelist + multi-trip data layer ===== */
 const V63_ALLOWED_EMAILS = ["jan33772001@gmail.com"];
 const V63_MAX_TRIPS = 10;
 const V63_TRIP_LIST_KEY_PREFIX = "janeselect_trip_list_v63";
@@ -15766,7 +15451,6 @@ v63Boot();
 
 
 <style>
-/* ===== v63.1 brand polish + trip list + stay flight layout ===== */
 :root{
   --jm-olive:#4A5D4E;
   --jm-cream:#fffaf2;
@@ -15965,7 +15649,6 @@ v63Boot();
 </style>
 
 <script>
-/* ===== v63.1 functional overrides ===== */
 function v631BrandTitle(){
   document.title="貞選旅管家";
 }
@@ -16027,7 +15710,6 @@ v631BrandTitle();
 
 
 <style>
-/* ===== v63.2 cloud sync reliability patch ===== */
 .syncCloudBadge{
   display:inline-flex;
   align-items:center;
@@ -16052,10 +15734,6 @@ v631BrandTitle();
 </style>
 
 <script>
-/* ===== v63.2 cloud sync reliability patch =====
-   目的：修正 v63/v63.1 在多旅程架構下，部分儲存只留在 localStorage、未穩定寫入 Firestore 的問題。
-   原則：不改 data 內容結構，只強化 uid + tripId 的讀寫路徑、雲端狀態與錯誤提示。
-*/
 const V632_VERSION = "v63.2";
 const V632_LOCAL_META_SUFFIX = "__meta";
 let v632LastSyncState = {kind:"off", title:"尚未同步", desc:"", at:0};
@@ -16415,9 +16093,6 @@ document.addEventListener("DOMContentLoaded",()=>{
   const footer=document.querySelector("footer strong");
   if(footer && !footer.textContent.includes("v63.2"))footer.textContent="版本：v63.2｜2026-05-30｜多旅程雲端同步穩定修正版";
 });
-
-
-/* ===== v63.4 UI refinement: move theme settings into clear modal + larger tabs ===== */
 function v634ThemeLabel(){
   const prefs=applyThemePrefs(getThemePrefs());
   const mode=THEME_CONFIG.modes[prefs.mode]?.label || "淺色";
@@ -16482,9 +16157,6 @@ document.addEventListener("DOMContentLoaded",()=>{
   const footer=document.querySelector("footer strong");
   if(footer)footer.textContent="版本：v63.4｜2026-05-30｜外觀設定與頁籤可讀性優化版";
 });
-
-
-/* ===== v63.5 theme settings actual relocation fix ===== */
 function v635ThemePanelHtml(){
   const prefs=applyThemePrefs(getThemePrefs());
   return `<div class="themePanelBackdrop noPrint" id="themePanelBackdrop" onclick="if(event.target===this)closeThemePanel()">
@@ -16557,14 +16229,6 @@ document.addEventListener('DOMContentLoaded',()=>{
   const footer=document.querySelector('footer strong');
   if(footer)footer.textContent='版本：v63.5｜2026-05-30｜外觀設定位置修正版';
 });
-
-
-/* ===== v63.6 trip card management + per-trip color UI only =====
-   目的：
-   - 我的旅程卡片新增「刪除」功能
-   - 移除旅程卡片固定 J 字樣，改為多人使用友善設計
-   - 每趟旅程可選 5 種卡片背景色，僅寫入 tripIndex 的 cardColor，不改旅程 data 結構
-*/
 const V636_VERSION = "v63.6";
 const V636_CARD_COLORS = [
   {key:"cream", label:"奶油白"},
@@ -16747,12 +16411,6 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 
 <script>
-/* ===== v63.7 footer + edit modal + trip color UI cleanup =====
-   - 不更動旅程資料主結構 / Firebase 路徑 / Cloudinary / 行程與預算功能
-   - 新增全站固定頁尾：登入頁、旅程清單、主功能頁都會顯示
-   - 標題與副標改成自製彈窗，不再使用瀏覽器 prompt
-   - 旅程卡片色系只保留圓點選擇，移除下拉選單
-*/
 const V637_VERSION_TEXT = '版本：v63.7｜2026-05-31｜頁尾、標題編輯彈窗與旅程卡片色系優化版';
 
 function v637FooterHtml(){
@@ -16925,10 +16583,6 @@ setTimeout(v637EnsureFooter, 300);
 
 
 <style>
-/* ===== v64 AI assistant integration + pocket spot exploration only =====
-   不改 Firebase / Firestore / localStorage key / Cloudinary / 旅程主資料結構。
-   AI 採提示詞 + 使用者貼回 JSON 匯入草稿；不串 API、不放金鑰。
-*/
 .v64AiBar{
   border:1px solid var(--theme-line,#E2DDD5);
   background:color-mix(in srgb,var(--theme-card,#fff) 94%, var(--theme-primary-weak,#F2F6F4) 6%);
@@ -17072,7 +16726,6 @@ setTimeout(v637EnsureFooter, 300);
 </style>
 
 <script>
-/* ===== v64 AI assistant integration + pocket spot exploration only ===== */
 const V64_VERSION_SHORT = '版本：v64｜2026-05-31';
 const V64_VERSION_TEXT = 'v64｜2026-05-31｜AI 輔助整合與口袋景點探索版';
 
@@ -17662,7 +17315,6 @@ setTimeout(()=>{
 
 
 <style>
-/* ===== v64.1 AI health check refinement only ===== */
 #v64AiPromptModal{z-index:360!important;}
 #v64SpotExploreModal{z-index:300!important;}
 .v641Prefs{
@@ -17736,12 +17388,6 @@ setTimeout(()=>{
 </style>
 
 <script>
-/* ===== v64.1 AI health check refinement only =====
-   - AI 健檢只使用已排入行程，不把口袋景點列入健檢資料
-   - 新增非必填旅遊偏好 / MBTI / 星座，僅用於 prompt 參考
-   - 行程健檢匯入後顯示在行程頁的「AI 健檢建議」卡片，不再無感
-   - 修正口袋景點探索內 AI 摘要彈窗層級
-*/
 const V641_VERSION_SHORT = '版本：v64.1｜2026-05-31';
 const V641_VERSION_TEXT = 'v64.1｜2026-05-31｜AI 健檢偏好與匯入顯示優化版';
 const V641_PREF_KEY = 'janeselectAiPrefs_v1';
@@ -17983,10 +17629,6 @@ setTimeout(()=>{
 
 
 <script>
-/* ===== v64.2 AI brand visual restore layer =====
-   目的：恢復 Janeselect 品牌主視覺，不動 data / localStorage / Firebase / Cloudinary / AI 匯入結構。
-   範圍：Logo、favicon、登入頁、旅程清單頁、主頁 badge、頁尾品牌文字。
-*/
 function v64BrandRestoreMarkSvg(){
   return `<span class="brandMark" aria-hidden="true"><svg viewBox="0 0 64 64" focusable="false"><rect x="10" y="13" width="40" height="43" rx="10"></rect><path d="M22 13c1.7-5.4 13.9-5.4 15.6 0"></path><path d="M21 28h18M21 38h14"></path><circle cx="45" cy="18" r="6"></circle><path d="M45 14v4l3 2"></path></svg></span>`;
 }
@@ -18049,7 +17691,6 @@ function v64BrandRestoreApply(){
 </script>
 
 <style>
-/* ===== Janeselect brand visual restore CSS ===== */
 :root{
   --brand-primary:#4A5D4E;
   --brand-primary-soft:#E5ECE9;
@@ -18101,10 +17742,6 @@ function v64BrandRestoreApply(){
 
 
 <script>
-/* ===== v64.3 date adjustment protection layer =====
-   目的：救援已輸入資料。修改旅遊日期不再清空行程、住宿、預算、照片書與行李。
-   範圍：覆寫日期變更流程，提供「增減天數」與「整趟平移」。不改 Firebase / localStorage key / Cloudinary / 主資料結構。
-*/
 const V643_VERSION_SHORT = "v64.3｜2026-05-31";
 const V643_VERSION_TEXT = "v64.3｜日期調整保護與資料保留版";
 let v643PendingBasic = null;
@@ -18360,7 +17997,6 @@ setTimeout(()=>{try{v643UpdateFooterVersion(); if(typeof render==='function') re
 </script>
 
 <style>
-/* ===== v64.3 date adjustment protection UI ===== */
 .v643DateModal{z-index:380!important;}
 .v643DateBox h3{margin:0 0 8px!important;}
 .v643DateCompare{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0;}
@@ -18386,10 +18022,6 @@ setTimeout(()=>{try{v643UpdateFooterVersion(); if(typeof render==='function') re
 
 
 <script>
-/* ===== v64.4 AI spot prompt enhancement + compact AI bars =====
-   目的：AI 找景點加入航班、住宿、已排行程與偏好參考，讓備選日期/時間更準。
-   範圍：只調整 AI 提示詞、AI 工具列與 AI 匯入口袋景點備註，不動 Firebase/localStorage key/Cloudinary/旅程主資料結構。
-*/
 const V644_VERSION_SHORT = "v64.4｜2026-05-31";
 const V644_VERSION_TEXT = "v64.4｜AI 找景點提示詞強化與介面收合版";
 
@@ -18607,7 +18239,6 @@ setTimeout(()=>{try{v644UpdateFooterVersion(); if(typeof render==='function') re
 </script>
 
 <style>
-/* ===== v64.4 AI compact UI ===== */
 .v644AiBar .v64AiBarHead span{line-height:1.45;}
 .v644OptionsModal{z-index:390!important;}
 .v644OptionsBox{max-width:620px;}
@@ -18625,10 +18256,6 @@ setTimeout(()=>{try{v644UpdateFooterVersion(); if(typeof render==='function') re
 
 
 <script>
-/* ===== v64.5 AI spot suggested time field fix =====
-   目的：口袋景點本身就有候選日期、預設開始、預設結束；AI 匯入時直接寫入 spot.day/start/end，排入行程時再帶入行程表單。
-   範圍：只擴充口袋景點的選填 start/end 欄位與 AI 匯入，不改 Firebase/localStorage key/Cloudinary/旅程主資料結構。
-*/
 const V645_VERSION_SHORT = "v64.5｜2026-05-31";
 const V645_VERSION_TEXT = "v64.5｜AI 口袋景點時間欄位修正版";
 
@@ -18801,9 +18428,6 @@ function v645UpdateFooterVersion(){
   document.querySelectorAll('footer strong,.siteFooterVersion').forEach(el=>el.textContent=V645_VERSION_SHORT);
 }
 setTimeout(()=>{try{v645UpdateFooterVersion(); if(typeof render==='function') render();}catch(e){console.warn(e)}},360);
-
-
-/* ===== v64.6 flight direct + photo book cover/photo UI fixes ===== */
 const V646_VERSION_SHORT = "v64.6｜2026-05-31";
 const V646_VERSION_TEXT = "v64.6｜航班直飛與照片書操作修正版";
 
@@ -18993,10 +18617,6 @@ function v646UpdateFooterVersion(){
   document.querySelectorAll('footer strong,.siteFooterVersion').forEach(el=>el.textContent=V646_VERSION_SHORT);
 }
 setTimeout(()=>{try{v646UpdateFooterVersion(); if(typeof render==='function') render();}catch(e){console.warn(e)}},380);
-
-
-
-/* ===== v64.7 photo diary upload + sync queue fix ===== */
 const V647_VERSION_SHORT = "v64.7｜2026-05-31";
 const V647_VERSION_TEXT = "v64.7｜照片日記上傳與同步穩定修正版";
 
@@ -19235,10 +18855,6 @@ function v647UpdateFooterVersion(){
   document.querySelectorAll('footer strong,.siteFooterVersion').forEach(el=>el.textContent=V647_VERSION_SHORT);
 }
 setTimeout(()=>{try{v647UpdateFooterVersion(); if(typeof render==='function') render();}catch(e){console.warn(e)}},420);
-
-
-
-/* ===== v64.8 account sync status UI fix only ===== */
 const V648_VERSION_SHORT = "v64.8｜2026-05-31";
 const V648_VERSION_TEXT = "v64.8｜同步狀態顯示修正版";
 
@@ -19370,7 +18986,6 @@ setTimeout(()=>{try{v648UpdateFooterVersion(); updateAccountSyncLine();}catch(e)
 
 
 <style>
-/* ===== v64.9 single editor device lock ===== */
 .v649LockBanner{
   margin-top:12px;
   border:1px solid var(--theme-line,#E2DDD5);
@@ -19411,10 +19026,6 @@ body.v649-readonly .v649-allow *{
 </style>
 
 <script>
-/* ===== v64.9 single editor device + overwrite protection =====
-   目的：解決同一帳號於手機/平板同時開啟同一旅程時，舊資料自動同步覆蓋新資料的問題。
-   原則：不改 data 主結構、不拆 Firestore、不改 Cloudinary；只在旅程文件加 editingLock 頂層欄位。
-*/
 const V649_VERSION_SHORT = "v64.9｜2026-05-31";
 const V649_VERSION_TEXT = "v64.9｜單一編輯裝置與同步防覆蓋版";
 const V649_DEVICE_KEY = "janeselectTravelDeviceId";
@@ -19746,10 +19357,6 @@ window.addEventListener('beforeunload',()=>{v649StopHeartbeat();});
 
 
 <style>
-/* ===== v65 photo book cover + diary simplification =====
-   只調整照片旅遊書：每日封面選擇、照片日記欄位、標籤顯示。
-   不改 Firebase 路徑、不改 localStorage key、不改 Cloudinary、不改旅程 data 主結構。
-*/
 .v65DayCoverEmpty{
   display:block!important;
   padding:18px!important;
@@ -19834,7 +19441,6 @@ window.addEventListener('beforeunload',()=>{v649StopHeartbeat();});
 </style>
 
 <script>
-/* ===== v65.0 photo book cover + photo diary flow ===== */
 const V650_VERSION_SHORT = "v65.0｜2026-05-31";
 const V650_VERSION_TEXT = "v65.0｜照片旅遊書封面與照片日記流程整理版";
 
@@ -20089,8 +19695,6 @@ setTimeout(()=>{try{v650UpdateFooterVersion(); if(typeof render==='function') re
 
 
 <style>
-/* ===== v65.1 itinerary share + mobile day-cover operation assurance ===== */
-/* 只新增簡易行程分享與確保手機版今日封面操作顯示；不動 AI、Logo、Firebase、Cloudinary、同步鎖與資料結構。 */
 .v651PlannerShareBtn{
   display:inline-flex;
   align-items:center;
@@ -20178,7 +19782,6 @@ setTimeout(()=>{try{v650UpdateFooterVersion(); if(typeof render==='function') re
 
 
 <style>
-/* ===== v65.2 hotfix: itinerary share visual polish only ===== */
 .itineraryShareBox{width:min(860px,100%)!important;max-height:88vh!important;padding:0!important;border-radius:30px!important;overflow:hidden!important;background:#FFFDFC!important;}
 .v652SharePaper{background:linear-gradient(180deg,#FFFDFC 0%,#F8F5EF 100%);color:var(--theme-ink,#2C2A29)}
 .v652ShareHero{padding:22px;background:radial-gradient(circle at 8% 18%,rgba(229,236,233,.95),transparent 34%),radial-gradient(circle at 94% 8%,rgba(239,230,230,.85),transparent 28%),linear-gradient(135deg,#FFFDFC,#F4F2EE);border-bottom:1px solid var(--theme-line,#E2DDD5)}
@@ -20191,8 +19794,6 @@ setTimeout(()=>{try{v650UpdateFooterVersion(); if(typeof render==='function') re
 
 
 <style>
-/* ===== v65.3 itinerary share action restore + sticky footer only ===== */
-/* 只修分享簡易行程彈窗的複製與匯出/列印按鈕位置；不改 Firebase、localStorage、Cloudinary、同步鎖、AI、照片旅遊書與 Logo。 */
 .v653PlannerShareBtn,
 #v653PlannerShareBtn,
 #v651PlannerShareBtn{
@@ -20388,9 +19989,8 @@ setTimeout(()=>{try{v650UpdateFooterVersion(); if(typeof render==='function') re
 </style>
 
 <script>
-/* ===== v65.3 itinerary share action restore + sticky footer only ===== */
-const V653_VERSION_SHORT = "v65.5｜2026-05-31｜程式碼整理與重複補丁清理版";
-const V653_VERSION_TEXT = "v65.5｜程式碼整理與重複補丁清理版";
+const V653_VERSION_SHORT = "v66.0｜2026-05-31｜現行功能基準整理版";
+const V653_VERSION_TEXT = "v66.0｜現行功能基準整理版";
 
 function v653Html(v){
   return String(v ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
@@ -20513,9 +20113,6 @@ function v653ItineraryText(){
 function v653ShareHtml(){
   const title=v653Clean(data?.meta?.title)||'我的旅行行程';
   const dest=v653Clean(data?.trip?.dest)||'未設定目的地';
-  const totalPlans=v653AllPlans().length;
-  const hotelCount=(data?.hotels||[]).length;
-  const flightCount=v653FlightSegments('out').length+v653FlightSegments('back').length;
   const dayHtml=(data.days||[]).map(d=>{
     const plans=sortedPlans(d.key).filter(p=>!(p.source==='flight'||p.source==='hotel'));
     return `<div class="v652DayItem"><div class="v652DayHead"><b>${v653Html(d.title)}｜${v653Html(d.label)}</b><span class="v652TimePill">${plans.length} 個行程</span></div>${plans.length?`<div class="v652PlanList">${plans.map(p=>{
@@ -20532,11 +20129,6 @@ function v653ShareHtml(){
           <p>${v653Html(dest)}｜${v653Html(v653TripRange())}</p>
         </div>
         <button class="v653ShareClose" type="button" onclick="v653CloseItineraryShare()" aria-label="關閉分享彈窗">×</button>
-      </div>
-      <div class="v653ShareMetaGrid">
-        <div class="v653ShareMetaCard"><span>航班段數</span><b>${flightCount || '未填'}</b></div>
-        <div class="v653ShareMetaCard"><span>住宿筆數</span><b>${hotelCount || '未填'}</b></div>
-        <div class="v653ShareMetaCard"><span>正式行程</span><b>${totalPlans} 個</b></div>
       </div>
     </div>
     <div class="v653ShareScroll">
@@ -20591,16 +20183,13 @@ async function v653CopyItinerary(){
 }
 function v653PrintableHtml(){
   const title=v653Clean(data?.meta?.title)||'簡易行程';
-  const flightCount=v653FlightSegments('out').length+v653FlightSegments('back').length;
-  const hotelCount=(data?.hotels||[]).length;
-  const planCount=v653AllPlans().length;
   const dayPrint=(data.days||[]).map(d=>{
     const plans=sortedPlans(d.key).filter(p=>!(p.source==='flight'||p.source==='hotel'));
     return `<div class="item"><div class="main">${v653Html(d.title)}｜${v653Html(d.label)}</div>${plans.length?plans.map(p=>`<div class="plan"><span class="pill">${v653Html([p.start,p.end].filter(Boolean).join('－')||'未定')}</span><div><div class="main">${v653PlanIcon(p.type)} ${v653Html(p.name||'未命名行程')}</div>${p.address?`<div class="mini">地址：${v653Html(p.address)}</div>`:''}${p.note?`<div class="mini">注意：${v653Html(p.note)}</div>`:''}</div></div>`).join(''):`<div class="mini">尚未安排正式行程</div>`}</div>`;
   }).join('');
   return `<!DOCTYPE html><html lang="zh-Hant"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${v653Html(title)}</title><style>
-    @page{size:A4;margin:12mm}*{box-sizing:border-box}body{font-family:"PingFang TC","Noto Sans TC","Helvetica Neue",-apple-system,BlinkMacSystemFont,sans-serif;color:#2C2A29;background:#F7F3EC;margin:0;padding:24px}.page{max-width:900px;margin:auto;background:#FFFDFC;border:1px solid #E2DDD5;border-radius:28px;overflow:hidden;box-shadow:0 18px 48px rgba(44,42,41,.08)}.hero{padding:28px;background:linear-gradient(135deg,#FFFDFC,#F2F6F4);border-bottom:1px solid #E2DDD5}.brand{display:inline-flex;border-radius:999px;background:#F2F6F4;color:#4A5D4E;border:1px solid #E2DDD5;padding:7px 12px;font-size:12px;font-weight:900;margin-bottom:14px}h1{font-size:30px;margin:0 0 8px}.sub{color:#8B827A;line-height:1.6}.meta{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px}.meta div{background:#fff;border:1px solid #E2DDD5;border-radius:16px;padding:12px}.meta span{display:block;color:#8B827A;font-size:11px;font-weight:900;margin-bottom:5px}.content{padding:22px}.sec{border:1px solid #E2DDD5;border-radius:20px;padding:16px;margin-bottom:14px;break-inside:avoid;background:#fff}h2{font-size:17px;margin:0 0 10px}.v652FlightItem,.v652HotelItem,.item{border:1px solid #EEE8DF;border-radius:16px;padding:11px;margin:8px 0;break-inside:avoid}.v652FlightLine,.plan{display:grid;grid-template-columns:84px 1fr;gap:9px;margin:7px 0}.v652TimePill,.pill{display:inline-flex;justify-content:center;border-radius:999px;background:#F3EEE8;color:#6F6257;padding:5px 8px;font-size:11px;font-weight:900;margin-right:6px;white-space:nowrap}.v652MainText,.v652PlanName,.main{font-weight:900;line-height:1.5}.v652MiniText,.v652PlanNote,.mini{color:#8B827A;font-size:12px;line-height:1.55;margin-top:4px}.v652ShareSubTitle{display:inline-flex;border-radius:999px;background:#F2F6F4;color:#4A5D4E;padding:5px 9px;font-size:11px;font-weight:900;margin:4px 0 8px}.v652FlightGrid,.v652HotelGrid{display:grid;gap:8px}.footer{text-align:center;color:#8B827A;font-size:11px;padding:16px;border-top:1px solid #E2DDD5}@media(max-width:620px){body{padding:12px}.page{border-radius:20px}.meta{grid-template-columns:1fr}.v652FlightLine,.plan{grid-template-columns:1fr}}@media print{body{background:#fff;padding:0}.page{box-shadow:none;border:0;border-radius:0}.hero{padding:0 0 8mm}.content{padding:8mm 0 0}.sec{page-break-inside:avoid}.noPrint{display:none!important}}
-  </style></head><body><div class="page"><div class="hero"><div class="brand">貞選旅管家 Janeselect Travel Manager</div><h1>${v653Html(title)}</h1><div class="sub">${v653Html(data?.trip?.dest||'')}｜${v653Html(v653TripRange())}</div><div class="meta"><div><span>航班段數</span><b>${flightCount||'未填'}</b></div><div><span>住宿筆數</span><b>${hotelCount||'未填'}</b></div><div><span>正式行程</span><b>${planCount} 個</b></div></div></div><div class="content"><div class="sec"><h2>✈️ 機票與交通</h2>${v653FlightHtml('out')}${v653FlightHtml('back')}</div><div class="sec"><h2>🏨 住宿資訊</h2>${v653HotelHtml()}</div><div class="sec"><h2>🗓️ 每日簡易行程</h2>${dayPrint}</div></div><div class="footer">貞選旅管家 Janeselect Travel Manager</div></div><script>setTimeout(()=>window.print(),350)<\/script></body></html>`;
+    @page{size:A4;margin:12mm}*{box-sizing:border-box}body{font-family:"PingFang TC","Noto Sans TC","Helvetica Neue",-apple-system,BlinkMacSystemFont,sans-serif;color:#2C2A29;background:#F7F3EC;margin:0;padding:24px}.page{max-width:900px;margin:auto;background:#FFFDFC;border:1px solid #E2DDD5;border-radius:28px;overflow:hidden;box-shadow:0 18px 48px rgba(44,42,41,.08)}.hero{padding:28px;background:linear-gradient(135deg,#FFFDFC,#F2F6F4);border-bottom:1px solid #E2DDD5}.brand{display:inline-flex;border-radius:999px;background:#F2F6F4;color:#4A5D4E;border:1px solid #E2DDD5;padding:7px 12px;font-size:12px;font-weight:900;margin-bottom:14px}h1{font-size:30px;margin:0 0 8px}.sub{color:#8B827A;line-height:1.6}.content{padding:22px}.sec{border:1px solid #E2DDD5;border-radius:20px;padding:16px;margin-bottom:14px;break-inside:avoid;background:#fff}h2{font-size:17px;margin:0 0 10px}.v652FlightItem,.v652HotelItem,.item{border:1px solid #EEE8DF;border-radius:16px;padding:11px;margin:8px 0;break-inside:avoid}.v652FlightLine,.plan{display:grid;grid-template-columns:84px 1fr;gap:9px;margin:7px 0}.v652TimePill,.pill{display:inline-flex;justify-content:center;border-radius:999px;background:#F3EEE8;color:#6F6257;padding:5px 8px;font-size:11px;font-weight:900;margin-right:6px;white-space:nowrap}.v652MainText,.v652PlanName,.main{font-weight:900;line-height:1.5}.v652MiniText,.v652PlanNote,.mini{color:#8B827A;font-size:12px;line-height:1.55;margin-top:4px}.v652ShareSubTitle{display:inline-flex;border-radius:999px;background:#F2F6F4;color:#4A5D4E;padding:5px 9px;font-size:11px;font-weight:900;margin:4px 0 8px}.v652FlightGrid,.v652HotelGrid{display:grid;gap:8px}.footer{text-align:center;color:#8B827A;font-size:11px;padding:16px;border-top:1px solid #E2DDD5}@media(max-width:620px){body{padding:12px}.page{border-radius:20px}.v652FlightLine,.plan{grid-template-columns:1fr}}@media print{body{background:#fff;padding:0}.page{box-shadow:none;border:0;border-radius:0}.hero{padding:0 0 8mm}.content{padding:8mm 0 0}.sec{page-break-inside:avoid}.noPrint{display:none!important}}
+  </style></head><body><div class="page"><div class="hero"><div class="brand">貞選旅管家 Janeselect Travel Manager</div><h1>${v653Html(title)}</h1><div class="sub">${v653Html(data?.trip?.dest||'')}｜${v653Html(v653TripRange())}</div></div><div class="content"><div class="sec"><h2>✈️ 機票與交通</h2>${v653FlightHtml('out')}${v653FlightHtml('back')}</div><div class="sec"><h2>🏨 住宿資訊</h2>${v653HotelHtml()}</div><div class="sec"><h2>🗓️ 每日簡易行程</h2>${dayPrint}</div></div><div class="footer">貞選旅管家 Janeselect Travel Manager</div></div><script>setTimeout(()=>window.print(),350)<\/script></body></html>`;
 }
 function v653PrintItinerary(){
   const w=window.open('', '_blank');
@@ -20633,7 +20222,7 @@ function v653UpdateFooterVersion(){
 function v653UpdateHelpLog(){
   const log=document.getElementById('v64UpdateLog') || document.getElementById('helpView')?.querySelector('.card');
   if(log){
-    log.innerHTML=`<h3>最新更新紀錄</h3><div class="box mint"><b>${esc(V653_VERSION_TEXT)}</b><br>本版僅整理簡易行程分享區的歷史疊加補丁：移除已被目前分享功能取代的 v65.1 / v65.2 舊版分享腳本，保留現行分享彈窗、複製分享文字、匯出 PDF / 列印、按鈕固定、內層卡片樣式與手機版顯示。既有 Logo、AI 輔助、照片旅遊書、同步鎖、Firebase、Cloudinary、localStorage key、Firestore 與資料結構未更動。</div>`;
+    log.innerHTML=`<h3>最新更新紀錄</h3><div class="box mint"><b>${esc(V653_VERSION_TEXT)}</b><br>本版整理為現行維護基準：保留目前正在呈現與使用的旅程清單、登入同步、行程、住宿航班、預算、行李、AI 輔助、照片旅遊書與簡易行程分享流程；移除程式內大量歷史補丁說明文字，並把簡易行程分享的統計移除邏輯整併回現行函式。資料結構、localStorage key、Firestore 路徑、Cloudinary 圖片網址與既有介面設定皆未調整，保留未來 admin.html / admin.js 後台擴充彈性。</div>`;
   }
 }
 window.v651OpenItineraryShare = v653OpenItineraryShare;
@@ -20665,102 +20254,6 @@ if(v653PrevRenderHelp && !v653PrevRenderHelp.__v653Wrapped){
 
 setTimeout(()=>{try{v653UpdateFooterVersion(); v653InsertPlannerShareButton(); v653UpdateHelpLog(); if(typeof render==='function') render();}catch(e){console.warn(e)}},980);
 setTimeout(()=>{try{v653UpdateFooterVersion(); v653InsertPlannerShareButton(); v653UpdateHelpLog();}catch(e){console.warn(e)}},1300);
-</script>
-
-
-<style>
-/* ===== v65.4 itinerary share statistics removal only ===== */
-/* 只隱藏／移除分享簡易行程彈窗內統計卡，不影響主網站其他統計卡。 */
-.itineraryShareModal .v653ShareMetaGrid,
-.itineraryShareModal .v652ShareMetaGrid{
-  display:none!important;
-}
-</style>
-
-<script>
-/* ===== v65.4 itinerary share statistics removal only ===== */
-const V654_VERSION_SHORT = "v65.5｜2026-05-31｜程式碼整理與重複補丁清理版";
-const V654_VERSION_TEXT = "v65.5｜程式碼整理與重複補丁清理版";
-
-function v654ShareHtml(){
-  const title=v653Clean(data?.meta?.title)||'我的旅行行程';
-  const dest=v653Clean(data?.trip?.dest)||'未設定目的地';
-  const dayHtml=(data.days||[]).map(d=>{
-    const plans=sortedPlans(d.key).filter(p=>!(p.source==='flight'||p.source==='hotel'));
-    return `<div class="v652DayItem"><div class="v652DayHead"><b>${v653Html(d.title)}｜${v653Html(d.label)}</b><span class="v652TimePill">${plans.length} 個行程</span></div>${plans.length?`<div class="v652PlanList">${plans.map(p=>{
-      const time=[p.start,p.end].filter(Boolean).join('－')||'未定時間';
-      return `<div class="v652PlanRow"><span class="v652TimePill">${v653Html(time)}</span><div><div class="v652PlanName">${v653PlanIcon(p.type)} ${v653Html(p.name||'未命名行程')}</div>${p.address?`<div class="v652PlanNote">地址：${v653Html(p.address)}</div>`:''}${p.note?`<div class="v652PlanNote">注意：${v653Html(p.note)}</div>`:''}</div></div>`;
-    }).join('')}</div>`:`<div class="v652MiniText">尚未安排正式行程</div>`}</div>`;
-  }).join('');
-  return `<div class="v653ShareBox" role="dialog" aria-modal="true" aria-label="分享簡易行程">
-    <div class="v653ShareHero">
-      <div class="v653ShareHeroTop">
-        <div>
-          <div class="v653ShareBrand">貞選旅管家 Janeselect Travel Manager</div>
-          <h3>${v653Html(title)}</h3>
-          <p>${v653Html(dest)}｜${v653Html(v653TripRange())}</p>
-        </div>
-        <button class="v653ShareClose" type="button" onclick="v653CloseItineraryShare()" aria-label="關閉分享彈窗">×</button>
-      </div>
-    </div>
-    <div class="v653ShareScroll">
-      <div class="v653ShareSection"><h4>✈️ 機票與交通</h4>${v653FlightHtml('out')}${v653FlightHtml('back')}</div>
-      <div class="v653ShareSection"><h4>🏨 住宿資訊</h4>${v653HotelHtml()}</div>
-      <div class="v653ShareSection"><h4>🗓️ 每日簡易行程</h4><div class="v652HotelGrid">${dayHtml}</div></div>
-    </div>
-    <div class="v653ShareActions">
-      <button class="btn soft" type="button" onclick="v653CopyItinerary()">複製分享文字</button>
-      <button class="btn dark" type="button" onclick="v653PrintItinerary()">匯出 PDF / 列印</button>
-    </div>
-  </div>`;
-}
-
-function v654OpenItineraryShare(){
-  const modal=v653EnsureShareModal();
-  modal.innerHTML=v654ShareHtml();
-  modal.classList.add('show');
-}
-
-function v654PrintableHtml(){
-  const title=v653Clean(data?.meta?.title)||'簡易行程';
-  const dayPrint=(data.days||[]).map(d=>{
-    const plans=sortedPlans(d.key).filter(p=>!(p.source==='flight'||p.source==='hotel'));
-    return `<div class="item"><div class="main">${v653Html(d.title)}｜${v653Html(d.label)}</div>${plans.length?plans.map(p=>`<div class="plan"><span class="pill">${v653Html([p.start,p.end].filter(Boolean).join('－')||'未定')}</span><div><div class="main">${v653PlanIcon(p.type)} ${v653Html(p.name||'未命名行程')}</div>${p.address?`<div class="mini">地址：${v653Html(p.address)}</div>`:''}${p.note?`<div class="mini">注意：${v653Html(p.note)}</div>`:''}</div></div>`).join(''):`<div class="mini">尚未安排正式行程</div>`}</div>`;
-  }).join('');
-  return `<!DOCTYPE html><html lang="zh-Hant"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${v653Html(title)}</title><style>
-    @page{size:A4;margin:12mm}*{box-sizing:border-box}body{font-family:"PingFang TC","Noto Sans TC","Helvetica Neue",-apple-system,BlinkMacSystemFont,sans-serif;color:#2C2A29;background:#F7F3EC;margin:0;padding:24px}.page{max-width:900px;margin:auto;background:#FFFDFC;border:1px solid #E2DDD5;border-radius:28px;overflow:hidden;box-shadow:0 18px 48px rgba(44,42,41,.08)}.hero{padding:28px;background:linear-gradient(135deg,#FFFDFC,#F2F6F4);border-bottom:1px solid #E2DDD5}.brand{display:inline-flex;border-radius:999px;background:#F2F6F4;color:#4A5D4E;border:1px solid #E2DDD5;padding:7px 12px;font-size:12px;font-weight:900;margin-bottom:14px}h1{font-size:30px;margin:0 0 8px}.sub{color:#8B827A;line-height:1.6}.content{padding:22px}.sec{border:1px solid #E2DDD5;border-radius:20px;padding:16px;margin-bottom:14px;break-inside:avoid;background:#fff}h2{font-size:17px;margin:0 0 10px}.v652FlightItem,.v652HotelItem,.item{border:1px solid #EEE8DF;border-radius:16px;padding:11px;margin:8px 0;break-inside:avoid}.v652FlightLine,.plan{display:grid;grid-template-columns:84px 1fr;gap:9px;margin:7px 0}.v652TimePill,.pill{display:inline-flex;justify-content:center;border-radius:999px;background:#F3EEE8;color:#6F6257;padding:5px 8px;font-size:11px;font-weight:900;margin-right:6px;white-space:nowrap}.v652MainText,.v652PlanName,.main{font-weight:900;line-height:1.5}.v652MiniText,.v652PlanNote,.mini{color:#8B827A;font-size:12px;line-height:1.55;margin-top:4px}.v652ShareSubTitle{display:inline-flex;border-radius:999px;background:#F2F6F4;color:#4A5D4E;padding:5px 9px;font-size:11px;font-weight:900;margin:4px 0 8px}.v652FlightGrid,.v652HotelGrid{display:grid;gap:8px}.footer{text-align:center;color:#8B827A;font-size:11px;padding:16px;border-top:1px solid #E2DDD5}@media(max-width:620px){body{padding:12px}.page{border-radius:20px}.v652FlightLine,.plan{grid-template-columns:1fr}}@media print{body{background:#fff;padding:0}.page{box-shadow:none;border:0;border-radius:0}.hero{padding:0 0 8mm}.content{padding:8mm 0 0}.sec{page-break-inside:avoid}.noPrint{display:none!important}}
-  </style></head><body><div class="page"><div class="hero"><div class="brand">貞選旅管家 Janeselect Travel Manager</div><h1>${v653Html(title)}</h1><div class="sub">${v653Html(data?.trip?.dest||'')}｜${v653Html(v653TripRange())}</div></div><div class="content"><div class="sec"><h2>✈️ 機票與交通</h2>${v653FlightHtml('out')}${v653FlightHtml('back')}</div><div class="sec"><h2>🏨 住宿資訊</h2>${v653HotelHtml()}</div><div class="sec"><h2>🗓️ 每日簡易行程</h2>${dayPrint}</div></div><div class="footer">貞選旅管家 Janeselect Travel Manager</div></div><script>setTimeout(()=>window.print(),350)<\/script></body></html>`;
-}
-
-function v654PrintItinerary(){
-  const w=window.open('', '_blank');
-  if(!w) return alert('請允許瀏覽器開啟新視窗後再試一次。');
-  w.document.open();
-  w.document.write(v654PrintableHtml());
-  w.document.close();
-}
-
-function v654UpdateFooterVersion(){
-  document.querySelectorAll('footer strong,.siteFooterVersion').forEach(el=>el.textContent=V654_VERSION_SHORT);
-}
-function v654UpdateHelpLog(){
-  const log=document.getElementById('v64UpdateLog') || document.getElementById('helpView')?.querySelector('.card');
-  if(log){
-    log.innerHTML=`<h3>最新更新紀錄</h3><div class="box mint"><b>${esc(V654_VERSION_TEXT)}</b><br>本版僅整理簡易行程分享區的歷史疊加補丁：移除已被目前分享功能取代的 v65.1 / v65.2 舊版分享腳本，保留現行分享彈窗、複製分享文字、匯出 PDF / 列印、按鈕固定、內層卡片樣式與手機版顯示。既有 Logo、AI 輔助、照片旅遊書、同步鎖、Firebase、Cloudinary、localStorage key、Firestore 與資料結構未更動。</div>`;
-  }
-}
-
-window.v653ShareHtml = v654ShareHtml;
-window.v653OpenItineraryShare = v654OpenItineraryShare;
-window.v651OpenItineraryShare = v654OpenItineraryShare;
-window.v653PrintableHtml = v654PrintableHtml;
-window.v653PrintItinerary = v654PrintItinerary;
-window.v651PrintItinerary = v654PrintItinerary;
-window.v653UpdateFooterVersion = v654UpdateFooterVersion;
-window.v653UpdateHelpLog = v654UpdateHelpLog;
-
-setTimeout(()=>{try{v654UpdateFooterVersion(); v653InsertPlannerShareButton(); v654UpdateHelpLog();}catch(e){console.warn(e)}},1040);
-setTimeout(()=>{try{v654UpdateFooterVersion(); v653InsertPlannerShareButton(); v654UpdateHelpLog();}catch(e){console.warn(e)}},1450);
 </script>
 
 </body></html>
