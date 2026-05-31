@@ -1,5 +1,3 @@
-/* 貞選旅管家 v66.1 main.css：由穩定版 HTML 內嵌樣式拆出，保留原樣式順序。 */
-
 :root{--bg:#f7f3ec;--card:#fffdfa;--ink:#3f3a35;--muted:#8b827a;--line:#eadfd4;--mint:#d9efe6;--mint2:#b9dccc;--dark:#628f80;--blue:#e3f0fa;--pink:#f8dfe8;--yellow:#fff0c5;--green:#edf8f3;--shadow:0 16px 40px rgba(88,72,55,.08);--r:22px}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 0 0,#e1f2ec,transparent 34%),radial-gradient(circle at 100% 0,#fde4ec,transparent 30%),linear-gradient(#fbf7f1,#f7f3ec);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif}.app{max-width:1160px;margin:auto;padding:14px 14px 86px}header,.panel,.main,.card{background:rgba(255,255,255,.92);border:1px solid rgba(255,255,255,.84);box-shadow:var(--shadow);border-radius:var(--r)}header{padding:18px}.badge{display:inline-flex;align-items:center;gap:6px;background:var(--mint);color:#41675d;border-radius:999px;padding:7px 12px;font-weight:900;font-size:13px;margin-bottom:10px}.titleRow{display:flex;align-items:center;gap:8px}h1{margin:0;font-size:32px;line-height:1.15;letter-spacing:-1px}.subRow{display:flex;align-items:flex-start;gap:7px;margin:10px 0 14px}.sub{color:var(--muted);line-height:1.65;font-size:15px;margin:0;flex:1}.iconBtn{border:0;background:#f3eee8;color:#5d554e;border-radius:50%;width:32px;height:32px;font-size:16px;font-weight:900;display:grid;place-items:center;flex:0 0 auto}.iconBtn.smallIcon{width:30px;height:30px;font-size:14px}.heroStats{display:grid;grid-template-columns:1fr 1fr;gap:9px}.heroStats div{background:#fff;border:1px solid var(--line);border-radius:17px;padding:11px}.heroStats span{display:block;color:var(--muted);font-size:12px;margin-bottom:4px}.heroStats strong{font-size:16px}.tabs{display:flex;gap:9px;flex-wrap:wrap;margin:14px 0}.tab{border:0;background:#fff;border-radius:999px;padding:10px 13px;font-weight:900;color:var(--ink);box-shadow:0 8px 20px rgba(88,72,55,.06)}.tab.active{background:var(--ink);color:#fff}.layout{display:grid;grid-template-columns:300px 1fr;gap:14px;align-items:start}.panel{padding:14px;position:static}.main{padding:14px}.section{display:flex;justify-content:space-between;gap:12px;margin-bottom:12px}.section h2,.section h3{margin:0}.hint,.mini{color:var(--muted);font-size:13px;line-height:1.55}label{display:block;margin:9px 0 5px;font-size:13px;font-weight:900}input,select,textarea{width:100%;border:1px solid var(--line);border-radius:14px;background:#fffdf9;padding:10px 11px;font-size:15px;color:var(--ink)}textarea{min-height:66px;resize:vertical}.two{display:grid;grid-template-columns:1fr 1fr;gap:9px}.three{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.four{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:11px}.btn{
   border:1px solid rgba(255,255,255,.78);
   border-radius:14px;
@@ -5250,7 +5248,7 @@ body[data-theme-mode] .btn.pink{
   display:none!important;
 }
 
-/* ===== next original style block ===== */
+/* ===== split boundary: original next <style> block ===== */
 
 /* ===== v63.4 UI refinement: theme settings + larger tabs only ===== */
 /* 只調整外觀設定入口與頁籤可讀性，不改 data / localStorage / Firebase / Cloudinary 資料結構 */
@@ -5436,7 +5434,7 @@ body[data-theme-mode] .btn.pink{
   .themeWidget,.themePanelBackdrop{display:none!important;}
 }
 
-/* ===== next original style block ===== */
+/* ===== split boundary: original next <style> block ===== */
 
 /* ===== v63.5 theme settings placement fix only ===== */
 /* 不再把外觀設定入口放在主視覺/旅程卡片區，改收進右上帳號選單。 */
@@ -5474,7 +5472,7 @@ body[data-theme-mode] .btn.pink{
   #menuTheme,.themePanelBackdrop{display:none!important;}
 }
 
-/* ===== next original style block ===== */
+/* ===== split boundary: original next <style> block ===== */
 
 /* ===== v64.6 flight direct + photo book cover/photo UI fixes ===== */
 /* 只修航班顯示與照片書視覺/操作，不改 Firebase、localStorage key、Cloudinary 或旅行資料主結構。 */
@@ -5592,7 +5590,7 @@ body[data-theme-mode] .btn.pink{
   .storyCoverActions,.storyDayCoverActions{display:none!important;}
 }
 
-/* ===== next original style block ===== */
+/* ===== split boundary: original next <style> block ===== */
 
 /* ===== v56 photo book only micro refinements ===== */
 #photoBookView .storyBookCoverText h1{
@@ -5693,7 +5691,7 @@ body[data-theme-mode] .btn.pink{
   }
 }
 
-/* ===== next original style block ===== */
+/* ===== split boundary: original next <style> block ===== */
 
 /* ===== v57 photo book polish only: preview thumbnail + edit modal + magazine cover text ===== */
 #photoBookView .storyBookCoverText{
@@ -5851,7 +5849,7 @@ body[data-theme-mode] .btn.pink{
   }
 }
 
-/* ===== next original style block ===== */
+/* ===== split boundary: original next <style> block ===== */
 
 /* ===== v58 PDF-only travel book engine ===== */
 /* 只影響照片旅遊書匯出 PDF；螢幕版故事預覽不變 */
@@ -6350,7 +6348,7 @@ body[data-theme-mode] .btn.pink{
   }
 }
 
-/* ===== next original style block ===== */
+/* ===== split boundary: original next <style> block ===== */
 
 /* ===== v60 index photo book export button alignment only ===== */
 #photoBookView .storyOnlyIntro{
@@ -6377,7 +6375,7 @@ body[data-theme-mode] .btn.pink{
   }
 }
 
-/* ===== next original style block ===== */
+/* ===== split boundary: original next <style> block ===== */
 
 /* ===== v63 login gate + multi-trip shell ===== */
 .gateView{
@@ -6452,7 +6450,7 @@ body[data-theme-mode] .btn.pink{
 }
 @media print{.gateView,.tripSwitchBar{display:none!important}}
 
-/* ===== next original style block ===== */
+/* ===== split boundary: original next <style> block ===== */
 
 /* ===== v63.1 brand polish + trip list + stay flight layout ===== */
 :root{
@@ -6651,7 +6649,7 @@ body[data-theme-mode] .btn.pink{
   #janeselectFavicon{display:none!important}
 }
 
-/* ===== next original style block ===== */
+/* ===== split boundary: original next <style> block ===== */
 
 /* ===== v63.2 cloud sync reliability patch ===== */
 .syncCloudBadge{
@@ -6676,7 +6674,7 @@ body[data-theme-mode] .btn.pink{
   .tripSwitchBar .btns .btn{width:100%;padding-left:7px!important;padding-right:7px!important}
 }
 
-/* ===== next original style block ===== */
+/* ===== split boundary: original next <style> block ===== */
 
 /* ===== v64 AI assistant integration + pocket spot exploration only =====
    不改 Firebase / Firestore / localStorage key / Cloudinary / 旅程主資料結構。
@@ -6823,7 +6821,7 @@ body[data-theme-mode] .btn.pink{
   .v64AiBar,.v64AiModal,.v64SpotExploreBtn{display:none!important;}
 }
 
-/* ===== next original style block ===== */
+/* ===== split boundary: original next <style> block ===== */
 
 /* ===== v64.1 AI health check refinement only ===== */
 #v64AiPromptModal{z-index:360!important;}
@@ -6897,7 +6895,7 @@ body[data-theme-mode] .btn.pink{
 }
 @media print{.v641Prefs,.v641ReviewList{display:none!important;}}
 
-/* ===== next original style block ===== */
+/* ===== split boundary: original next <style> block ===== */
 
 /* ===== Janeselect brand visual restore CSS ===== */
 :root{
@@ -6947,7 +6945,7 @@ body[data-theme-mode] .btn.pink{
 }
 @media print{.brandMark{display:none!important;}}
 
-/* ===== next original style block ===== */
+/* ===== split boundary: original next <style> block ===== */
 
 /* ===== v64.3 date adjustment protection UI ===== */
 .v643DateModal{z-index:380!important;}
@@ -6971,7 +6969,7 @@ body[data-theme-mode] .btn.pink{
 }
 @media print{.v643DateModal{display:none!important;}}
 
-/* ===== next original style block ===== */
+/* ===== split boundary: original next <style> block ===== */
 
 /* ===== v64.4 AI compact UI ===== */
 .v644AiBar .v64AiBarHead span{line-height:1.45;}
@@ -6987,7 +6985,7 @@ body[data-theme-mode] .btn.pink{
 }
 @media print{.v644OptionsModal{display:none!important;}}
 
-/* ===== next original style block ===== */
+/* ===== split boundary: original next <style> block ===== */
 
 /* ===== v64.9 single editor device lock ===== */
 .v649LockBanner{
@@ -7028,7 +7026,7 @@ body.v649-readonly .v649-allow *{
 }
 @media print{.v649LockBanner{display:none!important}}
 
-/* ===== next original style block ===== */
+/* ===== split boundary: original next <style> block ===== */
 
 /* ===== v65 photo book cover + diary simplification =====
    只調整照片旅遊書：每日封面選擇、照片日記欄位、標籤顯示。
@@ -7116,7 +7114,7 @@ body.v649-readonly .v649-allow *{
   .v65CoverCandidates,.v65DayCoverActions,.v65PhotoCoverPill{display:none!important;}
 }
 
-/* ===== next original style block ===== */
+/* ===== split boundary: original next <style> block ===== */
 
 /* ===== v65.1 itinerary share + mobile day-cover operation assurance ===== */
 /* 只新增簡易行程分享與確保手機版今日封面操作顯示；不動 AI、Logo、Firebase、Cloudinary、同步鎖與資料結構。 */
@@ -7202,7 +7200,7 @@ body.v649-readonly .v649-allow *{
 }
 @media print{.itineraryShareModal,.v651PlannerShareBtn{display:none!important;}}
 
-/* ===== next original style block ===== */
+/* ===== split boundary: original next <style> block ===== */
 
 /* ===== v65.2 hotfix: itinerary share visual polish only ===== */
 .itineraryShareBox{width:min(860px,100%)!important;max-height:88vh!important;padding:0!important;border-radius:30px!important;overflow:hidden!important;background:#FFFDFC!important;}
@@ -7213,7 +7211,7 @@ body.v649-readonly .v649-allow *{
 @media(max-width:620px){.itineraryShareModal{align-items:flex-end!important;padding:10px!important}.itineraryShareBox{border-radius:24px 24px 18px 18px!important;max-height:84vh!important}.v652ShareHero{padding:18px 16px 15px}.v652ShareHero h3{font-size:22px}.v652ShareMetaGrid{grid-template-columns:1fr}.v652ShareContent{padding:14px 14px 16px;max-height:55vh}.v652FlightLine,.v652PlanRow{grid-template-columns:1fr}.v652ShareActions{display:grid;grid-template-columns:1fr;padding:12px 14px 14px}.v652ShareActions .btn{width:100%}}
 @media print{.itineraryShareModal,.v651PlannerShareBtn{display:none!important}}
 
-/* ===== next original style block ===== */
+/* ===== split boundary: original next <style> block ===== */
 
 /* ===== v65.3 itinerary share action restore + sticky footer only ===== */
 /* 只修分享簡易行程彈窗的複製與匯出/列印按鈕位置；不改 Firebase、localStorage、Cloudinary、同步鎖、AI、照片旅遊書與 Logo。 */
@@ -7410,12 +7408,12 @@ body.v649-readonly .v649-allow *{
   }
 }
 
-/* ===== next original style block ===== */
+/* ===== split boundary: original next <style> block ===== */
 
     @page{size:A4;margin:12mm}*{box-sizing:border-box}body{font-family:"PingFang TC","Noto Sans TC","Helvetica Neue",-apple-system,BlinkMacSystemFont,sans-serif;color:#2C2A29;background:#F7F3EC;margin:0;padding:24px}.page{max-width:900px;margin:auto;background:#FFFDFC;border:1px solid #E2DDD5;border-radius:28px;overflow:hidden;box-shadow:0 18px 48px rgba(44,42,41,.08)}.hero{padding:28px;background:linear-gradient(135deg,#FFFDFC,#F2F6F4);border-bottom:1px solid #E2DDD5}.brand{display:inline-flex;border-radius:999px;background:#F2F6F4;color:#4A5D4E;border:1px solid #E2DDD5;padding:7px 12px;font-size:12px;font-weight:900;margin-bottom:14px}h1{font-size:30px;margin:0 0 8px}.sub{color:#8B827A;line-height:1.6}.meta{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px}.meta div{background:#fff;border:1px solid #E2DDD5;border-radius:16px;padding:12px}.meta span{display:block;color:#8B827A;font-size:11px;font-weight:900;margin-bottom:5px}.content{padding:22px}.sec{border:1px solid #E2DDD5;border-radius:20px;padding:16px;margin-bottom:14px;break-inside:avoid;background:#fff}h2{font-size:17px;margin:0 0 10px}.v652FlightItem,.v652HotelItem,.item{border:1px solid #EEE8DF;border-radius:16px;padding:11px;margin:8px 0;break-inside:avoid}.v652FlightLine,.plan{display:grid;grid-template-columns:84px 1fr;gap:9px;margin:7px 0}.v652TimePill,.pill{display:inline-flex;justify-content:center;border-radius:999px;background:#F3EEE8;color:#6F6257;padding:5px 8px;font-size:11px;font-weight:900;margin-right:6px;white-space:nowrap}.v652MainText,.v652PlanName,.main{font-weight:900;line-height:1.5}.v652MiniText,.v652PlanNote,.mini{color:#8B827A;font-size:12px;line-height:1.55;margin-top:4px}.v652ShareSubTitle{display:inline-flex;border-radius:999px;background:#F2F6F4;color:#4A5D4E;padding:5px 9px;font-size:11px;font-weight:900;margin:4px 0 8px}.v652FlightGrid,.v652HotelGrid{display:grid;gap:8px}.footer{text-align:center;color:#8B827A;font-size:11px;padding:16px;border-top:1px solid #E2DDD5}@media(max-width:620px){body{padding:12px}.page{border-radius:20px}.meta{grid-template-columns:1fr}.v652FlightLine,.plan{grid-template-columns:1fr}}@media print{body{background:#fff;padding:0}.page{box-shadow:none;border:0;border-radius:0}.hero{padding:0 0 8mm}.content{padding:8mm 0 0}.sec{page-break-inside:avoid}.noPrint{display:none!important}}
   
 
-/* ===== next original style block ===== */
+/* ===== split boundary: original next <style> block ===== */
 
 /* ===== v65.4 itinerary share statistics removal only ===== */
 /* 只隱藏／移除分享簡易行程彈窗內統計卡，不影響主網站其他統計卡。 */
@@ -7424,6 +7422,6 @@ body.v649-readonly .v649-allow *{
   display:none!important;
 }
 
-/* ===== next original style block ===== */
+/* ===== split boundary: original next <style> block ===== */
 
     @page{size:A4;margin:12mm}*{box-sizing:border-box}body{font-family:"PingFang TC","Noto Sans TC","Helvetica Neue",-apple-system,BlinkMacSystemFont,sans-serif;color:#2C2A29;background:#F7F3EC;margin:0;padding:24px}.page{max-width:900px;margin:auto;background:#FFFDFC;border:1px solid #E2DDD5;border-radius:28px;overflow:hidden;box-shadow:0 18px 48px rgba(44,42,41,.08)}.hero{padding:28px;background:linear-gradient(135deg,#FFFDFC,#F2F6F4);border-bottom:1px solid #E2DDD5}.brand{display:inline-flex;border-radius:999px;background:#F2F6F4;color:#4A5D4E;border:1px solid #E2DDD5;padding:7px 12px;font-size:12px;font-weight:900;margin-bottom:14px}h1{font-size:30px;margin:0 0 8px}.sub{color:#8B827A;line-height:1.6}.content{padding:22px}.sec{border:1px solid #E2DDD5;border-radius:20px;padding:16px;margin-bottom:14px;break-inside:avoid;background:#fff}h2{font-size:17px;margin:0 0 10px}.v652FlightItem,.v652HotelItem,.item{border:1px solid #EEE8DF;border-radius:16px;padding:11px;margin:8px 0;break-inside:avoid}.v652FlightLine,.plan{display:grid;grid-template-columns:84px 1fr;gap:9px;margin:7px 0}.v652TimePill,.pill{display:inline-flex;justify-content:center;border-radius:999px;background:#F3EEE8;color:#6F6257;padding:5px 8px;font-size:11px;font-weight:900;margin-right:6px;white-space:nowrap}.v652MainText,.v652PlanName,.main{font-weight:900;line-height:1.5}.v652MiniText,.v652PlanNote,.mini{color:#8B827A;font-size:12px;line-height:1.55;margin-top:4px}.v652ShareSubTitle{display:inline-flex;border-radius:999px;background:#F2F6F4;color:#4A5D4E;padding:5px 9px;font-size:11px;font-weight:900;margin:4px 0 8px}.v652FlightGrid,.v652HotelGrid{display:grid;gap:8px}.footer{text-align:center;color:#8B827A;font-size:11px;padding:16px;border-top:1px solid #E2DDD5}@media(max-width:620px){body{padding:12px}.page{border-radius:20px}.v652FlightLine,.plan{grid-template-columns:1fr}}@media print{body{background:#fff;padding:0}.page{box-shadow:none;border:0;border-radius:0}.hero{padding:0 0 8mm}.content{padding:8mm 0 0}.sec{page-break-inside:avoid}.noPrint{display:none!important}}
