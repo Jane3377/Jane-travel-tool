@@ -19367,4 +19367,380 @@ function v648UpdateFooterVersion(){
 setTimeout(()=>{try{v648UpdateFooterVersion(); updateAccountSyncLine();}catch(e){console.warn(e)}},480);
 </script>
 
+
+
+<style>
+/* ===== v64.9 single editor device lock ===== */
+.v649LockBanner{
+  margin-top:12px;
+  border:1px solid var(--theme-line,#E2DDD5);
+  border-radius:18px;
+  padding:10px 12px;
+  background:var(--theme-primary-weak,#F2F6F4);
+  color:var(--theme-ink,#2C2A29);
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:flex-start;
+}
+.v649LockBanner b{display:block;margin-bottom:3px;font-size:13px;}
+.v649LockBanner span{display:block;color:var(--theme-muted,#9A928A);font-size:12px;line-height:1.45;}
+.v649LockBanner.viewOnly{background:#fff8ea;border-color:#eadfd4;}
+.v649LockBanner.editing{background:var(--theme-primary-weak,#F2F6F4);}
+.v649LockBanner .btns{margin:0;flex:0 0 auto;}
+body.v649-readonly .main input,
+body.v649-readonly .main select,
+body.v649-readonly .main textarea,
+body.v649-readonly .main button,
+body.v649-readonly .main label.photoInlineUpload,
+body.v649-readonly .main label.dayCoverUploadLabel{
+  pointer-events:none!important;
+  opacity:.58!important;
+}
+body.v649-readonly .v649-allow,
+body.v649-readonly .v649-allow *{
+  pointer-events:auto!important;
+  opacity:1!important;
+}
+@media(max-width:620px){
+  .v649LockBanner{display:block;border-radius:16px;}
+  .v649LockBanner .btns{margin-top:8px;display:grid;grid-template-columns:1fr 1fr;}
+  .v649LockBanner .btn{width:100%;}
+}
+@media print{.v649LockBanner{display:none!important}}
+</style>
+
+<script>
+/* ===== v64.9 single editor device + overwrite protection =====
+   目的：解決同一帳號於手機/平板同時開啟同一旅程時，舊資料自動同步覆蓋新資料的問題。
+   原則：不改 data 主結構、不拆 Firestore、不改 Cloudinary；只在旅程文件加 editingLock 頂層欄位。
+*/
+const V649_VERSION_SHORT = "v64.9｜2026-05-31";
+const V649_VERSION_TEXT = "v64.9｜單一編輯裝置與同步防覆蓋版";
+const V649_DEVICE_KEY = "janeselectTravelDeviceId";
+const V649_LOCK_TTL = 2 * 60 * 1000;
+const V649_HEARTBEAT_MS = 35 * 1000;
+let v649DeviceId = localStorage.getItem(V649_DEVICE_KEY) || `dev_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
+localStorage.setItem(V649_DEVICE_KEY, v649DeviceId);
+let v649ReadOnly = false;
+let v649LockOwner = null;
+let v649HeartbeatTimer = null;
+let v649LockUnsub = null;
+let v649SelectingTrip = false;
+
+function v649DeviceName(){
+  const ua = navigator.userAgent || "";
+  if(/iPad/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) return "iPad";
+  if(/iPhone/i.test(ua)) return "iPhone";
+  if(/Android/i.test(ua)) return /Mobile/i.test(ua) ? "Android 手機" : "Android 平板";
+  if(/Mac/i.test(ua)) return "Mac";
+  if(/Windows/i.test(ua)) return "Windows";
+  return "此裝置";
+}
+function v649Now(){return Date.now();}
+function v649LockPayload(){
+  return {
+    deviceId:v649DeviceId,
+    deviceName:v649DeviceName(),
+    uid:fbUser?.uid || "",
+    email:fbUser?.email || "",
+    tripId:currentTripId || "",
+    updatedAtClient:v649Now()
+  };
+}
+function v649IsOtherActiveLock(lock){
+  if(!lock || !lock.deviceId) return false;
+  if(lock.deviceId === v649DeviceId) return false;
+  const at = Number(lock.updatedAtClient || 0);
+  return !!at && (v649Now() - at) < V649_LOCK_TTL;
+}
+function v649LockOwnerText(lock=v649LockOwner){
+  if(!lock) return "其他裝置";
+  const name = lock.deviceName || "其他裝置";
+  const time = lock.updatedAtClient ? new Date(lock.updatedAtClient).toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}) : "";
+  return `${name}${time ? '（' + time + '）' : ''}`;
+}
+function v649StopHeartbeat(){
+  if(v649HeartbeatTimer){clearInterval(v649HeartbeatTimer); v649HeartbeatTimer=null;}
+}
+function v649StartHeartbeat(){
+  v649StopHeartbeat();
+  if(v649ReadOnly || !fbUser || !currentTripId || !fbDb) return;
+  v649HeartbeatTimer = setInterval(async()=>{
+    try{
+      if(!v649ReadOnly && fbUser && currentTripId && fbDb){
+        await tripDocRef().set({editingLock:v649LockPayload(), lockUpdatedAtClient:v649Now()},{merge:true});
+      }
+    }catch(e){console.warn('v64.9 lock heartbeat failed', e);}
+  }, V649_HEARTBEAT_MS);
+}
+function v649SetReadOnly(on, lock=null){
+  v649ReadOnly = !!on;
+  v649LockOwner = lock || null;
+  document.body.classList.toggle('v649-readonly', v649ReadOnly);
+  if(v649ReadOnly){
+    v649StopHeartbeat();
+    if(typeof setSyncStatus === 'function') setSyncStatus('warn','檢視模式',`這趟旅程目前由 ${v649LockOwnerText(lock)} 編輯`);
+  }
+  v649ApplyLockBanner();
+  try{ if(typeof updateAccountSyncLine === 'function') updateAccountSyncLine(); }catch(e){}
+}
+function v649EnsureBanner(){
+  const header=document.querySelector('#mainApp header') || document.querySelector('.app header');
+  if(!header || !currentTripId) return null;
+  let el=document.getElementById('v649LockBanner');
+  if(!el){
+    el=document.createElement('div');
+    el.id='v649LockBanner';
+    el.className='v649LockBanner noPrint v649-allow';
+    header.appendChild(el);
+  }
+  return el;
+}
+function v649ApplyLockBanner(){
+  const el=v649EnsureBanner();
+  if(!el) return;
+  if(!fbUser || !currentTripId){el.remove(); return;}
+  if(v649ReadOnly){
+    el.className='v649LockBanner noPrint v649-allow viewOnly';
+    el.innerHTML=`<div><b>檢視模式：避免多裝置同步互相覆蓋</b><span>這趟旅程目前由 ${esc(v649LockOwnerText())} 編輯。此裝置可查看與載入最新雲端資料，但不會自動同步覆蓋。</span></div><div class="btns"><button class="btn blue compact v649-allow" onclick="loadFromCloud({force:true})">載入最新</button><button class="btn dark compact v649-allow" onclick="v649TakeOverEdit()">接手編輯</button></div>`;
+  }else{
+    el.className='v649LockBanner noPrint v649-allow editing';
+    el.innerHTML=`<div><b>目前由此裝置編輯</b><span>${esc(v649DeviceName())} 正在編輯這趟旅程。其他裝置會進入檢視模式，避免舊資料覆蓋。</span></div><div class="btns"><button class="btn blue compact v649-allow" onclick="saveToCloudNow()">同步</button><button class="btn soft compact v649-allow" onclick="loadFromCloud({force:true})">載入</button></div>`;
+  }
+}
+async function v649AcquireEditLock({takeover=false}={}){
+  if(!fbUser || !fbDb || !currentTripId || typeof tripDocRef !== 'function'){
+    v649SetReadOnly(false,null);
+    return true;
+  }
+  try{
+    const ref=tripDocRef();
+    const snap=await ref.get();
+    const lock=snap.exists ? (snap.data()?.editingLock || null) : null;
+    if(v649IsOtherActiveLock(lock) && !takeover){
+      v649SetReadOnly(true, lock);
+      v649StartLockListener();
+      return false;
+    }
+    await ref.set({editingLock:v649LockPayload(), lockUpdatedAtClient:v649Now()},{merge:true});
+    v649SetReadOnly(false,null);
+    v649StartHeartbeat();
+    v649StartLockListener();
+    if(typeof setSyncStatus === 'function') setSyncStatus('on','已取得編輯權',`${v649DeviceName()} 可編輯並同步`);
+    return true;
+  }catch(e){
+    console.warn('v64.9 acquire lock failed', e);
+    // 鎖定失敗時採保守策略：不讓此裝置寫回，避免覆蓋雲端。
+    v649SetReadOnly(true, {deviceName:'雲端鎖定狀態未知', updatedAtClient:v649Now()});
+    return false;
+  }
+}
+function v649StartLockListener(){
+  try{ if(v649LockUnsub){v649LockUnsub(); v649LockUnsub=null;} }catch(e){}
+  if(!fbUser || !fbDb || !currentTripId || typeof tripDocRef !== 'function') return;
+  const tripIdAtStart=currentTripId;
+  try{
+    v649LockUnsub = tripDocRef().onSnapshot(snap=>{
+      if(tripIdAtStart !== currentTripId || !snap.exists) return;
+      const lock=snap.data()?.editingLock || null;
+      if(v649IsOtherActiveLock(lock)){
+        if(!v649ReadOnly || v649LockOwner?.deviceId !== lock.deviceId){
+          v649SetReadOnly(true, lock);
+          toast(`已切換檢視模式：${v649LockOwnerText(lock)} 正在編輯`);
+        }
+      }else if(lock?.deviceId === v649DeviceId && v649ReadOnly){
+        v649SetReadOnly(false,null);
+        v649StartHeartbeat();
+      }
+    },err=>console.warn('v64.9 lock listener failed', err));
+  }catch(e){console.warn(e);}
+}
+async function v649TakeOverEdit(){
+  if(!fbUser || !currentTripId) return toast('請先登入並選擇旅程');
+  const ok = confirm('要改由此裝置接手編輯嗎？\n\n系統會先載入雲端最新資料，再取得編輯權，避免用舊資料覆蓋。');
+  if(!ok) return;
+  try{
+    v649SetReadOnly(false,null); // 暫時放行載入；save 仍會重新檢查鎖。
+    if(typeof loadFromCloud === 'function') await loadFromCloud({force:true, silent:true, skipLock:true});
+    await v649AcquireEditLock({takeover:true});
+    render();
+    toast('已接手編輯，並載入最新雲端資料');
+  }catch(e){
+    v649SetReadOnly(true, v649LockOwner);
+    alert('接手編輯失敗：' + (e?.message || e));
+  }
+}
+async function v649EnsureCanWrite(){
+  if(!fbUser || !currentTripId) return false;
+  if(v649ReadOnly) return false;
+  try{
+    const snap=await tripDocRef().get();
+    const lock=snap.exists ? (snap.data()?.editingLock || null) : null;
+    if(v649IsOtherActiveLock(lock)){
+      v649SetReadOnly(true, lock);
+      return false;
+    }
+    if(!lock || lock.deviceId !== v649DeviceId || (v649Now() - Number(lock.updatedAtClient||0)) > V649_LOCK_TTL){
+      return await v649AcquireEditLock({takeover:false});
+    }
+    return true;
+  }catch(e){
+    console.warn('v64.9 ensure write failed', e);
+    v649SetReadOnly(true,{deviceName:'雲端鎖定狀態未知',updatedAtClient:v649Now()});
+    return false;
+  }
+}
+
+const v649PrevCloudPayload = typeof cloudPayload === 'function' ? cloudPayload : null;
+cloudPayload = function(){
+  const payload = v649PrevCloudPayload ? v649PrevCloudPayload() : {data:JSON.parse(JSON.stringify(data)), updatedAtClient:Date.now()};
+  payload.appVersion = V649_VERSION_SHORT;
+  payload.deviceId = v649DeviceId;
+  payload.deviceName = v649DeviceName();
+  payload.editingLock = v649LockPayload();
+  payload.lockUpdatedAtClient = v649Now();
+  return payload;
+};
+
+const v649PrevScheduleCloudSave = typeof scheduleCloudSave === 'function' ? scheduleCloudSave : null;
+scheduleCloudSave = function(reason='auto'){
+  if(v649SelectingTrip) return;
+  if(v649ReadOnly){
+    if(typeof setSyncStatus === 'function') setSyncStatus('warn','檢視模式','此裝置不會自動同步，避免覆蓋編輯裝置。');
+    v649ApplyLockBanner();
+    return;
+  }
+  return v649PrevScheduleCloudSave ? v649PrevScheduleCloudSave(reason) : undefined;
+};
+
+const v649PrevSaveToCloudNow = typeof saveToCloudNow === 'function' ? saveToCloudNow : null;
+saveToCloudNow = async function(options={}){
+  if(v649ReadOnly && !options.allowReadOnly){
+    setSyncStatus('warn','檢視模式','請先接手編輯，才可以同步寫入。');
+    toast('目前是檢視模式，請先接手編輯');
+    return false;
+  }
+  if(fbUser && currentTripId){
+    const canWrite = await v649EnsureCanWrite();
+    if(!canWrite){
+      setSyncStatus('warn','檢視模式',`這趟旅程由 ${v649LockOwnerText()} 編輯中`);
+      return false;
+    }
+  }
+  const result = v649PrevSaveToCloudNow ? await v649PrevSaveToCloudNow(options) : false;
+  if(result){
+    v649StartHeartbeat();
+    v649ApplyLockBanner();
+  }
+  return result;
+};
+
+const v649PrevSave = typeof save === 'function' ? save : null;
+save = function(){
+  if(v649ReadOnly){
+    toast('目前是檢視模式，請先接手編輯');
+    setSyncStatus('warn','檢視模式','此裝置不會儲存變更，避免覆蓋雲端。');
+    if(typeof loadFromCloud === 'function') setTimeout(()=>loadFromCloud({silent:true,force:true,skipLock:true}),120);
+    return;
+  }
+  return v649PrevSave ? v649PrevSave.apply(this,arguments) : undefined;
+};
+const v649PrevSilentSave = typeof silentSave === 'function' ? silentSave : null;
+silentSave = function(){
+  if(v649ReadOnly) return;
+  return v649PrevSilentSave ? v649PrevSilentSave.apply(this,arguments) : undefined;
+};
+
+const v649PrevSelectTrip = typeof selectTrip === 'function' ? selectTrip : null;
+selectTrip = async function(id){
+  v649SelectingTrip = true;
+  try{
+    const r = v649PrevSelectTrip ? await v649PrevSelectTrip(id) : undefined;
+    v649SelectingTrip = false;
+    await v649AcquireEditLock({takeover:false});
+    v649ApplyLockBanner();
+    return r;
+  }catch(e){
+    v649SelectingTrip = false;
+    throw e;
+  }
+};
+
+const v649PrevCreateTrip = typeof createTrip === 'function' ? createTrip : null;
+createTrip = async function(){
+  const r = v649PrevCreateTrip ? await v649PrevCreateTrip.apply(this,arguments) : undefined;
+  if(currentTripId) await v649AcquireEditLock({takeover:true});
+  v649ApplyLockBanner();
+  return r;
+};
+
+const v649PrevLoadFromCloud = typeof loadFromCloud === 'function' ? loadFromCloud : null;
+loadFromCloud = async function(options={}){
+  const r = v649PrevLoadFromCloud ? await v649PrevLoadFromCloud(options) : false;
+  v649ApplyLockBanner();
+  return r;
+};
+
+const v649PrevRender = typeof render === 'function' ? render : null;
+render = function(){
+  const r = v649PrevRender ? v649PrevRender.apply(this,arguments) : undefined;
+  v649ApplyLockBanner();
+  return r;
+};
+
+const v649PrevBackToTripList = typeof v63BackToTripList === 'function' ? v63BackToTripList : null;
+v63BackToTripList = function(){
+  v649StopHeartbeat();
+  if(v649LockUnsub){try{v649LockUnsub();}catch(e){} v649LockUnsub=null;}
+  v649SetReadOnly(false,null);
+  return v649PrevBackToTripList ? v649PrevBackToTripList.apply(this,arguments) : undefined;
+};
+
+const v649PrevSignOut = typeof firebaseSignOut === 'function' ? firebaseSignOut : null;
+firebaseSignOut = function(){
+  v649StopHeartbeat();
+  if(v649LockUnsub){try{v649LockUnsub();}catch(e){} v649LockUnsub=null;}
+  return v649PrevSignOut ? v649PrevSignOut.apply(this,arguments) : undefined;
+};
+
+const v649PrevSetSyncStatus = typeof setSyncStatus === 'function' ? setSyncStatus : null;
+setSyncStatus = function(kind,title,desc){
+  let k=kind, t=title, d=desc;
+  if(v649ReadOnly && kind === 'on' && String(title||'').includes('同步')){
+    k='warn'; t='檢視模式'; d=`這趟旅程由 ${v649LockOwnerText()} 編輯中`;
+  }
+  const r = v649PrevSetSyncStatus ? v649PrevSetSyncStatus(k,t,d) : undefined;
+  try{ if(typeof updateAccountSyncLine === 'function') updateAccountSyncLine(); }catch(e){}
+  return r;
+};
+
+const v649PrevSyncLabel = typeof v648SyncLabelFromState === 'function' ? v648SyncLabelFromState : null;
+v648SyncLabelFromState = function(){
+  if(v649ReadOnly) return '檢視模式';
+  return v649PrevSyncLabel ? v649PrevSyncLabel() : (fbUser ? '尚未同步' : '尚未登入');
+};
+const v649PrevSyncDot = typeof v648SyncDotClassFromState === 'function' ? v648SyncDotClassFromState : null;
+v648SyncDotClassFromState = function(){
+  if(v649ReadOnly) return 'syncing';
+  return v649PrevSyncDot ? v649PrevSyncDot() : '';
+};
+
+const v649PrevRenderHelp = typeof renderHelp === 'function' ? renderHelp : null;
+renderHelp = function(){
+  const r = v649PrevRenderHelp ? v649PrevRenderHelp.apply(this,arguments) : undefined;
+  const log=document.getElementById('v64UpdateLog') || document.getElementById('helpView')?.querySelector('.card');
+  if(log){
+    log.innerHTML=`<h3>最新更新紀錄</h3><div class="box mint"><b>${esc(V649_VERSION_TEXT)}</b><br>新增單一編輯裝置鎖：同一帳號可在多裝置登入，但同一趟旅程同時間只允許一台裝置編輯，其他裝置會進入檢視模式，避免舊資料自動同步覆蓋新資料。可用「接手編輯」先載入雲端最新資料後切換編輯權。</div>`;
+  }
+  v649UpdateFooterVersion();
+  return r;
+};
+function v649UpdateFooterVersion(){
+  document.querySelectorAll('footer strong,.siteFooterVersion').forEach(el=>el.textContent=V649_VERSION_SHORT);
+}
+setTimeout(()=>{try{v649UpdateFooterVersion(); v649ApplyLockBanner();}catch(e){console.warn(e)}},520);
+window.addEventListener('beforeunload',()=>{v649StopHeartbeat();});
+</script>
+
 </body></html>
