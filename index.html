@@ -20086,4 +20086,230 @@ function v650UpdateFooterVersion(){
 setTimeout(()=>{try{v650UpdateFooterVersion(); if(typeof render==='function') render();}catch(e){console.warn(e)}},560);
 </script>
 
+
+
+<style>
+/* ===== v65.1 itinerary share + mobile day-cover operation assurance ===== */
+/* 只新增簡易行程分享與確保手機版今日封面操作顯示；不動 AI、Logo、Firebase、Cloudinary、同步鎖與資料結構。 */
+.v651PlannerShareBtn{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  border:1px solid var(--theme-line,#E2DDD5)!important;
+  background:var(--theme-primary-weak,#F2F6F4)!important;
+  color:var(--theme-primary,#4A5D4E)!important;
+  border-radius:999px!important;
+  padding:9px 12px!important;
+  font-size:12px!important;
+  font-weight:900!important;
+  box-shadow:0 8px 20px rgba(44,42,41,.045)!important;
+}
+.itineraryShareModal{
+  position:fixed;
+  inset:0;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:16px;
+  background:rgba(44,38,32,.36);
+  z-index:230;
+}
+.itineraryShareModal.show{display:flex;}
+.itineraryShareBox{
+  width:min(720px,100%);
+  max-height:86vh;
+  overflow:auto;
+  background:rgba(255,255,255,.98);
+  border:1px solid rgba(255,255,255,.92);
+  box-shadow:0 24px 70px rgba(44,42,41,.18);
+  border-radius:26px;
+  padding:18px;
+  color:var(--theme-ink,#2C2A29);
+}
+.itineraryShareHead{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:12px;
+}
+.itineraryShareHead h3{margin:0;font-size:20px;line-height:1.25;}
+.itineraryShareHead p{margin:5px 0 0;color:var(--theme-muted,#9A928A);font-size:13px;line-height:1.55;}
+.itineraryShareClose{
+  width:34px;height:34px;border:0;border-radius:50%;background:#f3eee8;color:#5d554e;font-weight:950;
+}
+.itinerarySharePreview{
+  border:1px solid var(--theme-line,#E2DDD5);
+  border-radius:18px;
+  background:#fffdf9;
+  padding:14px;
+  white-space:pre-wrap;
+  font-size:13px;
+  line-height:1.75;
+  color:var(--theme-ink,#2C2A29);
+  max-height:48vh;
+  overflow:auto;
+}
+.itineraryShareActions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;justify-content:flex-end;}
+@media(max-width:620px){
+  .itineraryShareModal{align-items:flex-end;padding:10px;}
+  .itineraryShareBox{border-radius:24px 24px 18px 18px;max-height:84vh;padding:16px;}
+  .itineraryShareActions{display:grid;grid-template-columns:1fr;}
+  .itineraryShareActions .btn{width:100%;}
+  #photoBookView .storyDayCoverActions,
+  #photoBookView .v65DayCoverActions{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    width:100%!important;
+    gap:8px!important;
+  }
+  #photoBookView .storyDayCoverActions .photoInlineUpload,
+  #photoBookView .storyDayCoverActions button,
+  #photoBookView .v65DayCoverActions .photoInlineUpload,
+  #photoBookView .v65DayCoverActions button{
+    width:100%!important;
+    justify-content:center!important;
+  }
+}
+@media print{.itineraryShareModal,.v651PlannerShareBtn{display:none!important;}}
+</style>
+
+<script>
+/* ===== v65.1 itinerary share hotfix from uploaded v65.0 base ===== */
+const V651_VERSION_SHORT = "v65.1｜2026-05-31";
+const V651_VERSION_TEXT = "v65.1｜簡易行程分享與手機封面操作修正版";
+
+function v651UpdateFooterVersion(){
+  document.querySelectorAll('footer strong,.siteFooterVersion').forEach(el=>el.textContent=V651_VERSION_SHORT);
+}
+
+function v651PlanTypeIcon(type){
+  return type==='餐廳'?'🍽️':type==='咖啡廳'?'☕':type==='購物'?'🛍️':type==='其他'?'📝':'📍';
+}
+function v651CleanLine(v){
+  return String(v||'').replace(/\s+/g,' ').trim();
+}
+function v651ItineraryText(){
+  const title = v651CleanLine(data?.meta?.title) || '我的旅行行程';
+  const dest = v651CleanLine(data?.trip?.dest) || '未設定目的地';
+  const range = data?.trip?.start ? `${short(data.trip.start)}－${short(data.trip.end)}` : '未設定日期';
+  const lines = [];
+  lines.push(`貞選旅管家｜${title}`);
+  lines.push(`${dest}｜${range}`);
+  lines.push('');
+  (data.days||[]).forEach(d=>{
+    const plans = sortedPlans(d.key);
+    lines.push(`${d.title}｜${d.label}`);
+    if(!plans.length){
+      lines.push('  尚未安排正式行程');
+    }else{
+      plans.forEach(p=>{
+        const time = [p.start,p.end].filter(Boolean).join('－') || '未定時間';
+        lines.push(`  ${time}　${v651PlanTypeIcon(p.type)} ${v651CleanLine(p.name)}`);
+        if(p.address) lines.push(`      地址：${v651CleanLine(p.address)}`);
+        if(p.note) lines.push(`      注意：${v651CleanLine(p.note)}`);
+      });
+    }
+    lines.push('');
+  });
+  lines.push('— Janeselect Travel Manager —');
+  return lines.join('\n');
+}
+function v651EnsureShareModal(){
+  let modal=document.getElementById('itineraryShareModal');
+  if(modal) return modal;
+  modal=document.createElement('div');
+  modal.id='itineraryShareModal';
+  modal.className='itineraryShareModal noPrint';
+  document.body.appendChild(modal);
+  return modal;
+}
+function v651OpenItineraryShare(){
+  const modal=v651EnsureShareModal();
+  const txt=v651ItineraryText();
+  modal.innerHTML=`<div class="itineraryShareBox">
+    <div class="itineraryShareHead">
+      <div><h3>分享簡易行程</h3><p>這裡只整理正式行程，不包含預算、照片、私人備註與口袋景點；適合複製到 LINE，或用電腦列印 / 存 PDF。</p></div>
+      <button class="itineraryShareClose" onclick="v651CloseItineraryShare()">×</button>
+    </div>
+    <div class="itinerarySharePreview" id="itinerarySharePreview"></div>
+    <div class="itineraryShareActions">
+      <button class="btn soft" onclick="v651CopyItinerary()">複製文字</button>
+      <button class="btn dark" onclick="v651PrintItinerary()">列印 / 存 PDF</button>
+    </div>
+  </div>`;
+  document.getElementById('itinerarySharePreview').textContent=txt;
+  modal.classList.add('show');
+}
+function v651CloseItineraryShare(){
+  document.getElementById('itineraryShareModal')?.classList.remove('show');
+}
+async function v651CopyItinerary(){
+  const txt=v651ItineraryText();
+  try{
+    await navigator.clipboard.writeText(txt);
+    toast('已複製簡易行程');
+  }catch(e){
+    const ta=document.createElement('textarea');
+    ta.value=txt;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    ta.remove();
+    toast('已複製簡易行程');
+  }
+}
+function v651PrintItinerary(){
+  const txt=v651ItineraryText();
+  const w=window.open('', '_blank');
+  if(!w) return alert('請允許瀏覽器開啟新視窗後再試一次。');
+  w.document.write(`<!DOCTYPE html><html lang="zh-Hant"><head><meta charset="UTF-8"><title>${v65PhotoAttr(data?.meta?.title||'簡易行程')}</title><style>
+    body{font-family:"PingFang TC","Noto Sans TC",-apple-system,BlinkMacSystemFont,sans-serif;color:#2C2A29;background:#fff;margin:0;padding:28px;}
+    .page{max-width:820px;margin:auto;}
+    h1{font-size:26px;margin:0 0 8px;}
+    .sub{color:#8B827A;margin-bottom:18px;}
+    pre{white-space:pre-wrap;line-height:1.8;font-size:14px;border:1px solid #E2DDD5;border-radius:18px;padding:18px;background:#FFFDFC;}
+    .brand{margin-top:18px;color:#8B827A;font-size:12px;text-align:center;}
+    @media print{body{padding:0}.page{max-width:none}pre{border:0;padding:0}.noPrint{display:none}}
+  </style></head><body><div class="page"><h1>${v65PhotoAttr(data?.meta?.title||'簡易行程')}</h1><div class="sub">${v65PhotoAttr(data?.trip?.dest||'')}｜${data?.trip?.start?`${short(data.trip.start)}－${short(data.trip.end)}`:''}</div><pre>${v65PhotoAttr(txt)}</pre><div class="brand">貞選旅管家 Janeselect Travel Manager</div></div><script>setTimeout(()=>window.print(),300)<\/script></body></html>`);
+  w.document.close();
+}
+function v651InsertPlannerShareButton(){
+  const root=document.getElementById('plannerView');
+  if(!root || root.querySelector('#v651PlannerShareBtn')) return;
+  const section=root.querySelector('.section');
+  if(!section) return;
+  const btn=document.createElement('button');
+  btn.id='v651PlannerShareBtn';
+  btn.type='button';
+  btn.className='v651PlannerShareBtn noPrint';
+  btn.textContent='分享簡易行程';
+  btn.onclick=v651OpenItineraryShare;
+  section.appendChild(btn);
+}
+const v651PrevRenderPlanner = typeof renderPlanner === 'function' ? renderPlanner : null;
+if(v651PrevRenderPlanner && !v651PrevRenderPlanner.__v651ShareWrapped){
+  renderPlanner = function(...args){
+    const r = v651PrevRenderPlanner.apply(this,args);
+    setTimeout(v651InsertPlannerShareButton,40);
+    return r;
+  };
+  renderPlanner.__v651ShareWrapped = true;
+}
+const v651PrevRenderHelp = typeof renderHelp === 'function' ? renderHelp : null;
+if(v651PrevRenderHelp && !v651PrevRenderHelp.__v651Wrapped){
+  renderHelp = function(...args){
+    const r = v651PrevRenderHelp.apply(this,args);
+    const log=document.getElementById('v64UpdateLog') || document.getElementById('helpView')?.querySelector('.card');
+    if(log){
+      log.innerHTML=`<h3>最新更新紀錄</h3><div class="box mint"><b>${esc(V651_VERSION_TEXT)}</b><br>新增行程頁「分享簡易行程」，可複製文字或列印 / 存 PDF；並確認手機版照片旅遊書的每日封面可更換與刪除。既有 Logo、AI 輔助、同步鎖、Firebase、Cloudinary 與資料結構未更動。</div>`;
+    }
+    v651UpdateFooterVersion();
+    return r;
+  };
+  renderHelp.__v651Wrapped=true;
+}
+setTimeout(()=>{try{v651UpdateFooterVersion(); if(typeof render==='function') render();}catch(e){console.warn(e)}},760);
+</script>
+
 </body></html>
