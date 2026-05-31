@@ -19236,6 +19236,135 @@ function v647UpdateFooterVersion(){
 }
 setTimeout(()=>{try{v647UpdateFooterVersion(); if(typeof render==='function') render();}catch(e){console.warn(e)}},420);
 
+
+
+/* ===== v64.8 account sync status UI fix only ===== */
+const V648_VERSION_SHORT = "v64.8｜2026-05-31";
+const V648_VERSION_TEXT = "v64.8｜同步狀態顯示修正版";
+
+function v648FormatSyncTime(at){
+  const t = Number(at || 0);
+  if(!t) return "";
+  try{return new Date(t).toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});}catch(e){return "";}
+}
+function v648SyncLabelFromState(){
+  const s = (typeof v632LastSyncState !== 'undefined' && v632LastSyncState) ? v632LastSyncState : null;
+  if(s && s.title){
+    const title = String(s.title || '');
+    if(s.kind === 'on') return `已同步${v648FormatSyncTime(s.at) ? ' ' + v648FormatSyncTime(s.at) : ''}`;
+    if(s.kind === 'warn'){
+      if(title.includes('等待')) return '等待同步';
+      if(title.includes('排隊')) return '同步排隊中';
+      if(title.includes('載入')) return '載入中';
+      return '同步中';
+    }
+    if(s.kind === 'off'){
+      if(title.includes('尚未登入')) return '尚未登入';
+      if(title.includes('尚未同步')) return '尚未同步';
+      if(title.includes('無資料')) return '雲端無資料';
+      if(title.includes('未授權')) return '帳號未授權';
+      return title || '同步失敗';
+    }
+  }
+  try{
+    if(typeof syncStatusText === 'function') return syncStatusText();
+  }catch(e){}
+  return fbUser ? '尚未同步' : '尚未登入';
+}
+function v648SyncDotClassFromState(){
+  const s = (typeof v632LastSyncState !== 'undefined' && v632LastSyncState) ? v632LastSyncState : null;
+  if(s && s.kind){
+    if(s.kind === 'on') return 'success';
+    if(s.kind === 'warn') return 'syncing';
+    if(s.kind === 'off') return 'error';
+  }
+  try{
+    if(typeof syncStatus !== 'undefined') return syncStatus === 'syncing' ? 'syncing' : syncStatus === 'success' ? 'success' : syncStatus === 'error' ? 'error' : '';
+  }catch(e){}
+  return '';
+}
+
+/* 右上角帳號選單原本有自己的「尚未同步」狀態，與雲端 setSyncStatus 沒有完全連動。
+   這裡只修顯示層：同步成功後，帳號選單也會改成已同步；不改 Firestore 寫入流程。 */
+updateAccountSyncLine = function(){
+  const el = document.getElementById('accountSyncLine');
+  if(!el) return;
+  const dotClass = v648SyncDotClassFromState();
+  const label = v648SyncLabelFromState();
+  el.innerHTML = `<span class="dot ${dotClass}"></span>${esc(label)}`;
+};
+
+const v648PreviousSetSyncStatus = typeof setSyncStatus === 'function' ? setSyncStatus : null;
+setSyncStatus = function(kind,title,desc){
+  if(typeof v632LastSyncState !== 'undefined'){
+    v632LastSyncState = {kind:kind||'off', title:title||'', desc:desc||'', at:(typeof v632Now === 'function' ? v632Now() : Date.now())};
+  }
+  try{
+    if(typeof syncStatus !== 'undefined'){
+      const t = String(title || '');
+      if(kind === 'warn') syncStatus = 'syncing';
+      else if(kind === 'on'){
+        syncStatus = 'success';
+        if(typeof lastSyncTime !== 'undefined') lastSyncTime = new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
+      }else if(kind === 'off') syncStatus = 'error';
+    }
+  }catch(e){}
+  if(v648PreviousSetSyncStatus){
+    v648PreviousSetSyncStatus(kind,title,desc);
+  }else{
+    const el=document.getElementById('syncStatus');
+    if(el){
+      const dotClass = kind==='on'?'on':kind==='warn'?'warn':'off';
+      el.innerHTML = `<span class="syncDot ${dotClass}"></span><b>${esc(title||'')}</b>${desc?`<br>${esc(desc)}`:''}`;
+    }
+  }
+  updateAccountSyncLine();
+};
+
+const v648PreviousToggleAccountMenu = typeof toggleAccountMenu === 'function' ? toggleAccountMenu : null;
+toggleAccountMenu = function(){
+  if(typeof ensureAccountMenuSyncLine === 'function') ensureAccountMenuSyncLine();
+  updateAccountSyncLine();
+  if(v648PreviousToggleAccountMenu) v648PreviousToggleAccountMenu();
+};
+
+const v648PreviousRenderAccountWidget = typeof renderAccountWidget === 'function' ? renderAccountWidget : null;
+renderAccountWidget = function(user){
+  const r = v648PreviousRenderAccountWidget ? v648PreviousRenderAccountWidget(user) : undefined;
+  if(typeof ensureAccountMenuSyncLine === 'function') ensureAccountMenuSyncLine();
+  updateAccountSyncLine();
+  return r;
+};
+
+const v648PreviousSaveToCloudNow = typeof saveToCloudNow === 'function' ? saveToCloudNow : null;
+saveToCloudNow = async function(options={}){
+  const result = v648PreviousSaveToCloudNow ? await v648PreviousSaveToCloudNow(options) : false;
+  if(result){
+    const now = (typeof v632Now === 'function' ? v632Now() : Date.now());
+    if(typeof v632LastSyncState !== 'undefined') v632LastSyncState = {kind:'on', title:'同步好了', desc:'', at:now};
+    try{
+      if(typeof syncStatus !== 'undefined') syncStatus='success';
+      if(typeof lastSyncTime !== 'undefined') lastSyncTime = new Date(now).toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
+    }catch(e){}
+    updateAccountSyncLine();
+  }
+  return result;
+};
+
+const v648PrevRenderHelp = typeof renderHelp === 'function' ? renderHelp : null;
+renderHelp = function(...args){
+  const r = v648PrevRenderHelp ? v648PrevRenderHelp.apply(this,args) : undefined;
+  const log=document.getElementById('v64UpdateLog') || document.getElementById('helpView')?.querySelector('.card');
+  if(log){
+    log.innerHTML=`<h3>最新更新紀錄</h3><div class="box mint"><b>${esc(V648_VERSION_TEXT)}</b><br>修正右上角帳號選單的同步狀態未跟雲端同步結果連動的問題。手動同步成功後，狀態會正確顯示為已同步；照片書上傳與日記編輯流程維持 v64.7 的修正。</div>`;
+  }
+  v648UpdateFooterVersion();
+  return r;
+};
+function v648UpdateFooterVersion(){
+  document.querySelectorAll('footer strong,.siteFooterVersion').forEach(el=>el.textContent=V648_VERSION_SHORT);
+}
+setTimeout(()=>{try{v648UpdateFooterVersion(); updateAccountSyncLine();}catch(e){console.warn(e)}},480);
 </script>
 
 </body></html>
