@@ -20271,179 +20271,61 @@ function v651PrintItinerary(){
     pre{white-space:pre-wrap;line-height:1.8;font-size:14px;border:1px solid #E2DDD5;border-radius:18px;padding:18px;background:#FFFDFC;}
     .brand{margin-top:18px;color:#8B827A;font-size:12px;text-align:center;}
     @media print{body{padding:0}.page{max-width:none}pre{border:0;padding:0}.noPrint{display:none}}
-  </style></head><body><div class="page"><h1>${v65PhotoAttr(data?.meta?.title||'簡易行程')}</h1><div class="sub">${v65PhotoAttr(data?.trip?.dest||'')}｜${data?.trip?.start?`${short(data.trip.start)}－${short(data.trip.end)}`:''}</div><pre>${v65PhotoAttr(txt)}</pre><div class="brand">貞選旅管家 Janeselect Travel Manager</div></div><script>setTimeout(()=>window.print(),300)<\/script>
+  </style></head><body><div class="page"><h1>${v65PhotoAttr(data?.meta?.title||'簡易行程')}</h1><div class="sub">${v65PhotoAttr(data?.trip?.dest||'')}｜${data?.trip?.start?`${short(data.trip.start)}－${short(data.trip.end)}`:''}</div><pre>${v65PhotoAttr(txt)}</pre><div class="brand">貞選旅管家 Janeselect Travel Manager</div></div><script>setTimeout(()=>window.print(),300)<\/script></body></html>`);
+  w.document.close();
+}
+function v651InsertPlannerShareButton(){
+  const root=document.getElementById('plannerView');
+  if(!root || root.querySelector('#v651PlannerShareBtn')) return;
+  const section=root.querySelector('.section');
+  if(!section) return;
+  const btn=document.createElement('button');
+  btn.id='v651PlannerShareBtn';
+  btn.type='button';
+  btn.className='v651PlannerShareBtn noPrint';
+  btn.textContent='分享簡易行程';
+  btn.onclick=v651OpenItineraryShare;
+  section.appendChild(btn);
+}
+const v651PrevRenderPlanner = typeof renderPlanner === 'function' ? renderPlanner : null;
+if(v651PrevRenderPlanner && !v651PrevRenderPlanner.__v651ShareWrapped){
+  renderPlanner = function(...args){
+    const r = v651PrevRenderPlanner.apply(this,args);
+    setTimeout(v651InsertPlannerShareButton,40);
+    return r;
+  };
+  renderPlanner.__v651ShareWrapped = true;
+}
+const v651PrevRenderHelp = typeof renderHelp === 'function' ? renderHelp : null;
+if(v651PrevRenderHelp && !v651PrevRenderHelp.__v651Wrapped){
+  renderHelp = function(...args){
+    const r = v651PrevRenderHelp.apply(this,args);
+    const log=document.getElementById('v64UpdateLog') || document.getElementById('helpView')?.querySelector('.card');
+    if(log){
+      log.innerHTML=`<h3>最新更新紀錄</h3><div class="box mint"><b>${esc(V651_VERSION_TEXT)}</b><br>新增行程頁「分享簡易行程」，可複製文字或列印 / 存 PDF；並確認手機版照片旅遊書的每日封面可更換與刪除。既有 Logo、AI 輔助、同步鎖、Firebase、Cloudinary 與資料結構未更動。</div>`;
+    }
+    v651UpdateFooterVersion();
+    return r;
+  };
+  renderHelp.__v651Wrapped=true;
+}
+setTimeout(()=>{try{v651UpdateFooterVersion(); if(typeof render==='function') render();}catch(e){console.warn(e)}},760);
+</script>
+
 
 <style>
-/* ===== v65.2 itinerary share with flights/hotels + visual polish only ===== */
-/* 只覆蓋簡易行程分享的呈現與內容，不改原始旅程 data / Firebase / Cloudinary / AI / 照片書流程。 */
-.itineraryShareBox{
-  width:min(860px,100%)!important;
-  padding:0!important;
-  border-radius:30px!important;
-  overflow:hidden!important;
-}
-.v652SharePaper{
-  background:linear-gradient(180deg,#FFFDFC 0%, #F8F5EF 100%);
-  color:var(--theme-ink,#2C2A29);
-}
-.v652ShareHero{
-  padding:22px 22px 18px;
-  background:
-    radial-gradient(circle at 8% 18%,rgba(229,236,233,.95),transparent 34%),
-    radial-gradient(circle at 94% 8%,rgba(239,230,230,.85),transparent 28%),
-    linear-gradient(135deg,#FFFDFC,#F4F2EE);
-  border-bottom:1px solid var(--theme-line,#E2DDD5);
-}
-.v652ShareHeroTop{
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-start;
-  gap:14px;
-}
-.v652ShareBrand{
-  display:inline-flex;
-  border-radius:999px;
-  background:var(--theme-primary-weak,#F2F6F4);
-  color:var(--theme-primary,#4A5D4E);
-  border:1px solid var(--theme-line,#E2DDD5);
-  padding:7px 11px;
-  font-size:12px;
-  font-weight:950;
-  letter-spacing:.4px;
-  margin-bottom:12px;
-}
-.v652ShareHero h3{
-  margin:0;
-  font-size:26px;
-  line-height:1.16;
-  letter-spacing:.2px;
-}
-.v652ShareHero p{
-  margin:7px 0 0;
-  color:var(--theme-muted,#8B827A);
-  font-size:13px;
-  line-height:1.6;
-}
-.v652ShareClose{
-  width:36px;height:36px;border:0;border-radius:50%;background:rgba(255,255,255,.78);color:#5d554e;font-weight:950;
-  box-shadow:0 8px 20px rgba(44,42,41,.06);
-}
-.v652ShareMetaGrid{
-  display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:10px;
-  margin-top:16px;
-}
-.v652ShareMetaCard{
-  border:1px solid rgba(226,221,213,.86);
-  border-radius:18px;
-  background:rgba(255,255,255,.72);
-  padding:11px 12px;
-}
-.v652ShareMetaCard span{display:block;color:var(--theme-muted,#8B827A);font-size:11px;font-weight:850;margin-bottom:5px;}
-.v652ShareMetaCard b{display:block;font-size:13px;line-height:1.35;}
-.v652ShareContent{
-  padding:18px 22px 20px;
-  max-height:58vh;
-  overflow:auto;
-}
-.v652ShareSection{
-  border:1px solid var(--theme-line,#E2DDD5);
-  border-radius:22px;
-  background:#FFFDFC;
-  padding:15px;
-  margin-bottom:12px;
-  box-shadow:0 10px 26px rgba(44,42,41,.035);
-}
-.v652ShareSection h4{
-  margin:0 0 10px;
-  font-size:16px;
-  display:flex;
-  align-items:center;
-  gap:7px;
-}
-.v652ShareSubTitle{
-  display:inline-flex;
-  border-radius:999px;
-  background:var(--theme-primary-weak,#F2F6F4);
-  color:var(--theme-primary,#4A5D4E);
-  padding:5px 9px;
-  font-size:11px;
-  font-weight:900;
-  margin:4px 0 8px;
-}
-.v652FlightGrid,.v652HotelGrid{
-  display:grid;
-  gap:8px;
-}
-.v652FlightItem,.v652HotelItem,.v652DayItem{
-  border:1px solid #EEE8DF;
-  background:#fff;
-  border-radius:17px;
-  padding:11px;
-}
-.v652FlightLine{
-  display:grid;
-  grid-template-columns:76px minmax(0,1fr);
-  gap:10px;
-  align-items:start;
-}
-.v652TimePill{
-  display:inline-flex;
-  justify-content:center;
-  border-radius:999px;
-  background:#F3EEE8;
-  color:#6F6257;
-  padding:6px 8px;
-  font-size:11px;
-  font-weight:900;
-  white-space:nowrap;
-}
-.v652MainText{font-weight:900;line-height:1.45;}
-.v652MiniText{color:var(--theme-muted,#8B827A);font-size:12px;line-height:1.55;margin-top:4px;}
-.v652DayHead{
-  display:flex;
-  justify-content:space-between;
-  gap:10px;
-  align-items:center;
-  padding-bottom:8px;
-  border-bottom:1px solid #EEE8DF;
-  margin-bottom:8px;
-}
-.v652DayHead b{font-size:15px;}
-.v652PlanList{display:grid;gap:7px;}
-.v652PlanRow{
-  display:grid;
-  grid-template-columns:82px minmax(0,1fr);
-  gap:9px;
-  align-items:start;
-}
-.v652PlanName{font-weight:850;line-height:1.45;}
-.v652PlanNote{color:var(--theme-muted,#8B827A);font-size:12px;line-height:1.45;margin-top:2px;}
-.v652ShareActions{
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
-  justify-content:flex-end;
-  padding:14px 22px 18px;
-  border-top:1px solid var(--theme-line,#E2DDD5);
-  background:rgba(255,255,255,.82);
-}
-@media(max-width:620px){
-  .itineraryShareBox{border-radius:26px 26px 18px 18px!important;max-height:88vh!important;}
-  .v652ShareHero{padding:18px 16px 15px;}
-  .v652ShareHero h3{font-size:22px;}
-  .v652ShareMetaGrid{grid-template-columns:1fr;gap:8px;}
-  .v652ShareContent{padding:14px 14px 16px;max-height:56vh;}
-  .v652ShareSection{border-radius:18px;padding:12px;}
-  .v652FlightLine,.v652PlanRow{grid-template-columns:1fr;gap:5px;}
-  .v652ShareActions{display:grid;grid-template-columns:1fr;padding:12px 14px 16px;}
-  .v652ShareActions .btn{width:100%;}
-}
-@media print{.itineraryShareModal{display:none!important;}}
+/* ===== v65.2 hotfix: itinerary share visual polish only ===== */
+.itineraryShareBox{width:min(860px,100%)!important;max-height:88vh!important;padding:0!important;border-radius:30px!important;overflow:hidden!important;background:#FFFDFC!important;}
+.v652SharePaper{background:linear-gradient(180deg,#FFFDFC 0%,#F8F5EF 100%);color:var(--theme-ink,#2C2A29)}
+.v652ShareHero{padding:22px;background:radial-gradient(circle at 8% 18%,rgba(229,236,233,.95),transparent 34%),radial-gradient(circle at 94% 8%,rgba(239,230,230,.85),transparent 28%),linear-gradient(135deg,#FFFDFC,#F4F2EE);border-bottom:1px solid var(--theme-line,#E2DDD5)}
+.v652ShareHeroTop{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}.v652ShareBrand{display:inline-flex;border-radius:999px;background:var(--theme-primary-weak,#F2F6F4);color:var(--theme-primary,#4A5D4E);border:1px solid var(--theme-line,#E2DDD5);padding:7px 11px;font-size:12px;font-weight:950;letter-spacing:.4px;margin-bottom:12px}.v652ShareHero h3{margin:0;font-size:26px;line-height:1.16;letter-spacing:.2px}.v652ShareHero p{margin:7px 0 0;color:var(--theme-muted,#8B827A);font-size:13px;line-height:1.6}.v652ShareClose{width:36px;height:36px;border:0;border-radius:50%;background:rgba(255,255,255,.78);color:#5d554e;font-weight:950;box-shadow:0 8px 20px rgba(44,42,41,.06)}
+.v652ShareMetaGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:16px}.v652ShareMetaCard{border:1px solid rgba(226,221,213,.86);border-radius:18px;background:rgba(255,255,255,.72);padding:11px 12px}.v652ShareMetaCard span{display:block;color:var(--theme-muted,#8B827A);font-size:11px;font-weight:850;margin-bottom:5px}.v652ShareMetaCard b{display:block;font-size:13px;line-height:1.35}.v652ShareContent{padding:18px 22px 20px;max-height:58vh;overflow:auto}.v652ShareSection{border:1px solid var(--theme-line,#E2DDD5);border-radius:22px;background:#FFFDFC;padding:15px;margin-bottom:12px;box-shadow:0 10px 26px rgba(44,42,41,.035)}.v652ShareSection h4{margin:0 0 10px;font-size:16px;display:flex;align-items:center;gap:7px}.v652ShareSubTitle{display:inline-flex;border-radius:999px;background:var(--theme-primary-weak,#F2F6F4);color:var(--theme-primary,#4A5D4E);padding:5px 9px;font-size:11px;font-weight:900;margin:4px 0 8px}.v652FlightGrid,.v652HotelGrid{display:grid;gap:8px}.v652FlightItem,.v652HotelItem,.v652DayItem{border:1px solid #EEE8DF;border-radius:17px;background:#fff;padding:11px 12px}.v652FlightLine,.v652PlanRow{display:grid;grid-template-columns:86px minmax(0,1fr);gap:9px;align-items:start}.v652TimePill{display:inline-flex;justify-content:center;border-radius:999px;background:#F3EEE8;color:#6F6257;padding:5px 8px;font-size:11px;font-weight:900;white-space:nowrap}.v652MainText,.v652PlanName{font-weight:900;line-height:1.45}.v652MiniText,.v652PlanNote{color:var(--theme-muted,#8B827A);font-size:12px;line-height:1.55;margin-top:4px}.v652DayHead{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:6px}.v652PlanList{display:grid;gap:7px;margin-top:8px}.v652ShareActions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;padding:14px 22px 18px;border-top:1px solid var(--theme-line,#E2DDD5);background:rgba(255,253,252,.86)}
+@media(max-width:620px){.itineraryShareModal{align-items:flex-end!important;padding:10px!important}.itineraryShareBox{border-radius:24px 24px 18px 18px!important;max-height:84vh!important}.v652ShareHero{padding:18px 16px 15px}.v652ShareHero h3{font-size:22px}.v652ShareMetaGrid{grid-template-columns:1fr}.v652ShareContent{padding:14px 14px 16px;max-height:55vh}.v652FlightLine,.v652PlanRow{grid-template-columns:1fr}.v652ShareActions{display:grid;grid-template-columns:1fr;padding:12px 14px 14px}.v652ShareActions .btn{width:100%}}
+@media print{.itineraryShareModal,.v651PlannerShareBtn{display:none!important}}
 </style>
 
 <script>
+
 /* ===== v65.2 itinerary share content/visual override ===== */
 const V652_VERSION_SHORT = "v65.2｜2026-05-31";
 const V652_VERSION_TEXT = "v65.2｜簡易行程分享含機票住宿與版面美化版";
@@ -20615,47 +20497,6 @@ if(v652PrevRenderHelp && !v652PrevRenderHelp.__v652Wrapped){
   renderHelp.__v652Wrapped=true;
 }
 setTimeout(()=>{try{v652UpdateFooterVersion(); if(typeof render==='function') render();}catch(e){console.warn(e)}},920);
-</script>
 
-</body></html>`);
-  w.document.close();
-}
-function v651InsertPlannerShareButton(){
-  const root=document.getElementById('plannerView');
-  if(!root || root.querySelector('#v651PlannerShareBtn')) return;
-  const section=root.querySelector('.section');
-  if(!section) return;
-  const btn=document.createElement('button');
-  btn.id='v651PlannerShareBtn';
-  btn.type='button';
-  btn.className='v651PlannerShareBtn noPrint';
-  btn.textContent='分享簡易行程';
-  btn.onclick=v651OpenItineraryShare;
-  section.appendChild(btn);
-}
-const v651PrevRenderPlanner = typeof renderPlanner === 'function' ? renderPlanner : null;
-if(v651PrevRenderPlanner && !v651PrevRenderPlanner.__v651ShareWrapped){
-  renderPlanner = function(...args){
-    const r = v651PrevRenderPlanner.apply(this,args);
-    setTimeout(v651InsertPlannerShareButton,40);
-    return r;
-  };
-  renderPlanner.__v651ShareWrapped = true;
-}
-const v651PrevRenderHelp = typeof renderHelp === 'function' ? renderHelp : null;
-if(v651PrevRenderHelp && !v651PrevRenderHelp.__v651Wrapped){
-  renderHelp = function(...args){
-    const r = v651PrevRenderHelp.apply(this,args);
-    const log=document.getElementById('v64UpdateLog') || document.getElementById('helpView')?.querySelector('.card');
-    if(log){
-      log.innerHTML=`<h3>最新更新紀錄</h3><div class="box mint"><b>${esc(V651_VERSION_TEXT)}</b><br>新增行程頁「分享簡易行程」，可複製文字或列印 / 存 PDF；並確認手機版照片旅遊書的每日封面可更換與刪除。既有 Logo、AI 輔助、同步鎖、Firebase、Cloudinary 與資料結構未更動。</div>`;
-    }
-    v651UpdateFooterVersion();
-    return r;
-  };
-  renderHelp.__v651Wrapped=true;
-}
-setTimeout(()=>{try{v651UpdateFooterVersion(); if(typeof render==='function') render();}catch(e){console.warn(e)}},760);
 </script>
-
 </body></html>
