@@ -5617,7 +5617,7 @@ body[data-theme-mode] .btn.pink{
   <button class="btn blue compact hidden" id="cloudLoadBtn" onclick="loadFromCloud()">載入雲端</button>
   <button class="btn pink compact hidden" id="cloudSaveBtn" onclick="saveToCloudNow()">立即同步</button>
 </div>
-<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="stayView" class="hidden"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>貞選旅管家 Janeselect Travel Manager｜LocalStorage + Firebase + Cloudinary<br><strong>版本：v65.4｜2026-05-31｜簡易行程統計卡移除版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
+<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="stayView" class="hidden"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>貞選旅管家 Janeselect Travel Manager｜LocalStorage + Firebase + Cloudinary<br><strong>版本：v65.4｜2026-05-31｜簡易行程分享統計移除修正版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
 
 <!-- Firebase SDK for cross-device sync -->
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -20271,480 +20271,7 @@ function v651PrintItinerary(){
     pre{white-space:pre-wrap;line-height:1.8;font-size:14px;border:1px solid #E2DDD5;border-radius:18px;padding:18px;background:#FFFDFC;}
     .brand{margin-top:18px;color:#8B827A;font-size:12px;text-align:center;}
     @media print{body{padding:0}.page{max-width:none}pre{border:0;padding:0}.noPrint{display:none}}
-  </style></head><body><div class="page"><h1>${v65PhotoAttr(data?.meta?.title||'簡易行程')}</h1><div class="sub">${v65PhotoAttr(data?.trip?.dest||'')}｜${data?.trip?.start?`${short(data.trip.start)}－${short(data.trip.end)}`:''}</div><pre>${v65PhotoAttr(txt)}</pre><div class="brand">貞選旅管家 Janeselect Travel Manager</div></div><script>setTimeout(()=>window.print(),300)<\/script>
-<style>
-/* ===== v65.3 itinerary share action restore + sticky footer only ===== */
-/* 只修分享簡易行程彈窗的複製與匯出/列印按鈕位置；不改 Firebase、localStorage、Cloudinary、同步鎖、AI、照片旅遊書與 Logo。 */
-.v653PlannerShareBtn,
-#v653PlannerShareBtn,
-#v651PlannerShareBtn{
-  display:inline-flex!important;
-  align-items:center!important;
-  justify-content:center!important;
-  gap:6px!important;
-  border:1px solid var(--theme-line,#E2DDD5)!important;
-  background:var(--theme-primary-weak,#F2F6F4)!important;
-  color:var(--theme-primary,#4A5D4E)!important;
-  border-radius:999px!important;
-  padding:9px 13px!important;
-  font-size:12px!important;
-  font-weight:900!important;
-  box-shadow:0 8px 20px rgba(44,42,41,.045)!important;
-  white-space:nowrap!important;
-}
-.itineraryShareModal.v653ShareModal{
-  align-items:center!important;
-  justify-content:center!important;
-  padding:16px!important;
-  z-index:260!important;
-}
-.v653ShareBox{
-  width:min(880px,100%)!important;
-  max-height:88vh!important;
-  display:flex!important;
-  flex-direction:column!important;
-  overflow:hidden!important;
-  background:#FFFDFC!important;
-  border:1px solid rgba(255,255,255,.92)!important;
-  box-shadow:0 24px 70px rgba(44,42,41,.18)!important;
-  border-radius:30px!important;
-  color:var(--theme-ink,#2C2A29)!important;
-}
-.v653ShareHero{
-  flex:0 0 auto!important;
-  padding:22px!important;
-  background:
-    radial-gradient(circle at 8% 18%,rgba(229,236,233,.95),transparent 34%),
-    radial-gradient(circle at 94% 8%,rgba(239,230,230,.85),transparent 28%),
-    linear-gradient(135deg,#FFFDFC,#F4F2EE)!important;
-  border-bottom:1px solid var(--theme-line,#E2DDD5)!important;
-}
-.v653ShareHeroTop{
-  display:flex!important;
-  justify-content:space-between!important;
-  align-items:flex-start!important;
-  gap:14px!important;
-}
-.v653ShareBrand{
-  display:inline-flex!important;
-  border-radius:999px!important;
-  background:var(--theme-primary-weak,#F2F6F4)!important;
-  color:var(--theme-primary,#4A5D4E)!important;
-  border:1px solid var(--theme-line,#E2DDD5)!important;
-  padding:7px 11px!important;
-  font-size:12px!important;
-  font-weight:950!important;
-  letter-spacing:.4px!important;
-  margin-bottom:12px!important;
-}
-.v653ShareHero h3{
-  margin:0!important;
-  font-size:26px!important;
-  line-height:1.16!important;
-  letter-spacing:.2px!important;
-}
-.v653ShareHero p{
-  margin:7px 0 0!important;
-  color:var(--theme-muted,#8B827A)!important;
-  font-size:13px!important;
-  line-height:1.6!important;
-}
-.v653ShareClose{
-  width:36px!important;
-  height:36px!important;
-  border:0!important;
-  border-radius:50%!important;
-  background:rgba(255,255,255,.78)!important;
-  color:#5d554e!important;
-  font-weight:950!important;
-  box-shadow:0 8px 20px rgba(44,42,41,.06)!important;
-}
-.v653ShareMetaGrid{
-  display:grid!important;
-  grid-template-columns:repeat(3,minmax(0,1fr))!important;
-  gap:10px!important;
-  margin-top:16px!important;
-}
-.v653ShareMetaCard{
-  border:1px solid rgba(226,221,213,.86)!important;
-  border-radius:18px!important;
-  background:rgba(255,255,255,.72)!important;
-  padding:11px 12px!important;
-}
-.v653ShareMetaCard span{
-  display:block!important;
-  color:var(--theme-muted,#8B827A)!important;
-  font-size:11px!important;
-  font-weight:850!important;
-  margin-bottom:5px!important;
-}
-.v653ShareMetaCard b{
-  display:block!important;
-  font-size:13px!important;
-  line-height:1.35!important;
-}
-.v653ShareScroll{
-  flex:1 1 auto!important;
-  min-height:0!important;
-  overflow:auto!important;
-  -webkit-overflow-scrolling:touch!important;
-  padding:18px 22px 20px!important;
-  background:linear-gradient(180deg,#FFFDFC 0%,#F8F5EF 100%)!important;
-}
-.v653ShareSection{
-  border:1px solid var(--theme-line,#E2DDD5)!important;
-  border-radius:22px!important;
-  background:#FFFDFC!important;
-  padding:15px!important;
-  margin-bottom:12px!important;
-  box-shadow:0 10px 26px rgba(44,42,41,.035)!important;
-}
-.v653ShareSection h4{
-  margin:0 0 10px!important;
-  font-size:16px!important;
-  display:flex!important;
-  align-items:center!important;
-  gap:7px!important;
-}
-.v653ShareActions{
-  flex:0 0 auto!important;
-  position:sticky!important;
-  bottom:0!important;
-  z-index:3!important;
-  display:flex!important;
-  gap:8px!important;
-  flex-wrap:wrap!important;
-  justify-content:flex-end!important;
-  padding:14px 22px 18px!important;
-  border-top:1px solid var(--theme-line,#E2DDD5)!important;
-  background:rgba(255,253,252,.96)!important;
-  box-shadow:0 -12px 28px rgba(44,42,41,.06)!important;
-}
-.v653ShareActions .btn{
-  min-height:40px!important;
-  display:inline-flex!important;
-  align-items:center!important;
-  justify-content:center!important;
-}
-@media(max-width:620px){
-  .itineraryShareModal.v653ShareModal{
-    align-items:flex-end!important;
-    justify-content:center!important;
-    padding:10px!important;
-  }
-  .v653ShareBox{
-    width:100%!important;
-    max-height:86vh!important;
-    border-radius:24px 24px 18px 18px!important;
-  }
-  .v653ShareHero{
-    padding:18px 16px 15px!important;
-  }
-  .v653ShareHero h3{
-    font-size:22px!important;
-  }
-  .v653ShareMetaGrid{
-    grid-template-columns:1fr!important;
-    gap:8px!important;
-  }
-  .v653ShareScroll{
-    padding:14px 14px 16px!important;
-  }
-  .v653ShareActions{
-    display:grid!important;
-    grid-template-columns:1fr!important;
-    padding:12px 14px calc(14px + env(safe-area-inset-bottom,0px))!important;
-  }
-  .v653ShareActions .btn{
-    width:100%!important;
-    min-height:44px!important;
-  }
-}
-@media print{
-  .itineraryShareModal.v653ShareModal,
-  #v653PlannerShareBtn,
-  #v651PlannerShareBtn{
-    display:none!important;
-  }
-}
-</style>
-
-<script>
-/* ===== v65.3 itinerary share action restore + sticky footer only ===== */
-const V653_VERSION_SHORT = "v65.4｜2026-05-31";
-const V653_VERSION_TEXT = "v65.4｜簡易行程統計卡移除版";
-
-function v653Html(v){
-  return String(v ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
-}
-function v653Clean(v){ return String(v||'').replace(/\s+/g,' ').trim(); }
-function v653DatePart(dt){ return String(dt||'').split('T')[0] || ''; }
-function v653TimePart(dt){ return String(dt||'').split('T')[1]?.slice(0,5) || ''; }
-function v653DateTimeText(dt){
-  const d=v653DatePart(dt), t=v653TimePart(dt);
-  if(d && t) return `${short(d)} ${t}`;
-  return t || (d ? short(d) : '未定');
-}
-function v653PlanIcon(type){
-  return type==='餐廳'?'🍽️':type==='咖啡廳'?'☕':type==='購物'?'🛍️':type==='交通'?'🚕':type==='航班'?'✈️':type==='住宿'?'🏨':type==='其他'?'📝':'📍';
-}
-function v653FlightObj(k){
-  try{
-    return typeof normalizeFlightObj === 'function' ? normalizeFlightObj(data?.flights?.[k], k) : (data?.flights?.[k]||{});
-  }catch(e){
-    return data?.flights?.[k]||{};
-  }
-}
-function v653FlightSegments(k){
-  const f=v653FlightObj(k);
-  if(Array.isArray(f.segments) && f.segments.length) return f.segments;
-  if(f.no || f.from || f.to || f.dep || f.arr) return [{no:f.no||'',from:f.from||'',to:f.to||'',dep:f.dep||'',arr:f.arr||''}];
-  return [];
-}
-function v653HasFlight(k){
-  const f=v653FlightObj(k), segs=v653FlightSegments(k);
-  return segs.some(s=>s.no||s.from||s.to||s.dep||s.arr) || !!(f.toAirport||f.fromAirport||f.transfer);
-}
-function v653FlightLabel(k){ return k==='out'?'去程':'回程'; }
-function v653FlightLines(k){
-  const f=v653FlightObj(k), segs=v653FlightSegments(k), lines=[];
-  if(!v653HasFlight(k)) return lines;
-  lines.push(`${v653FlightLabel(k)}${f.type==='transfer'?'（轉機）':'（直飛）'}`);
-  segs.forEach((s,i)=>{
-    const route=[s.from,s.to].filter(Boolean).join(' → ') || '航線未填';
-    const dt=[v653DateTimeText(s.dep), v653DateTimeText(s.arr)].filter(Boolean).join(' → ');
-    lines.push(`  第 ${i+1} 段 ${s.no||'航班未填'}｜${route}`);
-    if(dt) lines.push(`      ${dt}`);
-  });
-  if(f.toAirport || f.transfer) lines.push(`  機場交通：${v653Clean(f.toAirport||f.transfer)}`);
-  if(f.fromAirport) lines.push(`  抵達後交通：${v653Clean(f.fromAirport)}`);
-  return lines;
-}
-function v653FlightHtml(k){
-  const f=v653FlightObj(k), segs=v653FlightSegments(k);
-  if(!v653HasFlight(k)) return `<div class="v652FlightItem"><div class="v652MiniText">${v653FlightLabel(k)}尚未填寫航班資訊</div></div>`;
-  const segHtml=segs.map((s,i)=>{
-    const route=[s.from,s.to].filter(Boolean).join(' → ') || '航線未填';
-    const time=[v653DateTimeText(s.dep), v653DateTimeText(s.arr)].filter(Boolean).join(' → ');
-    return `<div class="v652FlightItem"><div class="v652FlightLine"><span class="v652TimePill">第 ${i+1} 段</span><div><div class="v652MainText">✈️ ${v653Html(s.no||'航班未填')}｜${v653Html(route)}</div><div class="v652MiniText">${v653Html(time||'時間未填')}</div></div></div></div>`;
-  }).join('');
-  const transfer=[f.toAirport||f.transfer?`機場交通：${v653Clean(f.toAirport||f.transfer)}`:'', f.fromAirport?`抵達後交通：${v653Clean(f.fromAirport)}`:''].filter(Boolean);
-  return `<div class="v652ShareSubTitle">${v653FlightLabel(k)}｜${f.type==='transfer'?'轉機':'直飛'}</div><div class="v652FlightGrid">${segHtml}${transfer.length?`<div class="v652FlightItem"><div class="v652MiniText">${v653Html(transfer.join('｜'))}</div></div>`:''}</div>`;
-}
-function v653HotelLines(){
-  const hotels=data?.hotels||[];
-  if(!hotels.length) return ['尚未填寫住宿資訊'];
-  return hotels.map(h=>{
-    const range=[h.start?short(h.start):'', h.end?short(h.end):''].filter(Boolean).join(' → ');
-    const bits=[`${range} ${h.name||'住宿未命名'}`.trim()];
-    if(h.addr) bits.push(`地址：${v653Clean(h.addr)}`);
-    if(h.note) bits.push(`備註：${v653Clean(h.note)}`);
-    return bits.join('｜');
-  });
-}
-function v653HotelHtml(){
-  const hotels=data?.hotels||[];
-  if(!hotels.length) return `<div class="v652HotelItem"><div class="v652MiniText">尚未填寫住宿資訊</div></div>`;
-  return `<div class="v652HotelGrid">${hotels.map(h=>{
-    const range=[h.start?short(h.start):'', h.end?short(h.end):''].filter(Boolean).join(' → ');
-    return `<div class="v652HotelItem"><div class="v652MainText">🏨 ${v653Html(h.name||'住宿未命名')}</div><div class="v652MiniText">${v653Html(range||'日期未填')}${h.addr?`｜${v653Html(h.addr)}`:''}${h.note?`<br>${v653Html(h.note)}`:''}</div></div>`;
-  }).join('')}</div>`;
-}
-function v653TripRange(){
-  return data?.trip?.start ? `${short(data.trip.start)}－${short(data.trip.end)}` : '未設定日期';
-}
-function v653AllPlans(){
-  return (data?.plans||[]).filter(p=>!(p.source==='flight'||p.source==='hotel'));
-}
-function v653ItineraryText(){
-  const title=v653Clean(data?.meta?.title)||'我的旅行行程';
-  const dest=v653Clean(data?.trip?.dest)||'未設定目的地';
-  const lines=[];
-  lines.push(`貞選旅管家｜${title}`);
-  lines.push(`${dest}｜${v653TripRange()}`);
-  lines.push('');
-  lines.push('【機票】');
-  ['out','back'].forEach(k=>{
-    const arr=v653FlightLines(k);
-    if(arr.length) lines.push(...arr);
-  });
-  if(!v653HasFlight('out') && !v653HasFlight('back')) lines.push('尚未填寫航班資訊');
-  lines.push('');
-  lines.push('【住宿】');
-  v653HotelLines().forEach(x=>lines.push(x));
-  lines.push('');
-  lines.push('【每日行程】');
-  (data.days||[]).forEach(d=>{
-    const plans=sortedPlans(d.key).filter(p=>!(p.source==='flight'||p.source==='hotel'));
-    lines.push(`${d.title}｜${d.label}`);
-    if(!plans.length){
-      lines.push('  尚未安排正式行程');
-    }else{
-      plans.forEach(p=>{
-        const time=[p.start,p.end].filter(Boolean).join('－') || '未定時間';
-        lines.push(`  ${time}　${v653PlanIcon(p.type)} ${v653Clean(p.name)}`);
-        if(p.address) lines.push(`      地址：${v653Clean(p.address)}`);
-        if(p.note) lines.push(`      注意：${v653Clean(p.note)}`);
-      });
-    }
-    lines.push('');
-  });
-  lines.push('— Janeselect Travel Manager —');
-  return lines.join('\n');
-}
-function v653ShareHtml(){
-  const title=v653Clean(data?.meta?.title)||'我的旅行行程';
-  const dest=v653Clean(data?.trip?.dest)||'未設定目的地';
-  const totalPlans=v653AllPlans().length;
-  const hotelCount=(data?.hotels||[]).length;
-  const flightCount=v653FlightSegments('out').length+v653FlightSegments('back').length;
-  const dayHtml=(data.days||[]).map(d=>{
-    const plans=sortedPlans(d.key).filter(p=>!(p.source==='flight'||p.source==='hotel'));
-    return `<div class="v652DayItem"><div class="v652DayHead"><b>${v653Html(d.title)}｜${v653Html(d.label)}</b><span class="v652TimePill">${plans.length} 個行程</span></div>${plans.length?`<div class="v652PlanList">${plans.map(p=>{
-      const time=[p.start,p.end].filter(Boolean).join('－')||'未定時間';
-      return `<div class="v652PlanRow"><span class="v652TimePill">${v653Html(time)}</span><div><div class="v652PlanName">${v653PlanIcon(p.type)} ${v653Html(p.name||'未命名行程')}</div>${p.address?`<div class="v652PlanNote">地址：${v653Html(p.address)}</div>`:''}${p.note?`<div class="v652PlanNote">注意：${v653Html(p.note)}</div>`:''}</div></div>`;
-    }).join('')}</div>`:`<div class="v652MiniText">尚未安排正式行程</div>`}</div>`;
-  }).join('');
-  return `<div class="v653ShareBox" role="dialog" aria-modal="true" aria-label="分享簡易行程">
-    <div class="v653ShareHero">
-      <div class="v653ShareHeroTop">
-        <div>
-          <div class="v653ShareBrand">貞選旅管家 Janeselect Travel Manager</div>
-          <h3>${v653Html(title)}</h3>
-          <p>${v653Html(dest)}｜${v653Html(v653TripRange())}</p>
-        </div>
-        <button class="v653ShareClose" type="button" onclick="v653CloseItineraryShare()" aria-label="關閉分享彈窗">×</button>
-      </div>
-    </div>
-    <div class="v653ShareScroll">
-      <div class="v653ShareSection"><h4>✈️ 機票與交通</h4>${v653FlightHtml('out')}${v653FlightHtml('back')}</div>
-      <div class="v653ShareSection"><h4>🏨 住宿資訊</h4>${v653HotelHtml()}</div>
-      <div class="v653ShareSection"><h4>🗓️ 每日簡易行程</h4><div class="v652HotelGrid">${dayHtml}</div></div>
-    </div>
-    <div class="v653ShareActions">
-      <button class="btn soft" type="button" onclick="v653CopyItinerary()">複製分享文字</button>
-      <button class="btn dark" type="button" onclick="v653PrintItinerary()">匯出 PDF / 列印</button>
-    </div>
-  </div>`;
-}
-function v653EnsureShareModal(){
-  let modal=document.getElementById('itineraryShareModal');
-  if(!modal){
-    modal=document.createElement('div');
-    modal.id='itineraryShareModal';
-    document.body.appendChild(modal);
-  }
-  modal.className='itineraryShareModal v653ShareModal noPrint';
-  modal.onclick=function(e){
-    if(e.target===modal) v653CloseItineraryShare();
-  };
-  return modal;
-}
-function v653OpenItineraryShare(){
-  const modal=v653EnsureShareModal();
-  modal.innerHTML=v653ShareHtml();
-  modal.classList.add('show');
-}
-function v653CloseItineraryShare(){
-  document.getElementById('itineraryShareModal')?.classList.remove('show');
-}
-async function v653CopyItinerary(){
-  const txt=v653ItineraryText();
-  try{
-    await navigator.clipboard.writeText(txt);
-    toast('已複製分享文字');
-  }catch(e){
-    const ta=document.createElement('textarea');
-    ta.value=txt;
-    ta.setAttribute('readonly','');
-    ta.style.position='fixed';
-    ta.style.left='-9999px';
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    ta.remove();
-    toast('已複製分享文字');
-  }
-}
-function v653PrintableHtml(){
-  const title=v653Clean(data?.meta?.title)||'簡易行程';
-  const flightCount=v653FlightSegments('out').length+v653FlightSegments('back').length;
-  const hotelCount=(data?.hotels||[]).length;
-  const planCount=v653AllPlans().length;
-  const dayPrint=(data.days||[]).map(d=>{
-    const plans=sortedPlans(d.key).filter(p=>!(p.source==='flight'||p.source==='hotel'));
-    return `<div class="item"><div class="main">${v653Html(d.title)}｜${v653Html(d.label)}</div>${plans.length?plans.map(p=>`<div class="plan"><span class="pill">${v653Html([p.start,p.end].filter(Boolean).join('－')||'未定')}</span><div><div class="main">${v653PlanIcon(p.type)} ${v653Html(p.name||'未命名行程')}</div>${p.address?`<div class="mini">地址：${v653Html(p.address)}</div>`:''}${p.note?`<div class="mini">注意：${v653Html(p.note)}</div>`:''}</div></div>`).join(''):`<div class="mini">尚未安排正式行程</div>`}</div>`;
-  }).join('');
-  return `<!DOCTYPE html><html lang="zh-Hant"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${v653Html(title)}</title><style>
-    @page{size:A4;margin:12mm}*{box-sizing:border-box}body{font-family:"PingFang TC","Noto Sans TC","Helvetica Neue",-apple-system,BlinkMacSystemFont,sans-serif;color:#2C2A29;background:#F7F3EC;margin:0;padding:24px}.page{max-width:900px;margin:auto;background:#FFFDFC;border:1px solid #E2DDD5;border-radius:28px;overflow:hidden;box-shadow:0 18px 48px rgba(44,42,41,.08)}.hero{padding:28px;background:linear-gradient(135deg,#FFFDFC,#F2F6F4);border-bottom:1px solid #E2DDD5}.brand{display:inline-flex;border-radius:999px;background:#F2F6F4;color:#4A5D4E;border:1px solid #E2DDD5;padding:7px 12px;font-size:12px;font-weight:900;margin-bottom:14px}h1{font-size:30px;margin:0 0 8px}.sub{color:#8B827A;line-height:1.6}.meta{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px}.meta div{background:#fff;border:1px solid #E2DDD5;border-radius:16px;padding:12px}.meta span{display:block;color:#8B827A;font-size:11px;font-weight:900;margin-bottom:5px}.content{padding:22px}.sec{border:1px solid #E2DDD5;border-radius:20px;padding:16px;margin-bottom:14px;break-inside:avoid;background:#fff}h2{font-size:17px;margin:0 0 10px}.v652FlightItem,.v652HotelItem,.item{border:1px solid #EEE8DF;border-radius:16px;padding:11px;margin:8px 0;break-inside:avoid}.v652FlightLine,.plan{display:grid;grid-template-columns:84px 1fr;gap:9px;margin:7px 0}.v652TimePill,.pill{display:inline-flex;justify-content:center;border-radius:999px;background:#F3EEE8;color:#6F6257;padding:5px 8px;font-size:11px;font-weight:900;margin-right:6px;white-space:nowrap}.v652MainText,.v652PlanName,.main{font-weight:900;line-height:1.5}.v652MiniText,.v652PlanNote,.mini{color:#8B827A;font-size:12px;line-height:1.55;margin-top:4px}.v652ShareSubTitle{display:inline-flex;border-radius:999px;background:#F2F6F4;color:#4A5D4E;padding:5px 9px;font-size:11px;font-weight:900;margin:4px 0 8px}.v652FlightGrid,.v652HotelGrid{display:grid;gap:8px}.footer{text-align:center;color:#8B827A;font-size:11px;padding:16px;border-top:1px solid #E2DDD5}@media(max-width:620px){body{padding:12px}.page{border-radius:20px}.meta{grid-template-columns:1fr}.v652FlightLine,.plan{grid-template-columns:1fr}}@media print{body{background:#fff;padding:0}.page{box-shadow:none;border:0;border-radius:0}.hero{padding:0 0 8mm}.content{padding:8mm 0 0}.sec{page-break-inside:avoid}.noPrint{display:none!important}}
-  </style></head><body><div class="page"><div class="hero"><div class="brand">貞選旅管家 Janeselect Travel Manager</div><h1>${v653Html(title)}</h1><div class="sub">${v653Html(data?.trip?.dest||'')}｜${v653Html(v653TripRange())}</div></div><div class="content"><div class="sec"><h2>✈️ 機票與交通</h2>${v653FlightHtml('out')}${v653FlightHtml('back')}</div><div class="sec"><h2>🏨 住宿資訊</h2>${v653HotelHtml()}</div><div class="sec"><h2>🗓️ 每日簡易行程</h2>${dayPrint}</div></div><div class="footer">貞選旅管家 Janeselect Travel Manager</div></div><script>setTimeout(()=>window.print(),350)<\/script></body></html>`;
-}
-function v653PrintItinerary(){
-  const w=window.open('', '_blank');
-  if(!w) return alert('請允許瀏覽器開啟新視窗後再試一次。');
-  w.document.open();
-  w.document.write(v653PrintableHtml());
-  w.document.close();
-}
-function v653InsertPlannerShareButton(){
-  const root=document.getElementById('plannerView');
-  if(!root) return;
-  const section=root.querySelector('.section');
-  if(!section) return;
-  let btn=root.querySelector('#v653PlannerShareBtn') || root.querySelector('#v651PlannerShareBtn');
-  if(!btn){
-    btn=document.createElement('button');
-    section.appendChild(btn);
-  }else if(btn.parentElement!==section){
-    section.appendChild(btn);
-  }
-  btn.id='v653PlannerShareBtn';
-  btn.type='button';
-  btn.className='v651PlannerShareBtn v653PlannerShareBtn noPrint';
-  btn.textContent='分享簡易行程';
-  btn.onclick=v653OpenItineraryShare;
-}
-function v653UpdateFooterVersion(){
-  document.querySelectorAll('footer strong,.siteFooterVersion').forEach(el=>el.textContent=V653_VERSION_SHORT);
-}
-function v653UpdateHelpLog(){
-  const log=document.getElementById('v64UpdateLog') || document.getElementById('helpView')?.querySelector('.card');
-  if(log){
-    log.innerHTML=`<h3>最新更新紀錄</h3><div class="box mint"><b>${esc(V653_VERSION_TEXT)}</b><br>分享簡易行程彈窗補回「複製分享文字」與「匯出 PDF / 列印」功能，並將操作按鈕固定在彈窗下方；手機版開啟彈窗時也會顯示完整按鈕。既有 Logo、AI 輔助、照片旅遊書、同步鎖、Firebase、Cloudinary、localStorage 與資料結構未更動。</div>`;
-  }
-}
-window.v651OpenItineraryShare = v653OpenItineraryShare;
-window.v651CopyItinerary = v653CopyItinerary;
-window.v651PrintItinerary = v653PrintItinerary;
-window.v651CloseItineraryShare = v653CloseItineraryShare;
-window.v651ItineraryText = v653ItineraryText;
-
-const v653PrevRenderPlanner = typeof renderPlanner === 'function' ? renderPlanner : null;
-if(v653PrevRenderPlanner && !v653PrevRenderPlanner.__v653ShareWrapped){
-  renderPlanner = function(...args){
-    const r = v653PrevRenderPlanner.apply(this,args);
-    setTimeout(v653InsertPlannerShareButton,80);
-    return r;
-  };
-  renderPlanner.__v653ShareWrapped = true;
-}
-
-const v653PrevRenderHelp = typeof renderHelp === 'function' ? renderHelp : null;
-if(v653PrevRenderHelp && !v653PrevRenderHelp.__v653Wrapped){
-  renderHelp = function(...args){
-    const r = v653PrevRenderHelp.apply(this,args);
-    v653UpdateHelpLog();
-    v653UpdateFooterVersion();
-    return r;
-  };
-  renderHelp.__v653Wrapped = true;
-}
-
-setTimeout(()=>{try{v653UpdateFooterVersion(); v653InsertPlannerShareButton(); v653UpdateHelpLog(); if(typeof render==='function') render();}catch(e){console.warn(e)}},980);
-setTimeout(()=>{try{v653UpdateFooterVersion(); v653InsertPlannerShareButton(); v653UpdateHelpLog();}catch(e){console.warn(e)}},1300);
-</script>
-
-</body></html>`);
+  </style></head><body><div class="page"><h1>${v65PhotoAttr(data?.meta?.title||'簡易行程')}</h1><div class="sub">${v65PhotoAttr(data?.trip?.dest||'')}｜${data?.trip?.start?`${short(data.trip.start)}－${short(data.trip.end)}`:''}</div><pre>${v65PhotoAttr(txt)}</pre><div class="brand">貞選旅管家 Janeselect Travel Manager</div></div><script>setTimeout(()=>window.print(),300)<\/script></body></html>`);
   w.document.close();
 }
 function v651InsertPlannerShareButton(){
@@ -20800,8 +20327,8 @@ setTimeout(()=>{try{v651UpdateFooterVersion(); if(typeof render==='function') re
 <script>
 
 /* ===== v65.2 itinerary share content/visual override ===== */
-const V652_VERSION_SHORT = "v65.4｜2026-05-31";
-const V652_VERSION_TEXT = "v65.4｜簡易行程統計卡移除版";
+const V652_VERSION_SHORT = "v65.2｜2026-05-31";
+const V652_VERSION_TEXT = "v65.2｜簡易行程分享含機票住宿與版面美化版";
 
 function v652Html(v){
   return String(v ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
@@ -20931,6 +20458,7 @@ function v652ShareHtml(){
   }).join('');
   return `<div class="v652SharePaper">
     <div class="v652ShareHero"><div class="v652ShareHeroTop"><div><div class="v652ShareBrand">貞選旅管家 Janeselect Travel Manager</div><h3>${v652Html(title)}</h3><p>${v652Html(dest)}｜${v652Html(v652TripRange())}</p></div><button class="v652ShareClose" onclick="v651CloseItineraryShare()">×</button></div>
+      <div class="v652ShareMetaGrid"><div class="v652ShareMetaCard"><span>航班段數</span><b>${flightCount || '未填'}</b></div><div class="v652ShareMetaCard"><span>住宿筆數</span><b>${hotelCount || '未填'}</b></div><div class="v652ShareMetaCard"><span>正式行程</span><b>${totalPlans} 個</b></div></div>
     </div>
     <div class="v652ShareContent"><div class="v652ShareSection"><h4>✈️ 機票與交通</h4>${v652FlightHtml('out')}${v652FlightHtml('back')}</div><div class="v652ShareSection"><h4>🏨 住宿資訊</h4>${v652HotelHtml()}</div><div class="v652ShareSection"><h4>🗓️ 每日簡易行程</h4><div class="v652HotelGrid">${dayHtml}</div></div></div>
     <div class="v652ShareActions"><button class="btn soft" onclick="v651CopyItinerary()">複製文字</button><button class="btn dark" onclick="v651PrintItinerary()">列印 / 存 PDF</button></div>
@@ -20944,7 +20472,7 @@ function v651OpenItineraryShare(){
 function v652PrintableHtml(){
   return `<!DOCTYPE html><html lang="zh-Hant"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${v652Html(data?.meta?.title||'簡易行程')}</title><style>
     @page{size:A4;margin:12mm}*{box-sizing:border-box}body{font-family:"PingFang TC","Noto Sans TC","Helvetica Neue",-apple-system,BlinkMacSystemFont,sans-serif;color:#2C2A29;background:#F7F3EC;margin:0;padding:24px}.page{max-width:900px;margin:auto;background:#FFFDFC;border:1px solid #E2DDD5;border-radius:28px;overflow:hidden;box-shadow:0 18px 48px rgba(44,42,41,.08)}.hero{padding:28px;background:linear-gradient(135deg,#FFFDFC,#F2F6F4);border-bottom:1px solid #E2DDD5}.brand{display:inline-flex;border-radius:999px;background:#F2F6F4;color:#4A5D4E;border:1px solid #E2DDD5;padding:7px 12px;font-size:12px;font-weight:900;margin-bottom:14px}h1{font-size:30px;margin:0 0 8px}.sub{color:#8B827A;line-height:1.6}.meta{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px}.meta div{background:#fff;border:1px solid #E2DDD5;border-radius:16px;padding:12px}.meta span{display:block;color:#8B827A;font-size:11px;font-weight:900;margin-bottom:5px}.content{padding:22px}.sec{border:1px solid #E2DDD5;border-radius:20px;padding:16px;margin-bottom:14px;break-inside:avoid;background:#fff}h2{font-size:17px;margin:0 0 10px}.item{border:1px solid #EEE8DF;border-radius:16px;padding:11px;margin:8px 0;break-inside:avoid}.pill{display:inline-flex;border-radius:999px;background:#F3EEE8;color:#6F6257;padding:5px 8px;font-size:11px;font-weight:900;margin-right:6px}.main{font-weight:900;line-height:1.5}.mini{color:#8B827A;font-size:12px;line-height:1.55;margin-top:4px}.plan{display:grid;grid-template-columns:84px 1fr;gap:9px;margin:7px 0}.footer{text-align:center;color:#8B827A;font-size:11px;padding:16px;border-top:1px solid #E2DDD5}@media print{body{background:#fff;padding:0}.page{box-shadow:none;border:0;border-radius:0}.hero{padding:0 0 8mm}.content{padding:8mm 0 0}.sec{page-break-inside:avoid}.noPrint{display:none!important}}
-  </style></head><body><div class="page"><div class="hero"><div class="brand">貞選旅管家 Janeselect Travel Manager</div><h1>${v652Html(data?.meta?.title||'簡易行程')}</h1><div class="sub">${v652Html(data?.trip?.dest||'')}｜${v652Html(v652TripRange())}</div></div><div class="content"><div class="sec"><h2>✈️ 機票與交通</h2>${v652FlightHtml('out')}${v652FlightHtml('back')}</div><div class="sec"><h2>🏨 住宿資訊</h2>${v652HotelHtml()}</div><div class="sec"><h2>🗓️ 每日簡易行程</h2>${(data.days||[]).map(d=>{const plans=sortedPlans(d.key).filter(p=>!(p.source==='flight'||p.source==='hotel'));return `<div class="item"><div class="main">${v652Html(d.title)}｜${v652Html(d.label)}</div>${plans.length?plans.map(p=>`<div class="plan"><span class="pill">${v652Html([p.start,p.end].filter(Boolean).join('－')||'未定')}</span><div><div class="main">${v652PlanIcon(p.type)} ${v652Html(p.name||'未命名行程')}</div>${p.address?`<div class="mini">地址：${v652Html(p.address)}</div>`:''}${p.note?`<div class="mini">注意：${v652Html(p.note)}</div>`:''}</div></div>`).join(''):`<div class="mini">尚未安排正式行程</div>`}</div>`}).join('')}</div></div><div class="footer">貞選旅管家 Janeselect Travel Manager</div></div><script>setTimeout(()=>window.print(),350)<\/script></body></html>`;
+  </style></head><body><div class="page"><div class="hero"><div class="brand">貞選旅管家 Janeselect Travel Manager</div><h1>${v652Html(data?.meta?.title||'簡易行程')}</h1><div class="sub">${v652Html(data?.trip?.dest||'')}｜${v652Html(v652TripRange())}</div><div class="meta"><div><span>航班段數</span><b>${v652FlightSegments('out').length+v652FlightSegments('back').length||'未填'}</b></div><div><span>住宿筆數</span><b>${(data?.hotels||[]).length||'未填'}</b></div><div><span>正式行程</span><b>${v652AllPlans().length} 個</b></div></div></div><div class="content"><div class="sec"><h2>✈️ 機票與交通</h2>${v652FlightHtml('out')}${v652FlightHtml('back')}</div><div class="sec"><h2>🏨 住宿資訊</h2>${v652HotelHtml()}</div><div class="sec"><h2>🗓️ 每日簡易行程</h2>${(data.days||[]).map(d=>{const plans=sortedPlans(d.key).filter(p=>!(p.source==='flight'||p.source==='hotel'));return `<div class="item"><div class="main">${v652Html(d.title)}｜${v652Html(d.label)}</div>${plans.length?plans.map(p=>`<div class="plan"><span class="pill">${v652Html([p.start,p.end].filter(Boolean).join('－')||'未定')}</span><div><div class="main">${v652PlanIcon(p.type)} ${v652Html(p.name||'未命名行程')}</div>${p.address?`<div class="mini">地址：${v652Html(p.address)}</div>`:''}${p.note?`<div class="mini">注意：${v652Html(p.note)}</div>`:''}</div></div>`).join(''):`<div class="mini">尚未安排正式行程</div>`}</div>`}).join('')}</div></div><div class="footer">貞選旅管家 Janeselect Travel Manager</div></div><script>setTimeout(()=>window.print(),350)<\/script></body></html>`;
 }
 function v651PrintItinerary(){
   const w=window.open('', '_blank');
@@ -20961,7 +20489,7 @@ if(v652PrevRenderHelp && !v652PrevRenderHelp.__v652Wrapped){
     const r = v652PrevRenderHelp.apply(this,args);
     const log=document.getElementById('v64UpdateLog') || document.getElementById('helpView')?.querySelector('.card');
     if(log){
-      log.innerHTML=`<h3>最新更新紀錄</h3><div class="box mint"><b>${esc(V652_VERSION_TEXT)}</b><br>簡易行程分享移除上方「航班段數、住宿筆數、正式行程」三個統計卡，保留機票、住宿、每日簡易行程與複製分享文字、匯出 PDF / 列印功能。既有 Logo、AI 輔助、照片旅遊書、同步鎖、Firebase、Cloudinary 與資料結構未更動。</div>`;
+      log.innerHTML=`<h3>最新更新紀錄</h3><div class="box mint"><b>${esc(V652_VERSION_TEXT)}</b><br>簡易行程分享加入機票與住宿資訊，並將預覽與列印版面調整為更清楚的卡片式行程表。既有 Logo、AI 輔助、照片旅遊書、同步鎖、Firebase、Cloudinary 與資料結構未更動。</div>`;
     }
     v652UpdateFooterVersion();
     return r;
@@ -20971,4 +20499,443 @@ if(v652PrevRenderHelp && !v652PrevRenderHelp.__v652Wrapped){
 setTimeout(()=>{try{v652UpdateFooterVersion(); if(typeof render==='function') render();}catch(e){console.warn(e)}},920);
 
 </script>
+
+<style>
+/* ===== v65.4 itinerary share statistics removal + sticky footer only ===== */
+/* 只移除分享簡易行程彈窗與列印新視窗的三個統計卡；不改 Firebase、localStorage、Cloudinary、同步鎖、AI、照片旅遊書與 Logo。 */
+.v653PlannerShareBtn,
+#v653PlannerShareBtn,
+#v651PlannerShareBtn{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:6px!important;
+  border:1px solid var(--theme-line,#E2DDD5)!important;
+  background:var(--theme-primary-weak,#F2F6F4)!important;
+  color:var(--theme-primary,#4A5D4E)!important;
+  border-radius:999px!important;
+  padding:9px 13px!important;
+  font-size:12px!important;
+  font-weight:900!important;
+  box-shadow:0 8px 20px rgba(44,42,41,.045)!important;
+  white-space:nowrap!important;
+}
+.itineraryShareModal.v653ShareModal{
+  align-items:center!important;
+  justify-content:center!important;
+  padding:16px!important;
+  z-index:260!important;
+}
+.v653ShareBox{
+  width:min(880px,100%)!important;
+  max-height:88vh!important;
+  display:flex!important;
+  flex-direction:column!important;
+  overflow:hidden!important;
+  background:#FFFDFC!important;
+  border:1px solid rgba(255,255,255,.92)!important;
+  box-shadow:0 24px 70px rgba(44,42,41,.18)!important;
+  border-radius:30px!important;
+  color:var(--theme-ink,#2C2A29)!important;
+}
+.v653ShareHero{
+  flex:0 0 auto!important;
+  padding:22px!important;
+  background:
+    radial-gradient(circle at 8% 18%,rgba(229,236,233,.95),transparent 34%),
+    radial-gradient(circle at 94% 8%,rgba(239,230,230,.85),transparent 28%),
+    linear-gradient(135deg,#FFFDFC,#F4F2EE)!important;
+  border-bottom:1px solid var(--theme-line,#E2DDD5)!important;
+}
+.v653ShareHeroTop{
+  display:flex!important;
+  justify-content:space-between!important;
+  align-items:flex-start!important;
+  gap:14px!important;
+}
+.v653ShareBrand{
+  display:inline-flex!important;
+  border-radius:999px!important;
+  background:var(--theme-primary-weak,#F2F6F4)!important;
+  color:var(--theme-primary,#4A5D4E)!important;
+  border:1px solid var(--theme-line,#E2DDD5)!important;
+  padding:7px 11px!important;
+  font-size:12px!important;
+  font-weight:950!important;
+  letter-spacing:.4px!important;
+  margin-bottom:12px!important;
+}
+.v653ShareHero h3{
+  margin:0!important;
+  font-size:26px!important;
+  line-height:1.16!important;
+  letter-spacing:.2px!important;
+}
+.v653ShareHero p{
+  margin:7px 0 0!important;
+  color:var(--theme-muted,#8B827A)!important;
+  font-size:13px!important;
+  line-height:1.6!important;
+}
+.v653ShareClose{
+  width:36px!important;
+  height:36px!important;
+  border:0!important;
+  border-radius:50%!important;
+  background:rgba(255,255,255,.78)!important;
+  color:#5d554e!important;
+  font-weight:950!important;
+  box-shadow:0 8px 20px rgba(44,42,41,.06)!important;
+}
+.v653ShareScroll{
+  flex:1 1 auto!important;
+  min-height:0!important;
+  overflow:auto!important;
+  -webkit-overflow-scrolling:touch!important;
+  padding:18px 22px 20px!important;
+  background:linear-gradient(180deg,#FFFDFC 0%,#F8F5EF 100%)!important;
+}
+.v653ShareSection{
+  border:1px solid var(--theme-line,#E2DDD5)!important;
+  border-radius:22px!important;
+  background:#FFFDFC!important;
+  padding:15px!important;
+  margin-bottom:12px!important;
+  box-shadow:0 10px 26px rgba(44,42,41,.035)!important;
+}
+.v653ShareSection h4{
+  margin:0 0 10px!important;
+  font-size:16px!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:7px!important;
+}
+.v653ShareActions{
+  flex:0 0 auto!important;
+  position:sticky!important;
+  bottom:0!important;
+  z-index:3!important;
+  display:flex!important;
+  gap:8px!important;
+  flex-wrap:wrap!important;
+  justify-content:flex-end!important;
+  padding:14px 22px 18px!important;
+  border-top:1px solid var(--theme-line,#E2DDD5)!important;
+  background:rgba(255,253,252,.96)!important;
+  box-shadow:0 -12px 28px rgba(44,42,41,.06)!important;
+}
+.v653ShareActions .btn{
+  min-height:40px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+}
+@media(max-width:620px){
+  .itineraryShareModal.v653ShareModal{
+    align-items:flex-end!important;
+    justify-content:center!important;
+    padding:10px!important;
+  }
+  .v653ShareBox{
+    width:100%!important;
+    max-height:86vh!important;
+    border-radius:24px 24px 18px 18px!important;
+  }
+  .v653ShareHero{
+    padding:18px 16px 15px!important;
+  }
+  .v653ShareHero h3{
+    font-size:22px!important;
+  }
+  .v653ShareScroll{
+    padding:14px 14px 16px!important;
+  }
+  .v653ShareActions{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    padding:12px 14px calc(14px + env(safe-area-inset-bottom,0px))!important;
+  }
+  .v653ShareActions .btn{
+    width:100%!important;
+    min-height:44px!important;
+  }
+}
+@media print{
+  .itineraryShareModal.v653ShareModal,
+  #v653PlannerShareBtn,
+  #v651PlannerShareBtn{
+    display:none!important;
+  }
+}
+</style>
+
+<script>
+/* ===== v65.4 itinerary share statistics removal + sticky footer only ===== */
+const V653_VERSION_SHORT = "v65.4｜2026-05-31｜簡易行程分享統計移除修正版";
+const V653_VERSION_TEXT = "v65.4｜簡易行程分享統計移除修正版";
+
+function v653Html(v){
+  return String(v ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+}
+function v653Clean(v){ return String(v||'').replace(/\s+/g,' ').trim(); }
+function v653DatePart(dt){ return String(dt||'').split('T')[0] || ''; }
+function v653TimePart(dt){ return String(dt||'').split('T')[1]?.slice(0,5) || ''; }
+function v653DateTimeText(dt){
+  const d=v653DatePart(dt), t=v653TimePart(dt);
+  if(d && t) return `${short(d)} ${t}`;
+  return t || (d ? short(d) : '未定');
+}
+function v653PlanIcon(type){
+  return type==='餐廳'?'🍽️':type==='咖啡廳'?'☕':type==='購物'?'🛍️':type==='交通'?'🚕':type==='航班'?'✈️':type==='住宿'?'🏨':type==='其他'?'📝':'📍';
+}
+function v653FlightObj(k){
+  try{
+    return typeof normalizeFlightObj === 'function' ? normalizeFlightObj(data?.flights?.[k], k) : (data?.flights?.[k]||{});
+  }catch(e){
+    return data?.flights?.[k]||{};
+  }
+}
+function v653FlightSegments(k){
+  const f=v653FlightObj(k);
+  if(Array.isArray(f.segments) && f.segments.length) return f.segments;
+  if(f.no || f.from || f.to || f.dep || f.arr) return [{no:f.no||'',from:f.from||'',to:f.to||'',dep:f.dep||'',arr:f.arr||''}];
+  return [];
+}
+function v653HasFlight(k){
+  const f=v653FlightObj(k), segs=v653FlightSegments(k);
+  return segs.some(s=>s.no||s.from||s.to||s.dep||s.arr) || !!(f.toAirport||f.fromAirport||f.transfer);
+}
+function v653FlightLabel(k){ return k==='out'?'去程':'回程'; }
+function v653FlightLines(k){
+  const f=v653FlightObj(k), segs=v653FlightSegments(k), lines=[];
+  if(!v653HasFlight(k)) return lines;
+  lines.push(`${v653FlightLabel(k)}${f.type==='transfer'?'（轉機）':'（直飛）'}`);
+  segs.forEach((s,i)=>{
+    const route=[s.from,s.to].filter(Boolean).join(' → ') || '航線未填';
+    const dt=[v653DateTimeText(s.dep), v653DateTimeText(s.arr)].filter(Boolean).join(' → ');
+    lines.push(`  第 ${i+1} 段 ${s.no||'航班未填'}｜${route}`);
+    if(dt) lines.push(`      ${dt}`);
+  });
+  if(f.toAirport || f.transfer) lines.push(`  機場交通：${v653Clean(f.toAirport||f.transfer)}`);
+  if(f.fromAirport) lines.push(`  抵達後交通：${v653Clean(f.fromAirport)}`);
+  return lines;
+}
+function v653FlightHtml(k){
+  const f=v653FlightObj(k), segs=v653FlightSegments(k);
+  if(!v653HasFlight(k)) return `<div class="v652FlightItem"><div class="v652MiniText">${v653FlightLabel(k)}尚未填寫航班資訊</div></div>`;
+  const segHtml=segs.map((s,i)=>{
+    const route=[s.from,s.to].filter(Boolean).join(' → ') || '航線未填';
+    const time=[v653DateTimeText(s.dep), v653DateTimeText(s.arr)].filter(Boolean).join(' → ');
+    return `<div class="v652FlightItem"><div class="v652FlightLine"><span class="v652TimePill">第 ${i+1} 段</span><div><div class="v652MainText">✈️ ${v653Html(s.no||'航班未填')}｜${v653Html(route)}</div><div class="v652MiniText">${v653Html(time||'時間未填')}</div></div></div></div>`;
+  }).join('');
+  const transfer=[f.toAirport||f.transfer?`機場交通：${v653Clean(f.toAirport||f.transfer)}`:'', f.fromAirport?`抵達後交通：${v653Clean(f.fromAirport)}`:''].filter(Boolean);
+  return `<div class="v652ShareSubTitle">${v653FlightLabel(k)}｜${f.type==='transfer'?'轉機':'直飛'}</div><div class="v652FlightGrid">${segHtml}${transfer.length?`<div class="v652FlightItem"><div class="v652MiniText">${v653Html(transfer.join('｜'))}</div></div>`:''}</div>`;
+}
+function v653HotelLines(){
+  const hotels=data?.hotels||[];
+  if(!hotels.length) return ['尚未填寫住宿資訊'];
+  return hotels.map(h=>{
+    const range=[h.start?short(h.start):'', h.end?short(h.end):''].filter(Boolean).join(' → ');
+    const bits=[`${range} ${h.name||'住宿未命名'}`.trim()];
+    if(h.addr) bits.push(`地址：${v653Clean(h.addr)}`);
+    if(h.note) bits.push(`備註：${v653Clean(h.note)}`);
+    return bits.join('｜');
+  });
+}
+function v653HotelHtml(){
+  const hotels=data?.hotels||[];
+  if(!hotels.length) return `<div class="v652HotelItem"><div class="v652MiniText">尚未填寫住宿資訊</div></div>`;
+  return `<div class="v652HotelGrid">${hotels.map(h=>{
+    const range=[h.start?short(h.start):'', h.end?short(h.end):''].filter(Boolean).join(' → ');
+    return `<div class="v652HotelItem"><div class="v652MainText">🏨 ${v653Html(h.name||'住宿未命名')}</div><div class="v652MiniText">${v653Html(range||'日期未填')}${h.addr?`｜${v653Html(h.addr)}`:''}${h.note?`<br>${v653Html(h.note)}`:''}</div></div>`;
+  }).join('')}</div>`;
+}
+function v653TripRange(){
+  return data?.trip?.start ? `${short(data.trip.start)}－${short(data.trip.end)}` : '未設定日期';
+}
+function v653AllPlans(){
+  return (data?.plans||[]).filter(p=>!(p.source==='flight'||p.source==='hotel'));
+}
+function v653ItineraryText(){
+  const title=v653Clean(data?.meta?.title)||'我的旅行行程';
+  const dest=v653Clean(data?.trip?.dest)||'未設定目的地';
+  const lines=[];
+  lines.push(`貞選旅管家｜${title}`);
+  lines.push(`${dest}｜${v653TripRange()}`);
+  lines.push('');
+  lines.push('【機票】');
+  ['out','back'].forEach(k=>{
+    const arr=v653FlightLines(k);
+    if(arr.length) lines.push(...arr);
+  });
+  if(!v653HasFlight('out') && !v653HasFlight('back')) lines.push('尚未填寫航班資訊');
+  lines.push('');
+  lines.push('【住宿】');
+  v653HotelLines().forEach(x=>lines.push(x));
+  lines.push('');
+  lines.push('【每日行程】');
+  (data.days||[]).forEach(d=>{
+    const plans=sortedPlans(d.key).filter(p=>!(p.source==='flight'||p.source==='hotel'));
+    lines.push(`${d.title}｜${d.label}`);
+    if(!plans.length){
+      lines.push('  尚未安排正式行程');
+    }else{
+      plans.forEach(p=>{
+        const time=[p.start,p.end].filter(Boolean).join('－') || '未定時間';
+        lines.push(`  ${time}　${v653PlanIcon(p.type)} ${v653Clean(p.name)}`);
+        if(p.address) lines.push(`      地址：${v653Clean(p.address)}`);
+        if(p.note) lines.push(`      注意：${v653Clean(p.note)}`);
+      });
+    }
+    lines.push('');
+  });
+  lines.push('— Janeselect Travel Manager —');
+  return lines.join('\n');
+}
+function v653ShareHtml(){
+  const title=v653Clean(data?.meta?.title)||'我的旅行行程';
+  const dest=v653Clean(data?.trip?.dest)||'未設定目的地';
+  const dayHtml=(data.days||[]).map(d=>{
+    const plans=sortedPlans(d.key).filter(p=>!(p.source==='flight'||p.source==='hotel'));
+    return `<div class="v652DayItem"><div class="v652DayHead"><b>${v653Html(d.title)}｜${v653Html(d.label)}</b><span class="v652TimePill">${plans.length} 個行程</span></div>${plans.length?`<div class="v652PlanList">${plans.map(p=>{
+      const time=[p.start,p.end].filter(Boolean).join('－')||'未定時間';
+      return `<div class="v652PlanRow"><span class="v652TimePill">${v653Html(time)}</span><div><div class="v652PlanName">${v653PlanIcon(p.type)} ${v653Html(p.name||'未命名行程')}</div>${p.address?`<div class="v652PlanNote">地址：${v653Html(p.address)}</div>`:''}${p.note?`<div class="v652PlanNote">注意：${v653Html(p.note)}</div>`:''}</div></div>`;
+    }).join('')}</div>`:`<div class="v652MiniText">尚未安排正式行程</div>`}</div>`;
+  }).join('');
+  return `<div class="v653ShareBox" role="dialog" aria-modal="true" aria-label="分享簡易行程">
+    <div class="v653ShareHero">
+      <div class="v653ShareHeroTop">
+        <div>
+          <div class="v653ShareBrand">貞選旅管家 Janeselect Travel Manager</div>
+          <h3>${v653Html(title)}</h3>
+          <p>${v653Html(dest)}｜${v653Html(v653TripRange())}</p>
+        </div>
+        <button class="v653ShareClose" type="button" onclick="v653CloseItineraryShare()" aria-label="關閉分享彈窗">×</button>
+      </div>
+    </div>
+    <div class="v653ShareScroll">
+      <div class="v653ShareSection"><h4>✈️ 機票與交通</h4>${v653FlightHtml('out')}${v653FlightHtml('back')}</div>
+      <div class="v653ShareSection"><h4>🏨 住宿資訊</h4>${v653HotelHtml()}</div>
+      <div class="v653ShareSection"><h4>🗓️ 每日簡易行程</h4><div class="v652HotelGrid">${dayHtml}</div></div>
+    </div>
+    <div class="v653ShareActions">
+      <button class="btn soft" type="button" onclick="v653CopyItinerary()">複製分享文字</button>
+      <button class="btn dark" type="button" onclick="v653PrintItinerary()">匯出 PDF / 列印</button>
+    </div>
+  </div>`;
+}
+function v653EnsureShareModal(){
+  let modal=document.getElementById('itineraryShareModal');
+  if(!modal){
+    modal=document.createElement('div');
+    modal.id='itineraryShareModal';
+    document.body.appendChild(modal);
+  }
+  modal.className='itineraryShareModal v653ShareModal noPrint';
+  modal.onclick=function(e){
+    if(e.target===modal) v653CloseItineraryShare();
+  };
+  return modal;
+}
+function v653OpenItineraryShare(){
+  const modal=v653EnsureShareModal();
+  modal.innerHTML=v653ShareHtml();
+  modal.classList.add('show');
+}
+function v653CloseItineraryShare(){
+  document.getElementById('itineraryShareModal')?.classList.remove('show');
+}
+async function v653CopyItinerary(){
+  const txt=v653ItineraryText();
+  try{
+    await navigator.clipboard.writeText(txt);
+    toast('已複製分享文字');
+  }catch(e){
+    const ta=document.createElement('textarea');
+    ta.value=txt;
+    ta.setAttribute('readonly','');
+    ta.style.position='fixed';
+    ta.style.left='-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    ta.remove();
+    toast('已複製分享文字');
+  }
+}
+function v653PrintableHtml(){
+  const title=v653Clean(data?.meta?.title)||'簡易行程';
+  const dayPrint=(data.days||[]).map(d=>{
+    const plans=sortedPlans(d.key).filter(p=>!(p.source==='flight'||p.source==='hotel'));
+    return `<div class="item"><div class="main">${v653Html(d.title)}｜${v653Html(d.label)}</div>${plans.length?plans.map(p=>`<div class="plan"><span class="pill">${v653Html([p.start,p.end].filter(Boolean).join('－')||'未定')}</span><div><div class="main">${v653PlanIcon(p.type)} ${v653Html(p.name||'未命名行程')}</div>${p.address?`<div class="mini">地址：${v653Html(p.address)}</div>`:''}${p.note?`<div class="mini">注意：${v653Html(p.note)}</div>`:''}</div></div>`).join(''):`<div class="mini">尚未安排正式行程</div>`}</div>`;
+  }).join('');
+  return `<!DOCTYPE html><html lang="zh-Hant"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${v653Html(title)}</title><style>
+    @page{size:A4;margin:12mm}*{box-sizing:border-box}body{font-family:"PingFang TC","Noto Sans TC","Helvetica Neue",-apple-system,BlinkMacSystemFont,sans-serif;color:#2C2A29;background:#F7F3EC;margin:0;padding:24px}.page{max-width:900px;margin:auto;background:#FFFDFC;border:1px solid #E2DDD5;border-radius:28px;overflow:hidden;box-shadow:0 18px 48px rgba(44,42,41,.08)}.hero{padding:28px;background:linear-gradient(135deg,#FFFDFC,#F2F6F4);border-bottom:1px solid #E2DDD5}.brand{display:inline-flex;border-radius:999px;background:#F2F6F4;color:#4A5D4E;border:1px solid #E2DDD5;padding:7px 12px;font-size:12px;font-weight:900;margin-bottom:14px}h1{font-size:30px;margin:0 0 8px}.sub{color:#8B827A;line-height:1.6}.content{padding:22px}.sec{border:1px solid #E2DDD5;border-radius:20px;padding:16px;margin-bottom:14px;break-inside:avoid;background:#fff}h2{font-size:17px;margin:0 0 10px}.v652FlightItem,.v652HotelItem,.item{border:1px solid #EEE8DF;border-radius:16px;padding:11px;margin:8px 0;break-inside:avoid}.v652FlightLine,.plan{display:grid;grid-template-columns:84px 1fr;gap:9px;margin:7px 0}.v652TimePill,.pill{display:inline-flex;justify-content:center;border-radius:999px;background:#F3EEE8;color:#6F6257;padding:5px 8px;font-size:11px;font-weight:900;margin-right:6px;white-space:nowrap}.v652MainText,.v652PlanName,.main{font-weight:900;line-height:1.5}.v652MiniText,.v652PlanNote,.mini{color:#8B827A;font-size:12px;line-height:1.55;margin-top:4px}.v652ShareSubTitle{display:inline-flex;border-radius:999px;background:#F2F6F4;color:#4A5D4E;padding:5px 9px;font-size:11px;font-weight:900;margin:4px 0 8px}.v652FlightGrid,.v652HotelGrid{display:grid;gap:8px}.footer{text-align:center;color:#8B827A;font-size:11px;padding:16px;border-top:1px solid #E2DDD5}@media(max-width:620px){body{padding:12px}.page{border-radius:20px}.v652FlightLine,.plan{grid-template-columns:1fr}}@media print{body{background:#fff;padding:0}.page{box-shadow:none;border:0;border-radius:0}.hero{padding:0 0 8mm}.content{padding:8mm 0 0}.sec{page-break-inside:avoid}.noPrint{display:none!important}}
+  </style></head><body><div class="page"><div class="hero"><div class="brand">貞選旅管家 Janeselect Travel Manager</div><h1>${v653Html(title)}</h1><div class="sub">${v653Html(data?.trip?.dest||'')}｜${v653Html(v653TripRange())}</div></div><div class="content"><div class="sec"><h2>✈️ 機票與交通</h2>${v653FlightHtml('out')}${v653FlightHtml('back')}</div><div class="sec"><h2>🏨 住宿資訊</h2>${v653HotelHtml()}</div><div class="sec"><h2>🗓️ 每日簡易行程</h2>${dayPrint}</div></div><div class="footer">貞選旅管家 Janeselect Travel Manager</div></div><script>setTimeout(()=>window.print(),350)<\/script></body></html>`;
+}
+function v653PrintItinerary(){
+  const w=window.open('', '_blank');
+  if(!w) return alert('請允許瀏覽器開啟新視窗後再試一次。');
+  w.document.open();
+  w.document.write(v653PrintableHtml());
+  w.document.close();
+}
+function v653InsertPlannerShareButton(){
+  const root=document.getElementById('plannerView');
+  if(!root) return;
+  const section=root.querySelector('.section');
+  if(!section) return;
+  let btn=root.querySelector('#v653PlannerShareBtn') || root.querySelector('#v651PlannerShareBtn');
+  if(!btn){
+    btn=document.createElement('button');
+    section.appendChild(btn);
+  }else if(btn.parentElement!==section){
+    section.appendChild(btn);
+  }
+  btn.id='v653PlannerShareBtn';
+  btn.type='button';
+  btn.className='v651PlannerShareBtn v653PlannerShareBtn noPrint';
+  btn.textContent='分享簡易行程';
+  btn.onclick=v653OpenItineraryShare;
+}
+function v653UpdateFooterVersion(){
+  document.querySelectorAll('footer strong,.siteFooterVersion').forEach(el=>el.textContent=V653_VERSION_SHORT);
+}
+function v653UpdateHelpLog(){
+  const log=document.getElementById('v64UpdateLog') || document.getElementById('helpView')?.querySelector('.card');
+  if(log){
+    log.innerHTML=`<h3>最新更新紀錄</h3><div class="box mint"><b>${esc(V653_VERSION_TEXT)}</b><br>分享簡易行程彈窗已移除上方「航班段數、住宿筆數、正式行程」三個統計卡；匯出 PDF / 列印的新視窗也同步移除相同統計卡。保留「複製分享文字」與「匯出 PDF / 列印」按鈕，並維持按鈕固定在彈窗下方。既有 Logo、AI 輔助、照片旅遊書、同步鎖、Firebase、Cloudinary、localStorage 與資料結構未更動。</div>`;
+  }
+}
+window.v651OpenItineraryShare = v653OpenItineraryShare;
+window.v651CopyItinerary = v653CopyItinerary;
+window.v651PrintItinerary = v653PrintItinerary;
+window.v651CloseItineraryShare = v653CloseItineraryShare;
+window.v651ItineraryText = v653ItineraryText;
+
+const v653PrevRenderPlanner = typeof renderPlanner === 'function' ? renderPlanner : null;
+if(v653PrevRenderPlanner && !v653PrevRenderPlanner.__v653ShareWrapped){
+  renderPlanner = function(...args){
+    const r = v653PrevRenderPlanner.apply(this,args);
+    setTimeout(v653InsertPlannerShareButton,80);
+    return r;
+  };
+  renderPlanner.__v653ShareWrapped = true;
+}
+
+const v653PrevRenderHelp = typeof renderHelp === 'function' ? renderHelp : null;
+if(v653PrevRenderHelp && !v653PrevRenderHelp.__v653Wrapped){
+  renderHelp = function(...args){
+    const r = v653PrevRenderHelp.apply(this,args);
+    v653UpdateHelpLog();
+    v653UpdateFooterVersion();
+    return r;
+  };
+  renderHelp.__v653Wrapped = true;
+}
+
+setTimeout(()=>{try{v653UpdateFooterVersion(); v653InsertPlannerShareButton(); v653UpdateHelpLog(); if(typeof render==='function') render();}catch(e){console.warn(e)}},980);
+setTimeout(()=>{try{v653UpdateFooterVersion(); v653InsertPlannerShareButton(); v653UpdateHelpLog();}catch(e){console.warn(e)}},1300);
+</script>
+
 </body></html>
