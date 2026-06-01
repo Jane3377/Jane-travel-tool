@@ -1,0 +1,334 @@
+/* ================================================================
+   sync.js — 同步狀態顯示、鎖定 Banner、帳號 Widget
+   ================================================================ */
+
+/* ══════════════════════════════════════════
+   同步狀態
+   ══════════════════════════════════════════ */
+
+function setSyncStatus(kind, title, desc = '') {
+  // 裝置唯讀時，把「同步成功」降為警告
+  if (deviceReadOnly && kind === 'on') {
+    kind  = 'warn';
+    title = '檢視模式';
+    desc  = `由 ${lockOwnerText()} 編輯中`;
+  }
+
+  syncState = { kind, title, desc, at: Date.now() };
+
+  // 主要同步狀態區塊
+  const el = $('syncStatus');
+  if (el) {
+    const dotClass = kind === 'on' ? 'on' : kind === 'warn' ? 'warn' : 'off';
+    el.innerHTML = `<span class="syncDot ${dotClass}"></span><b>${esc(title)}</b>${desc ? `<br>${esc(desc)}` : ''}`;
+  }
+
+  // 浮動小提示
+  const mini = $('syncMini');
+  if (mini) {
+    mini.textContent = title + (desc ? '｜' + desc : '');
+    mini.classList.add('show');
+    clearTimeout(setSyncStatus._miniTimer);
+    setSyncStatus._miniTimer = setTimeout(() => mini.classList.remove('show'), 1800);
+  }
+
+  updateSyncLine();
+}
+
+function syncLabel() {
+  if (deviceReadOnly) return '檢視模式';
+  const { kind, title, at } = syncState;
+  if (kind === 'on') {
+    const time = at ? new Date(at).toLocaleTimeString('zh-TW', { hour:'2-digit', minute:'2-digit' }) : '';
+    return `已同步${time ? ' ' + time : ''}`;
+  }
+  if (kind === 'warn') return title.includes('等待') ? '等待同步' : '同步中';
+  if (!fbUser) return '尚未登入';
+  return title || '尚未同步';
+}
+
+function syncDotClass() {
+  if (deviceReadOnly) return 'syncing';
+  if (syncState.kind === 'on')   return 'success';
+  if (syncState.kind === 'warn') return 'syncing';
+  if (syncState.kind === 'off')  return 'error';
+  return '';
+}
+
+function updateSyncLine() {
+  const el = $('accountSyncLine');
+  if (!el) return;
+  el.innerHTML = `<span class="dot ${syncDotClass()}"></span>${esc(syncLabel())}`;
+}
+
+function syncBadge() {
+  const { kind, at } = syncState;
+  const label = kind === 'on' ? '雲端已同步' : kind === 'warn' ? '雲端同步中' : '雲端未確認';
+  const time  = at ? new Date(at).toLocaleTimeString('zh-TW', { hour:'2-digit', minute:'2-digit' }) : '';
+  return `<span class="syncCloudBadge ${kind}">${label}${time ? '｜' + time : ''}</span>`;
+}
+
+/* ══════════════════════════════════════════
+   裝置鎖 Banner
+   ══════════════════════════════════════════ */
+
+function ensureLockBanner() {
+  const header = document.querySelector('#mainApp header');
+  if (!header || !currentTripId) return null;
+  let el = $('lockBanner');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'lockBanner';
+    header.appendChild(el);
+  }
+  return el;
+}
+
+function applyLockBanner() {
+  const el = ensureLockBanner();
+  if (!el) return;
+
+  if (!fbUser || !currentTripId) {
+    el.remove();
+    return;
+  }
+
+  if (deviceReadOnly) {
+    el.className = 'lockBanner viewOnly';
+    el.innerHTML = `
+      <div>
+        <b>檢視模式</b>
+        <span>由 ${esc(lockOwnerText())} 編輯中。可查看資料，但不會自動同步。</span>
+      </div>
+      <div class="btns">
+        <button class="btn blue compact" onclick="loadFromCloud({force:true})">載入最新</button>
+        <button class="btn dark compact" onclick="takeOverEdit()">接手編輯</button>
+      </div>`;
+  } else {
+    el.className = 'lockBanner editing';
+    el.innerHTML = `
+      <div>
+        <b>${esc(deviceName())} 正在編輯</b>
+        <span>其他裝置會進入檢視模式，避免資料互相覆蓋。</span>
+      </div>
+      <div class="btns">
+        <button class="btn blue compact" onclick="saveToCloudNow()">同步</button>
+        <button class="btn soft compact" onclick="loadFromCloud({force:true})">載入</button>
+      </div>`;
+  }
+}
+
+/* ══════════════════════════════════════════
+   旅程切換列（header 下方）
+   ══════════════════════════════════════════ */
+
+function renderTripSwitchBar() {
+  const header = document.querySelector('#mainApp header');
+  if (!header || !currentTripId) return;
+  let bar = $('tripSwitchBar');
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.id = 'tripSwitchBar';
+    bar.className = 'tripSwitchBar noPrint';
+    header.appendChild(bar);
+  }
+  bar.innerHTML = `
+    <div class="miniTrip">
+      <b>${esc(data.meta.title || '目前旅程')}</b>
+      ${esc(data.trip.dest || '')}｜${data.trip.start && data.trip.end ? `${short(data.trip.start)}-${short(data.trip.end)}` : '未設定'}
+      <br>${syncBadge()}
+    </div>
+    <div class="btns" style="margin:0">
+      <button class="btn soft compact" onclick="backToTripList()">切換</button>
+      <button class="btn blue compact" onclick="loadFromCloud({force:true})">載入</button>
+      <button class="btn dark compact" onclick="saveToCloudNow()">同步</button>
+    </div>`;
+}
+
+/* ══════════════════════════════════════════
+   帳號 Widget
+   ══════════════════════════════════════════ */
+
+function initials(user) {
+  const name = user?.displayName || user?.email || '';
+  const parts = name.split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return name.slice(0, 2).toUpperCase() || '?';
+}
+
+function renderAccountWidget(user) {
+  const avatar = $('accountAvatar');
+  const label  = $('accountLabel');
+  const name   = $('accountName');
+  const email  = $('accountEmail');
+  if (!avatar) return;
+
+  if (user) {
+    avatar.innerHTML = user.photoURL
+      ? `<img src="${user.photoURL}" alt="avatar" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`
+      : initials(user);
+    if (label) label.textContent = '已登入';
+    if (name)  name.textContent  = user.displayName || 'Google 帳號';
+    if (email) email.textContent = user.email || '';
+  } else {
+    avatar.textContent = '登入';
+    if (label) label.textContent = 'Google 登入';
+    if (name)  name.textContent  = '尚未登入';
+    if (email) email.textContent = '登入後可跨裝置同步';
+  }
+
+  // 控制按鈕顯示
+  ['menuLoad','menuSave','menuLogout'].forEach(id => {
+    const el = $(id);
+    if (el) el.style.display = user ? '' : 'none';
+  });
+  const loginBtn = $('menuLogin');
+  if (loginBtn) loginBtn.style.display = user ? 'none' : '';
+
+  ensureThemeMenuButton();
+  updateSyncLine();
+}
+
+function toggleAccountMenu() {
+  $('accountMenu')?.classList.toggle('show');
+  ensureThemeMenuButton();
+}
+
+function closeAccountMenu() {
+  $('accountMenu')?.classList.remove('show');
+}
+
+function ensureAccountSyncLine() {
+  const menu = $('accountMenu');
+  if (!menu || $('accountSyncLine')) return;
+  const who = menu.querySelector('.who');
+  if (who) {
+    const line = document.createElement('div');
+    line.className = 'accountSyncLine';
+    line.id = 'accountSyncLine';
+    line.innerHTML = `<span class="dot"></span>尚未同步`;
+    who.insertAdjacentElement('afterend', line);
+  }
+  updateSyncLine();
+}
+
+function ensureThemeMenuButton() {
+  const menu = $('accountMenu');
+  if (!menu || $('menuTheme')) return;
+  const btn = document.createElement('button');
+  btn.id        = 'menuTheme';
+  btn.type      = 'button';
+  btn.textContent = '外觀設定';
+  btn.onclick   = () => { closeAccountMenu(); openThemePanel(); };
+  const logout  = $('menuLogout');
+  if (logout) menu.insertBefore(btn, logout);
+  else menu.appendChild(btn);
+}
+
+// 點外面關閉帳號選單
+document.addEventListener('click', e => {
+  const widget = $('accountWidget');
+  if (widget && !widget.contains(e.target)) closeAccountMenu();
+});
+
+/* ══════════════════════════════════════════
+   主題系統
+   ══════════════════════════════════════════ */
+
+function getThemePrefs() {
+  try { return JSON.parse(localStorage.getItem(THEME_KEY) || '{}'); }
+  catch (e) { return {}; }
+}
+
+function saveThemePrefs(prefs) {
+  localStorage.setItem(THEME_KEY, JSON.stringify(prefs));
+}
+
+function applyThemePrefs(prefs = getThemePrefs()) {
+  const safe = {
+    mode:      THEME_CONFIG.modes[prefs.mode]       ? prefs.mode      : 'light',
+    palette:   THEME_CONFIG.palettes[prefs.palette] ? prefs.palette   : 'seoul',
+    cardStyle: THEME_CONFIG.cardStyles[prefs.cardStyle] ? prefs.cardStyle : 'soft'
+  };
+  document.body.setAttribute('data-theme-mode',    safe.mode);
+  document.body.setAttribute('data-theme-palette', safe.palette);
+  document.body.setAttribute('data-card-style',    safe.cardStyle);
+  return safe;
+}
+
+function setThemePref(partial) {
+  const current = applyThemePrefs(getThemePrefs());
+  const next    = { ...current, ...partial };
+  saveThemePrefs(next);
+  applyThemePrefs(next);
+  renderThemeWidgetState();
+  toast('主題已套用');
+}
+
+function themeOpts(obj, selected) {
+  return Object.entries(obj)
+    .map(([k, v]) => `<option value="${k}" ${k === selected ? 'selected' : ''}>${v.label}</option>`)
+    .join('');
+}
+
+function renderThemeWidgetState() {
+  const prefs = applyThemePrefs(getThemePrefs());
+  if ($('themeModeSelect'))      $('themeModeSelect').value      = prefs.mode;
+  if ($('themePaletteSelect'))   $('themePaletteSelect').value   = prefs.palette;
+  if ($('themeCardStyleSelect')) $('themeCardStyleSelect').value = prefs.cardStyle;
+  const label = `${THEME_CONFIG.palettes[prefs.palette]?.label || ''}・${THEME_CONFIG.modes[prefs.mode]?.label || ''}`;
+  if ($('themeCurrentText')) $('themeCurrentText').textContent = label;
+}
+
+function openThemePanel() {
+  ensureThemePanel();
+  renderThemeWidgetState();
+  $('themePanelBackdrop')?.classList.add('show');
+}
+
+function closeThemePanel() {
+  $('themePanelBackdrop')?.classList.remove('show');
+}
+
+function ensureThemePanel() {
+  if ($('themePanelBackdrop')) return;
+  const prefs = applyThemePrefs(getThemePrefs());
+  document.body.insertAdjacentHTML('beforeend', `
+    <div class="themePanelBackdrop noPrint" id="themePanelBackdrop"
+         onclick="if(event.target===this)closeThemePanel()">
+      <div class="themePanel">
+        <div class="themePanelHead">
+          <div>
+            <h3>🎨 外觀設定</h3>
+            <p>調整色系、明暗與卡片風格，只影響外觀，不影響旅程資料。</p>
+          </div>
+          <button class="themeCloseBtn" onclick="closeThemePanel()">×</button>
+        </div>
+        <div class="themePanelControls">
+          <div class="themeField">
+            <label>明暗模式</label>
+            <select id="themeModeSelect" onchange="setThemePref({mode:this.value})">
+              ${themeOpts(THEME_CONFIG.modes, prefs.mode)}
+            </select>
+          </div>
+          <div class="themeField">
+            <label>色系風格</label>
+            <select id="themePaletteSelect" onchange="setThemePref({palette:this.value})">
+              ${themeOpts(THEME_CONFIG.palettes, prefs.palette)}
+            </select>
+          </div>
+          <div class="themeField">
+            <label>卡片樣式</label>
+            <select id="themeCardStyleSelect" onchange="setThemePref({cardStyle:this.value})">
+              ${themeOpts(THEME_CONFIG.cardStyles, prefs.cardStyle)}
+            </select>
+          </div>
+        </div>
+        <div class="themePanelNote">外觀設定只存在此裝置，不影響雲端同步。</div>
+      </div>
+    </div>`);
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeThemePanel();
+});
