@@ -42,13 +42,16 @@ function makeDefaultData() {
 }
 
 function makePacking() {
+  // uid() 在 utils.js 定義，此函式只在 init() 之後被呼叫，所以是安全的
+  // 如果在模組載入時被意外呼叫，用 fallback
+  const safeUid = typeof uid === 'function' ? uid : () => String(Date.now() + Math.random());
   return PACK_DEFAULTS.map(([type, name, note]) => ({
-    id: uid(), type, name, note, checked: false
+    id: safeUid(), type, name, note, checked: false
   }));
 }
 
 /* ── 旅程資料（目前選中的旅程） ── */
-let data = makeDefaultData();
+let data = null; // 在 main.js 的 init() 裡初始化，確保 uid() 已載入
 
 /* ── UI 狀態 ── */
 let view         = 'trip';    // 目前頁面
