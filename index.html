@@ -11,12 +11,11 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
-
 </head>
 <body>
 <div id="loginView" class="gateView noPrint hidden"></div>
 <div id="tripListView" class="gateView noPrint hidden"></div>
-<div class="app hidden" id="mainApp"><header><div class="badge">J 貞選旅管家</div><div class="titleRow"><h1 id="titleText">釜山小旅行手帳</h1><button class="iconBtn" onclick="editTitle()">✎</button></div><div class="subRow"><p class="sub" id="subtitleText">把想去的海邊、巷弄、咖啡香與晚餐清單都收進來，慢慢排成一趟期待出發的旅行。</p><button class="iconBtn" onclick="editSubtitle()">✎</button></div><div class="heroStats"><div><span>目的地</span><strong id="sDest">韓國釜山</strong></div>
+<div class="app" id="mainApp"><header><div class="badge">J 貞選旅管家</div><div class="titleRow"><h1 id="titleText">釜山小旅行手帳</h1><button class="iconBtn" onclick="editTitle()">✎</button></div><div class="subRow"><p class="sub" id="subtitleText">把想去的海邊、巷弄、咖啡香與晚餐清單都收進來，慢慢排成一趟期待出發的旅行。</p><button class="iconBtn" onclick="editSubtitle()">✎</button></div><div class="heroStats"><div><span>目的地</span><strong id="sDest">韓國釜山</strong></div>
 <div class="syncBar noPrint">
   <div class="syncStatus" id="syncStatus"><span class="syncDot off"></span><b>尚未登入</b><br>登入 Google 後可跨裝置同步。</div>
   <button class="btn dark compact" id="loginBtn" onclick="firebaseSignIn()">Google 登入</button>
@@ -131,7 +130,6 @@
   </div>
 </div>
 <div class="syncMini noPrint" id="syncMini">已同步</div>
-
 
 <script src="script.js"></script>
 </body></html>
