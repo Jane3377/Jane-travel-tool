@@ -50,7 +50,7 @@ function renderHelp(){$("helpView").innerHTML=`<div class="section"><div><h2>說
 <footer style="text-align:center;padding:24px;color:#aaa;font-size:12px"><strong style="color:#888">${esc(APP_VERSION)}</strong></footer>`}
 
 /* ── Firebase 初始化 ── */
-function init(){applyThemePrefs(getThemePrefs());currentDay=cur;v637EnsureEditModal();v637EnsureFooter();document.addEventListener("input",function(e){if(e.target&&e.target.closest&&e.target.closest("#stayView .flightDense"))v39MarkFlightDirty()},true);document.addEventListener("change",function(e){if(e.target&&e.target.closest&&e.target.closest("#stayView .flightDense"))v39MarkFlightDirty()},true);document.addEventListener("click",function(e){if(!e.target.classList.contains("v649-allow")){const banner=$("v649LockBanner");if(banner&&banner.classList.contains("viewOnly")&&!banner.contains(e.target)){toast("目前是檢視模式，不可編輯。請點「接手編輯」按鈕。")}}});ensureThemePanel()}
+function init(){applyThemePrefs(getThemePrefs());currentDay=cur;document.addEventListener("input",function(e){if(e.target&&e.target.closest&&e.target.closest("#stayView .flightDense"))v39MarkFlightDirty()},true);document.addEventListener("change",function(e){if(e.target&&e.target.closest&&e.target.closest("#stayView .flightDense"))v39MarkFlightDirty()},true);document.addEventListener("click",function(e){if(!e.target.classList.contains("v649-allow")){const banner=$("v649LockBanner");if(banner&&banner.classList.contains("viewOnly")&&!banner.contains(e.target)){toast("目前是檢視模式，不可編輯。請點「接手編輯」按鈕。")}}})}
 
 /* ── 以 DOMContentLoaded 為 Gate 確保 DOM 先就緒 ── */
 // 啟動由 main.js 負責
