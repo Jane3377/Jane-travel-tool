@@ -1101,6 +1101,7 @@ function removeFlightBudget(){
 }
 
 
+const __oldInitFirebaseSync_v25 = initFirebaseSync;
 initFirebaseSync = function(){
   renderAccountWidget(null);
   __oldInitFirebaseSync_v25();
@@ -1132,6 +1133,7 @@ function budgetRows(){
 }
 
 
+const __oldEnsureAccountMenuSyncLine_v26 = ensureAccountMenuSyncLine || function(){};
 function ensureAccountMenuSyncLine(){
   const menu=$("accountMenu");
   if(menu && !$("accountSyncLine")){
@@ -2754,6 +2756,7 @@ function themeOptions(obj, selected){
 }
 
 
+const __initBeforeV46 = init;
 init = function(){
   applyThemePrefs(getThemePrefs());
   __initBeforeV46();
@@ -2975,11 +2978,13 @@ function v54EnsurePlanAddress(){
   });
 }
 
+const __v28NormalizePlansBeforeV54 = v28NormalizePlans;
 v28NormalizePlans = function(){
   __v28NormalizePlansBeforeV54();
   v54EnsurePlanAddress();
 };
 
+const __v28UpsertPlanBeforeV54 = v28UpsertPlan;
 v28UpsertPlan = function(plan){
   if(plan){
     if(plan.source==="flight" || plan.source==="hotel"){
@@ -4256,6 +4261,7 @@ deleteTrip = async function(id){
 };
 
 /* 若舊旅程沒有顏色，補預設色，不影響資料內容 */
+const __v636LoadTripsBefore = loadTrips;
 loadTrips = async function(){
   const list=await __v636LoadTripsBefore();
   let changed=false;
@@ -4317,6 +4323,7 @@ function v637EnsureFooter(){
 }
 
 /* 讓 login/list/app 切換時，footer 都存在 */
+const __v637ShowShell = typeof v63ShowShell === 'function' ? v63ShowShell : null;
 if(__v637ShowShell){
   v63ShowShell = function(mode){
     __v637ShowShell(mode);
