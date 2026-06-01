@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>貞選旅管家｜後台管理</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","PingFang TC",sans-serif;background:#f7f3ec;color:#3f3a35;min-height:100vh;padding:24px 16px}
+.wrap{max-width:580px;margin:0 auto}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:24px}
+.brand b{font-size:18px}
+.brand span{font-size:13px;color:#628f80;background:#edf8f3;padding:3px 10px;border-radius:999px;font-weight:900}
+.card{background:#fff;border:1px solid #eadfd4;border-radius:20px;padding:20px;margin-bottom:16px;box-shadow:0 4px 16px rgba(88,72,55,.06)}
+h2{font-size:15px;font-weight:900;margin-bottom:4px}
+.hint{font-size:13px;color:#8b827a;line-height:1.65}
+.loginBox{text-align:center;padding:32px 20px}
+.loginBox p{color:#8b827a;font-size:14px;margin-bottom:20px;line-height:1.7}
+.btn{border:none;border-radius:12px;padding:10px 18px;font-size:14px;font-weight:900;cursor:pointer;transition:opacity .15s}
+.btn:hover{opacity:.82}
+.btn.dark{background:#3f3a35;color:#fff}
+.btn.green{background:#628f80;color:#fff}
+.btn.red{background:#e07b8a;color:#fff}
+.btn.soft{background:#f3eee8;color:#3f3a35}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.userList{display:flex;flex-direction:column;gap:0}
+.userRow{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #f3ede4}
+.userRow:last-child{border-bottom:none}
+.avatar{width:38px;height:38px;border-radius:50%;background:#d9efe6;color:#628f80;display:grid;place-items:center;font-weight:900;font-size:15px;flex-shrink:0}
+.avatar.admin{background:#fff0c5;color:#7b6200}
+.userInfo{flex:1;min-width:0}
+.userInfo b{display:block;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.userInfo .meta{font-size:12px;color:#8b827a;margin-top:2px}
+.tag{display:inline-flex;align-items:center;border-radius:999px;padding:2px 8px;font-size:11px;font-weight:900;margin-top:3px}
+.tag.admin{background:#fff0c5;color:#7b6200}
+.tag.user{background:#edf8f3;color:#2d6a50}
+.addRow{display:flex;gap:8px;margin-top:12px}
+.addRow input{flex:1;border:1px solid #eadfd4;border-radius:12px;padding:10px 12px;font-size:14px;background:#fffdf9;color:#3f3a35}
+.addRow input:focus{outline:none;border-color:#628f80;box-shadow:0 0 0 3px rgba(98,143,128,.12)}
+.noteInput{width:100%;border:1px solid #eadfd4;border-radius:12px;padding:9px 12px;font-size:13px;background:#fffdf9;color:#3f3a35;margin-top:8px}
+.noteInput:focus{outline:none;border-color:#628f80}
+.status{padding:10px 14px;border-radius:12px;font-size:13px;margin-top:12px;display:none}
+.status.show{display:block}
+.status.ok{background:#edf8f3;color:#2d6a50;border:1px solid #b9dccc}
+.status.err{background:#fbedf2;color:#a03050;border:1px solid #f3b8c8}
+.divider{height:1px;background:#eadfd4;margin:14px 0}
+.countRow{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.countRow span{font-size:13px;color:#8b827a}
+.adminInfo{display:flex;align-items:center;gap:12px}
+.adminInfo .meta{font-size:13px;color:#8b827a;margin-top:2px}
+code{background:#f3eee8;padding:2px 6px;border-radius:6px;font-size:12px;font-family:monospace}
+.empty{text-align:center;padding:24px;color:#8b827a;font-size:13px}
+.addSection label{display:block;font-size:13px;font-weight:900;margin-bottom:6px}
+.addSection .sub{font-size:12px;color:#8b827a;margin-bottom:10px}
+.loading{text-align:center;padding:20px;color:#8b827a;font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="brand">
+    <b>貞選旅管家</b>
+    <span>後台管理</span>
+  </div>
+
+  <!-- 未登入 -->
+  <div class="card" id="loginCard">
+    <div class="loginBox">
+      <p>請用管理員帳號登入<br>只有 <b>jan33772001@gmail.com</b><br>可以管理使用者白名單</p>
+      <button class="btn dark" onclick="adminSignIn()">使用 Google 登入</button>
+    </div>
+  </div>
+
+  <!-- 管理面板（登入後顯示） -->
+  <div id="adminPanel" style="display:none">
+
+    <!-- 目前登入 -->
+    <div class="card">
+      <div class="adminInfo">
+        <div class="avatar admin" id="adminAvatar">J</div>
+        <div>
+          <b id="adminName">管理員</b>
+          <div class="meta" id="adminEmail"></div>
+          <span class="tag admin">管理員</span>
+        </div>
+        <button class="btn soft" style="margin-left:auto" onclick="adminSignOut()">登出</button>
+      </div>
+    </div>
+
+    <!-- 白名單管理 -->
+    <div class="card">
+      <h2>👥 授權用戶白名單</h2>
+      <p class="hint" style="margin-top:4px;margin-bottom:16px">
+        名單內的 Google 帳號可以登入並使用旅管家，新增後即時生效。
+      </p>
+
+      <div class="countRow">
+        <span id="userCount">載入中...</span>
+        <button class="btn soft" style="padding:6px 12px;font-size:12px" onclick="loadUsers()">重新整理</button>
+      </div>
+
+      <div id="userList"><div class="loading">載入中...</div></div>
+
+      <div class="divider"></div>
+
+      <!-- 新增表單 -->
+      <div class="addSection">
+        <label>新增授權帳號</label>
+        <p class="sub">輸入對方的 Google 帳號 email，儲存後對方即可登入。</p>
+        <div class="addRow">
+          <input id="newEmail" type="email" placeholder="example@gmail.com"
+            onkeydown="if(event.key==='Enter')addUser()">
+          <button class="btn green" onclick="addUser()">新增</button>
+        </div>
+        <input id="newNote" class="noteInput" type="text" placeholder="備註（選填）：例如「Jane 的媽媽」">
+      </div>
+
+      <div class="status" id="statusMsg"></div>
+    </div>
+
+    <!-- 說明 -->
+    <div class="card">
+      <h2>ℹ️ 說明</h2>
+      <p class="hint">
+        白名單存在 Firestore 的 <code>allowedUsers/{email}</code> collection。<br><br>
+        每個文件代表一個授權用戶，文件 ID 就是 email。之後可以在文件裡加欄位記錄備註或到期日。<br><br>
+        管理員帳號 <b>jan33772001@gmail.com</b> 永遠有效，即使從白名單移除也不受影響。
+      </p>
+    </div>
+
+  </div>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+
+<script>
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyDVmuktIzd29IqgOum2KOchgFZi0ofn4tY",
+  authDomain: "travel-tool-50e41.firebaseapp.com",
+  projectId: "travel-tool-50e41",
+  storageBucket: "travel-tool-50e41.firebasestorage.app",
+  messagingSenderId: "3477916876",
+  appId: "1:3477916876:web:141919efd392b6b5a60669"
+};
+
+const ADMIN_EMAIL = "jan33772001@gmail.com";
+
+let fbDb, currentAdmin = null;
+
+// 初始化 Firebase
+if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+fbDb = firebase.firestore();
+const fbAuth = firebase.auth();
+
+// Auth 監聽
+fbAuth.onAuthStateChanged(user => {
+  currentAdmin = user;
+  if (user && user.email.toLowerCase() === ADMIN_EMAIL) {
+    document.getElementById("loginCard").style.display = "none";
+    document.getElementById("adminPanel").style.display = "block";
+    document.getElementById("adminAvatar").textContent = (user.displayName || user.email)[0].toUpperCase();
+    document.getElementById("adminName").textContent = user.displayName || user.email;
+    document.getElementById("adminEmail").textContent = user.email;
+    loadUsers();
+  } else {
+    if (user) {
+      alert("此帳號沒有管理員權限：" + user.email);
+      fbAuth.signOut();
+    }
+    document.getElementById("loginCard").style.display = "block";
+    document.getElementById("adminPanel").style.display = "none";
+  }
+});
+
+function adminSignIn() {
+  fbAuth.signInWithPopup(new firebase.auth.GoogleAuthProvider())
+    .catch(err => alert("登入失敗：" + err.message));
+}
+
+function adminSignOut() {
+  fbAuth.signOut();
+}
+
+function esc(s) {
+  return String(s || "").replace(/[&<>"']/g,
+    m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":'&#039;'}[m]));
+}
+
+function showStatus(msg, type = "ok") {
+  const el = document.getElementById("statusMsg");
+  el.textContent = msg;
+  el.className = "status show " + type;
+  clearTimeout(el._timer);
+  el._timer = setTimeout(() => el.classList.remove("show"), 3500);
+}
+
+// 讀取白名單
+async function loadUsers() {
+  document.getElementById("userList").innerHTML = '<div class="loading">載入中...</div>';
+  try {
+    const snap = await fbDb.collection("allowedUsers").get();
+    const users = [];
+    snap.forEach(doc => users.push({ email: doc.id, ...doc.data() }));
+    users.sort((a, b) => {
+      if (a.email === ADMIN_EMAIL) return -1;
+      if (b.email === ADMIN_EMAIL) return 1;
+      return (a.addedAt?.seconds || 0) - (b.addedAt?.seconds || 0);
+    });
+    renderUsers(users);
+  } catch (e) {
+    document.getElementById("userList").innerHTML =
+      `<div class="empty" style="color:#a03050">讀取失敗：${esc(e.message)}<br><br>請確認 Firestore Rules 已允許管理員讀寫 allowedUsers。</div>`;
+    document.getElementById("userCount").textContent = "讀取失敗";
+  }
+}
+
+function renderUsers(users) {
+  document.getElementById("userCount").textContent = `共 ${users.length} 個授權帳號`;
+
+  if (!users.length) {
+    document.getElementById("userList").innerHTML = '<div class="empty">尚未新增任何授權帳號</div>';
+    return;
+  }
+
+  const html = users.map(u => {
+    const isAdmin = u.email.toLowerCase() === ADMIN_EMAIL;
+    const date = u.addedAt ? new Date(u.addedAt.seconds * 1000).toLocaleDateString("zh-TW") : "";
+    return `
+      <div class="userRow">
+        <div class="avatar ${isAdmin ? "admin" : ""}">${esc(u.email[0].toUpperCase())}</div>
+        <div class="userInfo">
+          <b>${esc(u.email)}</b>
+          <div class="meta">
+            ${u.note ? esc(u.note) + "　" : ""}
+            ${date ? "新增於 " + date : ""}
+          </div>
+          <span class="tag ${isAdmin ? "admin" : "user"}">${isAdmin ? "管理員" : "一般用戶"}</span>
+        </div>
+        ${isAdmin
+          ? `<span style="font-size:12px;color:#aaa;white-space:nowrap">不可移除</span>`
+          : `<button class="btn red" style="padding:7px 12px;font-size:12px;white-space:nowrap"
+               onclick="removeUser('${esc(u.email)}')">移除</button>`
+        }
+      </div>`;
+  }).join("");
+
+  document.getElementById("userList").innerHTML = `<div class="userList">${html}</div>`;
+}
+
+// 新增用戶
+async function addUser() {
+  const email = (document.getElementById("newEmail").value || "").trim().toLowerCase();
+  const note = (document.getElementById("newNote").value || "").trim();
+
+  if (!email) return showStatus("請輸入 email", "err");
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showStatus("email 格式不正確", "err");
+
+  try {
+    const ref = fbDb.collection("allowedUsers").doc(email);
+    const doc = await ref.get();
+    if (doc.exists) return showStatus("這個帳號已經在白名單了", "err");
+
+    await ref.set({
+      addedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      addedBy: currentAdmin?.email || ADMIN_EMAIL,
+      note: note || ""
+    });
+
+    document.getElementById("newEmail").value = "";
+    document.getElementById("newNote").value = "";
+    showStatus(`✅ 已新增 ${email}`);
+    loadUsers();
+  } catch (e) {
+    showStatus("新增失敗：" + e.message, "err");
+  }
+}
+
+// 移除用戶
+async function removeUser(email) {
+  if (email.toLowerCase() === ADMIN_EMAIL) return showStatus("管理員帳號不可移除", "err");
+  if (!confirm(`確定要移除 ${email}？\n\n這個帳號將無法再登入旅管家。`)) return;
+
+  try {
+    await fbDb.collection("allowedUsers").doc(email).delete();
+    showStatus(`已移除 ${email}`);
+    loadUsers();
+  } catch (e) {
+    showStatus("移除失敗：" + e.message, "err");
+  }
+}
+</script>
+</body>
+</html>

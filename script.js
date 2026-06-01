@@ -8529,7 +8529,29 @@ function exportPhotoBookPDF(){
   openPdfPublisher(false);
 }
 
-const V63_ALLOWED_EMAILS = ["jan33772001@gmail.com"];
+// 白名單：程式碼內建的 fallback（Firestore 讀取失敗時使用）
+const V63_ADMIN_EMAIL = "jan33772001@gmail.com";
+let V63_ALLOWED_EMAILS = ["jan33772001@gmail.com"];
+
+// 從 Firestore allowedUsers collection 動態載入白名單
+async function v63LoadWhitelistFromCloud() {
+  try {
+    if (!fbDb) return;
+    const snap = await fbDb.collection("allowedUsers").get();
+    if (!snap.empty) {
+      const emails = [];
+      snap.forEach(doc => emails.push(doc.id.toLowerCase()));
+      V63_ALLOWED_EMAILS = emails;
+      // 管理員永遠有效
+      if (!V63_ALLOWED_EMAILS.includes(V63_ADMIN_EMAIL)) {
+        V63_ALLOWED_EMAILS.push(V63_ADMIN_EMAIL);
+      }
+    }
+  } catch (e) {
+    // 讀取失敗（Rules 限制或網路問題）→ 沿用內建清單
+    console.warn("白名單讀取失敗，使用內建清單", e.message);
+  }
+}
 const V63_MAX_TRIPS = 10;
 const V63_TRIP_LIST_KEY_PREFIX = "janeselect_trip_list_v63";
 const V63_CURRENT_TRIP_KEY = "janeselect_currentTripId_v63";
@@ -8974,14 +8996,16 @@ async function v63Boot(){
   }
   renderLoginView();
   v63ShowShell("login");
-  if(fbAuth){
-    fbAuth.onAuthStateChanged(v63HandleAuth);
-  }else if(window.firebase){
+  if(!fbAuth && window.firebase){
     try{
       if(!firebase.apps.length)fbApp=firebase.initializeApp(FIREBASE_CONFIG); else fbApp=firebase.app();
       fbAuth=firebase.auth(); fbDb=firebase.firestore();
-      fbAuth.onAuthStateChanged(v63HandleAuth);
-    }catch(e){renderLoginView("Firebase 初始化失敗："+(e.message||e));}
+    }catch(e){renderLoginView("Firebase 初始化失敗："+(e.message||e)); return;}
+  }
+  if(fbAuth){
+    // 先讀雲端白名單，再掛 auth 監聽
+    await v63LoadWhitelistFromCloud();
+    fbAuth.onAuthStateChanged(v63HandleAuth);
   }
 }
 v63Boot();
