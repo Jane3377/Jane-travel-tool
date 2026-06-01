@@ -1,3 +1,5 @@
+/* 貞選旅管家 v66.0 - 所有 JS 已合併 */
+
 const views=[["trip","旅遊地"],["planner","行程"],["spots","口袋景點"],["budget","預算"],["packing","行李"],["photoBook","照片書"],["help","說明"]];
 const currencyMap={"韓國":"KRW","日本":"JPY","泰國":"THB","美國":"USD","越南":"VND","新加坡":"SGD","歐洲":"EUR","英國":"GBP","香港":"HKD"};const rateMap={KRW:.023,JPY:.22,THB:.92,USD:31.5,VND:.00125,SGD:24,EUR:34,GBP:39,HKD:4.05};
 const pack0=[["pre","護照","出門前確認"],["pre","機票 / 登機資訊","截圖備份"],["pre","住宿訂房資訊","地址存一份"],["pre","信用卡 / 現金","分開放"],["pre","旅遊保險","保單號碼"],["pre","轉接頭","依國家確認"],["pre","行動電源","放隨身包"],["pre","常備藥","腸胃 / 止痛 / 過敏"],["out","護照","離開飯店前確認"],["out","手機 / 充電器","床頭插座"],["out","錢包 / 信用卡","保險箱"],["out","衣櫃 / 浴室 / 冰箱","不要漏東西"]];
@@ -7904,7 +7906,9 @@ function renderPlanner(options={}){
   v21ApplyLockedNameState();
 }
 
-// 啟動移至末尾
+// init() 移至檔案末尾執行，確保所有函式定義完畢
+// initFirebaseSync() 移至檔案末尾執行
+
 let storyPendingPhotoFiles = window.storyPendingPhotoFiles || {};
 let storyEditingPhotoId = null;
 
@@ -8108,6 +8112,7 @@ function renderPhotoBook(){
 try{
   if(typeof tab !== 'undefined' && tab === 'photoBook') renderPhotoBook();
 }catch(e){}
+
 let storyPhotoPreviewUrls = window.storyPhotoPreviewUrls || {};
 let activePhotoEditId = null;
 
@@ -8322,6 +8327,7 @@ function renderPhotoBook(){
 try{
   if(typeof tab !== 'undefined' && tab === 'photoBook') renderPhotoBook();
 }catch(e){}
+
 function pdfEsc(v){
   return String(v ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 }
@@ -8502,6 +8508,7 @@ function exportPhotoBookPDF(){
 window.addEventListener("afterprint", ()=>{
   document.body.classList.remove("printPhotoBook");
 });
+
 /* index.html 保持旅行工具；照片書匯出改為開啟獨立出版頁 */
 function openPdfPublisher(autoPrint=false){
   const url = autoPrint ? "export.html?print=1" : "export.html";
@@ -8513,6 +8520,7 @@ function openPdfPublisher(autoPrint=false){
 function exportPhotoBookPDF(){
   openPdfPublisher(true);
 }
+
 function openPdfPublisher(autoPrint=false){
   try{ save(); }catch(e){}
   window.open("export.html", "_blank");
@@ -8520,7 +8528,30 @@ function openPdfPublisher(autoPrint=false){
 function exportPhotoBookPDF(){
   openPdfPublisher(false);
 }
-const V63_ALLOWED_EMAILS = ["jan33772001@gmail.com"];
+
+// 白名單：程式碼內建的 fallback（Firestore 讀取失敗時使用）
+const V63_ADMIN_EMAIL = "jan33772001@gmail.com";
+let V63_ALLOWED_EMAILS = ["jan33772001@gmail.com"];
+
+// 從 Firestore allowedUsers collection 動態載入白名單
+async function v63LoadWhitelistFromCloud() {
+  try {
+    if (!fbDb) return;
+    const snap = await fbDb.collection("allowedUsers").get();
+    if (!snap.empty) {
+      const emails = [];
+      snap.forEach(doc => emails.push(doc.id.toLowerCase()));
+      V63_ALLOWED_EMAILS = emails;
+      // 管理員永遠有效
+      if (!V63_ALLOWED_EMAILS.includes(V63_ADMIN_EMAIL)) {
+        V63_ALLOWED_EMAILS.push(V63_ADMIN_EMAIL);
+      }
+    }
+  } catch (e) {
+    // 讀取失敗（Rules 限制或網路問題）→ 沿用內建清單
+    console.warn("白名單讀取失敗，使用內建清單", e.message);
+  }
+}
 const V63_MAX_TRIPS = 10;
 const V63_TRIP_LIST_KEY_PREFIX = "janeselect_trip_list_v63";
 const V63_CURRENT_TRIP_KEY = "janeselect_currentTripId_v63";
@@ -8965,17 +8996,20 @@ async function v63Boot(){
   }
   renderLoginView();
   v63ShowShell("login");
-  if(fbAuth){
-    fbAuth.onAuthStateChanged(v63HandleAuth);
-  }else if(window.firebase){
+  if(!fbAuth && window.firebase){
     try{
       if(!firebase.apps.length)fbApp=firebase.initializeApp(FIREBASE_CONFIG); else fbApp=firebase.app();
       fbAuth=firebase.auth(); fbDb=firebase.firestore();
-      fbAuth.onAuthStateChanged(v63HandleAuth);
-    }catch(e){renderLoginView("Firebase 初始化失敗："+(e.message||e));}
+    }catch(e){renderLoginView("Firebase 初始化失敗："+(e.message||e)); return;}
+  }
+  if(fbAuth){
+    // 先讀雲端白名單，再掛 auth 監聽
+    await v63LoadWhitelistFromCloud();
+    fbAuth.onAuthStateChanged(v63HandleAuth);
   }
 }
-// v63Boot 移至末尾
+v63Boot();
+
 function v631BrandTitle(){
   document.title="貞選旅管家";
 }
@@ -9032,6 +9066,7 @@ document.addEventListener("change", function(e){
   }
 }, true);
 v631BrandTitle();
+
 const V632_VERSION = "v63.2";
 const V632_LOCAL_META_SUFFIX = "__meta";
 let v632LastSyncState = {kind:"off", title:"尚未同步", desc:"", at:0};
@@ -9705,6 +9740,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   const footer=document.querySelector('footer strong');
   if(footer)footer.textContent='版本：v63.6｜2026-05-31｜旅程卡片刪除與色系管理版';
 });
+
 const V637_VERSION_TEXT = '版本：v63.7｜2026-05-31｜頁尾、標題編輯彈窗與旅程卡片色系優化版';
 
 function v637FooterHtml(){
@@ -9873,6 +9909,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   v637EnsureEditModal();
 });
 setTimeout(v637EnsureFooter, 300);
+
 const V64_VERSION_SHORT = '版本：v64｜2026-05-31';
 const V64_VERSION_TEXT = 'v64｜2026-05-31｜AI 輔助整合與口袋景點探索版';
 
@@ -10457,6 +10494,7 @@ setTimeout(()=>{
   v64AfterRender();
   try{ if(typeof render === 'function') render(); }catch(e){}
 },500);
+
 const V641_VERSION_SHORT = '版本：v64.1｜2026-05-31';
 const V641_VERSION_TEXT = 'v64.1｜2026-05-31｜AI 健檢偏好與匯入顯示優化版';
 const V641_PREF_KEY = 'janeselectAiPrefs_v1';
@@ -10693,6 +10731,7 @@ renderHelp = function(){
 setTimeout(()=>{
   try{v64AfterRender?.(); v64UpdateFooterVersion(); if(typeof render==='function')render();}catch(e){console.warn(e)}
 },250);
+
 function v64BrandRestoreMarkSvg(){
   return `<span class="brandMark" aria-hidden="true"><svg viewBox="0 0 64 64" focusable="false"><rect x="10" y="13" width="40" height="43" rx="10"></rect><path d="M22 13c1.7-5.4 13.9-5.4 15.6 0"></path><path d="M21 28h18M21 38h14"></path><circle cx="45" cy="18" r="6"></circle><path d="M45 14v4l3 2"></path></svg></span>`;
 }
@@ -10752,6 +10791,7 @@ function v64BrandRestoreApply(){
   });
   setTimeout(v64BrandRestoreApply,120);
 })();
+
 const V643_VERSION_SHORT = "v64.3｜2026-05-31";
 const V643_VERSION_TEXT = "v64.3｜日期調整保護與資料保留版";
 let v643PendingBasic = null;
@@ -11004,6 +11044,7 @@ function v643UpdateFooterVersion(){
   });
 }
 setTimeout(()=>{try{v643UpdateFooterVersion(); if(typeof render==='function') render();}catch(e){console.warn(e)}},300);
+
 const V644_VERSION_SHORT = "v64.4｜2026-05-31";
 const V644_VERSION_TEXT = "v64.4｜AI 找景點提示詞強化與介面收合版";
 
@@ -11218,6 +11259,7 @@ function v644UpdateFooterVersion(){
   document.querySelectorAll('footer strong,.siteFooterVersion').forEach(el=>el.textContent=V644_VERSION_SHORT);
 }
 setTimeout(()=>{try{v644UpdateFooterVersion(); if(typeof render==='function') render();}catch(e){console.warn(e)}},320);
+
 const V645_VERSION_SHORT = "v64.5｜2026-05-31";
 const V645_VERSION_TEXT = "v64.5｜AI 口袋景點時間欄位修正版";
 
@@ -11943,6 +11985,7 @@ function v648UpdateFooterVersion(){
   document.querySelectorAll('footer strong,.siteFooterVersion').forEach(el=>el.textContent=V648_VERSION_SHORT);
 }
 setTimeout(()=>{try{v648UpdateFooterVersion(); updateAccountSyncLine();}catch(e){console.warn(e)}},480);
+
 const V649_VERSION_SHORT = "v64.9｜2026-05-31";
 const V649_VERSION_TEXT = "v64.9｜單一編輯裝置與同步防覆蓋版";
 const V649_DEVICE_KEY = "janeselectTravelDeviceId";
@@ -12269,6 +12312,7 @@ function v649UpdateFooterVersion(){
 }
 setTimeout(()=>{try{v649UpdateFooterVersion(); v649ApplyLockBanner();}catch(e){console.warn(e)}},520);
 window.addEventListener('beforeunload',()=>{v649StopHeartbeat();});
+
 const V650_VERSION_SHORT = "v65.0｜2026-05-31";
 const V650_VERSION_TEXT = "v65.0｜照片旅遊書封面與照片日記流程整理版";
 
@@ -12518,6 +12562,7 @@ function v650UpdateFooterVersion(){
   document.querySelectorAll('footer strong,.siteFooterVersion').forEach(el=>el.textContent=V650_VERSION_SHORT);
 }
 setTimeout(()=>{try{v650UpdateFooterVersion(); if(typeof render==='function') render();}catch(e){console.warn(e)}},560);
+
 const V653_VERSION_SHORT = "v66.0｜2026-05-31｜現行功能基準整理版";
 const V653_VERSION_TEXT = "v66.0｜現行功能基準整理版";
 
@@ -12784,9 +12829,15 @@ if(v653PrevRenderHelp && !v653PrevRenderHelp.__v653Wrapped){
 setTimeout(()=>{try{v653UpdateFooterVersion(); v653InsertPlannerShareButton(); v653UpdateHelpLog(); if(typeof render==='function') render();}catch(e){console.warn(e)}},980);
 setTimeout(()=>{try{v653UpdateFooterVersion(); v653InsertPlannerShareButton(); v653UpdateHelpLog();}catch(e){console.warn(e)}},1300);
 
-/* ── 啟動 ── */
+/* ── 啟動（放在最末尾確保所有函式定義完畢） ── */
+// Firebase 初始化與 onAuthStateChanged 已由 v63Boot() 負責
+// 不再呼叫 initFirebaseSync()，避免雙重監聽器造成 auth/cancelled-popup-request
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', function() { init(); v63Boot(); });
+  document.addEventListener('DOMContentLoaded', function() {
+    init();
+    v63Boot();
+  });
 } else {
-  init(); v63Boot();
+  init();
+  v63Boot();
 }
