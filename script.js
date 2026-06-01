@@ -12806,12 +12806,14 @@ setTimeout(()=>{try{v653UpdateFooterVersion(); v653InsertPlannerShareButton(); v
 setTimeout(()=>{try{v653UpdateFooterVersion(); v653InsertPlannerShareButton(); v653UpdateHelpLog();}catch(e){console.warn(e)}},1300);
 
 /* ── 啟動（放在最末尾確保所有函式定義完畢） ── */
+// Firebase 初始化與 onAuthStateChanged 已由 v63Boot() 負責
+// 不再呼叫 initFirebaseSync()，避免雙重監聽器造成 auth/cancelled-popup-request
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', function() {
     init();
-    initFirebaseSync();
+    v63Boot();
   });
 } else {
   init();
-  initFirebaseSync();
+  v63Boot();
 }
