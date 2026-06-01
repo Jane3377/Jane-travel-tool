@@ -7,31 +7,14 @@ const base={meta:{title:"釜山小旅行手帳",subtitle:"把想去的海邊、�
 let data=loadData(),cur=data.days[0]?.key||data.trip.start,view="trip",drag=null,editingSpotId=null,editingHotelId=null,editingExpenseId=null,editingPlanId=null,adjustToastShown=false;
 function uid(){return crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random())}function $(id){return document.getElementById(id)}function esc(s){return String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m])).replaceAll("\\n","<br>")}function fmt(n){return Number(n||0).toLocaleString("zh-TW")}function parseLocalDate(s){const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)}function formatLocalDate(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}function short(k){if(!k)return"";const [y,m,d]=k.split("-");return `${Number(m)}/${Number(d)}`}function toast(m){$("toast").textContent=m;$("toast").classList.add("show");setTimeout(()=>$("toast").classList.remove("show"),1900)}
 function mkDays(s,e){let a=[];if(!s||!e)return a;let sd=parseLocalDate(s),ed=parseLocalDate(e),i=1;for(let d=new Date(sd);d<=ed;d.setDate(d.getDate()+1)){let k=formatLocalDate(d);a.push({key:k,label:`${d.getMonth()+1}/${d.getDate()}`,title:`Day ${i++}`})}return a}
-function loadData(){try{const s=JSON.parse(localStorage.getItem("travel_book_v8"))||JSON.parse(localStorage.getItem("travel_book_v7"))||{};let d=structuredClone(base);Object.assign(d,s);d.meta={...base.meta,...(s.meta||{})};d.trip={...base.trip,...(s.trip||{})};if(!d.trip.travelers){d.trip.travelers=[d.trip.a||"A",d.trip.b||"B"];d.trip.travelerCount=d.trip.travelers.length}d.flights={out:{...base.flights.out,...(s.flights?.out||{})},back:{...base.flights.back,...(s.flights?.back||{})}};if(!d.days?.length)d.days=mkDays(d.trip.start,d.trip.end);if(!d.packing?.length)d.packing=base.packing;if(!d.expenses)d.expenses=[];if(!d.dayCovers)d.dayCovers={};return d}catch(e){let d=structuredClone(base);d.days=mkDays(d.trip.start,d.trip.end);return d}}
-function save(){localStorage.setItem("travel_book_v8",JSON.stringify(data));render()}function silentSave(){localStorage.setItem("travel_book_v8",JSON.stringify(data))}function travelerName(v){if(v==="共同"||v==="未定")return v;return data.trip.travelers[Number(v)]||v||"未定"}function dayTitle(k){let d=data.days.find(x=>x.key==k);return d?`${d.title}｜${d.label}`:k}function hotelFor(k){return data.hotels.find(h=>k>=h.start&&k<=h.end)}function moneyTwd(item){return item.mode==="TWD"?Number(item.twd||0):Math.round(Number(item.foreign||0)*Number(data.trip.rate||0))}function moneyForeign(item){return item.mode==="TWD"?Math.round(Number(item.twd||0)/Number(data.trip.rate||1)):Number(item.foreign||0)}function payMethodLabel(v){return v==="cash"?"現金":v==="card"?"刷卡":v==="transfer"?"轉帳":v||"未定"}
-function init(){renderNav();render()}function renderNav(){$("tabs").innerHTML=views.map(v=>`<button class="tab ${v[0]==view?"active":""}" onclick="go('${v[0]}')">${v[1]}</button>`).join("");$("mobile").innerHTML=[["trip","旅遊地"],["planner","行程"],["spots","景點"],["budget","預算"],["photoBook","照片書"]].map(v=>`<button class="nav ${v[0]==view?"active":""}" onclick="go('${v[0]}')">${v[1]}</button>`).join("")}function go(v){view=v;views.forEach(x=>$(x[0]+"View").classList.toggle("hidden",x[0]!=v));renderNav();render();scrollTo(0,0)}
-function render(){renderHead();renderSide();renderTrip();renderPlanner();renderSpots();renderBudget();renderPacking();renderPhotoBook();renderHelp()}function renderHead(){$("titleText").textContent=data.meta.title||"我的旅跡手帳";document.title=data.meta.title||"我的旅跡手帳";$("subtitleText").textContent=data.meta.subtitle||base.meta.subtitle;$("sDest").textContent=data.trip.dest||"未設定";$("sDate").textContent=data.trip.start?`${short(data.trip.start)}-${short(data.trip.end)}`:"未設定"}function editTitle(){const v=prompt("請輸入旅行手帳標題",data.meta.title||"我的旅跡手帳");if(v!==null&&v.trim()){data.meta.title=v.trim();save()}}function editSubtitle(){const v=prompt("請輸入副標文字",data.meta.subtitle||base.meta.subtitle);if(v!==null&&v.trim()){data.meta.subtitle=v.trim();save()}}
-function renderSide(){$("days").innerHTML=data.days.map(d=>{let h=hotelFor(d.key),n=data.plans.filter(p=>p.day==d.key).length;return `<div class="day ${d.key==cur?"active":""}" onclick="cur='${d.key}';go('planner')"><b>${d.title}｜${d.label}</b><span>${n} 行程｜住宿：${h?esc(h.name):"未設定"}</span></div>`}).join("")}function optsDays(selected=""){return data.days.map(d=>`<option value="${d.key}" ${d.key==selected?"selected":""}>${d.label} ${d.title}</option>`).join("")}function optsPayer(selected="未定"){let opts=data.trip.travelers.map((n,i)=>[String(i),n]);opts.push(["共同","共同"],["未定","未定"]);return opts.map(x=>`<option value="${x[0]}" ${String(x[0])===String(selected)?"selected":""}>${esc(x[1])}</option>`).join("")}function optsPayMethod(selected="未定"){return [["cash","現金"],["card","刷卡"],["transfer","轉帳"],["未定","未定"]].map(x=>`<option value="${x[0]}" ${x[0]==selected?"selected":""}>${x[1]}</option>`).join("")}function countryOptions(){return Object.keys(currencyMap).map(c=>`<option value="${c}" ${data.trip.country==c?"selected":""}>${c}</option>`).join("")+`<option value="其他" ${data.trip.country=="其他"?"selected":""}>其他</option>`}
 function travelerInputs(){let out="";for(let i=0;i<Number(data.trip.travelerCount||1);i++)out+=`<div><label>旅伴 ${String.fromCharCode(65+i)} 名稱</label><input id="traveler${i}" value="${esc(data.trip.travelers[i]||String.fromCharCode(65+i))}"></div>`;return out}
-function renderTrip(){const h=editingHotelId?data.hotels.find(x=>x.id==editingHotelId):null;$("tripView").innerHTML=`<div class="section"><div><h2>旅遊地與機酒</h2><div class="hint">先整理旅行地、日期、幣別、航班、住宿。卡片右側箭頭可展開或收合。</div></div></div><details class="card" open><summary>① 旅遊地與旅伴</summary><div class="detailBody"><div class="three"><div><label>國家</label><select id="country" onchange="countryChanged()">${countryOptions()}</select></div><div><label>目的地 / 城市</label><input id="dest" value="${esc(data.trip.dest)}"></div><div><label>幣別</label><input id="currency" value="${esc(data.trip.currency)}"></div></div><div class="three"><div><label>出發日</label><input id="start" type="date" value="${data.trip.start}"></div><div><label>回程日</label><input id="end" type="date" value="${data.trip.end}"></div><div><label>匯率：1 ${esc(data.trip.currency)} = TWD</label><input id="rateSetup" type="number" step="0.0001" value="${data.trip.rate}"></div></div><div class="two"><div><label>旅遊人數</label><select id="travelerCount" onchange="previewTravelerCount()">${[1,2,3,4,5,6,7,8].map(n=>`<option value="${n}" ${Number(data.trip.travelerCount)==n?"selected":""}>${n} 人</option>`).join("")}</select></div><div><label>匯率查詢</label><button class="btn blue" style="width:100%" onclick="openRateSearch()">查看現在匯率</button></div></div><div class="grid2" id="travelerBox">${travelerInputs()}</div><div class="btns"><button class="btn dark" onclick="saveBasic()">儲存旅遊地設定</button></div></div></details><details class="card"><summary>② 航班與機場接送</summary><div class="detailBody"><div class="grid2"><div class="box blue"><h3>去程</h3>${flightForm("out")}</div><div class="box pink"><h3>回程</h3>${flightForm("back")}</div></div><div class="btns"><button class="btn dark" onclick="saveFlights()">儲存航班</button></div></div></details><details class="card" open><summary>③ 住宿</summary><div class="detailBody"><div class="three"><div><label>住宿名稱</label><input id="hname" value="${esc(h?.name||"")}"></div><div><label>入住日</label><select id="hstart">${optsDays(h?.start||"")}</select></div><div><label>退房日</label><select id="hend">${optsDays(h?.end||data.days.at(-1)?.key)}</select></div></div><label>地址</label><div class="two"><input id="haddr" value="${esc(h?.addr||"")}" placeholder="可手動貼上飯店地址"><button class="btn blue" onclick="searchHotelAddress()">搜尋地圖</button></div><label>備註</label><textarea id="hnote">${esc(h?.note||"")}</textarea><div class="btns"><button class="btn dark" onclick="saveHotel()">${h?"儲存住宿修改":"新增住宿"}</button>${h?'<button class="btn soft" onclick="editingHotelId=null;renderTrip()">取消編輯</button>':""}</div><div class="grid2" style="margin-top:10px">${data.hotels.map(hotelCard).join("")||'<div class="empty">尚未新增住宿</div>'}</div></div></details>`}
-function flightForm(k){let f=data.flights[k];return `<label>航班編號</label><input id="${k}no" value="${esc(f.no)}"><div class="two"><div><label>起飛機場</label><input id="${k}from" value="${esc(f.from)}"></div><div><label>降落機場</label><input id="${k}to" value="${esc(f.to)}"></div></div><div class="two"><div><label>起飛時間</label><input id="${k}dep" type="datetime-local" value="${f.dep}"></div><div><label>降落時間</label><input id="${k}arr" type="datetime-local" value="${f.arr}"></div></div><label>機場接送</label><textarea id="${k}transfer">${esc(f.transfer)}</textarea>`}
 function previewTravelerCount(){let n=Number($("travelerCount").value),old=data.trip.travelers||[],html="";for(let i=0;i<n;i++)html+=`<div><label>旅伴 ${String.fromCharCode(65+i)} 名稱</label><input id="traveler${i}" value="${esc(old[i]||String.fromCharCode(65+i))}"></div>`;$("travelerBox").innerHTML=html}function countryChanged(){const c=$("country").value;if(currencyMap[c]){$("currency").value=currencyMap[c];$("rateSetup").value=rateMap[currencyMap[c]]||data.trip.rate}}function openRateSearch(){open(`https://www.google.com/search?q=${encodeURIComponent((data.trip.currency||"KRW")+" TWD 匯率")}`,"_blank")}
-function saveBasic(){data.trip.country=$("country").value;data.trip.dest=$("dest").value;data.trip.currency=$("currency").value.toUpperCase();data.trip.start=$("start").value;data.trip.end=$("end").value;data.trip.rate=Number($("rateSetup").value||data.trip.rate||1);data.trip.travelerCount=Number($("travelerCount").value||1);data.trip.travelers=[];for(let i=0;i<data.trip.travelerCount;i++)data.trip.travelers.push($("traveler"+i).value||String.fromCharCode(65+i));data.days=mkDays(data.trip.start,data.trip.end);cur=data.days[0]?.key;save();toast("已儲存旅遊地設定")}function saveFlights(){["out","back"].forEach(k=>data.flights[k]={no:$(k+"no").value,from:$(k+"from").value,to:$(k+"to").value,dep:$(k+"dep").value,arr:$(k+"arr").value,transfer:$(k+"transfer").value});save();toast("已儲存航班")}
-function hotelCard(h){return `<div class="card"><div class="time">${short(h.start)}→${short(h.end)}</div><div class="place">${esc(h.name)}</div><div class="box mint">${esc(h.addr||"尚未填地址")}<br>${esc(h.note||"")}</div><div class="btns"><button class="small" onclick="editHotel('${h.id}')">編輯</button><button class="small" onclick="map('${encodeURIComponent((h.addr||h.name)+' '+data.trip.dest)}')">地圖</button><button class="small" onclick="addHotelExpense('${h.id}')">帶入預算</button><button class="small" onclick="delHotel('${h.id}')">刪除</button></div></div>`}function saveHotel(){if(!$("hname").value)return toast("請輸入住宿名稱");const item={name:$("hname").value,start:$("hstart").value,end:$("hend").value,addr:$("haddr").value,note:$("hnote").value};if(editingHotelId){Object.assign(data.hotels.find(x=>x.id==editingHotelId),item);editingHotelId=null}else data.hotels.push({id:uid(),...item});save()}function editHotel(id){editingHotelId=id;renderTrip();scrollTo(0,0)}function delHotel(id){if(!confirm("確定刪除住宿？"))return;data.hotels=data.hotels.filter(x=>x.id!=id);if(editingHotelId==id)editingHotelId=null;save()}function searchHotelAddress(){const name=$("hname").value;if(!name)return toast("請先輸入住宿名稱");map(encodeURIComponent(name+" "+data.trip.dest))}function addHotelExpense(id){const h=data.hotels.find(x=>x.id==id);data.expenses.push({id:uid(),source:"住宿",type:"住宿",name:`${short(h.start)}~${short(h.end)} ${h.name}`,payer:"未定",payMethod:"未定",day:"",mode:"TWD",foreign:0,twd:0,memo:"由住宿資料帶入，可編輯金額"});go("budget");toast("已帶入預算，可補金額")}
-function renderSpots(){const e=editingSpotId?data.spots.find(s=>s.id==editingSpotId):null;$("spotsView").innerHTML=`<div class="section"><div><h2>口袋景點</h2><div class="hint">新增時可以直接查地圖，也可以選擇是否立即排入行程。</div></div><button class="iconBtn smallIcon" onclick="clearSpotForm()">＋</button></div><div class="card"><div class="three"><div><label>名稱</label><input id="sn" value="${esc(e?.name||"")}"></div><div><label>分類</label><select id="st">${["景點","餐廳","咖啡廳","購物","雨天備案","其他"].map(t=>`<option ${e?.type==t?"selected":""}>${t}</option>`).join("")}</select></div><div><label>候選日期</label><select id="sd"><option value="">未排</option>${optsDays(e?.day||"")}</select></div></div><label>地址 / 區域</label><div class="two"><input id="sa" value="${esc(e?.addr||"")}"><button class="btn blue" onclick="mapSpotDraft()">查地圖</button></div><label>注意事項</label><textarea id="sm">${esc(e?.memo||"")}</textarea><div class="three"><div><label>排入行程？</label><select id="sToPlan"><option value="no">先放口袋</option><option value="yes">同步排入行程</option></select></div><div><label>預設開始</label><input id="sStart" type="time" value="10:00"></div><div><label>預設結束</label><input id="sEnd" type="time" value="11:30"></div></div><div class="btns"><button class="btn dark" onclick="saveSpot()">${e?"儲存景點修改":"加入景點"}</button>${e?'<button class="btn soft" onclick="clearSpotForm()">取消編輯</button>':""}</div></div><div class="grid2">${data.spots.map(s=>`<div class="card"><div class="time">${s.day?dayTitle(s.day):"未排"}</div><div class="place">${esc(s.name)}</div><div class="tags"><span class="tag">${esc(s.type)}</span><span class="tag blue">${esc(s.addr)}</span></div><div class="box pink">${esc(s.memo)}</div><div class="btns"><button class="btn soft" onclick="useSpot('${s.id}')">排入行程</button><button class="btn blue" onclick="map('${encodeURIComponent(s.name+' '+(s.addr||data.trip.dest))}')">地圖</button><button class="small" onclick="editSpot('${s.id}')">編輯</button><button class="small" onclick="delSpot('${s.id}')">刪除</button></div></div>`).join("")||'<div class="empty">尚未加入口袋景點</div>'}</div>`}
 function mapSpotDraft(){const q=($("sn").value+" "+$("sa").value+" "+data.trip.dest).trim();if(!$("sn").value)return toast("請先輸入景點名稱");map(encodeURIComponent(q))}function clearSpotForm(){editingSpotId=null;renderSpots()}function saveSpot(){if(!$("sn").value)return toast("請輸入名稱");const item={name:$("sn").value,type:$("st").value,day:$("sd").value,addr:$("sa").value,memo:$("sm").value};let id=editingSpotId;if(id){Object.assign(data.spots.find(x=>x.id==id),item);editingSpotId=null}else{id=uid();data.spots.push({id,...item})}if($("sToPlan").value==="yes"){let day=item.day||cur;data.plans.push({id:uid(),day,start:$("sStart").value,end:$("sEnd").value,type:["景點","餐廳","咖啡廳","購物","其他"].includes(item.type)?item.type:"景點",name:item.name,mode:"foreign",foreign:0,twd:0,payer:"未定",payMethod:"未定",note:item.memo,memo:"由口袋景點帶入",adjusted:false})}save()}function editSpot(id){editingSpotId=id;renderSpots();scrollTo(0,0)}function delSpot(id){if(!confirm("確定刪除景點？"))return;data.spots=data.spots.filter(x=>x.id!=id);if(editingSpotId==id)editingSpotId=null;save()}function useSpot(id){let s=data.spots.find(x=>x.id==id);go("planner");setTimeout(()=>{editingPlanId=null;renderPlanner();setTimeout(()=>{$("pday").value=s.day||cur;$("ptype").value=["景點","餐廳","咖啡廳","購物","其他"].includes(s.type)?s.type:"景點";$("pname").value=s.name;$("pnote").value=s.memo},20)},20)}
 function sortedPlans(day){return data.plans.filter(p=>p.day==day).sort((a,b)=>String(a.start).localeCompare(String(b.start))||String(a.end).localeCompare(String(b.end)))}
-function renderPlanner(){normalizePlanTimes(cur);let plans=sortedPlans(cur);$("plannerView").innerHTML=`<div class="section"><div><h2>${dayTitle(cur)}</h2><div class="hint">行程依開始時間排序。若交通抵達時間晚於下一個開始時間，系統會提醒並自動調整。</div></div><button class="iconBtn smallIcon" onclick="clearPlanForm()">＋</button></div><div class="card"><div class="four"><div><label>日期</label><select id="pday">${optsDays(cur)}</select></div><div><label>開始</label><input id="ps" type="time" value="10:00"></div><div><label>結束</label><input id="pe" type="time" value="11:30"></div><div><label>分類</label><select id="ptype"><option>景點</option><option>餐廳</option><option>咖啡廳</option><option>購物</option><option>其他</option></select></div></div><label>行程名稱</label><input id="pname"><div class="four"><div><label>${esc(data.trip.currency)} 金額</label><input id="pforeign" type="number" oninput="syncPlanMoney('f')"></div><div><label>TWD</label><input id="ptwd" type="number" oninput="syncPlanMoney('t')"></div><div><label>付款人</label><select id="pp">${optsPayer("未定")}</select></div><div><label>付款方式</label><select id="ppm">${optsPayMethod("未定")}</select></div></div><label>注意事項</label><textarea id="pnote"></textarea><label>備註</label><textarea id="pmemo"></textarea><div class="btns"><button class="btn dark" onclick="savePlanForm()">${editingPlanId?"儲存行程":"加入行程"}</button>${editingPlanId?'<button class="btn soft" onclick="clearPlanForm()">取消編輯 / 新增</button>':""}</div></div><div class="stats"><div class="stat"><span>本日行程</span><strong>${plans.length}</strong></div><div class="stat"><span>本日 TWD</span><strong>${fmt(plans.reduce((s,p)=>s+moneyTwd(p),0))}</strong></div><div class="stat"><span>本日 ${esc(data.trip.currency)}</span><strong>${fmt(plans.reduce((s,p)=>s+moneyForeign(p),0))}</strong></div><div class="stat"><span>全旅程</span><strong>${data.plans.length}</strong></div></div><div id="pcards">${planCards(plans)}</div>`;if(editingPlanId)fillPlanForm(editingPlanId)}
-function planCards(plans){if(!plans.length)return'<div class="empty">這天還沒有行程</div>';let html="";plans.forEach((p,i)=>{if(i>0)html+=connHtml(plans[i-1],p);html+=`<div class="card plan" data-id="${p.id}"><div class="section"><div><div class="time">${p.start}-${p.end}</div><div class="place">${esc(p.name)}</div><div class="tags"><span class="tag">${esc(p.type)}</span><span class="tag pink">${esc(travelerName(p.payer))}｜${esc(payMethodLabel(p.payMethod))}</span><span class="tag yellow">${esc(data.trip.currency)} ${fmt(moneyForeign(p))}</span><span class="tag blue">TWD ${fmt(moneyTwd(p))}</span>${p.adjusted?'<span class="tag green">已依交通調整</span>':""}</div></div><div><button class="small" onclick="routeCurrent('${encodeURIComponent(p.name+' '+data.trip.dest)}')">地圖</button><button class="small" onclick="editPlan('${p.id}')">編輯</button><button class="small" onclick="delPlan('${p.id}')">刪除</button></div></div><div class="grid2"><div class="box pink"><b>注意</b><br>${esc(p.note)}</div><div class="box blue"><b>備註</b><br>${esc(p.memo)}</div></div></div>`});return html}
 function connHtml(a,b){let c=data.conns.find(x=>x.a==a.id&&x.b==b.id);if(!c){c={id:uid(),a:a.id,b:b.id,mode:"大眾運輸",h:0,m:30,memo:"",fareForeign:0,fareTwd:0,payer:"未定",payMethod:"未定"};data.conns.push(c);silentSave()}const arrival=addMinutes(a.end,(Number(c.h||0)*60+Number(c.m||0)));const taxiBlock=c.mode==="開車/計程車"?`<div class="four" style="margin-top:8px"><div><label>車資 ${esc(data.trip.currency)}</label><input value="${c.fareForeign||""}" type="number" oninput="updConn('${c.id}','fareForeign',this.value)"></div><div><label>車資 TWD</label><input value="${c.fareTwd||""}" type="number" oninput="updConn('${c.id}','fareTwd',this.value)"></div><div><label>付款人</label><select onchange="updConn('${c.id}','payer',this.value)">${optsPayer(c.payer)}</select></div><div><label>付款方式</label><select onchange="updConn('${c.id}','payMethod',this.value)">${optsPayMethod(c.payMethod)}</select></div></div>`:"";return `<div class="connector"><div class="arrow">↓</div><div class="connbox"><div class="three"><div><label>交通</label><select onchange="changeConnMode('${c.id}',this.value)"><option ${c.mode=="大眾運輸"?"selected":""}>大眾運輸</option><option ${c.mode=="走路"?"selected":""}>走路</option><option ${c.mode=="開車/計程車"?"selected":""}>開車/計程車</option></select></div><div><label>預估時間</label><div class="two"><select onchange="updConn('${c.id}','h',this.value)">${hourOptions(c.h)}</select><select onchange="updConn('${c.id}','m',this.value)">${minuteOptions(c.m)}</select></div></div><div><label>預估抵達</label><input value="${arrival||""}" disabled></div></div>${taxiBlock}<div class="btns"><button class="btn blue" onclick="route('${encodeURIComponent(a.name+' '+data.trip.dest)}','${encodeURIComponent(b.name+' '+data.trip.dest)}','${c.mode}')">Google Maps 查路線</button></div><input value="${esc(c.memo)}" placeholder="交通備註" oninput="updConn('${c.id}','memo',this.value)"></div></div>`}
 function hourOptions(v){let out="";for(let h=0;h<=23;h++)out+=`<option value="${h}" ${Number(v)==h?"selected":""}>${h}時</option>`;return out}function minuteOptions(v){let out="";for(let m=0;m<=59;m++)out+=`<option value="${m}" ${Number(v)==m?"selected":""}>${m}分</option>`;return out}function changeConnMode(id,v){let c=data.conns.find(x=>x.id==id);c.mode=v;alert("交通方式已變更，建議重新開 Google Maps 查路線，並確認預估時間。");save()}function addMinutes(t,min){if(!t)return"";let [h,m]=t.split(":").map(Number),total=h*60+m+Number(min||0);total=((total%1440)+1440)%1440;return String(Math.floor(total/60)).padStart(2,"0")+":"+String(total%60).padStart(2,"0")}function diffMinutes(a,b){if(!a||!b)return 60;let [ah,am]=a.split(":").map(Number),[bh,bm]=b.split(":").map(Number);return Math.max(15,bh*60+bm-(ah*60+am))}function timeToMin(t){if(!t)return 0;let [h,m]=t.split(":").map(Number);return h*60+m}
 function normalizePlanTimes(day){let plans=sortedPlans(day),changed=false;for(let i=1;i<plans.length;i++){let prev=plans[i-1],curP=plans[i],c=data.conns.find(x=>x.a==prev.id&&x.b==curP.id);if(!c)continue;let arrival=addMinutes(prev.end,Number(c.h||0)*60+Number(c.m||0));if(arrival&&timeToMin(arrival)>timeToMin(curP.start)){let dur=diffMinutes(curP.start,curP.end);curP.start=arrival;curP.end=addMinutes(arrival,dur);curP.adjusted=true;changed=true}}if(changed){silentSave();if(!adjustToastShown){adjustToastShown=true;setTimeout(()=>toast("部分行程已依交通抵達時間自動調整"),100)}}}
 function syncPlanMoney(src){let rate=Number(data.trip.rate||1);if(src=="f")$("ptwd").value=Math.round(Number($("pforeign").value||0)*rate);else $("pforeign").value=Math.round(Number($("ptwd").value||0)/rate)}function savePlanForm(){if(!$("pname").value)return toast("請輸入行程名稱");let item={day:$("pday").value,start:$("ps").value,end:$("pe").value,type:$("ptype").value,name:$("pname").value,mode:"foreign",foreign:Number($("pforeign").value||0),twd:Number($("ptwd").value||0),payer:$("pp").value,payMethod:$("ppm").value,note:$("pnote").value,memo:$("pmemo").value,adjusted:false};if(editingPlanId){Object.assign(data.plans.find(p=>p.id==editingPlanId),item);editingPlanId=null}else data.plans.push({id:uid(),...item});cur=item.day;save()}function fillPlanForm(id){let p=data.plans.find(x=>x.id==id);if(!p)return;["pday","ps","pe","ptype","pname","pforeign","ptwd","pp","ppm","pnote","pmemo"].forEach((id2,i)=>$(id2).value=[p.day,p.start,p.end,p.type,p.name,moneyForeign(p),moneyTwd(p),p.payer,p.payMethod||"未定",p.note,p.memo][i])}function editPlan(id){editingPlanId=id;go("planner")}function clearPlanForm(){editingPlanId=null;renderPlanner();scrollTo(0,0)}function delPlan(id){if(!confirm("確定刪除行程？"))return;data.plans=data.plans.filter(x=>x.id!=id);data.conns=data.conns.filter(c=>c.a!=id&&c.b!=id);if(editingPlanId==id)editingPlanId=null;save()}function updConn(id,k,v){let c=data.conns.find(x=>x.id==id);c[k]=v;save()}function map(q){open("https://www.google.com/maps/search/?api=1&query="+q,"_blank")}function routeCurrent(q){map(q)}function route(a,b,m){let mode=m=="走路"?"walking":m=="開車/計程車"?"driving":"transit";open(`https://www.google.com/maps/dir/?api=1&origin=${a}&destination=${b}&travelmode=${mode}`,"_blank")}
-function renderBudget(){let planTotal=data.plans.reduce((s,x)=>s+moneyTwd(x),0),expTotal=data.expenses.reduce((s,x)=>s+moneyTwd(x),0),taxiTotal=data.conns.reduce((s,x)=>s+Number(x.fareTwd||0),0);$("budgetView").innerHTML=`<div class="section"><div><h2>預算總覽</h2><div class="hint">所有費用與行程支出都整合在這裡。</div></div><button class="iconBtn smallIcon" onclick="clearExpenseForm()">＋</button></div><div class="card"><div class="three"><div><label>費用類型</label><select id="etype"><option>機票</option><option>住宿</option><option>網路</option><option>旅平險</option><option>交通票券</option><option>景點票券</option><option>餐飲</option><option>購物</option><option>其他</option></select></div><div><label>項目</label><input id="ename"></div><div><label>付款人</label><select id="epayer">${optsPayer("未定")}</select></div></div><div class="four"><div><label>${esc(data.trip.currency)} 金額</label><input id="eforeign" type="number" oninput="syncExpenseMoney('f')"></div><div><label>TWD</label><input id="etwd" type="number" oninput="syncExpenseMoney('t')"></div><div><label>付款方式</label><select id="epm">${optsPayMethod("未定")}</select></div><div><label>日期</label><select id="eday"><option value="">不指定日期</option>${optsDays()}</select></div></div><label>備註</label><input id="ememo"><div class="btns"><button class="btn dark" onclick="saveExpenseForm()">${editingExpenseId?"儲存預算":"新增費用"}</button>${editingExpenseId?'<button class="btn soft" onclick="clearExpenseForm()">取消編輯 / 新增</button>':""}<button class="btn blue" onclick="openRateSearch()">查看現在匯率</button></div></div><div class="stats"><div class="stat"><span>額外費用 TWD</span><strong>${fmt(expTotal)}</strong></div><div class="stat"><span>行程 TWD</span><strong>${fmt(planTotal)}</strong></div><div class="stat"><span>計程車 TWD</span><strong>${fmt(taxiTotal)}</strong></div><div class="stat"><span>總 TWD</span><strong>${fmt(expTotal+planTotal+taxiTotal)}</strong></div></div><div class="table"><table><thead><tr><th>來源</th><th>日期</th><th>類型</th><th>項目</th><th>付款人</th><th>付款方式</th><th>${esc(data.trip.currency)}</th><th>TWD</th><th></th></tr></thead><tbody>${budgetRows()}</tbody></table></div>`;if(editingExpenseId)fillExpenseForm(editingExpenseId)}
-function budgetRows(){let rows=[];data.expenses.forEach(x=>rows.push(`<tr><td>${esc(x.source||"額外費用")}</td><td>${x.day?dayTitle(x.day):"—"}</td><td>${esc(x.type)}</td><td>${esc(x.name)}</td><td>${esc(travelerName(x.payer))}</td><td>${esc(payMethodLabel(x.payMethod))}</td><td>${fmt(moneyForeign(x))}</td><td>${fmt(moneyTwd(x))}</td><td><button class="small" onclick="editExpense('${x.id}')">編輯</button><button class="small" onclick="delExpense('${x.id}')">刪除</button></td></tr>`));data.plans.forEach(p=>rows.push(`<tr><td>行程</td><td>${dayTitle(p.day)}</td><td>${esc(p.type)}</td><td>${esc(p.name)}</td><td>${esc(travelerName(p.payer))}</td><td>${esc(payMethodLabel(p.payMethod))}</td><td>${fmt(moneyForeign(p))}</td><td>${fmt(moneyTwd(p))}</td><td><button class="small" onclick="editPlan('${p.id}')">編輯行程</button></td></tr>`));data.conns.filter(c=>Number(c.fareTwd||0)>0||Number(c.fareForeign||0)>0).forEach(c=>rows.push(`<tr><td>交通</td><td>—</td><td>${esc(c.mode)}</td><td>行程間交通</td><td>${esc(travelerName(c.payer))}</td><td>${esc(payMethodLabel(c.payMethod))}</td><td>${fmt(c.fareForeign||0)}</td><td>${fmt(c.fareTwd||0)}</td><td></td></tr>`));return rows.join("")||'<tr><td colspan="9">尚未新增預算</td></tr>'}function syncExpenseMoney(src){let rate=Number(data.trip.rate||1);if(src=="f")$("etwd").value=Math.round(Number($("eforeign").value||0)*rate);else $("eforeign").value=Math.round(Number($("etwd").value||0)/rate)}function saveExpenseForm(){if(!$("ename").value)return toast("請輸入項目");let item={source:"額外費用",type:$("etype").value,name:$("ename").value,payer:$("epayer").value,payMethod:$("epm").value,day:$("eday").value,mode:"foreign",foreign:Number($("eforeign").value||0),twd:Number($("etwd").value||0),memo:$("ememo").value};if(editingExpenseId){Object.assign(data.expenses.find(x=>x.id==editingExpenseId),item);editingExpenseId=null}else data.expenses.push({id:uid(),...item});save()}function fillExpenseForm(id){let x=data.expenses.find(e=>e.id==id);if(!x)return;$("etype").value=x.type;$("ename").value=x.name;$("epayer").value=x.payer;$("epm").value=x.payMethod||"未定";$("eday").value=x.day||"";$("eforeign").value=moneyForeign(x);$("etwd").value=moneyTwd(x);$("ememo").value=x.memo||""}function editExpense(id){editingExpenseId=id;renderBudget();scrollTo(0,0)}function clearExpenseForm(){editingExpenseId=null;renderBudget();scrollTo(0,0)}function delExpense(id){if(!confirm("確定刪除費用？"))return;data.expenses=data.expenses.filter(x=>x.id!=id);if(editingExpenseId==id)editingExpenseId=null;save()}
-function renderPacking(){let current=data.packView||"pre";let list=data.packing.filter(x=>x.type==current).map(x=>`<div class="check ${x.checked?"checked":""}"><input type="checkbox" ${x.checked?"checked":""} onchange="togglePack('${x.id}')"><div><strong>${esc(x.name)}</strong><div class="mini">${esc(x.note)}</div></div><button class="small" onclick="delPack('${x.id}')">刪除</button></div>`).join("");$("packingView").innerHTML=`<div class="section"><div><h2>行李清單</h2><div class="hint">依情境顯示清單。</div></div></div><div class="card"><label>清單情境</label><select id="packView" onchange="data.packView=this.value;save()"><option value="pre" ${current=="pre"?"selected":""}>出國前</option><option value="out" ${current=="out"?"selected":""}>離開飯店</option></select></div><div class="card"><div class="two"><div><label>新增項目</label><input id="pkn"></div><div><label>備註</label><input id="pkm"></div></div><div class="btns"><button class="btn dark" onclick="addPack()">新增到目前清單</button><button class="btn soft" onclick="data.packing.filter(x=>x.type==data.packView).forEach(x=>x.checked=false);save()">取消本清單勾選</button></div></div><div class="grid2">${list||'<div class="empty">這個清單尚無項目</div>'}</div>`}function addPack(){if(!$("pkn").value)return;data.packing.push({id:uid(),type:data.packView||"pre",name:$("pkn").value,note:$("pkm").value,checked:false});save()}function togglePack(id){let x=data.packing.find(i=>i.id==id);x.checked=!x.checked;save()}function delPack(id){data.packing=data.packing.filter(x=>x.id!=id);save()}
-function renderPhotoBook(){$("photoBookView").innerHTML=`<div class="section"><div><h2>照片旅遊書</h2><div class="hint">可選匯出風格，列印或存 PDF 時更像旅行書。</div></div><button class="btn soft noPrint" onclick="print()">匯出 PDF</button></div><div class="card noPrint"><div class="three"><div><label>照片書風格</label><select id="bookStyle" onchange="data.meta.bookStyle=this.value;save()"><option value="fresh" ${data.meta.bookStyle=="fresh"?"selected":""}>韓系清新</option><option value="fun" ${data.meta.bookStyle=="fun"?"selected":""}>活潑可愛</option><option value="diary" ${data.meta.bookStyle=="diary"?"selected":""}>手帳日記</option></select></div><div><label>照片日期</label><select id="phd">${optsDays(cur)}</select></div><div><label>照片標題</label><input id="pht"></div></div><label>選擇照片</label><input id="phf" type="file" accept="image/*"><label>照片日記</label><textarea id="phm" placeholder="這天的天氣、心情、最好吃的一餐、最喜歡的瞬間……"></textarea><div class="btns"><button class="btn dark" onclick="addPhoto()">壓縮並加入照片書</button></div></div><div class="bookStyle-${data.meta.bookStyle||"fresh"}"><div class="card"><h2>${esc(data.meta.title)}</h2><div class="box mint">${esc(data.meta.subtitle)}</div></div>${data.days.map(d=>photoBookDay(d)).join("")}</div>`}function photoBookDay(d){let plans=sortedPlans(d.key),photos=data.photos.filter(p=>p.day==d.key),cover=data.dayCovers[d.key];return `<div class="card bookDay"><div class="section"><div><h2>${d.title}｜${d.label}</h2><div class="hint">本日住宿：${hotelFor(d.key)?.name||"未設定"}</div></div><div class="noPrint"><input type="file" accept="image/*" onchange="addDayCover('${d.key}',this.files[0])"></div></div>${cover?`<img class="dayCover" src="${cover}">`:`<div class="dayCover" style="display:grid;place-items:center;color:#999">尚未上傳本日封面圖</div>`}<div>${plans.map(p=>`<div class="box blue" style="margin-bottom:8px"><b>${p.start}-${p.end}｜${esc(p.name)}</b><br>${esc(p.note||"")}</div>`).join("")||'<div class="empty">這天還沒有行程</div>'}</div><div class="grid2" style="margin-top:10px">${photos.map(p=>`<div class="photo"><img src="${p.src}"><h3>${esc(p.title||"照片紀錄")}</h3><p class="mini">${esc(p.memo)}</p><button class="small noPrint" onclick="delPhoto('${p.id}')">刪除</button></div>`).join("")||""}</div></div>`}async function addDayCover(day,file){if(!file)return;data.dayCovers[day]=await compress(file,1400,.78);save()}async function addPhoto(){let f=$("phf").files[0];if(!f)return toast("請選照片");let src=await compress(f,1200,.75);data.photos.unshift({id:uid(),day:$("phd").value,title:$("pht").value,memo:$("phm").value,src});save()}function delPhoto(id){data.photos=data.photos.filter(p=>p.id!=id);save()}function compress(file,maxW=1200,q=.75){return new Promise(res=>{let r=new FileReader();r.onload=e=>{let img=new Image();img.onload=()=>{let scale=Math.min(1,maxW/img.width),c=document.createElement("canvas");c.width=img.width*scale;c.height=img.height*scale;c.getContext("2d").drawImage(img,0,0,c.width,c.height);res(c.toDataURL("image/jpeg",q))};img.src=e.target.result};r.readAsDataURL(file)})}
-function renderHelp(){$("helpView").innerHTML=`<div class="section"><div><h2>說明與備份</h2><div class="hint">工具使用方式、資料備份與還原放在這裡。</div></div></div><div class="card"><h3>備份資料</h3><div class="box mint">匯出備份會下載 JSON 檔。匯入備份會覆蓋目前資料。</div><div class="btns"><button class="btn dark" onclick="exportBackup()">匯出備份</button><label class="btn soft" style="display:inline-block">匯入備份<input type="file" accept=".json,application/json" onchange="importBackup(this.files[0])" style="display:none"></label></div></div><div class="card"><h3>使用提醒</h3><div class="box blue">目前不使用付費 Google Maps API，所以地圖功能採用開啟 Google Maps 查詢，再手動貼地址或調整時間。</div></div>`}function exportBackup(){let blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`travel-book-backup-${new Date().toISOString().slice(0,10)}.json`;a.click();URL.revokeObjectURL(a.href)}function importBackup(file){if(!file)return;if(!confirm("匯入備份會覆蓋目前資料，確定繼續？"))return;let r=new FileReader();r.onload=e=>{try{data=JSON.parse(e.target.result);if(!data.days?.length)data.days=mkDays(data.trip.start,data.trip.end);localStorage.setItem("travel_book_v8",JSON.stringify(data));cur=data.days[0]?.key||data.trip.start;render();toast("已匯入備份")}catch(err){toast("備份檔格式錯誤")}};r.readAsText(file)}
 function sample(){data=structuredClone(base);data.meta.title="釜山小旅行手帳";data.meta.subtitle="把海風、咖啡廳、夜市小吃和想拍的街景慢慢收進行程裡，準備一趟剛剛好的釜山旅行。";data.trip={dest:"韓國釜山",country:"韓國",currency:"KRW",start:"2026-06-04",end:"2026-06-10",rate:.023,travelerCount:2,travelers:["Jane","Allen"]};data.days=mkDays(data.trip.start,data.trip.end);data.flights.out={no:"BX 範例去程",from:"TPE 桃園",to:"PUS 金海",dep:"2026-06-04T10:00",arr:"2026-06-04T13:20",transfer:"抵達後搭機場輕軌或計程車前往飯店。"};data.flights.back={no:"BX 範例回程",from:"PUS 金海",to:"TPE 桃園",dep:"2026-06-10T14:30",arr:"2026-06-10T16:10",transfer:"建議提早 3 小時出發。"};data.hotels=[{id:uid(),name:"城市律動",start:"2026-06-05",end:"2026-06-07",addr:"釜山西面站附近",note:"近地鐵，晚上回飯店方便。"}];data.expenses=[{id:uid(),source:"住宿",type:"住宿",name:"6/5~6/7 城市律動",payer:"1",payMethod:"card",day:"",mode:"TWD",foreign:0,twd:18000,memo:"範例"}];data.spots=[["甘川洞文化村","景點","2026-06-05"],["海雲台","景點","2026-06-06"],["西面商圈","購物","2026-06-07"]].map(x=>({id:uid(),name:x[0],type:x[1],day:x[2],addr:"釜山",memo:"範例口袋景點"}));cur=data.days[0].key;save();toast("已加入範例")}function resetAll(){if(!confirm("確定清除全部資料？"))return;localStorage.removeItem("travel_book_v8");data=loadData();cur=data.days[0].key;render()}
 const cityMap={
   "韓國":["釜山","首爾","濟州","大邱","仁川"],
@@ -44,137 +27,7 @@ const cityMap={
   "英國":["倫敦","愛丁堡"],
   "香港":["香港"]
 };
-function currentCity(){
-  if(data.trip.city)return data.trip.city;
-  const dest=data.trip.dest||"";
-  const list=cityMap[data.trip.country]||[];
-  const found=list.find(c=>dest.includes(c));
-  return found || list[0] || "";
-}
-function cityOptions(selected){
-  const list=cityMap[$("country")?.value || data.trip.country] || [];
-  return [`<option value="自訂" ${selected && !list.includes(selected)?"selected":""}>自訂 / 多城市</option>`]
-    .concat(list.map(c=>`<option value="${c}" ${selected==c?"selected":""}>${c}</option>`)).join("");
-}
-function updateDestByCity(){
-  const country=$("country").value;
-  const city=$("citySelect").value==="自訂" ? $("cityCustom").value.trim() : $("citySelect").value;
-  if(currencyMap[country]){
-    $("currency").value=currencyMap[country];
-    if(!$("rateSetup").value || Number($("rateSetup").value)===0) $("rateSetup").value=rateMap[currencyMap[country]]||data.trip.rate;
-  }
-  $("dest").value=[country,city].filter(Boolean).join("");
-}
-function refreshCityOptions(){
-  const country=$("country").value;
-  const list=cityMap[country]||[];
-  $("citySelect").innerHTML=cityOptions(list[0]||"");
-  $("cityCustom").value="";
-  updateDestByCity();
-}
-function countryChanged(){refreshCityOptions();}
-function renderTrip(){
-  const h=editingHotelId?data.hotels.find(x=>x.id==editingHotelId):null;
-  const selectedCity=currentCity();
-  const customCity=(cityMap[data.trip.country]||[]).includes(selectedCity)?"":selectedCity;
-  $("tripView").innerHTML=`<div class="section"><div><h2>🌏 旅遊地與機酒</h2><div class="hint">先整理旅行地、日期、幣別、航班、住宿。卡片右側箭頭可展開或收合。</div></div></div>
-<details class="card" open><summary>① 🌏 旅遊地與旅伴</summary><div class="detailBody">
-  <div class="three"><div><label>國家</label><select id="country" onchange="refreshCityOptions()">${countryOptions()}</select></div><div><label>城市</label><select id="citySelect" onchange="updateDestByCity()">${cityOptions(selectedCity)}</select></div><div><label>自訂城市 / 多城市</label><input id="cityCustom" value="${esc(customCity)}" oninput="updateDestByCity()" placeholder="例：釜山＋慶州"></div></div>
-  <div class="three"><div><label>目的地顯示名稱</label><input id="dest" value="${esc(data.trip.dest)}"></div><div><label>幣別</label><input id="currency" value="${esc(data.trip.currency)}"></div><div><label>匯率：1 ${esc(data.trip.currency)} = TWD</label><input id="rateSetup" type="number" step="0.0001" value="${data.trip.rate}"></div></div>
-  <div class="three"><div><label>出發日</label><input id="start" type="date" value="${data.trip.start}"></div><div><label>回程日</label><input id="end" type="date" value="${data.trip.end}"></div><div><label>匯率查詢</label><button class="btn blue compact" onclick="openRateSearch()">查看匯率</button></div></div>
-  <div class="two"><div><label>旅遊人數</label><select id="travelerCount" onchange="previewTravelerCount()">${[1,2,3,4,5,6,7,8].map(n=>`<option value="${n}" ${Number(data.trip.travelerCount)==n?"selected":""}>${n} 人</option>`).join("")}</select></div><div class="hint" style="align-self:end">付款人會依旅伴名稱顯示。</div></div>
-  <div class="grid2" id="travelerBox">${travelerInputs()}</div>
-  <div class="btns"><button class="btn dark" onclick="saveBasic()">儲存旅遊地設定</button></div>
-</div></details>
-
-<details class="card"><summary>② ✈️ 航班與機場接送</summary><div class="detailBody">
-  <div class="grid2"><div class="box blue"><h3>✈️ 去程</h3>${flightForm("out")}</div><div class="box pink"><h3>🏠 回程</h3>${flightForm("back")}</div></div>
-  <div class="btns"><button class="btn dark" onclick="saveFlights()">儲存航班</button><button class="btn soft" onclick="addFlightsToPlans()">帶入首尾行程</button></div>
-</div></details>
-
-<details class="card" open><summary>③ 🏨 住宿</summary><div class="detailBody">
-  <div class="three"><div><label>住宿名稱</label><input id="hname" value="${esc(h?.name||"")}"></div><div><label>入住日</label><select id="hstart">${optsDays(h?.start||"")}</select></div><div><label>退房日</label><select id="hend">${optsDays(h?.end||data.days.at(-1)?.key)}</select></div></div>
-  <label>地址</label><div class="two"><input id="haddr" value="${esc(h?.addr||"")}" placeholder="可手動貼上飯店地址"><button class="btn blue compact" onclick="searchHotelAddress()">搜尋地圖</button></div>
-  <label>備註</label><textarea id="hnote">${esc(h?.note||"")}</textarea>
-  <div class="btns"><button class="btn dark" onclick="saveHotel()">${h?"儲存住宿修改":"新增住宿"}</button>${h?'<button class="btn soft" onclick="editingHotelId=null;renderTrip()">取消編輯</button>':""}</div>
-  <div class="grid2" style="margin-top:10px">${data.hotels.map(hotelCard).join("")||'<div class="empty">尚未新增住宿</div>'}</div>
-</div></details>`;
-}
-function flightForm(k){
-  let f=data.flights[k];
-  const isOut=k==="out";
-  return `<label>航班編號</label><input id="${k}no" value="${esc(f.no)}">
-  <div class="two"><div><label>起飛機場</label><input id="${k}from" value="${esc(f.from)}"></div><div><label>降落機場</label><input id="${k}to" value="${esc(f.to)}"></div></div>
-  <div class="two"><div><label>起飛時間</label><input id="${k}dep" type="datetime-local" value="${f.dep}"></div><div><label>降落時間</label><input id="${k}arr" type="datetime-local" value="${f.arr}"></div></div>
-  <div class="flightMiniTitle">${isOut?"如何抵達出發機場":"如何從旅遊地前往回程機場"}</div>
-  <textarea id="${k}toAirport" placeholder="${isOut?"例：14:00 從家裡出發到桃園機場":"例：從飯店搭地鐵／計程車到金海機場"}">${esc(f.toAirport||"")}</textarea>
-  <div class="flightMiniTitle">${isOut?"如何從降落機場到旅遊地／飯店":"如何從抵達機場回家"}</div>
-  <textarea id="${k}fromAirport" placeholder="${isOut?"例：抵達金海機場後搭輕軌到飯店":"例：抵達桃園機場後搭機捷或接送回家"}">${esc(f.fromAirport||"")}</textarea>`;
-}
-function saveFlights(){
-  ["out","back"].forEach(k=>data.flights[k]={
-    no:$(k+"no").value,from:$(k+"from").value,to:$(k+"to").value,dep:$(k+"dep").value,arr:$(k+"arr").value,
-    toAirport:$(k+"toAirport").value,fromAirport:$(k+"fromAirport").value
-  });
-  save();toast("已儲存航班");
-}
-function saveBasic(){
-  data.trip.country=$("country").value;
-  const selected=$("citySelect").value;
-  data.trip.city=selected==="自訂"?$("cityCustom").value.trim():selected;
-  data.trip.dest=$("dest").value || [data.trip.country,data.trip.city].filter(Boolean).join("");
-  data.trip.currency=$("currency").value.toUpperCase();
-  data.trip.start=$("start").value; data.trip.end=$("end").value;
-  data.trip.rate=Number($("rateSetup").value||data.trip.rate||1);
-  data.trip.travelerCount=Number($("travelerCount").value||1);
-  data.trip.travelers=[];
-  for(let i=0;i<data.trip.travelerCount;i++)data.trip.travelers.push($("traveler"+i).value||String.fromCharCode(65+i));
-  data.days=mkDays(data.trip.start,data.trip.end); cur=data.days[0]?.key;
-  save();toast("已儲存旅遊地設定");
-}
-function timeFromDateTime(dt){return dt?dt.split("T")[1]||"":""}
-function dateFromDateTime(dt){return dt?dt.split("T")[0]||"":""}
-function addFlightPlan(day,start,end,type,name,note){
-  if(!day||!name)return;
-  data.plans.push({id:uid(),day,start:start||"",end:end||start||"",type,name,mode:"foreign",foreign:0,twd:0,payer:"未定",payMethod:"未定",note:note||"",memo:"由航班資料帶入",adjusted:false});
-}
-function addFlightsToPlans(){
-  saveFlights();
-  const out=data.flights.out, back=data.flights.back;
-  addFlightPlan(dateFromDateTime(out.dep)||data.trip.start,"14:00",timeFromDateTime(out.dep),"交通","前往出發機場",out.toAirport);
-  addFlightPlan(dateFromDateTime(out.dep)||data.trip.start,timeFromDateTime(out.dep),timeFromDateTime(out.arr),"航班",`搭乘去程航班 ${out.no||""}`,`${out.from||""} → ${out.to||""}`);
-  addFlightPlan(dateFromDateTime(out.arr)||data.trip.start,timeFromDateTime(out.arr),"", "交通","從機場前往飯店 / 市區",out.fromAirport);
-  addFlightPlan(dateFromDateTime(back.dep)||data.trip.end,"",timeFromDateTime(back.dep),"交通","從飯店前往回程機場",back.toAirport);
-  addFlightPlan(dateFromDateTime(back.dep)||data.trip.end,timeFromDateTime(back.dep),timeFromDateTime(back.arr),"航班",`搭乘回程航班 ${back.no||""}`,`${back.from||""} → ${back.to||""}`);
-  addFlightPlan(dateFromDateTime(back.arr)||data.trip.end,timeFromDateTime(back.arr),"", "交通","從機場回家",back.fromAirport);
-  save();toast("已把航班與機場接送帶入行程");
-}
-function renderSpots(){
-  const e=editingSpotId?data.spots.find(s=>s.id==editingSpotId):null;
-  $("spotsView").innerHTML=`<div class="section"><div><h2>📍 口袋景點</h2><div class="hint">新增時可以直接查地圖，也可以選擇是否立即排入行程。</div></div><button class="iconBtn smallIcon" onclick="clearSpotForm()">＋</button></div>
-  <div class="card"><div class="three"><div><label>名稱</label><input id="sn" value="${esc(e?.name||"")}"></div><div><label>分類</label><select id="st">${["景點","餐廳","咖啡廳","購物","雨天備案","其他"].map(t=>`<option ${e?.type==t?"selected":""}>${t}</option>`).join("")}</select></div><div><label>候選日期</label><select id="sd"><option value="">未排</option>${optsDays(e?.day||"")}</select></div></div>
-  <label>地址 / 區域</label><div class="two"><input id="sa" value="${esc(e?.addr||"")}"><button class="btn blue compact" onclick="mapSpotDraft()">查地圖</button></div>
-  <label>注意事項</label><textarea id="sm">${esc(e?.memo||"")}</textarea>
-  <div class="three"><div><label>排入行程？</label><select id="sToPlan"><option value="no">先放口袋</option><option value="yes">同步排入行程</option></select></div><div><label>預設開始</label><input id="sStart" type="time" value="10:00"></div><div><label>預設結束</label><input id="sEnd" type="time" value="11:30"></div></div>
-  <div class="btns"><button class="btn dark" onclick="saveSpot()">${e?"儲存景點修改":"加入景點"}</button>${e?'<button class="btn soft" onclick="clearSpotForm()">取消編輯</button>':""}</div></div>
-  <div class="grid2">${data.spots.map(s=>`<div class="card"><div class="time">${s.day?dayTitle(s.day):"未排"}</div><div class="place">${activityIcon(s.type)} ${esc(s.name)}</div><div class="tags"><span class="tag">${esc(s.type)}</span><span class="tag blue">${esc(s.addr)}</span></div><div class="box pink">${esc(s.memo)}</div><div class="btns"><button class="btn soft compact" onclick="useSpot('${s.id}')">排入行程</button><button class="btn blue compact" onclick="map('${encodeURIComponent(s.name+' '+(s.addr||data.trip.dest))}')">地圖</button><button class="small" onclick="editSpot('${s.id}')">編輯</button><button class="small" onclick="delSpot('${s.id}')">刪除</button></div></div>`).join("")||'<div class="empty">尚未加入口袋景點</div>'}</div>`;
-}
-function activityIcon(type){return type==="餐廳"?"🍜":type==="咖啡廳"?"☕":type==="購物"?"🛍️":type==="交通"||type==="航班"?"✈️":type==="雨天備案"?"☔":type==="其他"?"✨":"📍"}
 const oldPlanCards=planCards;
-function planCards(plans){
-  if(!plans.length)return'<div class="empty">這天還沒有行程</div>';
-  let html="";
-  plans.forEach((p,i)=>{
-    if(i>0)html+=connHtml(plans[i-1],p);
-    html+=`<div class="card plan" draggable="true" data-id="${p.id}"><div class="section"><div><div class="time">${p.start}-${p.end}</div><div class="place">${activityIcon(p.type)} ${esc(p.name)}</div><div class="tags"><span class="tag">${esc(p.type)}</span><span class="tag pink">${esc(travelerName(p.payer))}｜${esc(payMethodLabel(p.payMethod))}</span><span class="tag yellow">${esc(data.trip.currency)} ${fmt(moneyForeign(p))}</span><span class="tag blue">TWD ${fmt(moneyTwd(p))}</span>${p.adjusted?'<span class="tag green">已依交通調整</span>':""}</div></div><div><button class="small" onclick="routeCurrent('${encodeURIComponent(p.name+' '+data.trip.dest)}')">地圖</button><button class="small" onclick="editPlan('${p.id}')">編輯</button><button class="small" onclick="delPlan('${p.id}')">刪除</button></div></div><div class="grid2"><div class="box pink"><b>注意</b><br>${esc(p.note)}</div><div class="box blue"><b>備註</b><br>${esc(p.memo)}</div></div></div>`;
-  });
-  return html;
-}
-function renderPhotoBook(){
-  $("photoBookView").innerHTML=`<div class="section"><div><h2>📖 照片旅遊書</h2><div class="hint">可選匯出風格，列印或存 PDF 時更像旅行書。</div></div><button class="btn soft noPrint" onclick="print()">匯出 PDF</button></div>
-  <div class="card noPrint"><div class="stylePreview"><span class="styleChip">🌿 韓系清新</span><span class="styleChip">🌈 活潑可愛</span><span class="styleChip">✎ 手帳日記</span></div><div class="three"><div><label>照片書風格</label><select id="bookStyle" onchange="data.meta.bookStyle=this.value;save()"><option value="fresh" ${data.meta.bookStyle=="fresh"?"selected":""}>🌿 韓系清新</option><option value="fun" ${data.meta.bookStyle=="fun"?"selected":""}>🌈 活潑可愛</option><option value="diary" ${data.meta.bookStyle=="diary"?"selected":""}>✎ 手帳日記</option></select></div><div><label>照片日期</label><select id="phd">${optsDays(cur)}</select></div><div><label>照片標題</label><input id="pht"></div></div><label>選擇照片</label><input id="phf" type="file" accept="image/*"><label>照片日記</label><textarea id="phm" placeholder="這天的天氣、心情、最好吃的一餐、最喜歡的瞬間……"></textarea><div class="btns"><button class="btn dark" onclick="addPhoto()">壓縮並加入照片書</button></div></div>
-  <div class="bookStyle-${data.meta.bookStyle||"fresh"}"><div class="card"><h2>${esc(data.meta.title)}</h2><div class="box mint">${esc(data.meta.subtitle)}</div></div>${data.days.map(d=>photoBookDay(d)).join("")}</div>`;
-}
 const cityMapV10={
   "韓國":["釜山","首爾","濟州","大邱","仁川"],
   "日本":["東京","大阪","京都","福岡","札幌","沖繩","名古屋"],
@@ -217,21 +70,12 @@ const airportMapV10={
 const homeAirportsV10=["TPE 桃園國際機場","TSA 台北松山機場","KHH 高雄國際機場","RMQ 台中國際機場"];
 const terminalOptionsV10=["未定","第一航廈","第二航廈","第三航廈","國內線航廈","國際線航廈"];
 
-function countryOptions(){
-  return Object.keys(cityMapV10).map(c=>`<option value="${c}" ${data.trip.country==c?"selected":""}>${c==="歐洲"?"歐洲區域":c}</option>`).join("")+
-    `<option value="其他" ${data.trip.country=="其他"?"selected":""}>其他</option>`;
-}
 function currentCity(){
   if(data.trip.city)return data.trip.city;
   const dest=data.trip.dest||"";
   const list=cityMapV10[data.trip.country]||[];
   const found=list.find(c=>dest.includes(c));
   return found || list[0] || "";
-}
-function cityOptions(selected){
-  const list=cityMapV10[$("country")?.value || data.trip.country] || [];
-  return [`<option value="自訂" ${selected && !list.includes(selected)?"selected":""}>自訂 / 多城市</option>`]
-    .concat(list.map(c=>`<option value="${c}" ${selected==c?"selected":""}>${c}</option>`)).join("");
 }
 function destinationName(country,city){
   if(!country)return city||"";
@@ -240,23 +84,6 @@ function destinationName(country,city){
   if(country==="歐洲")return city ? `歐洲｜${city}` : "歐洲";
   return [country,city].filter(Boolean).join("");
 }
-function updateDestByCity(){
-  const country=$("country").value;
-  const city=$("citySelect").value==="自訂" ? $("cityCustom").value.trim() : $("citySelect").value;
-  if(currencyMap[country]){
-    $("currency").value=currencyMap[country];
-    if(!$("rateSetup").value || Number($("rateSetup").value)===0)$("rateSetup").value=rateMap[currencyMap[country]]||data.trip.rate;
-  }
-  $("dest").value=destinationName(country,city);
-}
-function refreshCityOptions(){
-  const country=$("country").value;
-  const list=cityMapV10[country]||[];
-  $("citySelect").innerHTML=cityOptions(list[0]||"");
-  $("cityCustom").value="";
-  updateDestByCity();
-}
-function countryChanged(){refreshCityOptions();}
 
 function airportListForCurrentDestination(){
   const city=currentCity();
@@ -273,73 +100,7 @@ function airportPresetSelect(id,targetId,list){
 function terminalSelect(id,value){
   return `<select id="${id}">${terminalOptionsV10.map(t=>`<option value="${t}" ${value==t?"selected":""}>${t}</option>`).join("")}</select>`;
 }
-function flightForm(k){
-  let f=data.flights[k];
-  const isOut=k==="out";
-  const destAirports=airportListForCurrentDestination();
-  const fromList=isOut?homeAirportsV10:destAirports;
-  const toList=isOut?destAirports:homeAirportsV10;
-  return `<label>航班編號</label><input id="${k}no" value="${esc(f.no)}">
-  <div class="two"><div><label>起飛機場</label>${airportPresetSelect(k+"fromPreset",k+"from",fromList)}<input id="${k}from" value="${esc(f.from)}" style="margin-top:6px"></div><div><label>起飛航廈</label>${terminalSelect(k+"fromTerminal",f.fromTerminal||"未定")}</div></div>
-  <div class="two"><div><label>降落機場</label>${airportPresetSelect(k+"toPreset",k+"to",toList)}<input id="${k}to" value="${esc(f.to)}" style="margin-top:6px"></div><div><label>降落航廈</label>${terminalSelect(k+"toTerminal",f.toTerminal||"未定")}</div></div>
-  <div class="two"><div><label>起飛時間</label><input id="${k}dep" type="datetime-local" value="${f.dep}"></div><div><label>降落時間</label><input id="${k}arr" type="datetime-local" value="${f.arr}"></div></div>
-  <div class="flightMiniTitle">${isOut?"如何抵達出發機場":"如何從旅遊地前往回程機場"}</div>
-  <textarea id="${k}toAirport" placeholder="${isOut?"例：14:00 從家裡出發到桃園機場":"例：從飯店搭地鐵／計程車到機場"}">${esc(f.toAirport||"")}</textarea>
-  <div class="flightMiniTitle">${isOut?"如何從降落機場到旅遊地／飯店":"如何從抵達機場回家"}</div>
-  <textarea id="${k}fromAirport" placeholder="${isOut?"例：抵達後搭輕軌／計程車到飯店":"例：抵達後搭機捷或接送回家"}">${esc(f.fromAirport||"")}</textarea>`;
-}
-function saveFlights(){
-  ["out","back"].forEach(k=>data.flights[k]={
-    no:$(k+"no").value,from:$(k+"from").value,to:$(k+"to").value,
-    fromTerminal:$(k+"fromTerminal").value,toTerminal:$(k+"toTerminal").value,
-    dep:$(k+"dep").value,arr:$(k+"arr").value,
-    toAirport:$(k+"toAirport").value,fromAirport:$(k+"fromAirport").value
-  });
-  save();toast("已儲存航班");
-}
-function saveBasic(){
-  data.trip.country=$("country").value;
-  const selected=$("citySelect").value;
-  data.trip.city=selected==="自訂"?$("cityCustom").value.trim():selected;
-  data.trip.dest=$("dest").value || destinationName(data.trip.country,data.trip.city);
-  data.trip.currency=$("currency").value.toUpperCase();
-  data.trip.start=$("start").value; data.trip.end=$("end").value;
-  data.trip.rate=Number($("rateSetup").value||data.trip.rate||1);
-  data.trip.travelerCount=Number($("travelerCount").value||1);
-  data.trip.travelers=[];
-  for(let i=0;i<data.trip.travelerCount;i++)data.trip.travelers.push($("traveler"+i).value||String.fromCharCode(65+i));
-  data.days=mkDays(data.trip.start,data.trip.end); cur=data.days[0]?.key;
-  save();toast("已儲存旅遊地設定");
-}
 
-function renderTrip(){
-  const h=editingHotelId?data.hotels.find(x=>x.id==editingHotelId):null;
-  const selectedCity=currentCity();
-  const customCity=(cityMapV10[data.trip.country]||[]).includes(selectedCity)?"":selectedCity;
-  $("tripView").innerHTML=`<div class="section"><div><h2>🌏 旅遊地與機酒</h2><div class="hint">先整理旅行地、日期、幣別、航班、住宿。卡片右側箭頭可展開或收合。</div></div></div>
-<details class="card" open><summary>① 🌏 旅遊地與旅伴</summary><div class="detailBody">
-  <div class="three"><div><label>國家 / 區域</label><select id="country" onchange="refreshCityOptions()">${countryOptions()}</select></div><div><label>城市 / 路線</label><select id="citySelect" onchange="updateDestByCity()">${cityOptions(selectedCity)}</select></div><div><label>自訂城市 / 多城市</label><input id="cityCustom" value="${esc(customCity)}" oninput="updateDestByCity()" placeholder="例：釜山＋慶州"></div></div>
-  <div class="three"><div><label>目的地顯示名稱</label><input id="dest" value="${esc(data.trip.dest)}"></div><div><label>幣別</label><input id="currency" value="${esc(data.trip.currency)}"></div><div><label>匯率：1 ${esc(data.trip.currency)} = TWD</label><input id="rateSetup" type="number" step="0.0001" value="${data.trip.rate}"></div></div>
-  <div class="three"><div><label>出發日</label><input id="start" type="date" value="${data.trip.start}"></div><div><label>回程日</label><input id="end" type="date" value="${data.trip.end}"></div><div><label>匯率查詢</label><button class="btn blue compact" onclick="openRateSearch()">查看匯率</button></div></div>
-  <div class="two"><div><label>旅遊人數</label><select id="travelerCount" onchange="previewTravelerCount()">${[1,2,3,4,5,6,7,8].map(n=>`<option value="${n}" ${Number(data.trip.travelerCount)==n?"selected":""}>${n} 人</option>`).join("")}</select></div><div class="hint" style="align-self:end">付款人會依旅伴名稱顯示。</div></div>
-  <div class="grid2" id="travelerBox">${travelerInputs()}</div>
-  <div class="btns"><button class="btn dark" onclick="saveBasic()">儲存旅遊地設定</button></div>
-</div></details>
-
-<details class="card"><summary>② ✈️ 航班與機場接送</summary><div class="detailBody">
-  <div class="grid2"><div class="box blue"><h3>✈️ 去程</h3>${flightForm("out")}</div><div class="box pink"><h3>🏠 回程</h3>${flightForm("back")}</div></div>
-  <div class="btns"><button class="btn dark" onclick="saveFlights()">儲存航班</button><button class="btn soft" onclick="addFlightsToPlans()">帶入首尾行程</button></div>
-  <div class="hint" style="margin-top:8px">航班帶入行程時會以「地點／交通節點」建立卡片，例如出發機場、航班、抵達機場、前往飯店，方便你後續補交通方式。</div>
-</div></details>
-
-<details class="card" open><summary>③ 🏨 住宿</summary><div class="detailBody">
-  <div class="three"><div><label>住宿名稱</label><input id="hname" value="${esc(h?.name||"")}"></div><div><label>入住日</label><select id="hstart">${optsDays(h?.start||"")}</select></div><div><label>退房日</label><select id="hend">${optsDays(h?.end||data.days.at(-1)?.key)}</select></div></div>
-  <label>地址</label><div class="two"><input id="haddr" value="${esc(h?.addr||"")}" placeholder="可手動貼上飯店地址"><button class="btn blue compact" onclick="searchHotelAddress()">搜尋地圖</button></div>
-  <label>備註</label><textarea id="hnote">${esc(h?.note||"")}</textarea>
-  <div class="btns"><button class="btn dark" onclick="saveHotel()">${h?"儲存住宿修改":"新增住宿"}</button><button class="btn soft" onclick="addHotelsToPlans()">帶入住宿行程</button>${h?'<button class="btn soft" onclick="editingHotelId=null;renderTrip()">取消編輯</button>':""}</div>
-  <div class="grid2" style="margin-top:10px">${data.hotels.map(hotelCard).join("")||'<div class="empty">尚未新增住宿</div>'}</div>
-</div></details>`;
-}
 function addFlightPlan(day,start,end,type,name,note){
   if(!day||!name)return;
   const exists=data.plans.some(p=>p.day===day && p.name===name && p.start===start);
@@ -385,16 +146,6 @@ function addHotelsToPlans(){
     });
   });
   save();toast("已將住宿出發／回飯店節點帶入行程");
-}
-function renderSide(){
-  $("days").innerHTML=data.days.map(d=>{
-    let h=hotelFor(d.key),n=data.plans.filter(p=>p.day==d.key).length;
-    return `<div class="day ${d.key==cur?"active":""}" onclick="cur='${d.key}';go('planner')"><b>${d.title}｜${d.label}</b><span>${n} 行程｜住宿：${h?esc(h.name):"未設定"}</span></div>`;
-  }).join("");
-  const side=document.querySelector(".panel");
-  if(side){
-    side.querySelector(".btns").innerHTML=`<button class="btn pink" onclick="generateAIPrompt()">產出 AI 提示詞</button><label class="btn blue" style="display:inline-block">匯入行程<input type="file" accept=".json,application/json,.txt,text/plain" onchange="importAIItinerary(this.files[0])" style="display:none"></label>`;
-  }
 }
 function aiSchemaText(){
   return `{
@@ -467,15 +218,6 @@ ${aiSchemaText()}`;
   if(navigator.clipboard){navigator.clipboard.writeText(prompt).then(()=>toast("已下載提示詞，也已複製到剪貼簿")).catch(()=>toast("已下載 AI 提示詞"))}
   else toast("已下載 AI 提示詞");
 }
-function normalizeImportedJsonText(text){
-  let t=text.trim();
-  if(t.startsWith("```")){
-    t=t.replace(/^```json/i,"").replace(/^```/,"").replace(/```$/,"").trim();
-  }
-  const first=t.indexOf("{"), last=t.lastIndexOf("}");
-  if(first>=0&&last>first)t=t.slice(first,last+1);
-  return t;
-}
 function importAIItinerary(file){
   if(!file)return;
   const r=new FileReader();
@@ -506,17 +248,6 @@ function importAIItinerary(file){
   };
   r.readAsText(file);
 }
-function renderHelp(){
-  $("helpView").innerHTML=`<div class="section"><div><h2>說明與備份</h2><div class="hint">工具使用方式、資料備份、AI 行程匯入與還原放在這裡。</div></div></div>
-  <div class="card"><h3>AI 行程提示詞與匯入</h3><div class="box mint">可以先按「產出 AI 提示詞」，把下載的文字貼給 AI。AI 回傳 JSON 後，存成 .json 或 .txt，再用「匯入行程」上傳，就會把 plans 匯入行程、spots 匯入口袋景點。</div><div class="btns"><button class="btn pink" onclick="generateAIPrompt()">產出 AI 提示詞</button><label class="btn blue" style="display:inline-block">匯入行程<input type="file" accept=".json,application/json,.txt,text/plain" onchange="importAIItinerary(this.files[0])" style="display:none"></label></div></div>
-  <div class="card"><h3>備份資料</h3><div class="box mint">匯出備份會下載 JSON 檔。匯入備份會覆蓋目前資料。</div><div class="btns"><button class="btn dark" onclick="exportBackup()">匯出備份</button><label class="btn soft" style="display:inline-block">匯入備份<input type="file" accept=".json,application/json" onchange="importBackup(this.files[0])" style="display:none"></label></div></div>
-  <div class="card"><h3>機場與地圖</h3><div class="box blue">選擇國家與城市後，航班欄位會提供常用機場快速選單。飯店與景點的地圖功能目前採用開啟 Google Maps 查詢，再手動貼地址。</div></div>
-  <div class="card"><h3>住宿與航班帶入行程</h3><div class="box pink">航班可以帶入首尾交通節點；住宿可以帶入入住、每日出發、回飯店節點。這些卡片仍可到行程頁編輯時間與內容。</div></div>`;
-}
-function countryOptions(){
-  return Object.keys(cityMapV10).map(c=>`<option value="${c}" ${data.trip.country==c?"selected":""}>${c==="歐洲"?"歐洲區域":c}</option>`).join("")+
-    `<option value="其他" ${data.trip.country=="其他"?"selected":""}>其他</option>`;
-}
 function cityOptions(selected){
   let list=cityMapV10[$("country")?.value || data.trip.country] || [];
   if(($("country")?.value || data.trip.country)==="歐洲")list=list.filter(c=>c!=="奧地利＋捷克");
@@ -526,131 +257,12 @@ function cityOptions(selected){
 function shouldShowCustomCity(country,cityValue){
   return country==="其他" || cityValue==="自訂";
 }
-function updateCustomCityVisibility(){
-  const box=$("customCityBox");
-  if(!box)return;
-  const country=$("country").value;
-  const cityValue=$("citySelect").value;
-  box.style.display=shouldShowCustomCity(country,cityValue)?"block":"none";
-}
-function updateDestByCity(){
-  const country=$("country").value;
-  if(currencyMap[country]){
-    $("currency").value=currencyMap[country];
-    if(!$("rateSetup").value || Number($("rateSetup").value)===0)$("rateSetup").value=rateMap[currencyMap[country]]||data.trip.rate;
-  }
-  updateCustomCityVisibility();
-}
-function refreshCityOptions(){
-  const country=$("country").value;
-  let list=cityMapV10[country]||[];
-  if(country==="歐洲")list=list.filter(c=>c!=="奧地利＋捷克");
-  $("citySelect").innerHTML=cityOptions(list[0]||"自訂");
-  $("cityCustom").value="";
-  updateDestByCity();
-}
 function buildDestinationFromFields(){
   const country=$("country").value;
   const cityValue=$("citySelect").value;
   const custom=$("cityCustom")?.value.trim()||"";
   const city=cityValue==="自訂"?custom:cityValue;
   return destinationName(country,city);
-}
-function saveBasic(){
-  data.trip.country=$("country").value;
-  const selected=$("citySelect").value;
-  data.trip.city=selected==="自訂"?$("cityCustom").value.trim():selected;
-  data.trip.dest=buildDestinationFromFields();
-  data.trip.currency=$("currency").value.toUpperCase();
-  data.trip.start=$("start").value; data.trip.end=$("end").value;
-  data.trip.rate=Number($("rateSetup").value||data.trip.rate||1);
-  data.trip.travelerCount=Number($("travelerCount").value||1);
-  data.trip.travelers=[];
-  for(let i=0;i<data.trip.travelerCount;i++)data.trip.travelers.push($("traveler"+i).value||String.fromCharCode(65+i));
-  data.days=mkDays(data.trip.start,data.trip.end); cur=data.days[0]?.key;
-  silentSave();
-  render();
-  const details=document.querySelectorAll("#tripView details.card");
-  if(details[0])details[0].removeAttribute("open");
-  toast("已儲存旅遊地設定");
-}
-function saveFlights(){
-  ["out","back"].forEach(k=>data.flights[k]={
-    no:$(k+"no").value,from:$(k+"from").value,to:$(k+"to").value,
-    fromTerminal:$(k+"fromTerminal").value,toTerminal:$(k+"toTerminal").value,
-    dep:$(k+"dep").value,arr:$(k+"arr").value,
-    toAirport:$(k+"toAirport").value,fromAirport:$(k+"fromAirport").value
-  });
-  silentSave();
-  render();
-  const details=document.querySelectorAll("#tripView details.card");
-  if(details[1])details[1].removeAttribute("open");
-  toast("已儲存航班");
-}
-function renderTrip(){
-  const h=editingHotelId?data.hotels.find(x=>x.id==editingHotelId):null;
-  const selectedCity=currentCity();
-  const cityList=(cityMapV10[data.trip.country]||[]).filter(c=>c!=="奧地利＋捷克");
-  const customCity=cityList.includes(selectedCity)?"":selectedCity;
-  const showCustom=shouldShowCustomCity(data.trip.country, cityList.includes(selectedCity)?selectedCity:"自訂");
-  $("tripView").innerHTML=`<div class="section"><div><h2>🌏 旅遊地與機酒</h2><div class="hint">選國家與城市後，系統會自動組成目的地；若選其他或自訂，再輸入目的地名稱。</div></div></div>
-<details class="card" open><summary>① 🌏 旅遊地與旅伴</summary><div class="detailBody">
-  <div class="three">
-    <div><label>國家 / 區域</label><select id="country" onchange="refreshCityOptions()">${countryOptions()}</select></div>
-    <div><label>城市 / 路線</label><select id="citySelect" onchange="updateDestByCity()">${cityOptions(selectedCity)}</select></div>
-    <div id="customCityBox" style="display:${showCustom?"block":"none"}"><label>自訂目的地名稱</label><input id="cityCustom" value="${esc(customCity)}" oninput="updateDestByCity()" placeholder="例：釜山＋慶州"></div>
-  </div>
-  <div class="two"><div><label>幣別</label><input id="currency" value="${esc(data.trip.currency)}"></div><div><label>匯率：1 ${esc(data.trip.currency)} = TWD</label><input id="rateSetup" type="number" step="0.0001" value="${data.trip.rate}"></div></div>
-  <div class="three"><div><label>出發日</label><input id="start" type="date" value="${data.trip.start}"></div><div><label>回程日</label><input id="end" type="date" value="${data.trip.end}"></div><div><label>匯率查詢</label><button class="btn blue compact" onclick="openRateSearch()">查看匯率</button></div></div>
-  <div class="two"><div><label>旅遊人數</label><select id="travelerCount" onchange="previewTravelerCount()">${[1,2,3,4,5,6,7,8].map(n=>`<option value="${n}" ${Number(data.trip.travelerCount)==n?"selected":""}>${n} 人</option>`).join("")}</select></div><div class="hint" style="align-self:end">目前目的地：${esc(data.trip.dest||"尚未設定")}</div></div>
-  <div class="grid2" id="travelerBox">${travelerInputs()}</div>
-  <div class="btns"><button class="btn dark" onclick="saveBasic()">儲存旅遊地設定</button></div>
-</div></details>
-
-<details class="card"><summary>② ✈️ 航班與機場接送</summary><div class="detailBody">
-  <div class="grid2"><div class="box blue"><h3>✈️ 去程</h3>${flightForm("out")}</div><div class="box pink"><h3>🏠 回程</h3>${flightForm("back")}</div></div>
-  <div class="btns"><button class="btn dark" onclick="saveFlights()">儲存航班</button><button class="btn soft" onclick="addFlightsToPlans()">帶入首尾行程</button></div>
-  <div class="hint" style="margin-top:8px">航班帶入行程時會以「地點／交通節點」建立卡片，例如出發機場、航班、抵達機場、前往飯店。</div>
-</div></details>
-
-<details class="card" open><summary>③ 🏨 住宿</summary><div class="detailBody">
-  <div class="three"><div><label>住宿名稱</label><input id="hname" value="${esc(h?.name||"")}"></div><div><label>入住日</label><select id="hstart">${optsDays(h?.start||"")}</select></div><div><label>退房日</label><select id="hend">${optsDays(h?.end||data.days.at(-1)?.key)}</select></div></div>
-  <label>地址</label><div class="two"><input id="haddr" value="${esc(h?.addr||"")}" placeholder="可手動貼上飯店地址"><button class="btn blue compact" onclick="searchHotelAddress()">搜尋地圖</button></div>
-  <label>備註</label><textarea id="hnote">${esc(h?.note||"")}</textarea>
-  <div class="btns"><button class="btn dark" onclick="saveHotel()">${h?"儲存住宿修改":"新增住宿"}</button><button class="btn soft" onclick="addHotelsToPlans()">帶入住宿行程</button>${h?'<button class="btn soft" onclick="editingHotelId=null;renderTrip()">取消編輯</button>':""}</div>
-  <div class="grid2" style="margin-top:10px">${data.hotels.map(hotelCard).join("")||'<div class="empty">尚未新增住宿</div>'}</div>
-</div></details>`;
-}
-function renderSide(){
-  $("days").innerHTML=data.days.map(d=>{
-    let h=hotelFor(d.key),n=data.plans.filter(p=>p.day==d.key).length;
-    return `<div class="day ${d.key==cur?"active":""}" onclick="cur='${d.key}';go('planner')"><b>${d.title}｜${d.label}</b><span>${n} 行程｜住宿：${h?esc(h.name):"未設定"}</span></div>`;
-  }).join("");
-  const side=document.querySelector(".panel");
-  if(side){
-    side.querySelector(".btns").innerHTML=`<button class="btn danger" onclick="clearAllPlans()">清除所有行程</button>`;
-  }
-}
-function clearAllPlans(){
-  if(!confirm("清除所有行程會刪除目前已排入的行程卡片與行程間交通連線。建議先到「說明」匯出備份，再繼續。確定要清除嗎？"))return;
-  data.plans=[];
-  data.conns=[];
-  silentSave();
-  render();
-  toast("已清除所有行程資料");
-}
-function spotsPromptSchema(){
-  return `{
-  "spots": [
-    {
-      "name": "景點或餐廳名稱",
-      "type": "景點/餐廳/咖啡廳/購物/雨天備案/其他",
-      "day": "YYYY-MM-DD，可留空",
-      "addr": "地址或區域",
-      "memo": "注意事項、推薦理由、適合時段"
-    }
-  ]
-}`;
 }
 function generateSpotAIPrompt(){
   const days=data.days.map(d=>`${d.key}（${d.title}｜${d.label}）`).join("\\n");
@@ -685,50 +297,6 @@ ${spotsPromptSchema()}`;
   URL.revokeObjectURL(a.href);
   if(navigator.clipboard){navigator.clipboard.writeText(prompt).then(()=>toast("已下載提示詞，也已複製到剪貼簿")).catch(()=>toast("已下載 AI 口袋景點提示詞"))}
   else toast("已下載 AI 口袋景點提示詞");
-}
-function normalizeImportedJsonText(text){
-  let t=text.trim();
-  if(t.startsWith("```"))t=t.replace(/^```json/i,"").replace(/^```/,"").replace(/```$/,"").trim();
-  const first=t.indexOf("{"),last=t.lastIndexOf("}");
-  if(first>=0&&last>first)t=t.slice(first,last+1);
-  return t;
-}
-function importSpotFile(file){
-  if(!file)return;
-  const r=new FileReader();
-  r.onload=e=>{
-    try{
-      const obj=JSON.parse(normalizeImportedJsonText(e.target.result));
-      const spots=Array.isArray(obj.spots)?obj.spots:(Array.isArray(obj)?obj:[]);
-      spots.forEach(s=>{
-        if(!s.name)return;
-        data.spots.push({id:uid(),name:String(s.name||""),type:String(s.type||"景點"),day:String(s.day||""),addr:String(s.addr||s.address||""),memo:String(s.memo||s.note||"")});
-      });
-      save();
-      toast(`已匯入 ${spots.length} 個口袋景點`);
-    }catch(err){
-      alert("匯入失敗：請確認 TXT 內容是純 JSON，且包含 spots。");
-    }
-  };
-  r.readAsText(file);
-}
-function renderSpots(){
-  const e=editingSpotId?data.spots.find(s=>s.id==editingSpotId):null;
-  $("spotsView").innerHTML=`<div class="section"><div><h2>📍 口袋景點</h2><div class="hint">可手動新增，也可以產出 AI 提示詞後匯入口袋景點 TXT/JSON。</div></div><button class="iconBtn smallIcon" onclick="clearSpotForm()">＋</button></div>
-  <div class="card"><div class="btns"><button class="btn pink compact" onclick="generateSpotAIPrompt()">AI 景點提示詞</button><label class="btn blue compact" style="display:inline-block">匯入口袋景點<input type="file" accept=".json,application/json,.txt,text/plain" onchange="importSpotFile(this.files[0])" style="display:none"></label></div></div>
-  <div class="card"><div class="three"><div><label>名稱</label><input id="sn" value="${esc(e?.name||"")}"></div><div><label>分類</label><select id="st">${["景點","餐廳","咖啡廳","購物","雨天備案","其他"].map(t=>`<option ${e?.type==t?"selected":""}>${t}</option>`).join("")}</select></div><div><label>候選日期</label><select id="sd"><option value="">未排</option>${optsDays(e?.day||"")}</select></div></div>
-  <label>地址 / 區域</label><div class="two"><input id="sa" value="${esc(e?.addr||"")}"><button class="btn blue compact" onclick="mapSpotDraft()">查地圖</button></div>
-  <label>注意事項</label><textarea id="sm">${esc(e?.memo||"")}</textarea>
-  <div class="three"><div><label>排入行程？</label><select id="sToPlan"><option value="no">先放口袋</option><option value="yes">同步排入行程</option></select></div><div><label>預設開始</label><input id="sStart" type="time" value="10:00"></div><div><label>預設結束</label><input id="sEnd" type="time" value="11:30"></div></div>
-  <div class="btns"><button class="btn dark" onclick="saveSpot()">${e?"儲存景點修改":"加入景點"}</button>${e?'<button class="btn soft" onclick="clearSpotForm()">取消編輯</button>':""}</div></div>
-  <div class="grid2">${data.spots.map(s=>`<div class="card"><div class="time">${s.day?dayTitle(s.day):"未排"}</div><div class="place">${activityIcon(s.type)} ${esc(s.name)}</div><div class="tags"><span class="tag">${esc(s.type)}</span><span class="tag blue">${esc(s.addr)}</span></div><div class="box pink">${esc(s.memo)}</div><div class="btns"><button class="btn soft compact" onclick="useSpot('${s.id}')">排入行程</button><button class="btn blue compact" onclick="map('${encodeURIComponent(s.name+' '+(s.addr||data.trip.dest))}')">地圖</button><button class="small" onclick="editSpot('${s.id}')">編輯</button><button class="small" onclick="delSpot('${s.id}')">刪除</button></div></div>`).join("")||'<div class="empty">尚未加入口袋景點</div>'}</div>`;
-}
-function renderHelp(){
-  $("helpView").innerHTML=`<div class="section"><div><h2>說明與備份</h2><div class="hint">工具使用方式、資料備份與還原放在這裡。</div></div></div>
-  <div class="card"><h3>口袋景點 AI 匯入</h3><div class="box mint">到「口袋景點」按「AI 景點提示詞」，把下載的提示詞貼給 AI。AI 回傳純 JSON 後，存成 .txt 或 .json，再匯入口袋景點。</div></div>
-  <div class="card"><h3>備份資料</h3><div class="box mint">匯出備份會下載 JSON 檔。匯入備份會覆蓋目前資料。</div><div class="btns"><button class="btn dark" onclick="exportBackup()">匯出備份</button><label class="btn soft" style="display:inline-block">匯入備份<input type="file" accept=".json,application/json" onchange="importBackup(this.files[0])" style="display:none"></label></div></div>
-  <div class="card"><h3>手機版介面</h3><div class="box blue">旅行日曆在手機版改成橫向滑動，不再一直置頂，避免佔住畫面。主要操作可用底部導覽切換。</div></div>
-  <div class="card"><h3>機場與地圖</h3><div class="box blue">選擇國家與城市後，航班欄位會提供常用機場快速選單。飯店與景點的地圖功能目前採用開啟 Google Maps 查詢，再手動貼地址。</div></div>`;
 }
 const cityMapFinal={
   "韓國":["釜山","首爾","濟州","大邱","仁川"],
@@ -779,83 +347,6 @@ function finalRefreshCities(){
   }
   finalToggleCustom();
 }
-function countryChanged(){finalRefreshCities();}
-function saveBasic(){
-  const country=$("country").value;
-  const city=$("citySelect").value==="自訂"?$("cityCustom").value.trim():$("citySelect").value;
-  data.trip.country=country;
-  data.trip.city=city;
-  data.trip.dest=finalDestName(country,city);
-  data.trip.currency=$("currency").value.toUpperCase();
-  data.trip.start=$("start").value;
-  data.trip.end=$("end").value;
-  data.trip.rate=Number($("rateSetup").value||data.trip.rate||1);
-  data.trip.travelerCount=Number($("travelerCount").value||1);
-  data.trip.travelers=[];
-  for(let i=0;i<data.trip.travelerCount;i++)data.trip.travelers.push($("traveler"+i).value||String.fromCharCode(65+i));
-  data.days=mkDays(data.trip.start,data.trip.end);
-  cur=data.days[0]?.key||data.trip.start;
-  silentSave();
-  render();
-  const d=document.querySelector("#tripView details.card");
-  if(d)d.removeAttribute("open");
-  toast("已儲存旅遊地設定");
-}
-function renderTrip(){
-  const h=editingHotelId?data.hotels.find(x=>x.id==editingHotelId):null;
-  const selectedCity=finalCurrentCity();
-  const list=cityMapFinal[data.trip.country]||[];
-  const customCity=list.includes(selectedCity)?"":selectedCity;
-  const showCustom=data.trip.country==="其他"||!list.includes(selectedCity);
-  $("tripView").innerHTML=`<div class="section"><div><h2>🌏 旅遊地與機酒</h2><div class="hint">選國家與城市後，系統會自動組成目的地；若選其他或自訂，再輸入目的地名稱。</div></div></div>
-  <details class="card" open><summary>① 🌏 旅遊地與旅伴</summary><div class="detailBody">
-    <div class="three">
-      <div><label>國家 / 區域</label><select id="country" onchange="finalRefreshCities()">${finalCountryOptions()}</select></div>
-      <div><label>城市 / 路線</label><select id="citySelect" onchange="finalToggleCustom()">${finalCityOptions(selectedCity)}</select></div>
-      <div id="customCityBox" style="display:${showCustom?"block":"none"}"><label>自訂目的地名稱</label><input id="cityCustom" value="${esc(customCity)}" placeholder="例：釜山＋慶州"></div>
-    </div>
-    <div class="two"><div><label>幣別</label><input id="currency" value="${esc(data.trip.currency)}"></div><div><label>匯率：1 ${esc(data.trip.currency)} = TWD</label><input id="rateSetup" type="number" step="0.0001" value="${data.trip.rate}"></div></div>
-    <div class="three"><div><label>出發日</label><input id="start" type="date" value="${data.trip.start}"></div><div><label>回程日</label><input id="end" type="date" value="${data.trip.end}"></div><div><label>匯率查詢</label><button class="btn blue compact" onclick="openRateSearch()">查看匯率</button></div></div>
-    <div class="two"><div><label>旅遊人數</label><select id="travelerCount" onchange="previewTravelerCount()">${[1,2,3,4,5,6,7,8].map(n=>`<option value="${n}" ${Number(data.trip.travelerCount)==n?"selected":""}>${n} 人</option>`).join("")}</select></div><div class="hint" style="align-self:end">目前目的地：${esc(data.trip.dest||"尚未設定")}</div></div>
-    <div class="grid2" id="travelerBox">${travelerInputs()}</div>
-    <div class="btns"><button class="btn dark" onclick="saveBasic()">儲存旅遊地設定</button></div>
-  </div></details>
-  <details class="card"><summary>② ✈️ 航班與機場接送</summary><div class="detailBody"><div class="grid2"><div class="box blue"><h3>✈️ 去程</h3>${flightForm("out")}</div><div class="box pink"><h3>🏠 回程</h3>${flightForm("back")}</div></div><div class="btns"><button class="btn dark" onclick="saveFlights()">儲存航班</button></div></div></details>
-  <details class="card" open><summary>③ 🏨 住宿</summary><div class="detailBody">
-    <div class="three"><div><label>住宿名稱</label><input id="hname" value="${esc(h?.name||"")}"></div><div><label>入住日</label><select id="hstart">${optsDays(h?.start||"")}</select></div><div><label>退房日</label><select id="hend">${optsDays(h?.end||data.days.at(-1)?.key)}</select></div></div>
-    <label>地址</label><div class="two"><input id="haddr" value="${esc(h?.addr||"")}" placeholder="可手動貼上飯店地址"><button class="btn blue compact" onclick="searchHotelAddress()">搜尋地圖</button></div>
-    <label>備註</label><textarea id="hnote">${esc(h?.note||"")}</textarea>
-    <div class="btns"><button class="btn dark" onclick="saveHotel()">${h?"儲存住宿修改":"新增住宿"}</button>${h?'<button class="btn soft" onclick="editingHotelId=null;renderTrip()">取消編輯</button>':""}</div>
-    <div class="grid2" style="margin-top:10px">${data.hotels.map(hotelCard).join("")||'<div class="empty">尚未新增住宿</div>'}</div>
-  </div></details>`;
-}
-function renderSide(){
-  $("days").innerHTML=data.days.map(d=>{
-    let h=hotelFor(d.key),n=data.plans.filter(p=>p.day==d.key).length;
-    return `<div class="day ${d.key==cur?"active":""}" onclick="cur='${d.key}';go('planner')"><b>${d.title}｜${d.label}</b><span>${n} 行程｜住宿：${h?esc(h.name):"未設定"}</span></div>`;
-  }).join("");
-  const side=document.querySelector(".panel");
-  const btns=side?.querySelector(".btns");
-  if(btns)btns.innerHTML=`<button class="btn danger compact" onclick="clearAllPlans()">清除所有行程</button>`;
-}
-function clearAllPlans(){
-  if(!confirm("清除所有行程會刪除目前已排入的行程卡片與行程間交通連線。建議先到「說明」匯出備份，再繼續。確定要清除嗎？"))return;
-  data.plans=[];data.conns=[];silentSave();render();toast("已清除所有行程資料");
-}
-function renderPlanner(){
-  normalizePlanTimes(cur);
-  let plans=sortedPlans(cur);
-  $("plannerView").innerHTML=`<div class="section"><div><h2>${dayTitle(cur)}</h2><div class="hint">住宿：${hotelFor(cur)?.name||"未設定"}。行程依開始時間排序。</div></div><button class="iconBtn smallIcon" onclick="clearPlanForm()">＋</button></div>
-  <details class="card" ${editingPlanId?"open":""}><summary>${editingPlanId?"編輯行程":"＋ 新增行程"}</summary><div class="detailBody">
-    <div class="four"><div><label>日期</label><select id="pday">${optsDays(cur)}</select></div><div><label>開始</label><input id="ps" type="time" value="10:00"></div><div><label>結束</label><input id="pe" type="time" value="11:30"></div><div><label>分類</label><select id="ptype"><option>景點</option><option>餐廳</option><option>咖啡廳</option><option>購物</option><option>交通</option><option>航班</option><option>住宿</option><option>其他</option></select></div></div>
-    <label>行程名稱</label><input id="pname">
-    <div class="four"><div><label>${esc(data.trip.currency)} 金額</label><input id="pforeign" type="number" oninput="syncPlanMoney('f')"></div><div><label>TWD</label><input id="ptwd" type="number" oninput="syncPlanMoney('t')"></div><div><label>付款人</label><select id="pp">${optsPayer("未定")}</select></div><div><label>付款方式</label><select id="ppm">${optsPayMethod("未定")}</select></div></div>
-    <label>注意事項</label><textarea id="pnote"></textarea><label>備註</label><textarea id="pmemo"></textarea>
-    <div class="btns"><button class="btn dark" onclick="savePlanForm()">${editingPlanId?"儲存行程":"加入行程"}</button>${editingPlanId?'<button class="btn soft" onclick="clearPlanForm()">取消編輯 / 新增</button>':""}</div>
-  </div></details>
-  <div id="pcards">${planCards(plans)}</div>`;
-  if(editingPlanId)fillPlanForm(editingPlanId);
-}
 function finalSpotPromptText(){
   const days=data.days.map(d=>`${d.key}（${d.title}｜${d.label}）`).join("\n");
   const hotels=data.hotels.map(h=>`${short(h.start)}~${short(h.end)} ${h.name}${h.addr?("，地址/區域："+h.addr):""}`).join("\n")||"尚未設定住宿";
@@ -904,220 +395,7 @@ function showSpotPrompt(){const m=ensurePromptModal();document.getElementById("a
 function closeSpotPrompt(){document.getElementById("aiPromptModal")?.classList.remove("show");}
 function copySpotPrompt(){const t=document.getElementById("aiPromptText");t.select();document.execCommand("copy");toast("已複製提示詞");}
 function finalCleanJson(t){t=String(t||"").trim();if(t.startsWith("```"))t=t.replace(/^```json/i,"").replace(/^```/,"").replace(/```$/,"").trim();let a=t.indexOf("{"),b=t.lastIndexOf("}");return a>=0&&b>a?t.slice(a,b+1):t;}
-function importSpotFile(file){
-  if(!file)return;
-  const r=new FileReader();
-  r.onload=e=>{
-    try{
-      const obj=JSON.parse(finalCleanJson(e.target.result));
-      const spots=Array.isArray(obj.spots)?obj.spots:(Array.isArray(obj)?obj:[]);
-      spots.forEach(s=>{
-        if(!s.name)return;
-        data.spots.push({id:uid(),name:String(s.name||""),type:String(s.type||"景點"),day:String(s.day||""),addr:String(s.addr||s.address||""),memo:String(s.memo||s.note||""),source:"AI匯入"});
-      });
-      save();
-      toast(`已匯入 ${spots.length} 個口袋景點`);
-    }catch(err){alert("匯入失敗：請確認 TXT/JSON 內容是純 JSON，且包含 spots。");}
-  };
-  r.readAsText(file);
-}
-function renderSpots(){
-  const e=editingSpotId?data.spots.find(s=>s.id==editingSpotId):null;
-  $("spotsView").innerHTML=`<div class="section"><div><h2>📍 口袋景點</h2><div class="hint">可手動新增，也可以用 AI 產出 TXT/JSON 後匯入。</div></div><button class="iconBtn smallIcon" onclick="clearSpotForm()">＋</button></div>
-  <div class="card"><div class="btns"><button class="btn pink compact" onclick="showSpotPrompt()">AI 景點提示詞</button><label class="btn blue compact" style="display:inline-block">匯入口袋景點<input type="file" accept=".json,application/json,.txt,text/plain" onchange="importSpotFile(this.files[0])" style="display:none"></label></div></div>
-  <div class="card"><div class="three"><div><label>名稱</label><input id="sn" value="${esc(e?.name||"")}"></div><div><label>分類</label><select id="st">${["景點","餐廳","咖啡廳","購物","雨天備案","其他"].map(t=>`<option ${e?.type==t?"selected":""}>${t}</option>`).join("")}</select></div><div><label>候選日期</label><select id="sd"><option value="">未排</option>${optsDays(e?.day||"")}</select></div></div>
-  <label>地址 / 區域</label><div class="two"><input id="sa" value="${esc(e?.addr||"")}"><button class="btn blue compact" onclick="mapSpotDraft()">查地圖</button></div>
-  <label>注意事項</label><textarea id="sm">${esc(e?.memo||"")}</textarea>
-  <div class="three"><div><label>排入行程？</label><select id="sToPlan"><option value="no">先放口袋</option><option value="yes">同步排入行程</option></select></div><div><label>預設開始</label><input id="sStart" type="time" value="10:00"></div><div><label>預設結束</label><input id="sEnd" type="time" value="11:30"></div></div>
-  <div class="btns"><button class="btn dark" onclick="saveSpot()">${e?"儲存景點修改":"加入景點"}</button>${e?'<button class="btn soft" onclick="clearSpotForm()">取消編輯</button>':""}</div></div>
-  <div class="grid2">${data.spots.map(s=>`<div class="card"><div class="time">${s.day?dayTitle(s.day):"未排"}</div><div class="place">${esc(s.name)}</div><div class="tags"><span class="tag">${esc(s.type)}</span><span class="tag blue">${esc(s.addr)}</span>${s.source==="AI匯入"?'<span class="tag green">📥 AI 匯入</span>':""}</div><div class="box pink">${esc(s.memo)}</div><div class="btns"><button class="btn soft compact" onclick="useSpot('${s.id}')">排入行程</button><button class="btn blue compact" onclick="map('${encodeURIComponent(s.name+' '+(s.addr||data.trip.dest))}')">地圖</button><button class="small" onclick="editSpot('${s.id}')">編輯</button><button class="small" onclick="delSpot('${s.id}')">刪除</button></div></div>`).join("")||'<div class="empty">尚未加入口袋景點</div>'}</div>`;
-}
-function templateCard(k,title,desc){return `<div class="templateCard ${data.meta.bookStyle===k?"active":""}" onclick="data.meta.bookStyle='${k}';save()"><b>${title}</b><span class="mini">${desc}</span></div>`}
-function renderPhotoBook(){
-  $("photoBookView").innerHTML=`<div class="section"><div><h2>📖 照片旅遊書</h2><div class="hint">選模板後，預覽與匯出 PDF 都會套用不同風格。</div></div><button class="btn soft noPrint" onclick="print()">匯出 PDF</button></div>
-  <div class="card noPrint"><label>照片書模板</label><div class="templateRail">${templateCard("fresh","🌿 韓系清新","米白淡綠、乾淨圓角")}${templateCard("fun","🌈 活潑可愛","貼紙感、虛線框、繽紛")}${templateCard("diary","✎ 手帳日記","紙張格線、手寫感")}</div>
-  <div class="three"><div><label>照片日期</label><select id="phd">${optsDays(cur)}</select></div><div><label>照片標題</label><input id="pht"></div><div><label>選擇照片</label><input id="phf" type="file" accept="image/*"></div></div><label>照片日記</label><textarea id="phm" placeholder="這天的天氣、心情、最好吃的一餐、最喜歡的瞬間……"></textarea><div class="btns"><button class="btn dark" onclick="addPhoto()">壓縮並加入照片書</button></div></div>
-  <div class="bookTemplate ${data.meta.bookStyle||"fresh"}"><div class="card"><h2>${esc(data.meta.title)}</h2><div class="box mint">${esc(data.meta.subtitle)}</div></div>${data.days.map(d=>photoBookDay(d)).join("")}</div>`;
-}
-function renderHelp(){
-  $("helpView").innerHTML=`<div class="section"><div><h2>說明與備份</h2><div class="hint">工具使用方式、資料備份與還原放在這裡。</div></div></div>
-  <div class="card"><h3>AI 口袋景點</h3><div class="box mint">在「口袋景點」按「AI 景點提示詞」可開啟彈窗並複製提示詞。AI 回傳 .txt 或 .json 後可匯入，匯入的景點會標示 📥 AI 匯入。</div></div>
-  <div class="card"><h3>備份資料</h3><div class="box mint">匯出備份會下載 JSON 檔。匯入備份會覆蓋目前資料。</div><div class="btns"><button class="btn dark" onclick="exportBackup()">匯出備份</button><label class="btn soft" style="display:inline-block">匯入備份<input type="file" accept=".json,application/json" onchange="importBackup(this.files[0])" style="display:none"></label></div></div>
-  <div class="card"><h3>手機版介面</h3><div class="box blue">旅行日曆在手機版是橫向滑動日期卡，不再一直置頂。行程頁已移除本日統計卡，預算統計集中在預算頁。</div></div>
-  <div class="card"><h3>機場與地圖</h3><div class="box blue">目前不使用付費 Google Maps API，所以地圖功能採用開啟 Google Maps 查詢，再手動貼地址或調整交通時間。</div></div>`;
-}
-function v15CountryCityMaps(){
-  return {
-    cityMap:{
-      "韓國":["釜山","首爾","濟州","大邱","仁川"],
-      "日本":["東京","大阪","京都","福岡","札幌","沖繩","名古屋"],
-      "香港":["香港"],
-      "新加坡":["新加坡"],
-      "泰國":["曼谷","清邁","普吉"],
-      "越南":["峴港","河內","胡志明市"],
-      "歐洲":["奧地利","捷克","英國","法國","義大利","德國","荷蘭","西班牙"],
-      "美國":["紐約","洛杉磯","舊金山","西雅圖","夏威夷"]
-    }
-  };
-}
 
-function renderNav(){
-  const full = views.map(v=>`<button class="tab ${v[0]==view?"active":""}" onclick="go('${v[0]}')">${v[1]}</button>`).join("");
-  $("tabs").innerHTML = full;
-  const mobileItems = [
-    ["trip","旅遊地"],["planner","行程"],["spots","景點"],["budget","預算"],["packing","行李"],["photoBook","照片書"],["help","說明"]
-  ];
-  const mobileHtml = mobileItems.map(v=>`<button class="nav ${v[0]==view?"active":""}" onclick="go('${v[0]}')">${v[1]}</button>`).join("");
-  if($("mobileTopNav")) $("mobileTopNav").innerHTML = mobileHtml;
-  $("mobile").innerHTML = mobileItems.slice(0,5).map(v=>`<button class="nav ${v[0]==view?"active":""}" onclick="go('${v[0]}')">${v[1]}</button>`).join("");
-}
-
-function v15DestinationName(country, city){
-  if(country==="香港" && (!city || city==="香港")) return "香港";
-  if(country==="新加坡" && (!city || city==="新加坡")) return "新加坡";
-  if(country==="歐洲") return city ? `歐洲｜${city}` : "歐洲";
-  return [country,city].filter(Boolean).join("");
-}
-
-function v15CityOptions(selected){
-  const list = v15CountryCityMaps().cityMap[$("country")?.value || data.trip.country] || [];
-  return [`<option value="自訂" ${selected && !list.includes(selected)?"selected":""}>自訂</option>`]
-    .concat(list.map(c=>`<option value="${c}" ${selected==c?"selected":""}>${c}</option>`)).join("");
-}
-
-function v15CurrentCity(){
-  if(data.trip.city) return data.trip.city;
-  const dest = data.trip.dest || "";
-  const list = v15CountryCityMaps().cityMap[data.trip.country] || [];
-  return list.find(c=>dest.includes(c)) || list[0] || "";
-}
-
-function countryOptions(){
-  const countries = Object.keys(v15CountryCityMaps().cityMap);
-  return countries.map(c=>`<option value="${c}" ${data.trip.country==c?"selected":""}>${c==="歐洲"?"歐洲區域":c}</option>`).join("")+
-    `<option value="其他" ${data.trip.country=="其他"?"selected":""}>其他</option>`;
-}
-
-function updateCustomCityVisibility(){
-  const box = $("customCityBox");
-  if(!box) return;
-  box.style.display = ($("country").value==="其他" || $("citySelect").value==="自訂") ? "block" : "none";
-}
-
-function refreshCityOptions(){
-  const list = v15CountryCityMaps().cityMap[$("country").value] || [];
-  $("citySelect").innerHTML = v15CityOptions(list[0] || "自訂");
-  $("cityCustom").value = "";
-  updateCustomCityVisibility();
-  countryChanged();
-}
-
-function updateDestByCity(){
-  updateCustomCityVisibility();
-  countryChanged();
-}
-
-function countryChanged(){
-  const c=$("country").value;
-  if(currencyMap[c]){
-    $("currency").value=currencyMap[c];
-    $("rateSetup").value=rateMap[currencyMap[c]]||data.trip.rate;
-  }
-  const label = $("rateLabel");
-  if(label) label.textContent = `匯率：1 ${$("currency").value || data.trip.currency} = TWD`;
-}
-
-function saveBasic(){
-  data.trip.country=$("country").value;
-  const selected = $("citySelect").value;
-  data.trip.city = selected==="自訂" ? $("cityCustom").value.trim() : selected;
-  data.trip.dest = v15DestinationName(data.trip.country, data.trip.city);
-  data.trip.currency=$("currency").value.toUpperCase();
-  data.trip.start=$("start").value;
-  data.trip.end=$("end").value;
-  data.trip.rate=Number($("rateSetup").value||data.trip.rate||1);
-  data.trip.travelerCount=Number($("travelerCount").value||1);
-  data.trip.travelers=[];
-  for(let i=0;i<data.trip.travelerCount;i++) data.trip.travelers.push($("traveler"+i).value||String.fromCharCode(65+i));
-  data.days=mkDays(data.trip.start,data.trip.end);
-  cur=data.days[0]?.key;
-  silentSave();
-  render();
-  const d=document.querySelectorAll("#tripView details.card")[0];
-  if(d) d.removeAttribute("open");
-  toast("已儲存旅遊地設定");
-}
-
-function saveFlights(){
-  ["out","back"].forEach(k=>data.flights[k]={
-    no:$(k+"no").value,
-    from:$(k+"from").value,
-    to:$(k+"to").value,
-    dep:$(k+"dep").value,
-    arr:$(k+"arr").value,
-    transfer:$(k+"transfer").value
-  });
-  silentSave();
-  render();
-  const d=document.querySelectorAll("#tripView details.card")[1];
-  if(d) d.removeAttribute("open");
-  toast("已儲存航班");
-}
-
-function renderTrip(){
-  const h=editingHotelId?data.hotels.find(x=>x.id==editingHotelId):null;
-  const selectedCity=v15CurrentCity();
-  const list=v15CountryCityMaps().cityMap[data.trip.country]||[];
-  const customCity=list.includes(selectedCity)?"":selectedCity;
-  const showCustom=data.trip.country==="其他" || !list.includes(selectedCity);
-  $("tripView").innerHTML=`<div class="section"><div><h2>🌏 旅遊地與機酒</h2><div class="hint">一開始先收合，點卡片展開設定；儲存後會自動收合。</div></div></div>
-
-  <details class="card"><summary>① 🌏 旅遊地與旅伴</summary><div class="detailBody">
-    <div class="three compactMobile">
-      <div><label>國家 / 區域</label><select id="country" onchange="refreshCityOptions()">${countryOptions()}</select></div>
-      <div><label>城市 / 路線</label><select id="citySelect" onchange="updateDestByCity()">${v15CityOptions(selectedCity)}</select></div>
-      <div id="customCityBox" class="full" style="display:${showCustom?"block":"none"}"><label>自訂目的地</label><input id="cityCustom" value="${esc(customCity)}" oninput="updateDestByCity()" placeholder="例：釜山＋慶州"></div>
-    </div>
-    <div class="two">
-      <div><label>幣別</label><input id="currency" value="${esc(data.trip.currency)}" oninput="countryChanged()"></div>
-      <div><label id="rateLabel">匯率：1 ${esc(data.trip.currency)} = TWD</label><input id="rateSetup" type="number" step="0.0001" value="${data.trip.rate}"></div>
-    </div>
-    <div class="three compactMobile">
-      <div><label>出發日</label><input id="start" type="date" value="${data.trip.start}"></div>
-      <div><label>回程日</label><input id="end" type="date" value="${data.trip.end}"></div>
-      <div class="full"><label>匯率查詢</label><button class="btn blue compact" onclick="openRateSearch()">查看現在匯率</button></div>
-    </div>
-    <div class="two">
-      <div><label>旅遊人數</label><select id="travelerCount" onchange="previewTravelerCount()">${[1,2,3,4,5,6,7,8].map(n=>`<option value="${n}" ${Number(data.trip.travelerCount)==n?"selected":""}>${n} 人</option>`).join("")}</select></div>
-      <div class="hint" style="align-self:end">目前目的地：${esc(data.trip.dest||"尚未設定")}</div>
-    </div>
-    <div class="grid2" id="travelerBox">${travelerInputs()}</div>
-    <div class="btns"><button class="btn dark" onclick="saveBasic()">儲存旅遊地設定</button></div>
-  </div></details>
-
-  <details class="card"><summary>② ✈️ 航班與機場接送</summary><div class="detailBody"><div class="grid2"><div class="box blue"><h3>去程</h3>${flightForm("out")}</div><div class="box pink"><h3>回程</h3>${flightForm("back")}</div></div><div class="btns"><button class="btn dark" onclick="saveFlights()">儲存航班</button></div></div></details>
-
-  <details class="card"><summary>③ 🏨 住宿</summary><div class="detailBody">
-    <div class="three compactMobile">
-      <div class="full"><label>住宿名稱</label><input id="hname" value="${esc(h?.name||"")}"></div>
-      <div><label>入住日</label><input id="hstart" type="date" value="${h?.start||data.trip.start}"></div>
-      <div><label>退房日</label><input id="hend" type="date" value="${h?.end||data.trip.end}"></div>
-    </div>
-    <label>地址</label><div class="two"><input id="haddr" value="${esc(h?.addr||"")}" placeholder="可手動貼上飯店地址"><button class="btn blue compact" onclick="searchHotelAddress()">搜尋地圖</button></div>
-    <label>備註</label><textarea id="hnote">${esc(h?.note||"")}</textarea>
-    <div class="btns"><button class="btn dark" onclick="saveHotel()">${h?"儲存住宿修改":"新增住宿"}</button>${h?'<button class="btn soft" onclick="editingHotelId=null;renderTrip()">取消編輯</button>':""}</div>
-    <div class="grid2" style="margin-top:10px">${data.hotels.map(hotelCard).join("")||'<div class="empty">尚未新增住宿</div>'}</div>
-  </div></details>`;
-}
-
-function renderSide(){
-  $("days").innerHTML=data.days.map(d=>{
-    let h=hotelFor(d.key),n=data.plans.filter(p=>p.day==d.key).length;
-    return `<div class="day ${d.key==cur?"active":""}" onclick="cur='${d.key}';go('planner')"><b>${d.title}｜${d.label}</b><span>${n} 行程｜住宿：${h?esc(h.name):"未設定"}</span></div>`;
-  }).join("");
-  const btns = document.querySelector(".panel .btns");
-  if(btns) btns.innerHTML = `<button class="btn danger compact" onclick="clearAllPlans()">清除所有行程</button>`;
-}
 
 function clearAllPlans(){
   if(!confirm("清除所有行程會刪除目前已排入的行程卡片與行程間交通連線。建議先到「說明」匯出備份，再繼續。確定要清除嗎？")) return;
@@ -1126,77 +404,11 @@ function clearAllPlans(){
   save();
 }
 
-function renderPlanner(){
-  normalizePlanTimes(cur);
-  let plans=sortedPlans(cur);
-  $("plannerView").innerHTML=`<div class="section"><div><h2>${dayTitle(cur)}</h2><div class="hint">住宿：${hotelFor(cur)?.name||"未設定"}。行程依開始時間排序。</div></div><button class="iconBtn smallIcon" onclick="clearPlanForm()">＋</button></div>
-  <details class="card" ${editingPlanId?"open":""}><summary>${editingPlanId?"編輯行程":"＋ 新增行程"}</summary><div class="detailBody">
-    <div class="three compactMobile">
-      <div class="full"><label>日期</label><select id="pday">${optsDays(cur)}</select></div>
-      <div><label>開始</label><input id="ps" type="time" value="10:00"></div>
-      <div><label>結束</label><input id="pe" type="time" value="11:30"></div>
-    </div>
-    <div class="two">
-      <div><label>分類</label><select id="ptype"><option>景點</option><option>餐廳</option><option>咖啡廳</option><option>購物</option><option>交通</option><option>航班</option><option>住宿</option><option>其他</option></select></div>
-      <div><label>付款方式</label><select id="ppm">${optsPayMethod("未定")}</select></div>
-    </div>
-    <label>行程名稱</label><input id="pname">
-    <div class="four compactMobile">
-      <div><label>${esc(data.trip.currency)} 金額</label><input id="pforeign" type="number" oninput="syncPlanMoney('f')"></div>
-      <div><label>TWD</label><input id="ptwd" type="number" oninput="syncPlanMoney('t')"></div>
-      <div class="full"><label>付款人</label><select id="pp">${optsPayer("未定")}</select></div>
-    </div>
-    <label>注意事項</label><textarea id="pnote"></textarea>
-    <label>備註</label><textarea id="pmemo"></textarea>
-    <div class="btns"><button class="btn dark" onclick="savePlanForm()">${editingPlanId?"儲存行程":"加入行程"}</button>${editingPlanId?'<button class="btn soft" onclick="clearPlanForm()">取消編輯 / 新增</button>':""}</div>
-  </div></details>
-  <div id="pcards">${planCards(plans)}</div>`;
-  if(editingPlanId)fillPlanForm(editingPlanId);
-}
 
 function showSpotFormOpenAttr(){
   return editingSpotId ? "open" : "";
 }
 
-function renderSpots(){
-  const e=editingSpotId?data.spots.find(s=>s.id==editingSpotId):null;
-  $("spotsView").innerHTML=`<div class="section"><div><h2>📍 口袋景點</h2><div class="hint">可手動新增，也可以用 AI 產出 TXT/JSON 後匯入。</div></div><button class="iconBtn smallIcon" onclick="clearSpotForm(); setTimeout(()=>document.querySelector('#spotsView details.card')?.setAttribute('open',''),0)">＋</button></div>
-  <div class="card"><div class="btns"><button class="btn pink compact" onclick="showAIPrompt()">AI 景點提示詞</button><label class="btn blue compact" style="display:inline-block">匯入口袋景點<input type="file" accept=".json,application/json,.txt,text/plain" onchange="importSpotFile(this.files[0])" style="display:none"></label></div></div>
-  <details class="card" ${showSpotFormOpenAttr()}><summary>${e?"編輯口袋景點":"＋ 新增口袋景點"}</summary><div class="detailBody">
-    <div class="three compactMobile">
-      <div class="full"><label>名稱</label><input id="sn" value="${esc(e?.name||"")}"></div>
-      <div><label>分類</label><select id="st">${["景點","餐廳","咖啡廳","購物","雨天備案","其他"].map(t=>`<option ${e?.type==t?"selected":""}>${t}</option>`).join("")}</select></div>
-      <div><label>候選日期</label><select id="sd"><option value="">未排</option>${optsDays(e?.day||"")}</select></div>
-    </div>
-    <label>地址 / 區域</label><div class="two"><input id="sa" value="${esc(e?.addr||"")}"><button class="btn blue compact" onclick="mapSpotDraft()">查地圖</button></div>
-    <label>注意事項</label><textarea id="sm">${esc(e?.memo||"")}</textarea>
-    <div class="three compactMobile">
-      <div class="full"><label>排入行程？</label><select id="sToPlan"><option value="no">先放口袋</option><option value="yes">同步排入行程</option></select></div>
-      <div><label>預設開始</label><input id="sStart" type="time" value="10:00"></div>
-      <div><label>預設結束</label><input id="sEnd" type="time" value="11:30"></div>
-    </div>
-    <div class="btns"><button class="btn dark" onclick="saveSpot()">${e?"儲存景點修改":"加入景點"}</button>${e?'<button class="btn soft" onclick="clearSpotForm()">取消編輯</button>':""}</div>
-  </div></details>
-  <div class="grid2">${data.spots.map(s=>`<div class="card"><div class="time">${s.day?dayTitle(s.day):"未排"}</div><div class="place">${activityIcon(s.type)} ${esc(s.name)}</div><div class="tags"><span class="tag">${esc(s.type)}</span><span class="tag blue">${esc(s.addr)}</span>${s.source==="AI匯入"?'<span class="tag green">📥 AI 匯入</span>':""}</div><div class="box pink">${esc(s.memo)}</div><div class="btns"><button class="btn soft compact" onclick="useSpot('${s.id}')">排入行程</button><button class="btn blue compact" onclick="map('${encodeURIComponent(s.name+' '+(s.addr||data.trip.dest))}')">地圖</button><button class="small" onclick="editSpot('${s.id}')">編輯</button><button class="small" onclick="delSpot('${s.id}')">刪除</button></div></div>`).join("")||'<div class="empty">尚未加入口袋景點</div>'}</div>`;
-}
-
-function useSpot(id){
-  let s=data.spots.find(x=>x.id==id);
-  go("planner");
-  setTimeout(()=>{
-    editingPlanId=null;
-    renderPlanner();
-    setTimeout(()=>{
-      const form=document.querySelector("#plannerView details.card");
-      if(form) form.setAttribute("open","");
-      $("pday").value=s.day||cur;
-      $("ptype").value=["景點","餐廳","咖啡廳","購物","其他"].includes(s.type)?s.type:"景點";
-      $("pname").value=s.name;
-      $("pnote").value=s.memo;
-      scrollTo(0,0);
-    },50);
-  },50);
-}
 
 function activityIcon(type){
   return type==="餐廳"?"🍜":type==="咖啡廳"?"☕":type==="購物"?"🛍️":type==="交通"||type==="航班"?"✈️":type==="住宿"?"🏨":type==="雨天備案"?"☔":type==="其他"?"✨":"📍";
@@ -1273,42 +485,6 @@ function normalizeImportedJsonText(text){
   return t;
 }
 
-function importSpotFile(file){
-  if(!file)return;
-  const r=new FileReader();
-  r.onload=e=>{
-    try{
-      const obj=JSON.parse(normalizeImportedJsonText(e.target.result));
-      const spots=Array.isArray(obj.spots)?obj.spots:(Array.isArray(obj)?obj:[]);
-      spots.forEach(s=>{
-        if(!s.name)return;
-        data.spots.push({id:uid(),name:String(s.name||""),type:String(s.type||"景點"),day:String(s.day||""),addr:String(s.addr||s.address||""),memo:String(s.memo||s.note||""),source:"AI匯入"});
-      });
-      save();
-      toast(`已匯入 ${spots.length} 個口袋景點`);
-    }catch(err){
-      alert("匯入失敗：請確認 TXT 內容是純 JSON，且包含 spots。");
-    }
-  };
-  r.readAsText(file);
-}
-
-function renderPhotoBook(){
-  $("photoBookView").innerHTML=`<div class="section"><div><h2>📖 照片旅遊書</h2><div class="hint">選模板後，預覽與匯出 PDF 都會套用不同風格。</div></div><button class="btn soft noPrint" onclick="print()">匯出 PDF</button></div>
-  <div class="card noPrint">
-    <label>照片書模板</label>
-    <div class="templateRail">
-      ${templateCard("fresh","🌿 韓系清新","米白淡綠、乾淨圓角")}
-      ${templateCard("fun","🌈 活潑可愛","貼紙感、虛線框、繽紛")}
-      ${templateCard("diary","✎ 手帳日記","紙張格線、手寫感")}
-    </div>
-    <div class="three compactMobile"><div><label>照片日期</label><select id="phd">${optsDays(cur)}</select></div><div class="full"><label>照片標題</label><input id="pht"></div></div>
-    <label>選擇照片</label><input id="phf" type="file" accept="image/*">
-    <label>照片日記</label><textarea id="phm" placeholder="這天的天氣、心情、最好吃的一餐、最喜歡的瞬間……"></textarea>
-    <div class="btns"><button class="btn dark" onclick="addPhoto()">壓縮並加入照片書</button></div>
-  </div>
-  <div class="bookStyle-${data.meta.bookStyle||"fresh"}"><div class="card"><h2>${esc(data.meta.title)}</h2><div class="box mint">${esc(data.meta.subtitle)}</div></div>${data.days.map(d=>photoBookDay(d)).join("")}</div>`;
-}
 
 function templateCard(k,title,desc){
   return `<div class="templateCard ${data.meta.bookStyle==k?"active":""}" onclick="data.meta.bookStyle='${k}';save()"><b>${title}</b><span class="mini">${desc}</span></div>`;
@@ -1340,13 +516,6 @@ function v16TimeFromDT(dt){return dt ? (String(dt).split("T")[1]||"") : ""}
 function v16PlanExists(day,name,start){
   return data.plans.some(p=>p.day===day && p.name===name && (p.start||"")===(start||""));
 }
-function v16AddPlanNode(item){
-  if(!item.day||!item.name)return null;
-  if(v16PlanExists(item.day,item.name,item.start)) return null;
-  const plan={id:uid(),mode:"foreign",foreign:0,twd:0,payer:"未定",payMethod:"未定",note:"",memo:"",adjusted:false,...item};
-  data.plans.push(plan);
-  return plan.id;
-}
 function v16OpenTripDetail(index){
   const details=document.querySelectorAll("#tripView details.card");
   if(details[index])details[index].setAttribute("open","");
@@ -1356,272 +525,6 @@ function v16CollapseTripDetail(index){
   if(details[index])details[index].removeAttribute("open");
 }
 
-function renderSide(){
-  const layout=document.querySelector(".layout");
-  const panel=document.querySelector(".panel");
-  if(layout){
-    layout.classList.toggle("withCalendar", view==="planner");
-    layout.classList.toggle("noCalendar", view!=="planner");
-    if(window.innerWidth>620){
-      layout.style.gridTemplateColumns = view==="planner" ? "280px 1fr" : "1fr";
-    }else{
-      layout.style.gridTemplateColumns = "";
-    }
-  }
-  if(panel) panel.style.display = view==="planner" ? "" : "none";
-  $("days").innerHTML=data.days.map(d=>{
-    let h=hotelFor(d.key),n=data.plans.filter(p=>p.day==d.key).length;
-    return `<div class="day ${d.key==cur?"active":""}" onclick="cur='${d.key}';go('planner')"><b>${d.title}｜${d.label}</b><span>${n} 行程｜住宿：${h?esc(h.name):"未設定"}</span></div>`;
-  }).join("");
-  const btns = document.querySelector(".panel .btns");
-  if(btns) btns.innerHTML = `<button class="btn danger compact" onclick="clearAllPlans()">清除所有行程</button>`;
-}
-
-function renderTrip(){
-  const h=editingHotelId?data.hotels.find(x=>x.id==editingHotelId):null;
-  const selectedCity=typeof v15CurrentCity==="function" ? v15CurrentCity() : (data.trip.city||"");
-  const mapObj=typeof v15CountryCityMaps==="function" ? v15CountryCityMaps().cityMap : {};
-  const list=mapObj[data.trip.country]||[];
-  const customCity=list.includes(selectedCity)?"":selectedCity;
-  const showCustom=data.trip.country==="其他" || !list.includes(selectedCity);
-
-  $("tripView").innerHTML=`<div class="section"><div><h2>🌏 旅遊地與機酒</h2><div class="hint">點選卡片展開設定；旅遊地與航班儲存後會自動收合，住宿可連續新增多間。</div></div></div>
-
-  <details class="card"><summary>① 🌏 旅遊地與旅伴</summary><div class="detailBody">
-    <div class="three compactMobile">
-      <div><label>國家 / 區域</label><select id="country" onchange="refreshCityOptions()">${countryOptions()}</select></div>
-      <div><label>城市 / 路線</label><select id="citySelect" onchange="updateDestByCity()">${v15CityOptions(selectedCity)}</select></div>
-      <div id="customCityBox" class="full" style="display:${showCustom?"block":"none"}"><label>自訂目的地</label><input id="cityCustom" value="${esc(customCity)}" oninput="updateDestByCity()" placeholder="例：釜山＋慶州"></div>
-    </div>
-    <div class="two">
-      <div><label>幣別</label><input id="currency" value="${esc(data.trip.currency)}" oninput="countryChanged()"></div>
-      <div><label id="rateLabel">匯率：1 ${esc(data.trip.currency)} = TWD</label><input id="rateSetup" type="number" step="0.0001" value="${data.trip.rate}"></div>
-    </div>
-    <div class="three compactMobile">
-      <div><label>出發日</label><input id="start" type="date" value="${data.trip.start}"></div>
-      <div><label>回程日</label><input id="end" type="date" value="${data.trip.end}"></div>
-      <div class="full"><label>匯率查詢</label><button class="btn blue compact" onclick="openRateSearch()">查看現在匯率</button></div>
-    </div>
-    <div class="two">
-      <div><label>旅遊人數</label><select id="travelerCount" onchange="previewTravelerCount()">${[1,2,3,4,5,6,7,8].map(n=>`<option value="${n}" ${Number(data.trip.travelerCount)==n?"selected":""}>${n} 人</option>`).join("")}</select></div>
-      <div class="hint" style="align-self:end">目前目的地：${esc(data.trip.dest||"尚未設定")}</div>
-    </div>
-    <div class="grid2" id="travelerBox">${travelerInputs()}</div>
-    <div class="btns"><button class="btn dark" onclick="saveBasic()">儲存旅遊地設定</button></div>
-  </div></details>
-
-  <details class="card"><summary>② ✈️ 航班與機場接送</summary><div class="detailBody">
-    <div class="grid2"><div class="box blue"><h3>去程</h3>${flightForm("out")}</div><div class="box pink"><h3>回程</h3>${flightForm("back")}</div></div>
-    <div class="card" style="box-shadow:none;background:#fffdf8;border:1px solid var(--line);margin-top:10px">
-      <label style="display:flex;gap:8px;align-items:center;margin:0;font-weight:900">
-        <input id="flightAutoAdd" type="checkbox" checked style="width:auto"> 儲存航班後，自動加入首尾行程
-      </label>
-      <div class="mini" style="margin-top:6px">會加入前往出發機場、搭乘去程、抵達後前往飯店／市區、回程機場與回家節點。</div>
-    </div>
-    <div class="btns"><button class="btn dark" onclick="saveFlights()">儲存航班</button></div>
-  </div></details>
-
-  <details class="card" ${v16KeepHotelOpen||editingHotelId?"open":""}><summary>③ 🏨 住宿</summary><div class="detailBody">
-    <div class="three compactMobile">
-      <div class="full"><label>住宿名稱</label><input id="hname" value="${esc(h?.name||"")}"></div>
-      <div><label>入住日</label><input id="hstart" type="date" value="${h?.start||data.trip.start}"></div>
-      <div><label>退房日</label><input id="hend" type="date" value="${h?.end||data.trip.end}"></div>
-    </div>
-    <label>地址</label><div class="two"><input id="haddr" value="${esc(h?.addr||"")}" placeholder="可手動貼上飯店地址"><button class="btn blue compact" onclick="searchHotelAddress()">搜尋地圖</button></div>
-    <label>備註</label><textarea id="hnote">${esc(h?.note||"")}</textarea>
-    <div class="btns"><button class="btn dark" onclick="saveHotel()">${h?"儲存住宿修改":"新增住宿"}</button>${h?'<button class="btn soft" onclick="editingHotelId=null;v16KeepHotelOpen=true;renderTrip()">取消編輯</button>':""}</div>
-    <div class="mini" style="margin-top:6px">新增住宿後會自動加入：入住日辦理入住、每天早上從住宿出發、每天晚上回到當晚住宿。</div>
-    <div class="grid2" style="margin-top:10px">${data.hotels.map(hotelCard).join("")||'<div class="empty">尚未新增住宿</div>'}</div>
-  </div></details>`;
-}
-
-function saveFlights(){
-  ["out","back"].forEach(k=>{
-    const transferEl=$(k+"transfer");
-    data.flights[k]={
-      no:$(k+"no").value,
-      from:$(k+"from").value,
-      to:$(k+"to").value,
-      dep:$(k+"dep").value,
-      arr:$(k+"arr").value,
-      transfer:transferEl?transferEl.value:"",
-      toAirport:$(k+"toAirport")?$(k+"toAirport").value:"",
-      fromAirport:$(k+"fromAirport")?$(k+"fromAirport").value:"",
-      fromTerminal:$(k+"fromTerminal")?$(k+"fromTerminal").value:"",
-      toTerminal:$(k+"toTerminal")?$(k+"toTerminal").value:""
-    };
-  });
-
-  if($("flightAutoAdd")?.checked){
-    v16AddFlightsToPlans(false);
-  }
-
-  silentSave();
-  render();
-  v16CollapseTripDetail(1);
-  toast($("flightAutoAdd")?.checked ? "已儲存航班並加入首尾行程" : "已儲存航班");
-}
-
-function v16AddFlightsToPlans(doRender=true){
-  const out=data.flights.out||{}, back=data.flights.back||{};
-  const outDepDay=v16DateFromDT(out.dep)||data.trip.start;
-  const outArrDay=v16DateFromDT(out.arr)||outDepDay;
-  const backDepDay=v16DateFromDT(back.dep)||data.trip.end;
-  const backArrDay=v16DateFromDT(back.arr)||backDepDay;
-
-  v16AddPlanNode({day:outDepDay,start:"14:00",end:v16TimeFromDT(out.dep),type:"交通",name:`前往 ${out.from||"出發機場"}`,note:out.toAirport||out.transfer||"",memo:"由航班資料帶入"});
-  v16AddPlanNode({day:outDepDay,start:v16TimeFromDT(out.dep),end:v16TimeFromDT(out.arr),type:"航班",name:`搭乘去程航班 ${out.no||""}`.trim(),note:`${out.from||""} → ${out.to||""}`,memo:"由航班資料帶入"});
-  v16AddPlanNode({day:outArrDay,start:v16TimeFromDT(out.arr),end:"",type:"交通",name:`從 ${out.to||"降落機場"} 前往飯店／市區`,note:out.fromAirport||"",memo:"由航班資料帶入"});
-
-  v16AddPlanNode({day:backDepDay,start:"",end:v16TimeFromDT(back.dep),type:"交通",name:`從飯店前往 ${back.from||"回程機場"}`,note:back.toAirport||back.transfer||"",memo:"由航班資料帶入"});
-  v16AddPlanNode({day:backDepDay,start:v16TimeFromDT(back.dep),end:v16TimeFromDT(back.arr),type:"航班",name:`搭乘回程航班 ${back.no||""}`.trim(),note:`${back.from||""} → ${back.to||""}`,memo:"由航班資料帶入"});
-  v16AddPlanNode({day:backArrDay,start:v16TimeFromDT(back.arr),end:"",type:"交通",name:`從 ${back.to||"抵達機場"} 回家`,note:back.fromAirport||"",memo:"由航班資料帶入"});
-
-  if(doRender) save();
-}
-
-function saveHotel(){
-  if(!$("hname").value)return toast("請輸入住宿名稱");
-  const item={name:$("hname").value,start:$("hstart").value,end:$("hend").value,addr:$("haddr").value,note:$("hnote").value};
-  let hotelId=editingHotelId;
-
-  if(editingHotelId){
-    Object.assign(data.hotels.find(x=>x.id==editingHotelId),item);
-    editingHotelId=null;
-  }else{
-    hotelId=uid();
-    data.hotels.push({id:hotelId,...item});
-  }
-
-  v16AddHotelToPlans({id:hotelId,...item});
-  v16KeepHotelOpen=true;
-  silentSave();
-  render();
-  v16OpenTripDetail(2);
-  toast("已新增住宿並帶入行程");
-}
-
-function v16AddHotelToPlans(h){
-  if(!h.start||!h.end||!h.name)return;
-
-  v16AddPlanNode({
-    day:h.start,
-    start:"15:00",
-    end:"15:30",
-    type:"住宿",
-    name:`入住 ${h.name}`,
-    note:h.addr||h.note||"",
-    memo:"由住宿資料帶入"
-  });
-
-  // 每天早上：從前一天晚上住宿的飯店離開。也就是入住後隔天到退房日早上。
-  v16DateRange(v16DateAdd(h.start,1), h.end).forEach(day=>{
-    v16AddPlanNode({
-      day,
-      start:"09:00",
-      end:"09:10",
-      type:"住宿",
-      name:`從 ${h.name} 出發`,
-      note:h.addr||"",
-      memo:"由住宿資料帶入"
-    });
-  });
-
-  // 每天晚上：回到當晚住宿。住宿晚數為入住日至退房日前一晚。
-  v16DateRange(h.start, v16DateAdd(h.end,-1)).forEach(day=>{
-    v16AddPlanNode({
-      day,
-      start:"21:00",
-      end:"21:10",
-      type:"住宿",
-      name:`回到 ${h.name}`,
-      note:h.addr||"",
-      memo:"由住宿資料帶入"
-    });
-  });
-}
-
-function renderPlanner(){
-  normalizePlanTimes(cur);
-  let plans=sortedPlans(cur);
-  $("plannerView").innerHTML=`<div class="section"><div><h2>${dayTitle(cur)}</h2><div class="hint">住宿：${hotelFor(cur)?.name||"未設定"}。行程依開始時間排序。</div></div><button class="iconBtn smallIcon" onclick="clearPlanForm()">＋</button></div>
-  <details class="card" ${editingPlanId||v16PendingSpotId?"open":""}><summary>${editingPlanId?"編輯行程":"＋ 新增行程"}</summary><div class="detailBody">
-    <div class="three compactMobile">
-      <div class="full"><label>日期</label><select id="pday" onchange="cur=this.value; renderPlanner();">${optsDays(cur)}</select></div>
-      <div><label>開始</label><input id="ps" type="time" value="10:00"></div>
-      <div><label>結束</label><input id="pe" type="time" value="11:30"></div>
-    </div>
-    <div class="two">
-      <div><label>分類</label><select id="ptype"><option>景點</option><option>餐廳</option><option>咖啡廳</option><option>購物</option><option>交通</option><option>航班</option><option>住宿</option><option>其他</option></select></div>
-      <div><label>付款方式</label><select id="ppm">${optsPayMethod("未定")}</select></div>
-    </div>
-    <label>行程名稱</label><input id="pname">
-    <div class="four compactMobile">
-      <div><label>${esc(data.trip.currency)} 金額</label><input id="pforeign" type="number" oninput="syncPlanMoney('f')"></div>
-      <div><label>TWD</label><input id="ptwd" type="number" oninput="syncPlanMoney('t')"></div>
-      <div class="full"><label>付款人</label><select id="pp">${optsPayer("未定")}</select></div>
-    </div>
-    <label>注意事項</label><textarea id="pnote"></textarea>
-    <label>備註</label><textarea id="pmemo"></textarea>
-    <div class="btns"><button class="btn dark" onclick="savePlanForm()">${editingPlanId?"儲存行程":"加入行程"}</button>${editingPlanId||v16PendingSpotId?'<button class="btn soft" onclick="clearPlanForm()">取消編輯 / 新增</button>':""}</div>
-  </div></details>
-  <div id="pcards">${planCards(plans)}</div>`;
-  if(editingPlanId) fillPlanForm(editingPlanId);
-  if(v16PendingSpotId) v16FillPendingSpot();
-}
-
-function v16FillPendingSpot(){
-  const s=data.spots.find(x=>x.id==v16PendingSpotId);
-  if(!s)return;
-  $("pday").value=s.day||cur;
-  $("ptype").value=["景點","餐廳","咖啡廳","購物","其他"].includes(s.type)?s.type:"景點";
-  $("pname").value=s.name;
-  $("pnote").value=s.memo;
-}
-
-function savePlanForm(){
-  if(!$("pname").value)return toast("請輸入行程名稱");
-  let item={day:$("pday").value,start:$("ps").value,end:$("pe").value,type:$("ptype").value,name:$("pname").value,mode:"foreign",foreign:Number($("pforeign").value||0),twd:Number($("ptwd").value||0),payer:$("pp").value,payMethod:$("ppm").value,note:$("pnote").value,memo:$("pmemo").value,adjusted:false};
-  let planId=editingPlanId;
-
-  if(editingPlanId){
-    Object.assign(data.plans.find(p=>p.id==editingPlanId),item);
-    editingPlanId=null;
-  }else{
-    planId=uid();
-    data.plans.push({id:planId,...item});
-  }
-
-  if(v16PendingSpotId){
-    const spot=data.spots.find(s=>s.id==v16PendingSpotId);
-    if(spot) spot.planId=planId;
-    v16PendingSpotId=null;
-  }
-
-  cur=item.day;
-  save();
-}
-
-function clearPlanForm(){
-  editingPlanId=null;
-  v16PendingSpotId=null;
-  renderPlanner();
-}
-
-function useSpot(id){
-  let s=data.spots.find(x=>x.id==id);
-  if(!s)return;
-  cur=s.day||cur;
-  v16PendingSpotId=id;
-  editingPlanId=null;
-  go("planner");
-  setTimeout(()=>{
-    const form=document.querySelector("#plannerView details.card");
-    if(form)form.setAttribute("open","");
-    v16FillPendingSpot();
-    scrollTo(0,0);
-  },80);
-}
 
 function spotPlanExists(s){
   return !!(s.planId && data.plans.some(p=>p.id==s.planId));
@@ -1637,55 +540,7 @@ function returnSpotToPocket(id){
   save();
 }
 
-function renderSpots(){
-  const e=editingSpotId?data.spots.find(s=>s.id==editingSpotId):null;
-  $("spotsView").innerHTML=`<div class="section"><div><h2>📍 口袋景點</h2><div class="hint">已排入行程的景點會變成灰底，也可以放回口袋。</div></div><button class="iconBtn smallIcon" onclick="clearSpotForm(); setTimeout(()=>document.querySelector('#spotsView details.card')?.setAttribute('open',''),0)">＋</button></div>
-  <div class="card"><div class="btns"><button class="btn pink compact" onclick="showAIPrompt()">AI 景點提示詞</button><label class="btn blue compact" style="display:inline-block">匯入口袋景點<input type="file" accept=".json,application/json,.txt,text/plain" onchange="importSpotFile(this.files[0])" style="display:none"></label></div></div>
-  <details class="card" ${editingSpotId?"open":""}><summary>${e?"編輯口袋景點":"＋ 新增口袋景點"}</summary><div class="detailBody">
-    <div class="three compactMobile">
-      <div class="full"><label>名稱</label><input id="sn" value="${esc(e?.name||"")}"></div>
-      <div><label>分類</label><select id="st">${["景點","餐廳","咖啡廳","購物","雨天備案","其他"].map(t=>`<option ${e?.type==t?"selected":""}>${t}</option>`).join("")}</select></div>
-      <div><label>候選日期</label><select id="sd"><option value="">未排</option>${optsDays(e?.day||"")}</select></div>
-    </div>
-    <label>地址 / 區域</label><div class="two"><input id="sa" value="${esc(e?.addr||"")}"><button class="btn blue compact" onclick="mapSpotDraft()">查地圖</button></div>
-    <label>注意事項</label><textarea id="sm">${esc(e?.memo||"")}</textarea>
-    <div class="three compactMobile">
-      <div class="full"><label>排入行程？</label><select id="sToPlan"><option value="no">先放口袋</option><option value="yes">同步排入行程</option></select></div>
-      <div><label>預設開始</label><input id="sStart" type="time" value="10:00"></div>
-      <div><label>預設結束</label><input id="sEnd" type="time" value="11:30"></div>
-    </div>
-    <div class="btns"><button class="btn dark" onclick="saveSpot()">${e?"儲存景點修改":"加入景點"}</button>${e?'<button class="btn soft" onclick="clearSpotForm()">取消編輯</button>':""}</div>
-  </div></details>
-  <div class="grid2">${data.spots.map(s=>{
-    const added=spotPlanExists(s);
-    return `<div class="card ${added?"spot-added":""}"><div class="time">${s.day?dayTitle(s.day):"未排"}</div><div class="place">${activityIcon(s.type)} ${esc(s.name)}</div><div class="tags"><span class="tag">${esc(s.type)}</span><span class="tag blue">${esc(s.addr)}</span>${s.source==="AI匯入"?'<span class="tag green">📥 AI 匯入</span>':""}${added?'<span class="tag">已加入行程</span>':""}</div><div class="box pink">${esc(s.memo)}</div><div class="btns">${added?`<button class="btn soft compact" onclick="returnSpotToPocket('${s.id}')">放回口袋</button>`:`<button class="btn soft compact" onclick="useSpot('${s.id}')">排入行程</button>`}<button class="btn blue compact" onclick="map('${encodeURIComponent(s.name+' '+(s.addr||data.trip.dest))}')">地圖</button><button class="small" onclick="editSpot('${s.id}')">編輯</button><button class="small" onclick="delSpot('${s.id}')">刪除</button></div></div>`;
-  }).join("")||'<div class="empty">尚未加入口袋景點</div>'}</div>`;
-}
 
-function saveSpot(){
-  if(!$("sn").value)return toast("請輸入名稱");
-  const item={name:$("sn").value,type:$("st").value,day:$("sd").value,addr:$("sa").value,memo:$("sm").value};
-  let id=editingSpotId;
-  let spot;
-
-  if(id){
-    spot=data.spots.find(x=>x.id==id);
-    Object.assign(spot,item);
-    editingSpotId=null;
-  }else{
-    id=uid();
-    spot={id,...item,source:"手動"};
-    data.spots.push(spot);
-  }
-
-  if($("sToPlan").value==="yes"){
-    const day=item.day||cur;
-    const planId=uid();
-    data.plans.push({id:planId,day,start:$("sStart").value,end:$("sEnd").value,type:["景點","餐廳","咖啡廳","購物","其他"].includes(item.type)?item.type:"景點",name:item.name,mode:"foreign",foreign:0,twd:0,payer:"未定",payMethod:"未定",note:item.memo,memo:"由口袋景點帶入",adjusted:false});
-    spot.planId=planId;
-  }
-  save();
-}
 const CLOUDINARY_CONFIG = {
   cloudName: "dtpgutlmt",
   uploadPreset: "travel_book_unsigned",
@@ -1772,84 +627,13 @@ async function uploadImageFile(file, options={}){
   };
 }
 
-async function addDayCover(day,file){
-  if(!file)return;
-  try{
-    const img = await uploadImageFile(file, {maxWidth:1800, quality:.84});
-    data.dayCovers[day]=img.src;
-    if(!data.dayCoverMeta) data.dayCoverMeta={};
-    data.dayCoverMeta[day]=img;
-    save();
-    toast("本日封面圖已上傳 Cloudinary");
-  }catch(err){
-    setUploadStatus("");
-    alert("封面圖上傳失敗：" + err.message);
-  }
-}
-
-async function addPhoto(){
-  let f=$("phf")?.files?.[0];
-  if(!f)return toast("請選照片");
-  try{
-    const img = await uploadImageFile(f, {maxWidth:1600, quality:.82});
-    data.photos.unshift({
-      id:uid(),
-      day:$("phd").value,
-      title:$("pht").value,
-      memo:$("phm").value,
-      src:img.src,
-      publicId:img.publicId,
-      cloudinary:true,
-      width:img.width,
-      height:img.height,
-      bytes:img.bytes
-    });
-    save();
-    toast("照片已上傳 Cloudinary 並加入照片書");
-  }catch(err){
-    setUploadStatus("");
-    alert("照片上傳失敗：" + err.message + "\n\n請確認 Cloudinary preset 是 Unsigned，且名稱為 travel_book_unsigned。");
-  }
-}
 
 function delPhoto(id){
   data.photos=data.photos.filter(p=>p.id!=id);
   save();
 }
 
-function renderPhotoBook(){
-  $("photoBookView").innerHTML=`<div class="section"><div><h2>📖 照片旅遊書</h2><div class="hint">照片會上傳到 Cloudinary，LocalStorage 只保存圖片網址，較適合長期累積旅行照片。</div></div><button class="btn soft noPrint" onclick="print()">匯出 PDF</button></div>
-  <div class="card noPrint">
-    <label>照片書模板</label>
-    <div class="templateRail">
-      ${templateCard("fresh","🌿 韓系清新","米白淡綠、乾淨圓角")}
-      ${templateCard("fun","🌈 活潑可愛","貼紙感、虛線框、繽紛")}
-      ${templateCard("diary","✎ 手帳日記","紙張格線、手寫感")}
-    </div>
-    <div class="three compactMobile">
-      <div><label>照片日期</label><select id="phd">${optsDays(cur)}</select></div>
-      <div class="full"><label>照片標題</label><input id="pht"></div>
-    </div>
-    <label>選擇照片</label><input id="phf" type="file" accept="image/*">
-    <label>照片日記</label><textarea id="phm" placeholder="這天的天氣、心情、最好吃的一餐、最喜歡的瞬間……"></textarea>
-    <div class="btns"><button class="btn dark" onclick="addPhoto()">上傳並加入照片書</button></div>
-    <div class="uploadStatus" id="uploadStatus"></div>
-    <div class="mini" style="margin-top:8px">Cloudinary folder：${CLOUDINARY_CONFIG.folder}｜preset：${CLOUDINARY_CONFIG.uploadPreset}</div>
-  </div>
-  <div class="bookStyle-${data.meta.bookStyle||"fresh"}"><div class="card"><h2>${esc(data.meta.title)}</h2><div class="box mint">${esc(data.meta.subtitle)}</div></div>${data.days.map(d=>photoBookDay(d)).join("")}</div>`;
-}
 
-function photoBookDay(d){
-  const plans=sortedPlans(d.key);
-  const photos=data.photos.filter(p=>p.day==d.key);
-  const cover=data.dayCovers[d.key];
-  return `<div class="card bookDay">
-    <div class="section"><div><h2>${d.title}｜${d.label}</h2><div class="hint">本日住宿：${hotelFor(d.key)?.name||"未設定"}</div></div><div class="noPrint"><input type="file" accept="image/*" onchange="addDayCover('${d.key}',this.files[0])"></div></div>
-    ${cover?`<img class="dayCover" src="${cover}">`:`<div class="dayCover" style="display:grid;place-items:center;color:#999">尚未上傳本日封面圖</div>`}
-    <div>${plans.map(p=>`<div class="box blue" style="margin-bottom:8px"><b>${p.start}-${p.end}｜${esc(p.name)}</b><br>${esc(p.note||"")}</div>`).join("")||'<div class="empty">這天還沒有行程</div>'}</div>
-    <div class="grid2" style="margin-top:10px">${photos.map(p=>`<div class="photo"><img src="${p.src}"><h3>${esc(p.title||"照片紀錄")}</h3><p class="mini">${esc(p.memo)}</p><div class="tags">${p.cloudinary?'<span class="tag green">☁️ Cloudinary</span>':''}</div><button class="small noPrint" onclick="delPhoto('${p.id}')">刪除</button></div>`).join("")||""}</div>
-  </div>`;
-}
 let v18PendingCountry = null;
 
 function v18SortHotels(){
@@ -1900,210 +684,13 @@ function v18ResetTripForCountry(country){
   cur=data.days[0]?.key||data.trip.start;
 }
 
-function handleCountrySelectChange(){
-  const newCountry=$("country").value;
-  if(newCountry!==data.trip.country){
-    v18PendingCountry=newCountry;
-    $("country").value=data.trip.country;
-    $("countryResetModal").classList.add("show");
-    return;
-  }
-  refreshCityOptions();
-}
 
 function cancelCountryReset(){
   v18PendingCountry=null;
   $("countryResetModal").classList.remove("show");
 }
 
-function confirmCountryReset(){
-  if(!v18PendingCountry)return;
-  v18ResetTripForCountry(v18PendingCountry);
-  v18PendingCountry=null;
-  $("countryResetModal").classList.remove("show");
-  save();
-  toast("已清空資料並切換旅遊國家");
-}
 
-function saveBasic(){
-  const selectedCountry=$("country").value;
-  if(selectedCountry!==data.trip.country){
-    v18PendingCountry=selectedCountry;
-    $("country").value=data.trip.country;
-    $("countryResetModal").classList.add("show");
-    return;
-  }
-
-  data.trip.country=$("country").value;
-  const selected = $("citySelect").value;
-  data.trip.city = selected==="自訂" ? $("cityCustom").value.trim() : selected;
-  data.trip.dest = v15DestinationName(data.trip.country, data.trip.city);
-  data.trip.currency=$("currency").value.toUpperCase();
-  data.trip.start=$("start").value;
-  data.trip.end=$("end").value;
-  data.trip.rate=Number($("rateSetup").value||data.trip.rate||1);
-  data.trip.travelerCount=Number($("travelerCount").value||1);
-  data.trip.travelers=[];
-  for(let i=0;i<data.trip.travelerCount;i++) data.trip.travelers.push($("traveler"+i).value||String.fromCharCode(65+i));
-
-  data.days=mkDays(data.trip.start,data.trip.end);
-  data.hotels=data.hotels.map(h=>({
-    ...h,
-    start: h.start < data.trip.start ? data.trip.start : h.start,
-    end: h.end > data.trip.end ? data.trip.end : h.end
-  }));
-  v18SortHotels();
-  cur=data.days[0]?.key;
-  silentSave();
-  render();
-  const d=document.querySelectorAll("#tripView details.card")[0];
-  if(d) d.removeAttribute("open");
-  toast("已儲存旅遊地設定");
-}
-
-function renderTrip(){
-  const h=editingHotelId?data.hotels.find(x=>x.id==editingHotelId):null;
-  const selectedCity=typeof v15CurrentCity==="function" ? v15CurrentCity() : (data.trip.city||"");
-  const mapObj=typeof v15CountryCityMaps==="function" ? v15CountryCityMaps().cityMap : {};
-  const list=mapObj[data.trip.country]||[];
-  const customCity=list.includes(selectedCity)?"":selectedCity;
-  const showCustom=data.trip.country==="其他" || !list.includes(selectedCity);
-  v18SortHotels();
-
-  $("tripView").innerHTML=`<div class="section"><div><h2>🌏 旅遊地與機酒</h2><div class="hint">旅遊國家會影響整份資料，修改國家前會要求確認與備份。</div></div></div>
-
-  <details class="card"><summary>① 🌏 旅遊地與旅伴</summary><div class="detailBody">
-    <div class="three compactMobile">
-      <div><label>國家 / 區域</label><select id="country" onchange="handleCountrySelectChange()">${countryOptions()}</select></div>
-      <div><label>城市 / 路線</label><select id="citySelect" onchange="updateDestByCity()">${v15CityOptions(selectedCity)}</select></div>
-      <div id="customCityBox" class="full" style="display:${showCustom?"block":"none"}"><label>自訂目的地</label><input id="cityCustom" value="${esc(customCity)}" oninput="updateDestByCity()" placeholder="例：釜山＋慶州"></div>
-    </div>
-    <div class="two">
-      <div><label>幣別</label><input id="currency" value="${esc(data.trip.currency)}" oninput="countryChanged()"></div>
-      <div><label id="rateLabel">匯率：1 ${esc(data.trip.currency)} = TWD</label><input id="rateSetup" type="number" step="0.0001" value="${data.trip.rate}"></div>
-    </div>
-    <div class="three compactMobile">
-      <div><label>出發日</label><input id="start" type="date" value="${data.trip.start}"></div>
-      <div><label>回程日</label><input id="end" type="date" value="${data.trip.end}"></div>
-      <div class="full"><label>匯率查詢</label><button class="btn blue compact" onclick="openRateSearch()">查看現在匯率</button></div>
-    </div>
-    <div class="two">
-      <div><label>旅遊人數</label><select id="travelerCount" onchange="previewTravelerCount()">${[1,2,3,4,5,6,7,8].map(n=>`<option value="${n}" ${Number(data.trip.travelerCount)==n?"selected":""}>${n} 人</option>`).join("")}</select></div>
-      <div class="hint" style="align-self:end">目前目的地：${esc(data.trip.dest||"尚未設定")}</div>
-    </div>
-    <div class="grid2" id="travelerBox">${travelerInputs()}</div>
-    <div class="btns"><button class="btn dark" onclick="saveBasic()">儲存旅遊地設定</button></div>
-  </div></details>
-
-  <details class="card"><summary>② ✈️ 航班與機場接送</summary><div class="detailBody">
-    <div class="grid2"><div class="box blue"><h3>去程</h3>${flightForm("out")}</div><div class="box pink"><h3>回程</h3>${flightForm("back")}</div></div>
-    <div class="card" style="box-shadow:none;background:#fffdf8;border:1px solid var(--line);margin-top:10px">
-      <label style="display:flex;gap:8px;align-items:center;margin:0;font-weight:900">
-        <input id="flightAutoAdd" type="checkbox" checked style="width:auto"> 儲存航班後，自動加入首尾行程
-      </label>
-    </div>
-    <div class="btns"><button class="btn dark" onclick="saveFlights()">儲存航班</button></div>
-  </div></details>
-
-  <details class="card" ${v16KeepHotelOpen||editingHotelId?"open":""}><summary>③ 🏨 住宿</summary><div class="detailBody">
-    <div class="three compactMobile">
-      <div class="full"><label>住宿名稱</label><input id="hname" value="${esc(h?.name||"")}"></div>
-      <div><label>入住日</label><input id="hstart" type="date" min="${data.trip.start}" max="${data.trip.end}" value="${h?.start||data.trip.start}"></div>
-      <div><label>退房日</label><input id="hend" type="date" min="${data.trip.start}" max="${data.trip.end}" value="${h?.end||data.trip.end}"></div>
-    </div>
-    <label>地址</label><div class="two"><input id="haddr" value="${esc(h?.addr||"")}" placeholder="可手動貼上飯店地址"><button class="btn blue compact" onclick="searchHotelAddress()">搜尋地圖</button></div>
-    <label>備註</label><textarea id="hnote">${esc(h?.note||"")}</textarea>
-    <div class="btns"><button class="btn dark" onclick="saveHotel()">${h?"儲存住宿修改":"新增住宿"}</button>${h?'<button class="btn soft" onclick="editingHotelId=null;v16KeepHotelOpen=true;renderTrip()">取消編輯</button>':""}</div>
-    <div class="hotelSortedNote">住宿會依入住日自動排序；可選日期已限制在旅遊日期內。</div>
-    <div class="grid2" style="margin-top:10px">${data.hotels.map(hotelCard).join("")||'<div class="empty">尚未新增住宿</div>'}</div>
-  </div></details>`;
-}
-
-function saveHotel(){
-  if(!$("hname").value)return toast("請輸入住宿名稱");
-  let start=$("hstart").value;
-  let end=$("hend").value;
-  if(start < data.trip.start || start > data.trip.end || end < data.trip.start || end > data.trip.end){
-    return alert("住宿日期必須在旅遊出發日與回程日之間。");
-  }
-  if(end < start){
-    return alert("退房日不可早於入住日。");
-  }
-  const item={name:$("hname").value,start,end,addr:$("haddr").value,note:$("hnote").value};
-  let hotelId=editingHotelId;
-
-  if(editingHotelId){
-    Object.assign(data.hotels.find(x=>x.id==editingHotelId),item);
-    editingHotelId=null;
-  }else{
-    hotelId=uid();
-    data.hotels.push({id:hotelId,...item});
-  }
-
-  v18SortHotels();
-  v16AddHotelToPlans({id:hotelId,...item});
-  v16KeepHotelOpen=true;
-  silentSave();
-  render();
-  v16OpenTripDetail(2);
-  toast("已儲存住宿並依入住日排序");
-}
-
-function delPlan(id){
-  data.plans=data.plans.filter(x=>x.id!=id);
-  data.conns=data.conns.filter(c=>c.a!=id&&c.b!=id);
-  data.spots.forEach(s=>{ if(s.planId==id) delete s.planId; });
-  save();
-}
-
-function renderPhotoBook(){
-  $("photoBookView").innerHTML=`<div class="section"><div><h2>📖 照片旅遊書</h2><div class="hint">照片存在 Cloudinary；匯出 PDF 時會依模板套用旅行書排版。</div></div><button class="btn soft noPrint" onclick="print()">匯出 PDF</button></div>
-  <div class="card noPrint">
-    <label>照片書模板</label>
-    <div class="templateRail">
-      ${templateCard("fresh","🌿 韓系清新","米白淡綠、乾淨圓角")}
-      ${templateCard("fun","🌈 活潑可愛","貼紙感、虛線框、繽紛")}
-      ${templateCard("diary","✎ 手帳日記","紙張格線、手寫感")}
-    </div>
-    <div class="three compactMobile">
-      <div><label>照片日期</label><select id="phd">${optsDays(cur)}</select></div>
-      <div class="full"><label>照片標題</label><input id="pht"></div>
-    </div>
-    <label>選擇照片</label><input id="phf" type="file" accept="image/*">
-    <label>照片日記</label><textarea id="phm" placeholder="這天的天氣、心情、最好吃的一餐、最喜歡的瞬間……"></textarea>
-    <div class="btns"><button class="btn dark" onclick="addPhoto()">上傳並加入照片書</button></div>
-    <div class="uploadStatus" id="uploadStatus"></div>
-    <div class="mini" style="margin-top:8px">Cloudinary folder：${CLOUDINARY_CONFIG.folder}｜preset：${CLOUDINARY_CONFIG.uploadPreset}</div>
-  </div>
-  <div class="bookStyle-${data.meta.bookStyle||"fresh"}">
-    <div class="printCover">
-      <h1>${esc(data.meta.title)}</h1>
-      <p class="coverSub">${esc(data.meta.subtitle)}</p>
-      <div class="coverMeta">
-        <div><span class="mini">目的地</span><br><b>${esc(data.trip.dest)}</b></div>
-        <div><span class="mini">日期</span><br><b>${short(data.trip.start)} - ${short(data.trip.end)}</b></div>
-      </div>
-    </div>
-    <div class="card"><h2>${esc(data.meta.title)}</h2><div class="box mint">${esc(data.meta.subtitle)}</div></div>
-    ${data.days.map(d=>photoBookDay(d)).join("")}
-  </div>`;
-}
-
-function photoBookDay(d){
-  const plans=sortedPlans(d.key);
-  const photos=data.photos.filter(p=>p.day==d.key);
-  const cover=data.dayCovers[d.key];
-  return `<div class="card bookDay">
-    <div class="bookDayHeader">
-      <div><h2>${d.title}｜${d.label}</h2><div class="hint">本日住宿：${hotelFor(d.key)?.name||"未設定"}</div></div>
-      <span class="bookDayBadge">${plans.length} 個行程｜${photos.length} 張照片</span>
-      <div class="noPrint"><input type="file" accept="image/*" onchange="addDayCover('${d.key}',this.files[0])"></div>
-    </div>
-    ${cover?`<img class="dayCover" src="${cover}">`:`<div class="dayCover" style="display:grid;place-items:center;color:#999">尚未上傳本日封面圖</div>`}
-    <div class="bookTimeline">${plans.map(p=>`<div class="bookTimelineItem"><div class="bookTimelineTime">${esc(p.start||"--:--")}</div><div class="bookTimelineContent"><b>${activityIcon(p.type)} ${esc(p.name)}</b><div class="mini">${esc(p.end?("結束 "+p.end):"")}</div>${p.note?`<div style="margin-top:4px">${esc(p.note)}</div>`:""}</div></div>`).join("")||'<div class="empty">這天還沒有行程</div>'}</div>
-    <div class="photoGridPrint">${photos.map(p=>`<div class="photo"><img src="${p.src}"><h3>${esc(p.title||"照片紀錄")}</h3><p class="mini">${esc(p.memo)}</p><div class="tags">${p.cloudinary?'<span class="tag green">☁️ Cloudinary</span>':''}</div><button class="small noPrint" onclick="delPhoto('${p.id}')">刪除</button></div>`).join("")||""}</div>
-  </div>`;
-}
 let v19PendingDates = null;
 
 function v19ResetVariableData(){
@@ -2122,62 +709,6 @@ function v19ResetVariableData(){
   data.packView="pre";
 }
 
-function cancelDateReset(){
-  v19PendingDates=null;
-  $("dateResetModal").classList.remove("show");
-}
-
-function confirmDateReset(){
-  if(!v19PendingDates)return;
-  data.trip.start=v19PendingDates.start;
-  data.trip.end=v19PendingDates.end;
-  data.days=mkDays(data.trip.start,data.trip.end);
-  v19ResetVariableData();
-  cur=data.days[0]?.key||data.trip.start;
-  v19PendingDates=null;
-  $("dateResetModal").classList.remove("show");
-  save();
-  toast("已清空資料並修改旅行日期");
-}
-
-function saveBasic(){
-  const selectedCountry=$("country").value;
-  if(selectedCountry!==data.trip.country){
-    v18PendingCountry=selectedCountry;
-    $("country").value=data.trip.country;
-    $("countryResetModal").classList.add("show");
-    return;
-  }
-
-  const newStart=$("start").value;
-  const newEnd=$("end").value;
-  if((newStart!==data.trip.start || newEnd!==data.trip.end) && data.days?.length){
-    v19PendingDates={start:newStart,end:newEnd};
-    $("dateResetModal").classList.add("show");
-    return;
-  }
-
-  data.trip.country=$("country").value;
-  const selected = $("citySelect").value;
-  data.trip.city = selected==="自訂" ? $("cityCustom").value.trim() : selected;
-  data.trip.dest = v15DestinationName(data.trip.country, data.trip.city);
-  data.trip.currency=$("currency").value.toUpperCase();
-  data.trip.start=newStart;
-  data.trip.end=newEnd;
-  data.trip.rate=Number($("rateSetup").value||data.trip.rate||1);
-  data.trip.travelerCount=Number($("travelerCount").value||1);
-  data.trip.travelers=[];
-  for(let i=0;i<data.trip.travelerCount;i++) data.trip.travelers.push($("traveler"+i).value||String.fromCharCode(65+i));
-
-  data.days=mkDays(data.trip.start,data.trip.end);
-  v18SortHotels();
-  cur=data.days[0]?.key;
-  silentSave();
-  render();
-  const d=document.querySelectorAll("#tripView details.card")[0];
-  if(d) d.removeAttribute("open");
-  toast("已儲存旅遊地設定");
-}
 
 function confirmCountryReset(){
   if(!v18PendingCountry)return;
@@ -2208,73 +739,11 @@ function confirmCountryReset(){
   toast("已清空資料並切換旅遊國家");
 }
 
-function saveHotel(){
-  if(!$("hname").value)return toast("請輸入住宿名稱");
-  let start=$("hstart").value;
-  let end=$("hend").value;
-  if(start < data.trip.start || start > data.trip.end || end < data.trip.start || end > data.trip.end){
-    return alert("住宿日期必須在旅遊出發日與回程日之間。");
-  }
-  if(end < start){
-    return alert("退房日不可早於入住日。");
-  }
-  const item={name:$("hname").value,start,end,addr:$("haddr").value,note:$("hnote").value};
-  let hotelId=editingHotelId;
-  let isNew=false;
 
-  if(editingHotelId){
-    Object.assign(data.hotels.find(x=>x.id==editingHotelId),item);
-    editingHotelId=null;
-  }else{
-    isNew=true;
-    hotelId=uid();
-    data.hotels.push({id:hotelId,...item});
-  }
-
-  v18SortHotels();
-  v16KeepHotelOpen=true;
-  silentSave();
-  render();
-  v16OpenTripDetail(2);
-
-  if(isNew){
-    setTimeout(()=>{
-      if(confirm("住宿已新增。要把這間住宿帶入行程嗎？")){
-        addHotelPlans(hotelId);
-      }
-      if(confirm("要把這間住宿帶入預算嗎？")){
-        addHotelExpense(hotelId);
-      }
-    },80);
-  }else{
-    toast("已儲存住宿並依入住日排序");
-  }
-}
-
-function hotelHasPlans(id){
-  return data.plans.some(p=>p.hotelId==id);
-}
 function hotelHasExpense(id){
   return data.expenses.some(e=>e.hotelId==id);
 }
 
-function addHotelPlans(id){
-  const h=data.hotels.find(x=>x.id==id);
-  if(!h)return;
-  v16AddHotelToPlans({...h});
-  data.plans.forEach(p=>{
-    if(p.memo==="由住宿資料帶入" && (p.name.includes(h.name) || p.note===h.addr)) p.hotelId=id;
-  });
-  save();
-  toast("已帶入住宿行程");
-}
-
-function removeHotelPlans(id){
-  data.plans=data.plans.filter(p=>p.hotelId!=id);
-  data.conns=data.conns.filter(c=>data.plans.some(p=>p.id==c.a) && data.plans.some(p=>p.id==c.b));
-  save();
-  toast("已移除住宿行程");
-}
 
 function addHotelExpense(id){
   const h=data.hotels.find(x=>x.id==id);
@@ -2305,161 +774,12 @@ function hotelCard(h){
   </div></div>`;
 }
 
-function delHotel(id){
-  data.hotels=data.hotels.filter(h=>h.id!=id);
-  data.plans=data.plans.filter(p=>p.hotelId!=id);
-  data.expenses=data.expenses.filter(e=>e.hotelId!=id);
-  save();
-}
 
-async function addTripCover(file){
-  if(!file)return;
-  try{
-    const img = await uploadImageFile(file, {maxWidth:1800, quality:.84});
-    data.tripCover=img.src;
-    data.tripCoverMeta=img;
-    save();
-    toast("旅遊書封面已上傳");
-  }catch(err){
-    setUploadStatus("");
-    alert("封面上傳失敗：" + err.message);
-  }
-}
-
-function renderPhotoBook(){
-  $("photoBookView").innerHTML=`<div class="section"><div><h2>📖 照片旅遊書</h2><div class="hint">照片存在 Cloudinary；匯出 PDF 時會依模板套用旅行書排版。</div></div><button class="btn soft noPrint" onclick="print()">匯出 PDF</button></div>
-  <div class="card noPrint">
-    <label>照片書模板</label>
-    <div class="templateRail">
-      ${templateCard("fresh","🌿 韓系清新","米白淡綠、乾淨圓角")}
-      ${templateCard("fun","🌈 活潑可愛","貼紙感、虛線框、繽紛")}
-      ${templateCard("diary","✎ 手帳日記","紙張格線、手寫感")}
-    </div>
-    <label>整本旅遊書封面照</label>
-    <input type="file" accept="image/*" onchange="addTripCover(this.files[0])">
-    <div class="mini" style="margin-top:6px">建議尺寸：橫式 1600×1000px 以上，或手機照片 4:3／16:9；匯出 PDF 會自動裁切成封面比例。</div>
-    <div class="tripCoverPreview">${data.tripCover?`<img src="${data.tripCover}">`:"尚未上傳整本封面照"}</div>
-    <hr style="border:0;border-top:1px solid var(--line);margin:14px 0">
-    <div class="three compactMobile">
-      <div><label>照片日期</label><select id="phd">${optsDays(cur)}</select></div>
-      <div class="full"><label>照片標題</label><input id="pht"></div>
-    </div>
-    <label>選擇照片</label><input id="phf" type="file" accept="image/*">
-    <div class="mini" style="margin-top:6px">建議尺寸：一般照片 1200×900px 以上；系統會先壓縮再上傳 Cloudinary。</div>
-    <label>照片日記</label><textarea id="phm" placeholder="這天的天氣、心情、最好吃的一餐、最喜歡的瞬間……"></textarea>
-    <div class="btns"><button class="btn dark" onclick="addPhoto()">上傳並加入照片書</button></div>
-    <div class="uploadStatus" id="uploadStatus"></div>
-    <div class="mini" style="margin-top:8px">Cloudinary folder：${CLOUDINARY_CONFIG.folder}｜preset：${CLOUDINARY_CONFIG.uploadPreset}</div>
-  </div>
-  <div class="bookStyle-${data.meta.bookStyle||"fresh"}">
-    <div class="printCover">
-      <span class="bookOrnament"></span>
-      <h1>${esc(data.meta.title)}</h1>
-      <p class="coverSub">${esc(data.meta.subtitle)}</p>
-      ${data.tripCover?`<img class="printCoverPhoto" src="${data.tripCover}">`:""}
-      <div class="coverMeta">
-        <div><span class="mini">目的地</span><br><b>${esc(data.trip.dest)}</b></div>
-        <div><span class="mini">日期</span><br><b>${short(data.trip.start)} - ${short(data.trip.end)}</b></div>
-      </div>
-    </div>
-    <div class="card"><h2>${esc(data.meta.title)}</h2><div class="box mint">${esc(data.meta.subtitle)}</div></div>
-    ${data.days.map(d=>photoBookDay(d)).join("")}
-  </div>`;
-}
-
-function photoBookDay(d){
-  const plans=sortedPlans(d.key);
-  const photos=data.photos.filter(p=>p.day==d.key);
-  const cover=data.dayCovers[d.key];
-  return `<div class="card bookDay">
-    <div class="bookDayHeader">
-      <div><span class="bookOrnament"></span><h2>${d.title}｜${d.label}</h2><div class="hint">本日住宿：${hotelFor(d.key)?.name||"未設定"}</div></div>
-      <span class="bookDayBadge">${plans.length} 個行程｜${photos.length} 張照片</span>
-      <div class="noPrint"><input type="file" accept="image/*" onchange="addDayCover('${d.key}',this.files[0])"><div class="mini">每日封面建議：1600×900px 以上</div></div>
-    </div>
-    ${cover?`<img class="dayCover" src="${cover}">`:`<div class="dayCover" style="display:grid;place-items:center;color:#999">尚未上傳本日封面圖</div>`}
-    <div class="bookTimeline">${plans.map(p=>`<div class="bookTimelineItem"><div class="bookTimelineTime">${esc(p.start||"--:--")}</div><div class="bookTimelineContent"><b>${activityIcon(p.type)} ${esc(p.name)}</b><div class="mini">${esc(p.end?("結束 "+p.end):"")}</div>${p.note?`<div style="margin-top:4px">${esc(p.note)}</div>`:""}</div></div>`).join("")||'<div class="empty">這天還沒有行程</div>'}</div>
-    <div class="photoGridPrint">${photos.map(p=>`<div class="photo"><img src="${p.src}"><h3>${esc(p.title||"照片紀錄")}</h3><p class="mini">${esc(p.memo)}</p><div class="tags">${p.cloudinary?'<span class="tag green">☁️ Cloudinary</span>':''}</div><button class="small noPrint" onclick="delPhoto('${p.id}')">刪除</button></div>`).join("")||""}</div>
-  </div>`;
-}
 const APP_VERSION = "v63｜2026-05-30｜登入白名單與多旅程架構版";
 console.log("貞選旅管家", APP_VERSION);
 let v21PendingFlightOptions = false;
 let v21PendingHotelId = null;
 
-function refreshCityOptions(){
-  const list = v15CountryCityMaps().cityMap[$("country").value] || [];
-  $("citySelect").innerHTML = v15CityOptions(list[0] || "自訂");
-  $("cityCustom").value = "";
-  updateCustomCityVisibility();
-  countryChanged();
-}
-
-function handleCountrySelectChange(){
-  // v21: 不在選國家當下跳重置，避免城市清單還停留舊國家。
-  refreshCityOptions();
-}
-
-function saveBasic(){
-  const selectedCountry=$("country").value;
-  if(selectedCountry!==data.trip.country){
-    v18PendingCountry=selectedCountry;
-    $("countryResetModal").classList.add("show");
-    return;
-  }
-
-  const newStart=$("start").value;
-  const newEnd=$("end").value;
-  if((newStart!==data.trip.start || newEnd!==data.trip.end) && data.days?.length){
-    v19PendingDates={start:newStart,end:newEnd};
-    $("dateResetModal").classList.add("show");
-    return;
-  }
-
-  data.trip.country=$("country").value;
-  const selected = $("citySelect").value;
-  data.trip.city = selected==="自訂" ? $("cityCustom").value.trim() : selected;
-  data.trip.dest = v15DestinationName(data.trip.country, data.trip.city);
-  data.trip.currency=$("currency").value.toUpperCase();
-  data.trip.start=newStart;
-  data.trip.end=newEnd;
-  data.trip.rate=Number($("rateSetup").value||data.trip.rate||1);
-  data.trip.travelerCount=Number($("travelerCount").value||1);
-  data.trip.travelers=[];
-  for(let i=0;i<data.trip.travelerCount;i++) data.trip.travelers.push($("traveler"+i).value||String.fromCharCode(65+i));
-
-  data.days=mkDays(data.trip.start,data.trip.end);
-  v18SortHotels();
-  cur=data.days[0]?.key;
-  silentSave();
-  render();
-  const d=document.querySelectorAll("#tripView details.card")[0];
-  if(d) d.removeAttribute("open");
-  toast("已儲存旅遊地設定");
-}
-
-function saveFlights(){
-  ["out","back"].forEach(k=>{
-    const transferEl=$(k+"transfer");
-    data.flights[k]={
-      no:$(k+"no").value,
-      from:$(k+"from").value,
-      to:$(k+"to").value,
-      dep:$(k+"dep").value,
-      arr:$(k+"arr").value,
-      transfer:transferEl?transferEl.value:"",
-      toAirport:$(k+"toAirport")?$(k+"toAirport").value:"",
-      fromAirport:$(k+"fromAirport")?$(k+"fromAirport").value:"",
-      fromTerminal:$(k+"fromTerminal")?$(k+"fromTerminal").value:"",
-      toTerminal:$(k+"toTerminal")?$(k+"toTerminal").value:""
-    };
-  });
-  silentSave();
-  render();
-  v16CollapseTripDetail(1);
-  v21PendingFlightOptions=true;
-  $("flightOptionModal").classList.add("show");
-}
 
 function closeFlightOptions(){
   v21PendingFlightOptions=false;
@@ -2480,42 +800,6 @@ function confirmFlightOptions(){
   $("flightOptionModal").classList.remove("show");
 }
 
-function saveHotel(){
-  if(!$("hname").value)return toast("請輸入住宿名稱");
-  let start=$("hstart").value;
-  let end=$("hend").value;
-  if(start < data.trip.start || start > data.trip.end || end < data.trip.start || end > data.trip.end){
-    return alert("住宿日期必須在旅遊出發日與回程日之間。");
-  }
-  if(end < start){
-    return alert("退房日不可早於入住日。");
-  }
-  const item={name:$("hname").value,start,end,addr:$("haddr").value,note:$("hnote").value};
-  let hotelId=editingHotelId;
-  let isNew=false;
-
-  if(editingHotelId){
-    Object.assign(data.hotels.find(x=>x.id==editingHotelId),item);
-    editingHotelId=null;
-  }else{
-    isNew=true;
-    hotelId=uid();
-    data.hotels.push({id:hotelId,...item});
-  }
-
-  v18SortHotels();
-  v16KeepHotelOpen=true;
-  silentSave();
-  render();
-  v16OpenTripDetail(2);
-
-  if(isNew){
-    v21PendingHotelId=hotelId;
-    $("hotelOptionModal").classList.add("show");
-  }else{
-    toast("已儲存住宿並依入住日排序");
-  }
-}
 
 function closeHotelOptions(){
   v21PendingHotelId=null;
@@ -2537,23 +821,6 @@ function confirmHotelOptions(){
   toast("已完成住宿同步設定");
 }
 
-function v16AddFlightsToPlans(doRender=true){
-  const out=data.flights.out||{}, back=data.flights.back||{};
-  const outDepDay=v16DateFromDT(out.dep)||data.trip.start;
-  const outArrDay=v16DateFromDT(out.arr)||outDepDay;
-  const backDepDay=v16DateFromDT(back.dep)||data.trip.end;
-  const backArrDay=v16DateFromDT(back.arr)||backDepDay;
-
-  v16AddPlanNode({sourceType:"flight",lockedName:true,day:outDepDay,start:"14:00",end:v16TimeFromDT(out.dep),type:"交通",name:`前往 ${out.from||"出發機場"}`,note:out.toAirport||out.transfer||"",memo:"由航班資料帶入"});
-  v16AddPlanNode({sourceType:"flight",lockedName:true,day:outDepDay,start:v16TimeFromDT(out.dep),end:v16TimeFromDT(out.arr),type:"航班",name:`搭乘去程航班 ${out.no||""}`.trim(),note:`${out.from||""} → ${out.to||""}`,memo:"由航班資料帶入"});
-  v16AddPlanNode({sourceType:"flight",lockedName:true,day:outArrDay,start:v16TimeFromDT(out.arr),end:"",type:"交通",name:`從 ${out.to||"降落機場"} 前往飯店／市區`,note:out.fromAirport||"",memo:"由航班資料帶入"});
-
-  v16AddPlanNode({sourceType:"flight",lockedName:true,day:backDepDay,start:"",end:v16TimeFromDT(back.dep),type:"交通",name:`從飯店前往 ${back.from||"回程機場"}`,note:back.toAirport||back.transfer||"",memo:"由航班資料帶入"});
-  v16AddPlanNode({sourceType:"flight",lockedName:true,day:backDepDay,start:v16TimeFromDT(back.dep),end:v16TimeFromDT(back.arr),type:"航班",name:`搭乘回程航班 ${back.no||""}`.trim(),note:`${back.from||""} → ${back.to||""}`,memo:"由航班資料帶入"});
-  v16AddPlanNode({sourceType:"flight",lockedName:true,day:backArrDay,start:v16TimeFromDT(back.arr),end:"",type:"交通",name:`從 ${back.to||"抵達機場"} 回家`,note:back.fromAirport||"",memo:"由航班資料帶入"});
-
-  if(doRender) save();
-}
 
 function v16AddHotelToPlans(h){
   if(!h.start||!h.end||!h.name)return;
@@ -2602,125 +869,6 @@ function v16AddHotelToPlans(h){
   });
 }
 
-function addHotelPlans(id){
-  const h=data.hotels.find(x=>x.id==id);
-  if(!h)return;
-  v16AddHotelToPlans({...h});
-  save();
-  toast("已帶入住宿行程");
-}
-
-function saveSpot(){
-  if(!$("sn").value)return toast("請輸入名稱");
-  const item={name:$("sn").value,type:$("st").value,day:$("sd").value,addr:$("sa").value,memo:$("sm").value};
-  let id=editingSpotId;
-  let spot;
-
-  if(id){
-    spot=data.spots.find(x=>x.id==id);
-    Object.assign(spot,item);
-    editingSpotId=null;
-  }else{
-    id=uid();
-    spot={id,...item,source:"手動"};
-    data.spots.push(spot);
-  }
-
-  if($("sToPlan").value==="yes"){
-    const day=item.day||cur;
-    const planId=uid();
-    data.plans.push({id:planId,sourceType:"spot",lockedName:true,day,start:$("sStart").value,end:$("sEnd").value,type:["景點","餐廳","咖啡廳","購物","其他"].includes(item.type)?item.type:"景點",name:item.name,mode:"foreign",foreign:0,twd:0,payer:"未定",payMethod:"未定",note:item.memo,memo:"由口袋景點帶入",adjusted:false});
-    spot.planId=planId;
-  }
-  save();
-}
-
-function savePlanForm(){
-  if(!$("pname").value)return toast("請輸入行程名稱");
-  let item={day:$("pday").value,start:$("ps").value,end:$("pe").value,type:$("ptype").value,name:$("pname").value,mode:"foreign",foreign:Number($("pforeign").value||0),twd:Number($("ptwd").value||0),payer:$("pp").value,payMethod:$("ppm").value,note:$("pnote").value,memo:$("pmemo").value,adjusted:false};
-  let planId=editingPlanId;
-
-  if(editingPlanId){
-    const existing=data.plans.find(p=>p.id==editingPlanId);
-    if(existing?.lockedName){
-      item.name=existing.name;
-      item.sourceType=existing.sourceType;
-      item.lockedName=true;
-      if(existing.hotelId)item.hotelId=existing.hotelId;
-    }
-    Object.assign(existing,item);
-    editingPlanId=null;
-  }else{
-    planId=uid();
-    data.plans.push({id:planId,...item});
-  }
-
-  if(v16PendingSpotId){
-    const spot=data.spots.find(s=>s.id==v16PendingSpotId);
-    const p=data.plans.find(x=>x.id==planId);
-    if(spot && p){
-      spot.planId=planId;
-      p.sourceType="spot";
-      p.lockedName=true;
-      p.name=spot.name;
-      p.memo=p.memo || "由口袋景點帶入";
-    }
-    v16PendingSpotId=null;
-  }
-
-  cur=item.day;
-  save();
-}
-
-function renderPlanner(){
-  normalizePlanTimes(cur);
-  let plans=sortedPlans(cur);
-  $("plannerView").innerHTML=`<div class="section"><div><h2>${dayTitle(cur)}</h2><div class="hint">住宿：${hotelFor(cur)?.name||"未設定"}。行程依開始時間排序。</div></div><button class="iconBtn smallIcon" onclick="clearPlanForm()">＋</button></div>
-  <details class="card" ${editingPlanId||v16PendingSpotId?"open":""}><summary>${editingPlanId?"編輯行程":"＋ 新增行程"}</summary><div class="detailBody">
-    <div class="three compactMobile">
-      <div class="full"><label>日期</label><select id="pday" onchange="cur=this.value; renderPlanner();">${optsDays(cur)}</select></div>
-      <div><label>開始</label><input id="ps" type="time" value="10:00"></div>
-      <div><label>結束</label><input id="pe" type="time" value="11:30"></div>
-    </div>
-    <div class="two">
-      <div><label>分類</label><select id="ptype"><option>景點</option><option>餐廳</option><option>咖啡廳</option><option>購物</option><option>交通</option><option>航班</option><option>住宿</option><option>其他</option></select></div>
-      <div><label>付款方式</label><select id="ppm">${optsPayMethod("未定")}</select></div>
-    </div>
-    <label>行程名稱</label><input id="pname">
-    <div id="lockedNameHint" class="lockedFieldHint" style="display:none">此行程由航班／住宿／口袋景點帶入，名稱不可編輯；可回來源資料調整。</div>
-    <div class="four compactMobile">
-      <div><label>${esc(data.trip.currency)} 金額</label><input id="pforeign" type="number" oninput="syncPlanMoney('f')"></div>
-      <div><label>TWD</label><input id="ptwd" type="number" oninput="syncPlanMoney('t')"></div>
-      <div class="full"><label>付款人</label><select id="pp">${optsPayer("未定")}</select></div>
-    </div>
-    <label>注意事項</label><textarea id="pnote"></textarea>
-    <label>備註</label><textarea id="pmemo"></textarea>
-    <div class="btns"><button class="btn dark" onclick="savePlanForm()">${editingPlanId?"儲存行程":"加入行程"}</button>${editingPlanId||v16PendingSpotId?'<button class="btn soft" onclick="clearPlanForm()">取消編輯 / 新增</button>':""}</div>
-  </div></details>
-  <div id="pcards">${planCards(plans)}</div>`;
-  if(editingPlanId) fillPlanForm(editingPlanId);
-  if(v16PendingSpotId) v16FillPendingSpot();
-  v21ApplyLockedNameState();
-}
-
-function fillPlanForm(id){
-  let p=data.plans.find(x=>x.id==id);
-  if(!p)return;
-  ["pday","ps","pe","ptype","pname","pforeign","ptwd","pp","ppm","pnote","pmemo"].forEach((id2,i)=>$(id2).value=[p.day,p.start,p.end,p.type,p.name,moneyForeign(p),moneyTwd(p),p.payer,p.payMethod||"未定",p.note,p.memo][i]);
-  v21ApplyLockedNameState();
-}
-
-function v16FillPendingSpot(){
-  const s=data.spots.find(x=>x.id==v16PendingSpotId);
-  if(!s)return;
-  $("pday").value=s.day||cur;
-  $("ptype").value=["景點","餐廳","咖啡廳","購物","其他"].includes(s.type)?s.type:"景點";
-  $("pname").value=s.name;
-  $("pnote").value=s.memo;
-  $("pname").readOnly=true;
-  $("pname").classList.add("lockedInput");
-  $("lockedNameHint").style.display="block";
-}
 
 function v21ApplyLockedNameState(){
   const p=editingPlanId?data.plans.find(x=>x.id==editingPlanId):null;
@@ -2732,27 +880,7 @@ function v21ApplyLockedNameState(){
   if($("lockedNameHint")) $("lockedNameHint").style.display=locked?"block":"none";
 }
 
-function budgetRows(){
-  const rows=[];
-  data.expenses.forEach(x=>rows.push(`<tr><td>${esc(x.source||"額外費用")}</td><td>${x.day?dayTitle(x.day):"—"}</td><td>${esc(x.type)}</td><td>${esc(x.name)}</td><td>${esc(travelerName(x.payer))}</td><td>${esc(payMethodLabel(x.payMethod))}</td><td>${fmt(moneyForeign(x))}</td><td>${fmt(moneyTwd(x))}</td><td><button class="small" onclick="editExpense('${x.id}')">編輯</button><button class="small" onclick="delExpense('${x.id}')">刪除</button></td></tr>`));
 
-  data.plans
-    .filter(p=>!(p.sourceType==="hotel" || p.hotelId || (p.type==="住宿" && p.memo==="由住宿資料帶入")))
-    .forEach(p=>rows.push(`<tr><td>行程</td><td>${dayTitle(p.day)}</td><td>${esc(p.type)}</td><td>${esc(p.name)}</td><td>${esc(travelerName(p.payer))}</td><td>${esc(payMethodLabel(p.payMethod))}</td><td>${fmt(moneyForeign(p))}</td><td>${fmt(moneyTwd(p))}</td><td><button class="small" onclick="editPlan('${p.id}')">編輯行程</button></td></tr>`));
-
-  data.conns.filter(c=>Number(c.fareTwd||0)>0||Number(c.fareForeign||0)>0).forEach(c=>rows.push(`<tr><td>交通</td><td>—</td><td>${esc(c.mode)}</td><td>行程間交通</td><td>${esc(travelerName(c.payer))}</td><td>${esc(payMethodLabel(c.payMethod))}</td><td>${fmt(c.fareForeign||0)}</td><td>${fmt(c.fareTwd||0)}</td><td></td></tr>`));
-  return rows.join("")||'<tr><td colspan="9">尚未新增預算</td></tr>';
-}
-
-function renderBudget(){
-  const planTotal=data.plans
-    .filter(p=>!(p.sourceType==="hotel" || p.hotelId || (p.type==="住宿" && p.memo==="由住宿資料帶入")))
-    .reduce((s,x)=>s+moneyTwd(x),0);
-  const expTotal=data.expenses.reduce((s,x)=>s+moneyTwd(x),0);
-  const taxiTotal=data.conns.reduce((s,x)=>s+Number(x.fareTwd||0),0);
-  $("budgetView").innerHTML=`<div class="section"><div><h2>預算總覽</h2><div class="hint">住宿若已從住宿卡片帶入預算，住宿行程節點不會重複列入行程預算。</div></div><button class="iconBtn smallIcon" onclick="clearExpenseForm()">＋</button></div><div class="card"><div class="three"><div><label>費用類型</label><select id="etype"><option>機票</option><option>住宿</option><option>網路</option><option>旅平險</option><option>交通票券</option><option>景點票券</option><option>餐飲</option><option>購物</option><option>其他</option></select></div><div><label>項目</label><input id="ename"></div><div><label>付款人</label><select id="epayer">${optsPayer("未定")}</select></div></div><div class="four"><div><label>${esc(data.trip.currency)} 金額</label><input id="eforeign" type="number" oninput="syncExpenseMoney('f')"></div><div><label>TWD</label><input id="etwd" type="number" oninput="syncExpenseMoney('t')"></div><div><label>付款方式</label><select id="epm">${optsPayMethod("未定")}</select></div><div><label>日期</label><select id="eday"><option value="">不指定日期</option>${optsDays()}</select></div></div><label>備註</label><input id="ememo"><div class="btns"><button class="btn dark" onclick="saveExpenseForm()">${editingExpenseId?"儲存預算":"新增費用"}</button>${editingExpenseId?'<button class="btn soft" onclick="clearExpenseForm()">取消編輯 / 新增</button>':""}<button class="btn blue" onclick="openRateSearch()">查看現在匯率</button></div></div><div class="stats"><div class="stat"><span>額外費用 TWD</span><strong>${fmt(expTotal)}</strong></div><div class="stat"><span>行程 TWD</span><strong>${fmt(planTotal)}</strong></div><div class="stat"><span>計程車 TWD</span><strong>${fmt(taxiTotal)}</strong></div><div class="stat"><span>總 TWD</span><strong>${fmt(expTotal+planTotal+taxiTotal)}</strong></div></div><div class="table"><table><thead><tr><th>來源</th><th>日期</th><th>類型</th><th>項目</th><th>付款人</th><th>付款方式</th><th>${esc(data.trip.currency)}</th><th>TWD</th><th></th></tr></thead><tbody>${budgetRows()}</tbody></table></div>`;
-  if(editingExpenseId)fillExpenseForm(editingExpenseId);
-}
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyDVmuktIzd29IqgOum2KOchgFZi0ofn4tY",
   authDomain: "travel-tool-50e41.firebaseapp.com",
@@ -2776,76 +904,6 @@ let suppressCloudSave = false;
 let cloudUnsub = null;
 let lastCloudUpdatedAt = 0;
 
-function initFirebaseSync(){
-  if(!window.firebase){
-    setSyncStatus("off","Firebase SDK 尚未載入","請確認網路連線或 GitHub Pages 是否可載入 Firebase CDN。");
-    return;
-  }
-
-  if(!firebase.apps.length){
-    fbApp = firebase.initializeApp(FIREBASE_CONFIG);
-  }else{
-    fbApp = firebase.app();
-  }
-
-  fbAuth = firebase.auth();
-  fbDb = firebase.firestore();
-
-  fbAuth.onAuthStateChanged(async user=>{
-    fbUser = user || null;
-    cloudReady = false;
-
-    if(cloudUnsub){
-      cloudUnsub();
-      cloudUnsub = null;
-    }
-
-    if(!user){
-      updateAuthButtons(false);
-      setSyncStatus("off","尚未登入","登入 Google 後可跨裝置同步。");
-      return;
-    }
-
-    updateAuthButtons(true);
-
-    const email = (user.email || "").toLowerCase();
-    if(email !== ALLOWED_EMAIL){
-      setSyncStatus("off","此 Google 帳號尚未授權",`${email} 不在白名單中。請登出後改用授權帳號。`);
-      return;
-    }
-
-    setSyncStatus("warn","登入成功，檢查雲端資料中",email);
-
-    try{
-      await firstCloudLoadOrCreate();
-      cloudReady = true;
-      listenCloudChanges();
-      scheduleCloudSave();
-    }catch(err){
-      cloudReady = false;
-      setSyncStatus("off","雲端同步失敗",err.message || "請檢查 Firestore Rules、白名單 email 與網路。");
-    }
-  });
-}
-
-function updateAuthButtons(isIn){
-  $("loginBtn")?.classList.toggle("hidden", isIn);
-  $("logoutBtn")?.classList.toggle("hidden", !isIn);
-  $("cloudLoadBtn")?.classList.toggle("hidden", !isIn);
-  $("cloudSaveBtn")?.classList.toggle("hidden", !isIn);
-}
-
-function setSyncStatus(kind,title,desc){
-  const el=$("syncStatus");
-  if(!el)return;
-  const dotClass = kind==="on"?"on":kind==="warn"?"warn":"off";
-  el.innerHTML = `<span class="syncDot ${dotClass}"></span><b>${esc(title||"")}</b><br>${esc(desc||"")}`;
-}
-
-function tripDocRef(){
-  if(!fbUser) throw new Error("尚未登入");
-  return fbDb.collection("users").doc(fbUser.uid).collection("trips").doc(CLOUD_TRIP_ID);
-}
 
 function firebaseSignIn(){
   if(!fbAuth)return toast("Firebase 尚未初始化");
@@ -2855,126 +913,12 @@ function firebaseSignIn(){
   });
 }
 
-function firebaseSignOut(){
-  if(fbAuth) fbAuth.signOut();
-}
-
-function cloudPayload(){
-  return {
-    appVersion: typeof APP_VERSION !== "undefined" ? APP_VERSION : "unknown",
-    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-    updatedAtClient: Date.now(),
-    ownerEmail: fbUser?.email || "",
-    data: JSON.parse(JSON.stringify(data))
-  };
-}
-
-async function firstCloudLoadOrCreate(){
-  const ref=tripDocRef();
-  const snap=await ref.get();
-
-  if(snap.exists){
-    const doc=snap.data();
-    if(doc?.data){
-      suppressCloudSave = true;
-      data = doc.data;
-      if(!data.days?.length && data.trip?.start && data.trip?.end) data.days = mkDays(data.trip.start,data.trip.end);
-      cur = data.days?.[0]?.key || data.trip?.start || cur;
-      localStorage.setItem("travel_book_v12", JSON.stringify(data));
-      localStorage.setItem("travel_book_v22_cloud_backup", JSON.stringify(data));
-      render();
-      suppressCloudSave = false;
-      lastCloudUpdatedAt = doc.updatedAtClient || 0;
-      setSyncStatus("on","已載入雲端資料",`登入：${fbUser.email}`);
-      return;
-    }
-  }
-
-  await ref.set(cloudPayload(), {merge:true});
-  setSyncStatus("on","已建立雲端資料",`登入：${fbUser.email}`);
-}
-
-function listenCloudChanges(){
-  const ref=tripDocRef();
-  cloudUnsub = ref.onSnapshot(snap=>{
-    if(!snap.exists || !snap.data()?.data || !cloudReady)return;
-    const doc=snap.data();
-    const remoteUpdated = doc.updatedAtClient || 0;
-    if(remoteUpdated && remoteUpdated > lastCloudUpdatedAt + 5000){
-      lastCloudUpdatedAt = remoteUpdated;
-      setSyncStatus("warn","雲端有較新的資料","可按「載入雲端」更新此裝置。");
-    }
-  }, err=>{
-    setSyncStatus("off","雲端監聽失敗",err.message);
-  });
-}
-
-function scheduleCloudSave(){
-  if(suppressCloudSave || !cloudReady || !fbUser)return;
-  clearTimeout(cloudSaveTimer);
-  cloudSaveTimer=setTimeout(saveToCloudNow,900);
-}
-
-async function saveToCloudNow(){
-  if(!fbUser)return toast("請先登入 Google");
-  const email=(fbUser.email||"").toLowerCase();
-  if(email!==ALLOWED_EMAIL)return toast("此帳號尚未授權同步");
-
-  try{
-    setSyncStatus("warn","同步中","正在儲存到 Firestore...");
-    const now=Date.now();
-    lastCloudUpdatedAt = now;
-    const payload = cloudPayload();
-    payload.updatedAtClient = now;
-    await tripDocRef().set(payload,{merge:true});
-    localStorage.setItem("travel_book_v22_cloud_backup", JSON.stringify(data));
-    setSyncStatus("on","已同步雲端",`最後同步：${new Date().toLocaleTimeString("zh-TW",{hour:"2-digit",minute:"2-digit"})}`);
-  }catch(err){
-    setSyncStatus("off","同步失敗",err.message || "請檢查 Firestore Rules 與白名單。");
-  }
-}
-
-async function loadFromCloud(){
-  if(!fbUser)return toast("請先登入 Google");
-  if(!confirm("載入雲端資料會覆蓋目前此裝置上的資料。建議先到「說明」匯出備份。確定載入嗎？"))return;
-
-  try{
-    const snap=await tripDocRef().get();
-    if(!snap.exists || !snap.data()?.data)return toast("雲端目前沒有資料");
-    suppressCloudSave = true;
-    data=snap.data().data;
-    if(!data.days?.length && data.trip?.start && data.trip?.end)data.days=mkDays(data.trip.start,data.trip.end);
-    cur=data.days?.[0]?.key||data.trip?.start||cur;
-    localStorage.setItem("travel_book_v12",JSON.stringify(data));
-    render();
-    suppressCloudSave = false;
-    setSyncStatus("on","已載入雲端資料",`登入：${fbUser.email}`);
-  }catch(err){
-    suppressCloudSave=false;
-    setSyncStatus("off","載入雲端失敗",err.message);
-  }
-}
 
 const originalSaveForFirebase = save;
-save = function(){
-  localStorage.setItem("travel_book_v12", JSON.stringify(data));
-  render();
-  scheduleCloudSave();
-};
 
 const originalSilentSaveForFirebase = silentSave;
-silentSave = function(){
-  localStorage.setItem("travel_book_v12", JSON.stringify(data));
-  scheduleCloudSave();
-};
 
 const originalRenderHelpForFirebase = renderHelp;
-renderHelp = function(){
-  $("helpView").innerHTML=`<div class="section"><div><h2>說明與備份</h2><div class="hint">資料備份、Cloudinary 照片、Firebase 跨裝置同步。</div></div></div>
-  <div class="card"><h3>Firebase 跨裝置同步</h3><div class="box mint">登入授權 Google 帳號後，旅遊資料會同步到 Firestore。照片本體仍存在 Cloudinary，Firestore 只保存圖片網址與旅行資料。</div><div class="btns"><button class="btn dark" onclick="saveToCloudNow()">立即同步到雲端</button><button class="btn blue" onclick="loadFromCloud()">載入雲端資料</button></div><div class="cloudHint">目前授權 email：${ALLOWED_EMAIL}</div></div>
-  <div class="card"><h3>AI 口袋景點</h3><div class="box mint">在「景點」頁按 AI 景點提示詞，複製給 AI。AI 回傳純 JSON 後，存成 .txt 或 .json，再匯入口袋景點。</div></div>
-  <div class="card"><h3>備份資料</h3><div class="box blue">匯出備份會下載 JSON。匯入備份會覆蓋目前資料。若要修改國家或日期，建議先匯出備份。</div><div class="btns"><button class="btn dark" onclick="exportBackup()">匯出備份</button><label class="btn soft" style="display:inline-block">匯入備份<input type="file" accept=".json,application/json" onchange="importBackup(this.files[0])" style="display:none"></label></div></div>`;
-};
 function v23ParseDateOnly(s){
   if(!s)return null;
   const [y,m,d]=String(s).split("-").map(Number);
@@ -3038,30 +982,6 @@ function v23ValidateFlightTimes(){
   return true;
 }
 
-function saveFlights(){
-  if(!v23ValidateFlightTimes())return;
-
-  ["out","back"].forEach(k=>{
-    const transferEl=$(k+"transfer");
-    data.flights[k]={
-      no:$(k+"no").value,
-      from:$(k+"from").value,
-      to:$(k+"to").value,
-      dep:$(k+"dep").value,
-      arr:$(k+"arr").value,
-      transfer:transferEl?transferEl.value:"",
-      toAirport:$(k+"toAirport")?$(k+"toAirport").value:"",
-      fromAirport:$(k+"fromAirport")?$(k+"fromAirport").value:"",
-      fromTerminal:$(k+"fromTerminal")?$(k+"fromTerminal").value:"",
-      toTerminal:$(k+"toTerminal")?$(k+"toTerminal").value:""
-    };
-  });
-  silentSave();
-  render();
-  v16CollapseTripDetail(1);
-  v21PendingFlightOptions=true;
-  $("flightOptionModal").classList.add("show");
-}
 
 function v23ValidateHotelDates(start,end){
   if(!start||!end){
@@ -3079,107 +999,6 @@ function v23ValidateHotelDates(start,end){
   return true;
 }
 
-function saveHotel(){
-  if(!$("hname").value)return toast("請輸入住宿名稱");
-  let start=$("hstart").value;
-  let end=$("hend").value;
-  if(!v23ValidateHotelDates(start,end))return;
-
-  const item={name:$("hname").value,start,end,addr:$("haddr").value,note:$("hnote").value};
-  let hotelId=editingHotelId;
-  let isNew=false;
-
-  if(editingHotelId){
-    Object.assign(data.hotels.find(x=>x.id==editingHotelId),item);
-    editingHotelId=null;
-  }else{
-    isNew=true;
-    hotelId=uid();
-    data.hotels.push({id:hotelId,...item});
-  }
-
-  v18SortHotels();
-  v16KeepHotelOpen=true;
-  silentSave();
-  render();
-  v16OpenTripDetail(2);
-
-  if(isNew){
-    v21PendingHotelId=hotelId;
-    $("hotelOptionModal").classList.add("show");
-  }else{
-    toast("已儲存住宿並依入住日排序");
-  }
-}
-
-function v23ValidatePlanForm(){
-  const day=$("pday")?.value || "";
-  const start=$("ps")?.value || "";
-  const end=$("pe")?.value || "";
-  const type=$("ptype")?.value || "";
-
-  if(!v23InTripRange(day)){
-    alert(`行程日期必須在旅遊日期區間內：${data.trip.start} ～ ${data.trip.end}`);
-    return false;
-  }
-
-  const flexibleTypes=["交通","航班","住宿"];
-  if(!flexibleTypes.includes(type)){
-    if(!start || !end){
-      alert("景點／餐廳／購物等一般行程需填寫開始與結束時間。");
-      return false;
-    }
-  }
-
-  if(start && end){
-    const s=v23TimeToMin(start), e=v23TimeToMin(end);
-    if(e<s){
-      alert("行程結束時間不可早於開始時間。");
-      return false;
-    }
-  }
-
-  return true;
-}
-
-function savePlanForm(){
-  if(!$("pname").value)return toast("請輸入行程名稱");
-  if(!v23ValidatePlanForm())return;
-
-  let item={day:$("pday").value,start:$("ps").value,end:$("pe").value,type:$("ptype").value,name:$("pname").value,mode:"foreign",foreign:Number($("pforeign").value||0),twd:Number($("ptwd").value||0),payer:$("pp").value,payMethod:$("ppm").value,note:$("pnote").value,memo:$("pmemo").value,adjusted:false};
-  let planId=editingPlanId;
-
-  if(editingPlanId){
-    const existing=data.plans.find(p=>p.id==editingPlanId);
-    if(existing?.lockedName){
-      item.name=existing.name;
-      item.sourceType=existing.sourceType;
-      item.lockedName=true;
-      if(existing.hotelId)item.hotelId=existing.hotelId;
-    }
-    Object.assign(existing,item);
-    editingPlanId=null;
-  }else{
-    planId=uid();
-    data.plans.push({id:planId,...item});
-  }
-
-  if(v16PendingSpotId){
-    const spot=data.spots.find(s=>s.id==v16PendingSpotId);
-    const p=data.plans.find(x=>x.id==planId);
-    if(spot && p){
-      spot.planId=planId;
-      p.sourceType="spot";
-      p.lockedName=true;
-      p.name=spot.name;
-      p.memo=p.memo || "由口袋景點帶入";
-    }
-    v16PendingSpotId=null;
-  }
-
-  cur=item.day;
-  save();
-}
 
 function v23NormalizeSpotDate(raw){
   if(!raw)return "";
@@ -3214,17 +1033,6 @@ function importSpotFile(file){
   r.readAsText(file);
 }
 
-function saveExpenseForm(){
-  if(!$("ename").value)return toast("請輸入費用項目");
-  const item={source:"額外費用",type:$("etype").value,name:$("ename").value,payer:$("epayer").value,payMethod:$("epm").value,day:$("eday").value,mode:"foreign",foreign:Number($("eforeign").value||0),twd:Number($("etwd").value||0),memo:$("ememo").value};
-  if(editingExpenseId){
-    Object.assign(data.expenses.find(e=>e.id==editingExpenseId),item);
-    editingExpenseId=null;
-  }else{
-    data.expenses.push({id:uid(),...item});
-  }
-  save();
-}
 
 function fillExpenseForm(id){
   const e=data.expenses.find(x=>x.id==id);
@@ -3239,193 +1047,6 @@ function fillExpenseForm(id){
   $("ememo").value=e.memo||"";
 }
 
-function renderBudget(){
-  const planTotal=data.plans
-    .filter(p=>!(p.sourceType==="hotel" || p.hotelId || (p.type==="住宿" && p.memo==="由住宿資料帶入")))
-    .reduce((s,x)=>s+moneyTwd(x),0);
-  const expTotal=data.expenses.reduce((s,x)=>s+moneyTwd(x),0);
-  const taxiTotal=data.conns.reduce((s,x)=>s+Number(x.fareTwd||0),0);
-  $("budgetView").innerHTML=`<div class="section"><div><h2>預算總覽</h2><div class="hint">預算付款日可早於出發日或晚於回程日；住宿行程節點不重複列入預算。</div></div><button class="iconBtn smallIcon" onclick="clearExpenseForm()">＋</button></div><div class="card"><div class="three"><div><label>費用類型</label><select id="etype"><option>機票</option><option>住宿</option><option>網路</option><option>旅平險</option><option>交通票券</option><option>景點票券</option><option>餐飲</option><option>購物</option><option>其他</option></select></div><div><label>項目</label><input id="ename"></div><div><label>付款人</label><select id="epayer">${optsPayer("未定")}</select></div></div><div class="four"><div><label>${esc(data.trip.currency)} 金額</label><input id="eforeign" type="number" oninput="syncExpenseMoney('f')"></div><div><label>TWD</label><input id="etwd" type="number" oninput="syncExpenseMoney('t')"></div><div><label>付款方式</label><select id="epm">${optsPayMethod("未定")}</select></div><div><label>付款日</label><input id="eday" type="date"><div class="freeDateHint">付款日不受旅程日期限制，可留空。</div></div></div><label>備註</label><input id="ememo"><div class="btns"><button class="btn dark" onclick="saveExpenseForm()">${editingExpenseId?"儲存預算":"新增費用"}</button>${editingExpenseId?'<button class="btn soft" onclick="clearExpenseForm()">取消編輯 / 新增</button>':""}<button class="btn blue" onclick="openRateSearch()">查看現在匯率</button></div></div><div class="stats"><div class="stat"><span>額外費用 TWD</span><strong>${fmt(expTotal)}</strong></div><div class="stat"><span>行程 TWD</span><strong>${fmt(planTotal)}</strong></div><div class="stat"><span>計程車 TWD</span><strong>${fmt(taxiTotal)}</strong></div><div class="stat"><span>總 TWD</span><strong>${fmt(expTotal+planTotal+taxiTotal)}</strong></div></div><div class="table"><table><thead><tr><th>來源</th><th>日期</th><th>類型</th><th>項目</th><th>付款人</th><th>付款方式</th><th>${esc(data.trip.currency)}</th><th>TWD</th><th></th></tr></thead><tbody>${budgetRows()}</tbody></table></div>`;
-  if(editingExpenseId)fillExpenseForm(editingExpenseId);
-}
-
-function budgetRows(){
-  const rows=[];
-  data.expenses.forEach(x=>rows.push(`<tr><td>${esc(x.source||"額外費用")}</td><td>${x.day?esc(x.day):"—"}</td><td>${esc(x.type)}</td><td>${esc(x.name)}</td><td>${esc(travelerName(x.payer))}</td><td>${esc(payMethodLabel(x.payMethod))}</td><td>${fmt(moneyForeign(x))}</td><td>${fmt(moneyTwd(x))}</td><td><button class="small" onclick="editExpense('${x.id}')">編輯</button><button class="small" onclick="delExpense('${x.id}')">刪除</button></td></tr>`));
-
-  data.plans
-    .filter(p=>!(p.sourceType==="hotel" || p.hotelId || (p.type==="住宿" && p.memo==="由住宿資料帶入")))
-    .forEach(p=>rows.push(`<tr><td>行程</td><td>${dayTitle(p.day)}</td><td>${esc(p.type)}</td><td>${esc(p.name)}</td><td>${esc(travelerName(p.payer))}</td><td>${esc(payMethodLabel(p.payMethod))}</td><td>${fmt(moneyForeign(p))}</td><td>${fmt(moneyTwd(p))}</td><td><button class="small" onclick="editPlan('${p.id}')">編輯行程</button></td></tr>`));
-
-  data.conns.filter(c=>Number(c.fareTwd||0)>0||Number(c.fareForeign||0)>0).forEach(c=>rows.push(`<tr><td>交通</td><td>—</td><td>${esc(c.mode)}</td><td>行程間交通</td><td>${esc(travelerName(c.payer))}</td><td>${esc(payMethodLabel(c.payMethod))}</td><td>${fmt(c.fareForeign||0)}</td><td>${fmt(c.fareTwd||0)}</td><td></td></tr>`));
-  return rows.join("")||'<tr><td colspan="9">尚未新增預算</td></tr>';
-}
-function v24IsFlightPlan(p){
-  return p?.sourceType==="flight" || p?.memo==="由航班資料帶入";
-}
-function flightHasPlans(){
-  return data.plans.some(v24IsFlightPlan);
-}
-function flightHasBudget(){
-  return data.expenses.some(e=>e.sourceType==="flight" || e.source==="航班");
-}
-function removeFlightPlans(){
-  const ids=data.plans.filter(v24IsFlightPlan).map(p=>p.id);
-  data.plans=data.plans.filter(p=>!ids.includes(p.id));
-  data.conns=data.conns.filter(c=>!ids.includes(c.a)&&!ids.includes(c.b));
-  save();
-  toast("已幫你移除航班行程囉！");
-}
-function addFlightBudget(){
-  if(flightHasBudget())return toast("航班預算已經記過囉！");
-  const out=data.flights.out||{}, back=data.flights.back||{};
-  if(out.no){
-    data.expenses.push({id:uid(),sourceType:"flight",source:"航班",type:"機票",name:`去程 ${out.no}`,payer:"未定",payMethod:"未定",day:"",mode:"TWD",foreign:0,twd:0,memo:"由航班資料帶入，可自行補金額"});
-  }
-  if(back.no){
-    data.expenses.push({id:uid(),sourceType:"flight",source:"航班",type:"機票",name:`回程 ${back.no}`,payer:"未定",payMethod:"未定",day:"",mode:"TWD",foreign:0,twd:0,memo:"由航班資料帶入，可自行補金額"});
-  }
-  if(!out.no && !back.no){
-    data.expenses.push({id:uid(),sourceType:"flight",source:"航班",type:"機票",name:"航班機票",payer:"未定",payMethod:"未定",day:"",mode:"TWD",foreign:0,twd:0,memo:"由航班資料帶入，可自行補金額"});
-  }
-  save();
-  toast("已幫你記一筆航班花費！");
-}
-function removeFlightBudget(){
-  data.expenses=data.expenses.filter(e=>!(e.sourceType==="flight" || e.source==="航班"));
-  save();
-  toast("已幫你移除航班預算囉！");
-}
-function flightStatusHtml(){
-  const hasP=flightHasPlans();
-  const hasB=flightHasBudget();
-  return `<div class="flightStatusBox">
-    <div class="flightStatusGrid">
-      <div class="flightStatusItem"><b>行程狀態</b><span class="${hasP?"ok":""}">${hasP?"已匯入行程":"尚未匯入行程"}</span></div>
-      <div class="flightStatusItem"><b>預算狀態</b><span class="${hasB?"ok":""}">${hasB?"已匯入預算":"尚未匯入預算"}</span></div>
-    </div>
-    <div class="flightStatusActions">
-      ${hasP?`<button class="btn soft compact" onclick="removeFlightPlans()">移除航班行程</button>`:`<button class="btn blue compact" onclick="v16AddFlightsToPlans(true)">匯入首尾行程</button>`}
-      ${hasB?`<button class="btn soft compact" onclick="removeFlightBudget()">移除航班預算</button>`:`<button class="btn pink compact" onclick="addFlightBudget()">記一筆航班花費</button>`}
-    </div>
-  </div>`;
-}
-
-function renderTrip(){
-  const h=editingHotelId?data.hotels.find(x=>x.id==editingHotelId):null;
-  const selectedCity=typeof v15CurrentCity==="function" ? v15CurrentCity() : (data.trip.city||"");
-  const mapObj=typeof v15CountryCityMaps==="function" ? v15CountryCityMaps().cityMap : {};
-  const list=mapObj[data.trip.country]||[];
-  const customCity=list.includes(selectedCity)?"":selectedCity;
-  const showCustom=data.trip.country==="其他" || !list.includes(selectedCity);
-  v18SortHotels();
-
-  $("tripView").innerHTML=`<div class="section"><div><h2>🌏 旅遊地與機酒</h2><div class="hint">旅遊國家會影響整份資料，修改國家前會要求確認與備份。</div></div></div>
-
-  <details class="card"><summary>① 🌏 旅遊地與旅伴</summary><div class="detailBody">
-    <div class="three compactMobile">
-      <div><label>國家 / 區域</label><select id="country" onchange="handleCountrySelectChange()">${countryOptions()}</select></div>
-      <div><label>城市 / 路線</label><select id="citySelect" onchange="updateDestByCity()">${v15CityOptions(selectedCity)}</select></div>
-      <div id="customCityBox" class="full" style="display:${showCustom?"block":"none"}"><label>自訂目的地</label><input id="cityCustom" value="${esc(customCity)}" oninput="updateDestByCity()" placeholder="例：釜山＋慶州"></div>
-    </div>
-    <div class="two">
-      <div><label>幣別</label><input id="currency" value="${esc(data.trip.currency)}" oninput="countryChanged()"></div>
-      <div><label id="rateLabel">匯率：1 ${esc(data.trip.currency)} = TWD</label><input id="rateSetup" type="number" step="0.0001" value="${data.trip.rate}"></div>
-    </div>
-    <div class="three compactMobile">
-      <div><label>出發日</label><input id="start" type="date" value="${data.trip.start}"></div>
-      <div><label>回程日</label><input id="end" type="date" value="${data.trip.end}"></div>
-      <div class="full"><label>匯率查詢</label><button class="btn blue compact" onclick="openRateSearch()">查一下匯率</button></div>
-    </div>
-    <div class="two">
-      <div><label>旅遊人數</label><select id="travelerCount" onchange="previewTravelerCount()">${[1,2,3,4,5,6,7,8].map(n=>`<option value="${n}" ${Number(data.trip.travelerCount)==n?"selected":""}>${n} 人</option>`).join("")}</select></div>
-      <div class="hint" style="align-self:end">目前目的地：${esc(data.trip.dest||"尚未設定")}</div>
-    </div>
-    <div class="grid2" id="travelerBox">${travelerInputs()}</div>
-    <div class="btns"><button class="btn dark" onclick="saveBasic()">存好旅遊地設定</button></div>
-  </div></details>
-
-  <details class="card"><summary>② ✈️ 航班與機場接送</summary><div class="detailBody">
-    <div class="grid2"><div class="box blue"><h3>去程</h3>${flightForm("out")}</div><div class="box pink"><h3>回程</h3>${flightForm("back")}</div></div>
-    ${flightStatusHtml()}
-    <div class="btns"><button class="btn dark" onclick="saveFlights()">存好航班設定</button></div>
-  </div></details>
-
-  <details class="card" ${v16KeepHotelOpen||editingHotelId?"open":""}><summary>③ 🏨 住宿</summary><div class="detailBody">
-    <div class="three compactMobile">
-      <div class="full"><label>住宿名稱</label><input id="hname" value="${esc(h?.name||"")}"></div>
-      <div><label>入住日</label><input id="hstart" type="date" min="${data.trip.start}" max="${data.trip.end}" value="${h?.start||data.trip.start}"></div>
-      <div><label>退房日</label><input id="hend" type="date" min="${data.trip.start}" max="${data.trip.end}" value="${h?.end||data.trip.end}"></div>
-    </div>
-    <label>地址</label><div class="two"><input id="haddr" value="${esc(h?.addr||"")}" placeholder="可手動貼上飯店地址"><button class="btn blue compact" onclick="searchHotelAddress()">查地圖</button></div>
-    <label>備註</label><textarea id="hnote">${esc(h?.note||"")}</textarea>
-    <div class="btns"><button class="btn dark" onclick="saveHotel()">${h?"存好住宿修改":"新增住宿"}</button>${h?'<button class="btn soft" onclick="editingHotelId=null;v16KeepHotelOpen=true;renderTrip()">取消編輯</button>':""}</div>
-    <div class="hotelSortedNote">住宿會依入住日自動排序；可選日期已限制在旅遊日期內。</div>
-    <div class="grid2" style="margin-top:10px">${data.hotels.map(hotelCard).join("")||'<div class="empty">還沒有新增住宿</div>'}</div>
-  </div></details>`;
-}
-
-function saveFlights(){
-  if(!v23ValidateFlightTimes())return;
-
-  ["out","back"].forEach(k=>{
-    const transferEl=$(k+"transfer");
-    data.flights[k]={
-      no:$(k+"no").value,
-      from:$(k+"from").value,
-      to:$(k+"to").value,
-      dep:$(k+"dep").value,
-      arr:$(k+"arr").value,
-      transfer:transferEl?transferEl.value:"",
-      toAirport:$(k+"toAirport")?$(k+"toAirport").value:"",
-      fromAirport:$(k+"fromAirport")?$(k+"fromAirport").value:"",
-      fromTerminal:$(k+"fromTerminal")?$(k+"fromTerminal").value:"",
-      toTerminal:$(k+"toTerminal")?$(k+"toTerminal").value:""
-    };
-  });
-  silentSave();
-  render();
-  v16CollapseTripDetail(1);
-  toast("已幫你存好航班囉！");
-}
-
-function saveBasic(){
-  const selectedCountry=$("country").value;
-  if(selectedCountry!==data.trip.country){
-    v18PendingCountry=selectedCountry;
-    $("countryResetModal").classList.add("show");
-    return;
-  }
-
-  const newStart=$("start").value;
-  const newEnd=$("end").value;
-  if((newStart!==data.trip.start || newEnd!==data.trip.end) && data.days?.length){
-    v19PendingDates={start:newStart,end:newEnd};
-    $("dateResetModal").classList.add("show");
-    return;
-  }
-
-  data.trip.country=$("country").value;
-  const selected = $("citySelect").value;
-  data.trip.city = selected==="自訂" ? $("cityCustom").value.trim() : selected;
-  data.trip.dest = v15DestinationName(data.trip.country, data.trip.city);
-  data.trip.currency=$("currency").value.toUpperCase();
-  data.trip.start=newStart;
-  data.trip.end=newEnd;
-  data.trip.rate=Number($("rateSetup").value||data.trip.rate||1);
-  data.trip.travelerCount=Number($("travelerCount").value||1);
-  data.trip.travelers=[];
-  for(let i=0;i<data.trip.travelerCount;i++) data.trip.travelers.push($("traveler"+i).value||String.fromCharCode(65+i));
-
-  data.days=mkDays(data.trip.start,data.trip.end);
-  v18SortHotels();
-  cur=data.days[0]?.key;
-  silentSave();
-  render();
-  const d=document.querySelectorAll("#tripView details.card")[0];
-  if(d) d.removeAttribute("open");
-  toast("已幫你存好囉！");
-}
 
 function saveExpenseForm(){
   if(!$("ename").value)return toast("請輸入費用項目");
@@ -3440,45 +1061,7 @@ function saveExpenseForm(){
   toast("已幫你記好這筆花費！");
 }
 
-function renderBudget(){
-  const planTotal=data.plans
-    .filter(p=>!(p.sourceType==="hotel" || p.hotelId || (p.type==="住宿" && p.memo==="由住宿資料帶入")))
-    .reduce((s,x)=>s+moneyTwd(x),0);
-  const expTotal=data.expenses.reduce((s,x)=>s+moneyTwd(x),0);
-  const taxiTotal=data.conns.reduce((s,x)=>s+Number(x.fareTwd||0),0);
-  $("budgetView").innerHTML=`<div class="section"><div><h2>預算總覽</h2><div class="hint">預算付款日可早於出發日或晚於回程日；住宿行程節點不重複列入預算。</div></div><button class="iconBtn smallIcon" onclick="clearExpenseForm()">＋</button></div><div class="card"><div class="three"><div><label>費用類型</label><select id="etype"><option>機票</option><option>住宿</option><option>網路</option><option>旅平險</option><option>交通票券</option><option>景點票券</option><option>餐飲</option><option>購物</option><option>其他</option></select></div><div><label>項目</label><input id="ename"></div><div><label>付款人</label><select id="epayer">${optsPayer("未定")}</select></div></div><div class="four"><div><label>${esc(data.trip.currency)} 金額</label><input id="eforeign" type="number" oninput="syncExpenseMoney('f')"></div><div><label>TWD</label><input id="etwd" type="number" oninput="syncExpenseMoney('t')"></div><div><label>付款方式</label><select id="epm">${optsPayMethod("未定")}</select></div><div><label>付款日</label><input id="eday" type="date"><div class="freeDateHint">付款日可留空，也可以早於出發日。</div></div></div><label>備註</label><input id="ememo"><div class="btns"><button class="btn dark" onclick="saveExpenseForm()">${editingExpenseId?"存好預算":"記一筆花費"}</button>${editingExpenseId?'<button class="btn soft" onclick="clearExpenseForm()">取消編輯 / 新增</button>':""}<button class="btn blue" onclick="openRateSearch()">查一下匯率</button></div></div><div class="stats"><div class="stat"><span>額外費用 TWD</span><strong>${fmt(expTotal)}</strong></div><div class="stat"><span>行程 TWD</span><strong>${fmt(planTotal)}</strong></div><div class="stat"><span>計程車 TWD</span><strong>${fmt(taxiTotal)}</strong></div><div class="stat"><span>總 TWD</span><strong>${fmt(expTotal+planTotal+taxiTotal)}</strong></div></div><div class="table"><table><thead><tr><th>來源</th><th>日期</th><th>類型</th><th>項目</th><th>付款人</th><th>付款方式</th><th>${esc(data.trip.currency)}</th><th>TWD</th><th></th></tr></thead><tbody>${budgetRows()}</tbody></table></div>`;
-  if(editingExpenseId)fillExpenseForm(editingExpenseId);
-}
 
-function setSyncStatus(kind,title,desc){
-  const el=$("syncStatus");
-  if(!el)return;
-  const dotClass = kind==="on"?"on":kind==="warn"?"warn":"off";
-  const shortTitle = String(title||"").replace("已同步雲端","同步好了").replace("同步中","同步中");
-  el.innerHTML = `<span class="syncDot ${dotClass}"></span><b>${esc(shortTitle)}</b>${desc?`<br>${esc(desc)}`:""}`;
-}
-
-async function saveToCloudNow(){
-  if(!fbUser)return toast("請先登入 Google");
-  const email=(fbUser.email||"").toLowerCase();
-  if(email!==ALLOWED_EMAIL)return toast("這個帳號還沒授權同步");
-
-  try{
-    setSyncStatus("warn","同步中","正在存到雲端...");
-    const now=Date.now();
-    lastCloudUpdatedAt = now;
-    const payload = cloudPayload();
-    payload.updatedAtClient = now;
-    await tripDocRef().set(payload,{merge:true});
-    localStorage.setItem("travel_book_v22_cloud_backup", JSON.stringify(data));
-    setSyncStatus("on","同步好了",`${new Date().toLocaleTimeString("zh-TW",{hour:"2-digit",minute:"2-digit"})}`);
-  }catch(err){
-    setSyncStatus("off","同步失敗",err.message || "請檢查 Firestore Rules 與白名單。");
-  }
-}
-function toggleAccountMenu(){
-  $("accountMenu")?.classList.toggle("show");
-}
 function closeAccountMenu(){
   $("accountMenu")?.classList.remove("show");
 }
@@ -3495,35 +1078,6 @@ function initialsFromUser(user){
   return name.slice(0,2).toUpperCase();
 }
 
-function renderAccountWidget(user){
-  const logged=!!user;
-  const avatar=$("accountAvatar");
-  const label=$("accountLabel");
-  const name=$("accountName");
-  const email=$("accountEmail");
-  if(!avatar)return;
-
-  if(logged){
-    if(user.photoURL){
-      avatar.innerHTML=`<img src="${user.photoURL}" alt="avatar">`;
-    }else{
-      avatar.textContent=initialsFromUser(user);
-    }
-    if(label)label.textContent="已登入";
-    if(name)name.textContent=user.displayName || "Google 帳號";
-    if(email)email.textContent=user.email || "";
-  }else{
-    avatar.textContent="登入";
-    if(label)label.textContent="Google 登入";
-    if(name)name.textContent="尚未登入";
-    if(email)email.textContent="登入後可跨裝置同步";
-  }
-
-  ["menuLoad","menuSave","menuLogout"].forEach(id=>{
-    if($(id))$(id).style.display=logged?"block":"none";
-  });
-  if($("menuLogin"))$("menuLogin").style.display=logged?"none":"block";
-}
 
 function updateAuthButtons(isIn){
   // v25: 舊版同步卡片已隱藏，改由右上角頭像選單控制。
@@ -3539,52 +1093,6 @@ function showSyncMini(text){
   window.__syncMiniTimer=setTimeout(()=>el.classList.remove("show"),1600);
 }
 
-function setSyncStatus(kind,title,desc){
-  const t=String(title||"");
-  if(t.includes("已同步") || t.includes("同步好了")){
-    showSyncMini("已同步");
-  }else if(t.includes("同步中")){
-    showSyncMini("同步中...");
-  }else if(t.includes("已載入")){
-    showSyncMini("已載入雲端");
-  }else if(t.includes("已建立")){
-    showSyncMini("已建立雲端資料");
-  }else if(t.includes("失敗") || kind==="off"){
-    showSyncMini(t || "同步異常");
-  }
-  // 保留舊 syncStatus 的文字更新，雖然卡片已隱藏，避免其他流程依賴。
-  const el=$("syncStatus");
-  if(el){
-    const dotClass = kind==="on"?"on":kind==="warn"?"warn":"off";
-    el.innerHTML = `<span class="syncDot ${dotClass}"></span><b>${esc(title||"")}</b>${desc?`<br>${esc(desc)}`:""}`;
-  }
-}
-
-function addFlightBudget(){
-  if(flightHasBudget())return toast("航班預算已經記過囉！");
-  const out=data.flights.out||{}, back=data.flights.back||{};
-  const label=[
-    out.no?`去程 ${out.no}`:"",
-    back.no?`回程 ${back.no}`:""
-  ].filter(Boolean).join("／");
-
-  data.expenses.push({
-    id:uid(),
-    sourceType:"flight",
-    source:"航班",
-    type:"機票",
-    name: label ? `來回機票（${label}）` : "來回機票",
-    payer:"未定",
-    payMethod:"未定",
-    day:"",
-    mode:"TWD",
-    foreign:0,
-    twd:0,
-    memo:"由航班資料帶入，可自行補金額"
-  });
-  save();
-  toast("已幫你記一筆來回機票！");
-}
 
 function removeFlightBudget(){
   data.expenses=data.expenses.filter(e=>!(e.sourceType==="flight" || e.source==="航班"));
@@ -3592,22 +1100,7 @@ function removeFlightBudget(){
   toast("已幫你移除航班預算囉！");
 }
 
-function flightStatusHtml(){
-  const hasP=flightHasPlans();
-  const hasB=flightHasBudget();
-  return `<div class="flightStatusBox">
-    <div class="flightStatusGrid">
-      <div class="flightStatusItem"><b>行程狀態</b><span class="${hasP?"ok":""}">${hasP?"已匯入行程":"尚未匯入行程"}</span></div>
-      <div class="flightStatusItem"><b>預算狀態</b><span class="${hasB?"ok":""}">${hasB?"已匯入預算":"尚未匯入預算"}</span></div>
-    </div>
-    <div class="flightStatusActions">
-      ${hasP?`<button class="btn soft compact" onclick="removeFlightPlans()">移除航班行程</button>`:`<button class="btn blue compact" onclick="v16AddFlightsToPlans(true)">匯入首尾行程</button>`}
-      ${hasB?`<button class="btn soft compact" onclick="removeFlightBudget()">移除航班預算</button>`:`<button class="btn pink compact" onclick="addFlightBudget()">記一筆來回機票</button>`}
-    </div>
-  </div>`;
-}
 
-const __oldInitFirebaseSync_v25 = initFirebaseSync;
 initFirebaseSync = function(){
   renderAccountWidget(null);
   __oldInitFirebaseSync_v25();
@@ -3622,266 +1115,6 @@ function syncStatusText(){
   return "尚未同步";
 }
 
-function updateAccountSyncLine(){
-  const el=$("accountSyncLine");
-  if(!el)return;
-  const dotClass = syncStatus==="syncing" ? "syncing" : syncStatus==="success" ? "success" : syncStatus==="error" ? "error" : "";
-  el.innerHTML = `<span class="dot ${dotClass}"></span>${esc(syncStatusText())}`;
-}
-
-function renderAccountWidget(user){
-  const logged=!!user;
-  const avatar=$("accountAvatar");
-  const label=$("accountLabel");
-  const name=$("accountName");
-  const email=$("accountEmail");
-  if(!avatar)return;
-
-  if(logged){
-    if(user.photoURL){
-      avatar.innerHTML=`<img src="${user.photoURL}" alt="avatar">`;
-    }else{
-      avatar.textContent=initialsFromUser(user);
-    }
-    if(label)label.textContent="已登入";
-    if(name)name.textContent=user.displayName || "Google 帳號";
-    if(email)email.textContent=user.email || "";
-  }else{
-    avatar.textContent="登入";
-    if(label)label.textContent="Google 登入";
-    if(name)name.textContent="尚未登入";
-    if(email)email.textContent="登入後可跨裝置同步";
-    syncStatus="idle";
-    lastSyncTime=null;
-  }
-
-  ["menuLoad","menuSave","menuLogout"].forEach(id=>{
-    if($(id))$(id).style.display=logged?"block":"none";
-  });
-  if($("menuLogin"))$("menuLogin").style.display=logged?"none":"block";
-  updateAccountSyncLine();
-}
-
-function setSyncStatus(kind,title,desc){
-  const t=String(title||"");
-  if(kind==="warn" || t.includes("同步中")){
-    syncStatus="syncing";
-    showSyncMini("同步中...");
-  }else if(kind==="on" || t.includes("已同步") || t.includes("同步好了") || t.includes("已載入") || t.includes("已建立")){
-    syncStatus="success";
-    lastSyncTime=new Date().toLocaleTimeString("zh-TW",{hour:"2-digit",minute:"2-digit"});
-    if(t.includes("已載入")) showSyncMini("已載入雲端");
-    else showSyncMini("已同步");
-  }else if(kind==="off" || t.includes("失敗") || t.includes("尚未授權")){
-    syncStatus="error";
-    showSyncMini(t || "同步失敗");
-  }
-  updateAccountSyncLine();
-
-  const el=$("syncStatus");
-  if(el){
-    const dotClass = kind==="on"?"on":kind==="warn"?"warn":"off";
-    el.innerHTML = `<span class="syncDot ${dotClass}"></span><b>${esc(title||"")}</b>${desc?`<br>${esc(desc)}`:""}`;
-  }
-}
-
-function ensureAccountMenuSyncLine(){
-  const menu=$("accountMenu");
-  if(menu && !$("accountSyncLine")){
-    const who=menu.querySelector(".who");
-    if(who){
-      who.insertAdjacentHTML("afterend", `<div class="accountSyncLine" id="accountSyncLine"><span class="dot"></span>尚未同步</div>`);
-    }
-  }
-  updateAccountSyncLine();
-}
-
-const __oldToggleAccountMenu_v26 = toggleAccountMenu;
-toggleAccountMenu = function(){
-  ensureAccountMenuSyncLine();
-  __oldToggleAccountMenu_v26();
-};
-
-function createBudgetFromPlanSnapshot(plan){
-  // 不建立關聯 id/sourceId，只複製當下行程文字成一筆可獨立編輯的預算。
-  if(!plan || !plan.name)return;
-  data.expenses.push({
-    id:uid(),
-    source:"行程",
-    type:plan.type || "其他",
-    name:plan.name,
-    payer:"未定",
-    payMethod:"未定",
-    day:plan.day || "",
-    mode:"TWD",
-    foreign:0,
-    twd:0,
-    memo:"由行程建立，可自行補金額"
-  });
-}
-
-function renderPlanner(){
-  normalizePlanTimes(cur);
-  let plans=sortedPlans(cur);
-  $("plannerView").innerHTML=`<div class="section"><div><h2>${dayTitle(cur)}</h2><div class="hint">住宿：${hotelFor(cur)?.name||"未設定"}。行程依開始時間排序。</div></div><button class="iconBtn smallIcon" onclick="clearPlanForm()">＋</button></div>
-  <details class="card" ${editingPlanId||v16PendingSpotId?"open":""}><summary>${editingPlanId?"編輯行程":"＋ 新增行程"}</summary><div class="detailBody">
-    <div class="planFormLite">
-      <div class="three compactMobile">
-        <div class="full"><label>日期</label><select id="pday" onchange="cur=this.value; renderPlanner();">${optsDays(cur)}</select></div>
-        <div><label>開始</label><input id="ps" type="time" value="10:00"></div>
-        <div><label>結束</label><input id="pe" type="time" value="11:30"></div>
-      </div>
-      <div><label>分類</label><select id="ptype"><option>景點</option><option>餐廳</option><option>咖啡廳</option><option>購物</option><option>交通</option><option>航班</option><option>住宿</option><option>其他</option></select></div>
-      <div><label>行程名稱</label><input id="pname"></div>
-      <div id="lockedNameHint" class="lockedFieldHint" style="display:none">此行程由航班／住宿／口袋景點帶入，名稱不可編輯；備註可以自由修改。</div>
-      <label>注意事項</label><textarea id="pnote"></textarea>
-      <label>備註</label><textarea id="pmemo"></textarea>
-      <div class="planBudgetHint">新增行程時會自動在「預算」建立一筆花費；之後可到預算頁自行編輯或刪除，不會與行程連動。</div>
-      <div class="btns"><button class="btn dark" onclick="savePlanForm()">${editingPlanId?"存好行程":"加入行程"}</button>${editingPlanId||v16PendingSpotId?'<button class="btn soft" onclick="clearPlanForm()">取消編輯 / 新增</button>':""}</div>
-    </div>
-  </div></details>
-  <div id="pcards">${planCards(plans)}</div>`;
-  if(editingPlanId) fillPlanForm(editingPlanId);
-  if(v16PendingSpotId) v16FillPendingSpot();
-  v21ApplyLockedNameState();
-}
-
-function fillPlanForm(id){
-  let p=data.plans.find(x=>x.id==id);
-  if(!p)return;
-  $("pday").value=p.day||cur;
-  $("ps").value=p.start||"";
-  $("pe").value=p.end||"";
-  $("ptype").value=p.type||"景點";
-  $("pname").value=p.name||"";
-  $("pnote").value=p.note||"";
-  $("pmemo").value=p.memo||"";
-  v21ApplyLockedNameState();
-}
-
-function v16FillPendingSpot(){
-  const s=data.spots.find(x=>x.id==v16PendingSpotId);
-  if(!s)return;
-  $("pday").value=s.day||cur;
-  $("ptype").value=["景點","餐廳","咖啡廳","購物","其他"].includes(s.type)?s.type:"景點";
-  $("pname").value=s.name;
-  $("pnote").value=s.memo;
-  $("pmemo").value="由口袋景點帶入";
-  $("pname").readOnly=true;
-  $("pname").classList.add("lockedInput");
-  $("lockedNameHint").style.display="block";
-}
-
-function v23ValidatePlanForm(){
-  const day=$("pday")?.value || "";
-  const start=$("ps")?.value || "";
-  const end=$("pe")?.value || "";
-  const type=$("ptype")?.value || "";
-
-  if(!v23InTripRange(day)){
-    alert(`行程日期必須在旅遊日期區間內：${data.trip.start} ～ ${data.trip.end}`);
-    return false;
-  }
-
-  const flexibleTypes=["交通","航班","住宿"];
-  if(!flexibleTypes.includes(type)){
-    if(!start || !end){
-      alert("景點／餐廳／購物等一般行程需填寫開始與結束時間。");
-      return false;
-    }
-  }
-
-  if(start && end){
-    const s=v23TimeToMin(start), e=v23TimeToMin(end);
-    if(e<s){
-      alert("行程結束時間不可早於開始時間。");
-      return false;
-    }
-  }
-
-  return true;
-}
-
-function savePlanForm(){
-  if(!$("pname").value)return toast("請輸入行程名稱");
-  if(!v23ValidatePlanForm())return;
-
-  let item={
-    day:$("pday").value,
-    start:$("ps").value,
-    end:$("pe").value,
-    type:$("ptype").value,
-    name:$("pname").value,
-    mode:"foreign",
-    foreign:0,
-    twd:0,
-    payer:"未定",
-    payMethod:"未定",
-    note:$("pnote").value,
-    memo:$("pmemo").value,
-    adjusted:false
-  };
-  let planId=editingPlanId;
-  let isNew=false;
-
-  if(editingPlanId){
-    const existing=data.plans.find(p=>p.id==editingPlanId);
-    if(existing?.lockedName){
-      item.name=existing.name;
-      item.sourceType=existing.sourceType;
-      item.lockedName=true;
-      if(existing.hotelId)item.hotelId=existing.hotelId;
-    }
-    Object.assign(existing,item);
-    editingPlanId=null;
-  }else{
-    isNew=true;
-    planId=uid();
-    data.plans.push({id:planId,...item});
-  }
-
-  if(v16PendingSpotId){
-    const spot=data.spots.find(s=>s.id==v16PendingSpotId);
-    const p=data.plans.find(x=>x.id==planId);
-    if(spot && p){
-      spot.planId=planId;
-      p.sourceType="spot";
-      p.lockedName=true;
-      p.name=spot.name;
-      p.memo=p.memo || "由口袋景點帶入";
-    }
-    v16PendingSpotId=null;
-  }
-
-  const savedPlan=data.plans.find(x=>x.id==planId);
-  if(isNew && savedPlan){
-    createBudgetFromPlanSnapshot(savedPlan);
-  }
-
-  cur=item.day;
-  save();
-  toast(isNew ? "行程加好了，也幫你先記一筆花費！" : "已幫你存好行程囉！");
-}
-
-function planCards(plans){
-  if(!plans.length)return`<div class="empty">這天還沒有行程</div>`;
-  let html="";
-  plans.forEach((p,i)=>{
-    if(i>0)html+=connHtml(plans[i-1],p);
-    html+=`<div class="card plan"><div class="section"><div><div class="time">${p.start||"--:--"}-${p.end||"--:--"}</div><div class="place">${activityIcon(p.type)} ${esc(p.name)}</div><div class="tags planCardMeta"><span class="tag">${esc(p.type)}</span>${p.sourceType?`<span class="tag blue">${p.sourceType==="flight"?"航班帶入":p.sourceType==="hotel"?"住宿帶入":p.sourceType==="spot"?"口袋景點帶入":"來源帶入"}</span>`:""}${p.adjusted?'<span class="tag green">已依交通調整</span>':""}</div></div><div><button class="small" onclick="map('${encodeURIComponent(p.name+' '+data.trip.dest)}')">地圖</button><button class="small" onclick="editPlan('${p.id}')">編輯</button><button class="small" onclick="delPlan('${p.id}')">刪除</button></div></div><div class="grid2"><div class="box pink"><b>注意</b><br>${esc(p.note||"")}</div><div class="box blue"><b>備註</b><br>${esc(p.memo||"")}</div></div></div>`;
-  });
-  return html;
-}
-
-function v16AddPlanNode(item){
-  if(!item.day||!item.name)return null;
-  if(v16PlanExists(item.day,item.name,item.start)) return null;
-  const plan={id:uid(),mode:"foreign",foreign:0,twd:0,payer:"未定",payMethod:"未定",note:"",memo:"",adjusted:false,...item};
-  data.plans.push(plan);
-  // 自動產生的航班/住宿行程也建立一筆可獨立刪改的預算；不建立關聯。
-  createBudgetFromPlanSnapshot(plan);
-  return plan.id;
-}
 
 function delPlan(id){
   // 暫時不做來源同步刪除，也不連動預算。
@@ -3898,14 +1131,7 @@ function budgetRows(){
   return rows.join("")||'<tr><td colspan="9">尚未新增預算</td></tr>';
 }
 
-function renderBudget(){
-  const expTotal=data.expenses.reduce((s,x)=>s+moneyTwd(x),0);
-  const taxiTotal=data.conns.reduce((s,x)=>s+Number(x.fareTwd||0),0);
-  $("budgetView").innerHTML=`<div class="section"><div><h2>預算總覽</h2><div class="hint">行程新增時會先幫你建立一筆預算；預算可獨立編輯或刪除，暫時不與行程連動。</div></div><button class="iconBtn smallIcon" onclick="clearExpenseForm()">＋</button></div><div class="card"><div class="three"><div><label>費用類型</label><select id="etype"><option>機票</option><option>住宿</option><option>網路</option><option>旅平險</option><option>交通票券</option><option>景點票券</option><option>餐飲</option><option>購物</option><option>其他</option></select></div><div><label>項目</label><input id="ename"></div><div><label>付款人</label><select id="epayer">${optsPayer("未定")}</select></div></div><div class="four"><div><label>${esc(data.trip.currency)} 金額</label><input id="eforeign" type="number" oninput="syncExpenseMoney('f')"></div><div><label>TWD</label><input id="etwd" type="number" oninput="syncExpenseMoney('t')"></div><div><label>付款方式</label><select id="epm">${optsPayMethod("未定")}</select></div><div><label>付款日</label><input id="eday" type="date"><div class="freeDateHint">付款日可留空，也可以早於出發日。</div></div></div><label>備註</label><input id="ememo"><div class="btns"><button class="btn dark" onclick="saveExpenseForm()">${editingExpenseId?"存好預算":"記一筆花費"}</button>${editingExpenseId?'<button class="btn soft" onclick="clearExpenseForm()">取消編輯 / 新增</button>':""}<button class="btn blue" onclick="openRateSearch()">查一下匯率</button></div></div><div class="stats"><div class="stat"><span>預算 TWD</span><strong>${fmt(expTotal)}</strong></div><div class="stat"><span>計程車 TWD</span><strong>${fmt(taxiTotal)}</strong></div><div class="stat"><span>總 TWD</span><strong>${fmt(expTotal+taxiTotal)}</strong></div></div><div class="table"><table><thead><tr><th>來源</th><th>日期</th><th>類型</th><th>項目</th><th>付款人</th><th>付款方式</th><th>${esc(data.trip.currency)}</th><th>TWD</th><th></th></tr></thead><tbody>${budgetRows()}</tbody></table></div>`;
-  if(editingExpenseId)fillExpenseForm(editingExpenseId);
-}
 
-const __oldEnsureAccountMenuSyncLine_v26 = ensureAccountMenuSyncLine || function(){};
 function ensureAccountMenuSyncLine(){
   const menu=$("accountMenu");
   if(menu && !$("accountSyncLine")){
@@ -3965,30 +1191,6 @@ function setCurrentDay(day, options={}){
   }
 }
 
-function getPlanFormDraft(){
-  if(!$("pday")) return null;
-  return {
-    day:$("pday")?.value || currentDay,
-    start:$("ps")?.value || "",
-    end:$("pe")?.value || "",
-    type:normalizePlanType($("ptype")?.value || "景點"),
-    name:$("pname")?.value || "",
-    note:$("pnote")?.value || "",
-    memo:$("pmemo")?.value || ""
-  };
-}
-
-function applyPlanFormDraft(draft){
-  if(!draft || !$("pday")) return;
-  $("pday").value = draft.day || currentDay;
-  $("ps").value = draft.start || "";
-  $("pe").value = draft.end || "";
-  $("ptype").value = normalizePlanType(draft.type);
-  $("pname").value = draft.name || "";
-  $("pnote").value = draft.note || "";
-  $("pmemo").value = draft.memo || "";
-  v21ApplyLockedNameState();
-}
 
 function renderDays(){
   normalizeAllPlanTypes();
@@ -4016,74 +1218,12 @@ function renderSide(){
   if(btns) btns.innerHTML = `<button class="btn danger compact" onclick="clearAllPlans()">清除所有行程</button>`;
 }
 
-function go(v){
-  view=v;
-  views.forEach(x=>$(x[0]+"View").classList.toggle("hidden",x[0]!=v));
-  renderNav();
-  if(v==="planner"){
-    if(!currentDay) currentDay=cur||data.days?.[0]?.key;
-    cur=currentDay;
-  }
-  render();
-  scrollTo(0,0);
-}
 
 function optsPlanTypes(selected="景點"){
   const safe=normalizePlanType(selected);
   return PLAN_TYPES.map(t=>`<option value="${t}" ${safe===t?"selected":""}>${t}</option>`).join("");
 }
 
-function createBudgetFromPlanSnapshot(plan){
-  // 不建立關聯 id/sourceId，只複製當下行程文字成一筆可獨立編輯的預算。
-  if(!plan || !plan.name)return;
-  const pType=normalizePlanType(plan.type);
-  data.expenses.push({
-    id:uid(),
-    source:"行程",
-    type:budgetTypeFromPlanType(pType),
-    name:plan.name,
-    payer:"未定",
-    payMethod:"未定",
-    day:plan.day || "",
-    mode:"TWD",
-    foreign:0,
-    twd:0,
-    memo:`由${pType}行程建立，可自行補金額`
-  });
-}
-
-function renderPlanner(options={}){
-  normalizeAllPlanTypes();
-  const draft = options.preserveForm ? getPlanFormDraft() : null;
-  cur=currentDay || cur || data.days?.[0]?.key;
-  normalizePlanTimes(cur);
-  let plans=sortedPlans(cur);
-  $("plannerView").innerHTML=`<div class="section"><div><h2>${dayTitle(cur)}</h2><div class="hint">住宿：${hotelFor(cur)?.name||"未設定"}。行程依開始時間排序。</div></div><button class="iconBtn smallIcon" onclick="clearPlanForm()">＋</button></div>
-  <details class="card" ${(editingPlanId||v16PendingSpotId||draft)?"open":""}><summary>${editingPlanId?"編輯行程":"＋ 新增行程"}</summary><div class="detailBody">
-    <div class="planFormLite">
-      <div class="three compactMobile">
-        <div class="full"><label>日期</label><select id="pday" onchange="handlePlanDayChange(this.value)">${optsDays(cur)}</select></div>
-        <div><label>開始</label><input id="ps" type="time" value="10:00"></div>
-        <div><label>結束</label><input id="pe" type="time" value="11:30"></div>
-      </div>
-      <div><label>分類</label><select id="ptype">${optsPlanTypes("景點")}</select></div>
-      <div><label>行程名稱</label><input id="pname"></div>
-      <div id="lockedNameHint" class="lockedFieldHint" style="display:none">此行程由航班／住宿／口袋景點帶入，名稱不可編輯；備註可以自由修改。</div>
-      <label>注意事項</label><textarea id="pnote"></textarea>
-      <label>備註</label><textarea id="pmemo"></textarea>
-      <div class="planBudgetHint">新增行程時會自動在「預算」建立一筆花費；之後可到預算頁自行編輯或刪除，不會與行程連動。</div>
-      <div class="btns"><button class="btn dark" onclick="savePlanForm()">${editingPlanId?"存好行程":"加入行程"}</button>${editingPlanId||v16PendingSpotId?'<button class="btn soft" onclick="clearPlanForm()">取消編輯 / 新增</button>':""}</div>
-    </div>
-  </div></details>
-  <div id="pcards">${planCards(plans)}</div>`;
-
-  if(editingPlanId) fillPlanForm(editingPlanId);
-  else if(v16PendingSpotId) v16FillPendingSpot();
-  else if(draft) applyPlanFormDraft({...draft, day:cur});
-  else if($("pday")) $("pday").value=cur;
-
-  v21ApplyLockedNameState();
-}
 
 function handlePlanDayChange(day){
   const draft=getPlanFormDraft();
@@ -4093,110 +1233,6 @@ function handlePlanDayChange(day){
   applyPlanFormDraft(draft);
 }
 
-function fillPlanForm(id){
-  let p=data.plans.find(x=>x.id==id);
-  if(!p)return;
-  p.type=normalizePlanType(p.type);
-  $("pday").value=p.day||currentDay||cur;
-  $("ps").value=p.start||"";
-  $("pe").value=p.end||"";
-  $("ptype").value=p.type;
-  $("pname").value=p.name||"";
-  $("pnote").value=p.note||"";
-  $("pmemo").value=p.memo||"";
-  v21ApplyLockedNameState();
-}
-
-function v16FillPendingSpot(){
-  const s=data.spots.find(x=>x.id==v16PendingSpotId);
-  if(!s)return;
-  const safeType=normalizePlanType(["景點","餐廳","咖啡廳","購物","其他"].includes(s.type)?s.type:"景點");
-  $("pday").value=s.day||currentDay||cur;
-  $("ptype").value=safeType;
-  $("pname").value=s.name;
-  $("pnote").value=s.memo;
-  $("pmemo").value="由口袋景點帶入";
-  $("pname").readOnly=true;
-  $("pname").classList.add("lockedInput");
-  $("lockedNameHint").style.display="block";
-}
-
-function savePlanForm(){
-  if(!$("pname").value)return toast("請輸入行程名稱");
-  if(!v23ValidatePlanForm())return;
-
-  const safeType=normalizePlanType($("ptype").value);
-  let item={
-    day:$("pday").value,
-    start:$("ps").value,
-    end:$("pe").value,
-    type:safeType,
-    name:$("pname").value,
-    mode:"foreign",
-    foreign:0,
-    twd:0,
-    payer:"未定",
-    payMethod:"未定",
-    note:$("pnote").value,
-    memo:$("pmemo").value,
-    adjusted:false
-  };
-  let planId=editingPlanId;
-  let isNew=false;
-
-  if(editingPlanId){
-    const existing=data.plans.find(p=>p.id==editingPlanId);
-    if(existing?.lockedName){
-      item.name=existing.name;
-      item.sourceType=existing.sourceType;
-      item.lockedName=true;
-      if(existing.hotelId)item.hotelId=existing.hotelId;
-    }
-    Object.assign(existing,item);
-    existing.type=normalizePlanType(existing.type);
-    editingPlanId=null;
-  }else{
-    isNew=true;
-    planId=uid();
-    data.plans.push({id:planId,...item});
-  }
-
-  if(v16PendingSpotId){
-    const spot=data.spots.find(s=>s.id==v16PendingSpotId);
-    const p=data.plans.find(x=>x.id==planId);
-    if(spot && p){
-      spot.planId=planId;
-      p.sourceType="spot";
-      p.lockedName=true;
-      p.name=spot.name;
-      p.type=normalizePlanType(p.type || spot.type || "景點");
-      p.memo=p.memo || "由口袋景點帶入";
-    }
-    v16PendingSpotId=null;
-  }
-
-  const savedPlan=data.plans.find(x=>x.id==planId);
-  if(isNew && savedPlan){
-    savedPlan.type=normalizePlanType(savedPlan.type);
-    createBudgetFromPlanSnapshot(savedPlan);
-  }
-
-  setCurrentDay(item.day,{render:false});
-  save();
-  toast(isNew ? "行程加好了，也幫你先記一筆花費！" : "已幫你存好行程囉！");
-}
-
-function planCards(plans){
-  normalizeAllPlanTypes();
-  if(!plans.length)return`<div class="empty">這天還沒有行程</div>`;
-  let html="";
-  plans.forEach((p,i)=>{
-    p.type=normalizePlanType(p.type);
-    if(i>0)html+=connHtml(plans[i-1],p);
-    html+=`<div class="card plan"><div class="section"><div><div class="time">${p.start||"--:--"}-${p.end||"--:--"}</div><div class="place">${activityIcon(p.type)} ${esc(p.name)}</div><div class="tags planCardMeta"><span class="tag">${esc(p.type)}</span>${p.sourceType?`<span class="tag blue">${p.sourceType==="flight"?"航班帶入":p.sourceType==="hotel"?"住宿帶入":p.sourceType==="spot"?"口袋景點帶入":"來源帶入"}</span>`:""}${p.adjusted?'<span class="tag green">已依交通調整</span>':""}</div></div><div><button class="small" onclick="map('${encodeURIComponent(p.name+' '+data.trip.dest)}')">地圖</button><button class="small" onclick="editPlan('${p.id}')">編輯</button><button class="small" onclick="delPlan('${p.id}')">刪除</button></div></div><div class="grid2"><div class="box pink"><b>注意</b><br>${esc(p.note||"")}</div><div class="box blue"><b>備註</b><br>${esc(p.memo||"")}</div></div></div>`;
-  });
-  return html;
-}
 
 function v16AddPlanNode(item){
   if(!item.day||!item.name)return null;
@@ -4259,39 +1295,7 @@ function useSpot(id){
   },80);
 }
 
-function saveSpot(){
-  if(!$("sn").value)return toast("請輸入名稱");
-  const item={name:$("sn").value,type:normalizePlanType($("st").value),day:$("sd").value,addr:$("sa").value,memo:$("sm").value};
-  let id=editingSpotId;
-  let spot;
 
-  if(id){
-    spot=data.spots.find(x=>x.id==id);
-    Object.assign(spot,item);
-    editingSpotId=null;
-  }else{
-    id=uid();
-    spot={id,...item,source:"手動"};
-    data.spots.push(spot);
-  }
-
-  if($("sToPlan").value==="yes"){
-    const day=item.day||currentDay||cur;
-    const planId=uid();
-    const p={id:planId,sourceType:"spot",lockedName:true,day,start:$("sStart").value,end:$("sEnd").value,type:normalizePlanType(item.type),name:item.name,mode:"foreign",foreign:0,twd:0,payer:"未定",payMethod:"未定",note:item.memo,memo:"由口袋景點帶入",adjusted:false};
-    data.plans.push(p);
-    createBudgetFromPlanSnapshot(p);
-    spot.planId=planId;
-  }
-  save();
-}
-
-function render(){
-  normalizeAllPlanTypes();
-  if(!currentDay) currentDay=cur||data.days?.[0]?.key||data.trip?.start;
-  cur=currentDay;
-  renderHead();renderSide();renderTrip();renderPlanner();renderSpots();renderBudget();renderPacking();renderPhotoBook();renderHelp();
-}
 /*
 新行程資料結構：
 {
@@ -4319,58 +1323,6 @@ function v28NormalizeSourceFromLegacy(p){
   return "manual";
 }
 
-function v28NormalizePlans(){
-  const seen = new Set();
-  (data.plans||[]).forEach((p, idx)=>{
-    if(!p.id){
-      p.id = uid();
-    }
-    if(seen.has(p.id)){
-      p.id = uid();
-    }
-    seen.add(p.id);
-    p.source = v28NormalizeSourceFromLegacy(p);
-    if(!p.sourceType && p.source!=="manual") p.sourceType = p.source;
-    if(!p.type || p.type==="undefined") p.type = normalizePlanType ? normalizePlanType(p.type) : "其他";
-  });
-}
-
-function v28UpsertPlan(plan){
-  if(!plan || !plan.id) return null;
-  plan.type = normalizePlanType ? normalizePlanType(plan.type) : (plan.type || "其他");
-  plan.source = plan.source || "manual";
-  if(plan.source !== "manual") plan.sourceType = plan.source;
-  const existing = data.plans.find(p=>p.id===plan.id);
-  if(existing){
-    // 保留使用者可編輯欄位：note/memo 若既有有內容，優先保留；來源資料只更新核心資訊。
-    const keepNote = existing.note;
-    const keepMemo = existing.memo;
-    Object.assign(existing, plan);
-    if(keepNote && keepNote !== plan.note) existing.note = keepNote;
-    if(keepMemo && keepMemo !== plan.memo) existing.memo = keepMemo;
-    existing.source = plan.source;
-    existing.sourceType = plan.sourceType || plan.source;
-    existing.lockedName = plan.lockedName ?? existing.lockedName;
-    return existing.id;
-  }else{
-    const newPlan = {
-      mode:"foreign",
-      foreign:0,
-      twd:0,
-      payer:"未定",
-      payMethod:"未定",
-      note:"",
-      memo:"",
-      adjusted:false,
-      ...plan
-    };
-    data.plans.push(newPlan);
-    if(typeof createBudgetFromPlanSnapshot==="function"){
-      createBudgetFromPlanSnapshot(newPlan);
-    }
-    return newPlan.id;
-  }
-}
 
 function v28DeletePlansBySource(source, predicate){
   const removedIds = data.plans
@@ -4389,100 +1341,6 @@ function flightHasPlans(){
   return data.plans.some(v24IsFlightPlan);
 }
 
-function flightPlanTemplates(){
-  const out=data.flights.out||{}, back=data.flights.back||{};
-  const outDepDay=v16DateFromDT(out.dep)||data.trip.start;
-  const outArrDay=v16DateFromDT(out.arr)||outDepDay;
-  const backDepDay=v16DateFromDT(back.dep)||data.trip.end;
-  const backArrDay=v16DateFromDT(back.arr)||backDepDay;
-
-  return [
-    {
-      id:"flight-out-to-airport",
-      source:"flight",
-      sourceType:"flight",
-      lockedName:true,
-      day:outDepDay,
-      start:"14:00",
-      end:v16TimeFromDT(out.dep),
-      type:"交通",
-      name:`前往 ${out.from||"出發機場"}`,
-      note:out.toAirport||out.transfer||"",
-      memo:"由航班資料帶入"
-    },
-    {
-      id:"flight-out-plane",
-      source:"flight",
-      sourceType:"flight",
-      lockedName:true,
-      day:outDepDay,
-      start:v16TimeFromDT(out.dep),
-      end:v16TimeFromDT(out.arr),
-      type:"航班",
-      name:`搭乘去程航班 ${out.no||""}`.trim() || "搭乘去程航班",
-      note:`${out.from||""} → ${out.to||""}`,
-      memo:"由航班資料帶入"
-    },
-    {
-      id:"flight-out-arrival-transfer",
-      source:"flight",
-      sourceType:"flight",
-      lockedName:true,
-      day:outArrDay,
-      start:v16TimeFromDT(out.arr),
-      end:"",
-      type:"交通",
-      name:`從 ${out.to||"降落機場"} 前往飯店／市區`,
-      note:out.fromAirport||"",
-      memo:"由航班資料帶入"
-    },
-    {
-      id:"flight-back-to-airport",
-      source:"flight",
-      sourceType:"flight",
-      lockedName:true,
-      day:backDepDay,
-      start:"",
-      end:v16TimeFromDT(back.dep),
-      type:"交通",
-      name:`從飯店前往 ${back.from||"回程機場"}`,
-      note:back.toAirport||back.transfer||"",
-      memo:"由航班資料帶入"
-    },
-    {
-      id:"flight-back-plane",
-      source:"flight",
-      sourceType:"flight",
-      lockedName:true,
-      day:backDepDay,
-      start:v16TimeFromDT(back.dep),
-      end:v16TimeFromDT(back.arr),
-      type:"航班",
-      name:`搭乘回程航班 ${back.no||""}`.trim() || "搭乘回程航班",
-      note:`${back.from||""} → ${back.to||""}`,
-      memo:"由航班資料帶入"
-    },
-    {
-      id:"flight-back-home-transfer",
-      source:"flight",
-      sourceType:"flight",
-      lockedName:true,
-      day:backArrDay,
-      start:v16TimeFromDT(back.arr),
-      end:"",
-      type:"交通",
-      name:`從 ${back.to||"抵達機場"} 回家`,
-      note:back.fromAirport||"",
-      memo:"由航班資料帶入"
-    }
-  ];
-}
-
-function v16AddFlightsToPlans(doRender=true){
-  v28NormalizePlans();
-  flightPlanTemplates().forEach(p=>v28UpsertPlan(p));
-  if(doRender) save();
-}
 
 function removeFlightPlans(){
   v28DeletePlansBySource("flight");
@@ -4490,35 +1348,6 @@ function removeFlightPlans(){
   toast("已幫你移除航班行程囉！");
 }
 
-function saveFlights(){
-  if(!v23ValidateFlightTimes())return;
-
-  ["out","back"].forEach(k=>{
-    const transferEl=$(k+"transfer");
-    data.flights[k]={
-      no:$(k+"no").value,
-      from:$(k+"from").value,
-      to:$(k+"to").value,
-      dep:$(k+"dep").value,
-      arr:$(k+"arr").value,
-      transfer:transferEl?transferEl.value:"",
-      toAirport:$(k+"toAirport")?$(k+"toAirport").value:"",
-      fromAirport:$(k+"fromAirport")?$(k+"fromAirport").value:"",
-      fromTerminal:$(k+"fromTerminal")?$(k+"fromTerminal").value:"",
-      toTerminal:$(k+"toTerminal")?$(k+"toTerminal").value:""
-    };
-  });
-
-  // 若航班行程已匯入，修改航班時直接更新既有行程，不新增重複資料。
-  if(flightHasPlans()){
-    flightPlanTemplates().forEach(p=>v28UpsertPlan(p));
-  }
-
-  silentSave();
-  render();
-  v16CollapseTripDetail(1);
-  toast("已幫你存好航班囉！");
-}
 
 function hotelPlanTemplates(h){
   if(!h || !h.id || !h.start || !h.end || !h.name) return [];
@@ -4644,81 +1473,7 @@ function delHotel(id){
   save();
 }
 
-function savePlanForm(){
-  if(!$("pname").value)return toast("請輸入行程名稱");
-  if(!v23ValidatePlanForm())return;
 
-  const safeType=normalizePlanType($("ptype").value);
-  let item={
-    day:$("pday").value,
-    start:$("ps").value,
-    end:$("pe").value,
-    type:safeType,
-    name:$("pname").value,
-    source:"manual",
-    mode:"foreign",
-    foreign:0,
-    twd:0,
-    payer:"未定",
-    payMethod:"未定",
-    note:$("pnote").value,
-    memo:$("pmemo").value,
-    adjusted:false
-  };
-  let planId=editingPlanId;
-  let isNew=false;
-
-  if(editingPlanId){
-    const existing=data.plans.find(p=>p.id==editingPlanId);
-    if(existing?.lockedName){
-      item.name=existing.name;
-      item.source=existing.source || v28NormalizeSourceFromLegacy(existing);
-      item.sourceType=existing.sourceType;
-      item.lockedName=true;
-      if(existing.hotelId)item.hotelId=existing.hotelId;
-    }
-    Object.assign(existing,item);
-    existing.type=normalizePlanType(existing.type);
-    editingPlanId=null;
-  }else{
-    isNew=true;
-    planId=uid();
-    data.plans.push({id:planId,...item});
-  }
-
-  if(v16PendingSpotId){
-    const spot=data.spots.find(s=>s.id==v16PendingSpotId);
-    const p=data.plans.find(x=>x.id==planId);
-    if(spot && p){
-      spot.planId=planId;
-      p.source="manual";
-      p.sourceType="spot";
-      p.lockedName=true;
-      p.name=spot.name;
-      p.type=normalizePlanType(p.type || spot.type || "景點");
-      p.memo=p.memo || "由口袋景點帶入";
-    }
-    v16PendingSpotId=null;
-  }
-
-  const savedPlan=data.plans.find(x=>x.id==planId);
-  if(isNew && savedPlan){
-    savedPlan.type=normalizePlanType(savedPlan.type);
-    createBudgetFromPlanSnapshot(savedPlan);
-  }
-
-  setCurrentDay(item.day,{render:false});
-  save();
-  toast(isNew ? "行程加好了，也幫你先記一筆花費！" : "已幫你存好行程囉！");
-}
-
-function render(){
-  v28NormalizePlans();
-  normalizeAllPlanTypes();
-  if(!currentDay) currentDay=cur||data.days?.[0]?.key||data.trip?.start;
-  cur=currentDay;
-  renderHead();renderSide();renderTrip();renderPlanner();renderSpots();renderBudget();renderPacking();renderPhotoBook();renderHelp();
-}
 /*
 新資料結構：
 data.flights.out / data.flights.back = {
@@ -4742,39 +1497,6 @@ UI：
 - 修改航班時 upsert 更新既有行程，不重複新增
 */
 
-function normalizeFlightObj(f, direction){
-  f = f || {};
-  if(Array.isArray(f.segments) && f.segments.length){
-    const normalizedSegments = f.segments.map(s=>({
-      no:s.no||"",
-      from:s.from||"",
-      to:s.to||"",
-      dep:s.dep||"",
-      arr:s.arr||""
-    }));
-    return {
-      type: f.type || (normalizedSegments.length > 1 ? "transfer" : "direct"),
-      segments: normalizedSegments,
-      toAirport:f.toAirport||"",
-      fromAirport:f.fromAirport||"",
-      transfer:f.transfer||""
-    };
-  }
-
-  return {
-    type: "direct",
-    segments: [{
-      no:f.no||"",
-      from:f.from||"",
-      to:f.to||"",
-      dep:f.dep||"",
-      arr:f.arr||""
-    }],
-    toAirport:f.toAirport||f.transfer||"",
-    fromAirport:f.fromAirport||"",
-    transfer:f.transfer||""
-  };
-}
 
 function flightTypeSelect(k, selected){
   return `<select id="${k}type" onchange="toggleFlightSegments('${k}')">
@@ -4783,338 +1505,16 @@ function flightTypeSelect(k, selected){
   </select>`;
 }
 
-function flightSegmentForm(k, idx, seg){
-  seg = seg || {};
-  return `<div class="segmentBox" id="${k}segBox${idx}">
-    <div class="segmentTitle">第 ${idx+1} 段航班 <span>${idx===0?"第一段":"第二段／轉機後"}</span></div>
-    <div class="three compactMobile">
-      <div><label>航班號</label><input id="${k}s${idx}no" value="${esc(seg.no||"")}" placeholder="例：BX794"></div>
-      <div><label>出發地 / 機場</label><input id="${k}s${idx}from" value="${esc(seg.from||"")}" placeholder="例：TPE 桃園"></div>
-      <div><label>抵達地 / 機場</label><input id="${k}s${idx}to" value="${esc(seg.to||"")}" placeholder="例：PUS 金海"></div>
-    </div>
-    <div class="two">
-      <div><label>起飛時間</label><input id="${k}s${idx}dep" type="datetime-local" value="${seg.dep||""}"></div>
-      <div><label>抵達時間</label><input id="${k}s${idx}arr" type="datetime-local" value="${seg.arr||""}"></div>
-    </div>
-  </div>`;
-}
-
-function flightForm(k){
-  const f=normalizeFlightObj(data.flights[k],k);
-  const segs=[f.segments[0]||{}, f.segments[1]||{}];
-  const isOut=k==="out";
-  return `<div><label>航班型態</label>${flightTypeSelect(k,f.type||"direct")}<div class="flightTypeHint">直飛顯示 1 段；轉機固定顯示 2 段。每段航班都會各自產生一筆行程。</div></div>
-  <div id="${k}segmentsWrap">
-    ${flightSegmentForm(k,0,segs[0])}
-    ${flightSegmentForm(k,1,segs[1])}
-  </div>
-  <label>${isOut?"如何抵達出發機場":"如何從旅遊地前往回程機場"}</label>
-  <textarea id="${k}toAirport">${esc(f.toAirport||f.transfer||"")}</textarea>
-  <label>${isOut?"如何從降落機場到旅遊地／飯店":"如何從抵達機場回家"}</label>
-  <textarea id="${k}fromAirport">${esc(f.fromAirport||"")}</textarea>`;
-}
 
 function afterRenderFlightForms(){
   ["out","back"].forEach(k=>toggleFlightSegments(k));
 }
 
-function toggleFlightSegments(k){
-  const type=$(k+"type")?.value || normalizeFlightObj(data.flights[k],k).type || "direct";
-  const box1=$(k+"segBox1");
-  if(box1) box1.style.display = type==="transfer" ? "block" : "none";
-}
-
-function readFlightForm(k){
-  const type=$(k+"type")?.value || "direct";
-  const count=type==="transfer"?2:1;
-  const segments=[];
-  for(let i=0;i<count;i++){
-    segments.push({
-      no:$(k+"s"+i+"no")?.value||"",
-      from:$(k+"s"+i+"from")?.value||"",
-      to:$(k+"s"+i+"to")?.value||"",
-      dep:$(k+"s"+i+"dep")?.value||"",
-      arr:$(k+"s"+i+"arr")?.value||""
-    });
-  }
-  return {
-    type,
-    segments,
-    toAirport:$(k+"toAirport")?.value||"",
-    fromAirport:$(k+"fromAirport")?.value||"",
-    transfer:$(k+"toAirport")?.value||""
-  };
-}
-
-function validateFlightSegments(){
-  const out=readFlightForm("out");
-  const back=readFlightForm("back");
-  const all=[
-    ...out.segments.map((s,i)=>({dir:"去程",idx:i+1,...s})),
-    ...back.segments.map((s,i)=>({dir:"回程",idx:i+1,...s}))
-  ];
-
-  for(const s of all){
-    const missing=[];
-    if(!s.no)missing.push("航班號");
-    if(!s.from)missing.push("出發地");
-    if(!s.to)missing.push("抵達地");
-    if(!s.dep)missing.push("起飛時間");
-    if(!s.arr)missing.push("抵達時間");
-    if(missing.length){
-      alert(`${s.dir}第 ${s.idx} 段請填完整：${missing.join("、")}`);
-      return false;
-    }
-    const dep=v23ParseDateTime(s.dep), arr=v23ParseDateTime(s.arr);
-    if(!(dep<arr)){
-      alert(`${s.dir}第 ${s.idx} 段的抵達時間需晚於起飛時間。`);
-      return false;
-    }
-    const depDay=String(s.dep).split("T")[0], arrDay=String(s.arr).split("T")[0];
-    if(!v23InTripRange(depDay) || !v23InTripRange(arrDay)){
-      alert(`${s.dir}第 ${s.idx} 段航班日期需落在旅遊日期區間內：${data.trip.start} ～ ${data.trip.end}`);
-      return false;
-    }
-  }
-
-  for(let i=1;i<all.length;i++){
-    const prevArr=v23ParseDateTime(all[i-1].arr);
-    const curDep=v23ParseDateTime(all[i].dep);
-    if(!(prevArr<curDep)){
-      alert("請確認航班時間順序：每一段航班的起飛時間都必須晚於上一段的抵達時間。");
-      return false;
-    }
-  }
-
-  return true;
-}
-
-function saveFlights(){
-  if(!validateFlightSegments())return;
-  data.flights.out=readFlightForm("out");
-  data.flights.back=readFlightForm("back");
-
-  if(flightHasPlans()){
-    syncFlightPlans();
-  }
-
-  silentSave();
-  render();
-  v16CollapseTripDetail(1);
-  toast("已幫你存好航班囉！");
-}
-
-function flightPlanTemplates(){
-  const out=normalizeFlightObj(data.flights.out,"out");
-  const back=normalizeFlightObj(data.flights.back,"back");
-  const templates=[];
-
-  const firstOut=out.segments[0]||{};
-  const lastOut=out.segments[out.segments.length-1]||{};
-  const firstBack=back.segments[0]||{};
-  const lastBack=back.segments[back.segments.length-1]||{};
-
-  templates.push({
-    id:"flight-out-to-airport",
-    source:"flight",
-    sourceType:"flight",
-    lockedName:true,
-    day:String(firstOut.dep||data.trip.start).split("T")[0],
-    start:"14:00",
-    end:v16TimeFromDT(firstOut.dep),
-    type:"交通",
-    name:`前往 ${firstOut.from||"出發機場"}`,
-    note:out.toAirport||"",
-    memo:"由航班資料帶入"
-  });
-
-  out.segments.forEach((s,i)=>{
-    templates.push({
-      id:`flight-out-seg-${i}`,
-      source:"flight",
-      sourceType:"flight",
-      lockedName:true,
-      day:String(s.dep||data.trip.start).split("T")[0],
-      start:v16TimeFromDT(s.dep),
-      end:v16TimeFromDT(s.arr),
-      type:"航班",
-      name:`搭乘去程第 ${i+1} 段 ${s.no||""}`.trim(),
-      note:`${s.from||""} → ${s.to||""}`,
-      memo:"由航班資料帶入"
-    });
-  });
-
-  templates.push({
-    id:"flight-out-arrival-transfer",
-    source:"flight",
-    sourceType:"flight",
-    lockedName:true,
-    day:String(lastOut.arr||data.trip.start).split("T")[0],
-    start:v16TimeFromDT(lastOut.arr),
-    end:"",
-    type:"交通",
-    name:`從 ${lastOut.to||"降落機場"} 前往飯店／市區`,
-    note:out.fromAirport||"",
-    memo:"由航班資料帶入"
-  });
-
-  templates.push({
-    id:"flight-back-to-airport",
-    source:"flight",
-    sourceType:"flight",
-    lockedName:true,
-    day:String(firstBack.dep||data.trip.end).split("T")[0],
-    start:"",
-    end:v16TimeFromDT(firstBack.dep),
-    type:"交通",
-    name:`從飯店前往 ${firstBack.from||"回程機場"}`,
-    note:back.toAirport||"",
-    memo:"由航班資料帶入"
-  });
-
-  back.segments.forEach((s,i)=>{
-    templates.push({
-      id:`flight-back-seg-${i}`,
-      source:"flight",
-      sourceType:"flight",
-      lockedName:true,
-      day:String(s.dep||data.trip.end).split("T")[0],
-      start:v16TimeFromDT(s.dep),
-      end:v16TimeFromDT(s.arr),
-      type:"航班",
-      name:`搭乘回程第 ${i+1} 段 ${s.no||""}`.trim(),
-      note:`${s.from||""} → ${s.to||""}`,
-      memo:"由航班資料帶入"
-    });
-  });
-
-  templates.push({
-    id:"flight-back-home-transfer",
-    source:"flight",
-    sourceType:"flight",
-    lockedName:true,
-    day:String(lastBack.arr||data.trip.end).split("T")[0],
-    start:v16TimeFromDT(lastBack.arr),
-    end:"",
-    type:"交通",
-    name:`從 ${lastBack.to||"抵達機場"} 回家`,
-    note:back.fromAirport||"",
-    memo:"由航班資料帶入"
-  });
-
-  return templates;
-}
-
-function syncFlightPlans(){
-  v28NormalizePlans();
-  const templates=flightPlanTemplates();
-  const keepIds=templates.map(p=>p.id);
-  data.plans=data.plans.filter(p=>p.source!=="flight" || keepIds.includes(p.id));
-  data.conns=(data.conns||[]).filter(c=>data.plans.some(p=>p.id===c.a)&&data.plans.some(p=>p.id===c.b));
-  templates.forEach(p=>v28UpsertPlan(p));
-}
-
-function v16AddFlightsToPlans(doRender=true){
-  syncFlightPlans();
-  if(doRender) save();
-}
 
 function flightHasBudget(){
   return data.expenses.some(e=>e.sourceType==="flight" || e.source==="航班");
 }
 
-function addFlightBudget(){
-  if(flightHasBudget())return toast("航班預算已經記過囉！");
-  const out=normalizeFlightObj(data.flights.out,"out");
-  const back=normalizeFlightObj(data.flights.back,"back");
-  const outNos=out.segments.map(s=>s.no).filter(Boolean).join("＋");
-  const backNos=back.segments.map(s=>s.no).filter(Boolean).join("＋");
-  const label=[outNos?`去程 ${outNos}`:"", backNos?`回程 ${backNos}`:""].filter(Boolean).join("／");
-
-  data.expenses.push({
-    id:uid(),
-    sourceType:"flight",
-    source:"航班",
-    type:"機票",
-    name: label ? `來回機票（${label}）` : "來回機票",
-    payer:"未定",
-    payMethod:"未定",
-    day:"",
-    mode:"TWD",
-    foreign:0,
-    twd:0,
-    memo:"由航班資料帶入，可自行補金額"
-  });
-  save();
-  toast("已幫你記一筆來回機票！");
-}
-
-const __renderTripBeforeV29 = renderTrip;
-renderTrip = function(){
-  __renderTripBeforeV29();
-  afterRenderFlightForms();
-};
-function budgetAllItems(){
-  const items=[];
-  (data.expenses||[]).forEach(x=>{
-    items.push({
-      id:x.id,
-      source:x.source||"預算",
-      day:x.day||"",
-      type:x.type||"其他",
-      name:x.name||"未命名費用",
-      payer:x.payer||"未定",
-      payMethod:x.payMethod||"未定",
-      foreign:moneyForeign(x),
-      twd:moneyTwd(x),
-      memo:x.memo||"",
-      editable:true,
-      kind:"expense"
-    });
-  });
-  (data.conns||[])
-    .filter(c=>Number(c.fareTwd||0)>0||Number(c.fareForeign||0)>0)
-    .forEach((c,i)=>{
-      items.push({
-        id:"conn-"+i,
-        source:"交通",
-        day:"",
-        type:c.mode||"交通",
-        name:"行程間交通",
-        payer:c.payer||"未定",
-        payMethod:c.payMethod||"未定",
-        foreign:Number(c.fareForeign||0),
-        twd:Number(c.fareTwd||0),
-        memo:"",
-        editable:false,
-        kind:"conn"
-      });
-    });
-  return items;
-}
-
-function budgetTypeSummary(items){
-  const map={};
-  items.forEach(x=>{
-    const amount=Number(x.twd||0);
-    if(amount<=0)return;
-    const type=x.type||"其他";
-    map[type]=(map[type]||0)+amount;
-  });
-  return Object.entries(map)
-    .sort((a,b)=>b[1]-a[1])
-    .map(([type,total])=>({type,total}));
-}
-
-function renderBudgetSummary(items){
-  const groups=budgetTypeSummary(items);
-  const total=items.reduce((s,x)=>s+Number(x.twd||0),0);
-  const groupHtml=groups.map(g=>`<div class="budgetSummaryCard"><b>${esc(g.type)}</b><strong>TWD ${fmt(g.total)}</strong></div>`).join("");
-  return `<div class="budgetSummaryGrid">
-    <div class="budgetSummaryCard total"><b>總費用</b><strong>TWD ${fmt(total)}</strong></div>
-    ${groupHtml || '<div class="budgetSummaryCard"><b>尚未有費用</b><strong>TWD 0</strong></div>'}
-  </div>`;
-}
 
 function budgetCardRows(items){
   if(!items.length)return '<div class="empty">尚未新增預算</div>';
@@ -5139,81 +1539,10 @@ function budgetCardRows(items){
     </details>`).join("")}</div>`;
 }
 
-function renderBudget(){
-  const items=budgetAllItems();
-  $("budgetView").innerHTML=`<div class="section"><div><h2>預算總覽</h2><div class="hint">依費用類型自動分類，只顯示已有金額的類別；清單改為卡片式，手機更好操作。</div></div><button class="iconBtn smallIcon" onclick="clearExpenseForm()">＋</button></div>
-  ${renderBudgetSummary(items)}
-  <div class="card">
-    <div class="three compactMobile">
-      <div><label>費用類型</label><select id="etype"><option>機票</option><option>住宿</option><option>網路</option><option>旅平險</option><option>交通票券</option><option>景點票券</option><option>餐飲</option><option>購物</option><option>其他</option></select></div>
-      <div><label>項目</label><input id="ename"></div>
-      <div><label>付款人</label><select id="epayer">${optsPayer("未定")}</select></div>
-    </div>
-    <div class="four compactMobile">
-      <div><label>${esc(data.trip.currency)} 金額</label><input id="eforeign" type="number" oninput="syncExpenseMoney('f')"></div>
-      <div><label>TWD</label><input id="etwd" type="number" oninput="syncExpenseMoney('t')"></div>
-      <div><label>付款方式</label><select id="epm">${optsPayMethod("未定")}</select></div>
-      <div><label>付款日</label><input id="eday" type="date"><div class="freeDateHint">付款日可留空，也可以早於出發日。</div></div>
-    </div>
-    <label>備註</label><input id="ememo">
-    <div class="btns">
-      <button class="btn dark" onclick="saveExpenseForm()">${editingExpenseId?"存好預算":"記一筆花費"}</button>
-      ${editingExpenseId?'<button class="btn soft" onclick="clearExpenseForm()">取消編輯 / 新增</button>':""}
-      <button class="btn blue" onclick="openRateSearch()">查一下匯率</button>
-    </div>
-  </div>
-  ${budgetCardRows(items)}`;
-  if(editingExpenseId)fillExpenseForm(editingExpenseId);
-}
 
 /* 航班段落改為可摺疊 details，並加密度 class */
-function flightSegmentForm(k, idx, seg){
-  seg = seg || {};
-  const defaultOpen = idx===0 ? "open" : "";
-  return `<details class="segmentBox" id="${k}segBox${idx}" ${defaultOpen}>
-    <summary><div class="segmentTitle">第 ${idx+1} 段航班 <span>${idx===0?"第一段":"第二段／轉機後"}</span></div></summary>
-    <div class="segmentInner">
-      <div class="three compactMobile">
-        <div><label>航班號</label><input id="${k}s${idx}no" value="${esc(seg.no||"")}" placeholder="例：BX794"></div>
-        <div><label>出發地 / 機場</label><input id="${k}s${idx}from" value="${esc(seg.from||"")}" placeholder="例：TPE 桃園"></div>
-        <div><label>抵達地 / 機場</label><input id="${k}s${idx}to" value="${esc(seg.to||"")}" placeholder="例：PUS 金海"></div>
-      </div>
-      <div class="two">
-        <div><label>起飛時間</label><input id="${k}s${idx}dep" type="datetime-local" value="${seg.dep||""}"></div>
-        <div><label>抵達時間</label><input id="${k}s${idx}arr" type="datetime-local" value="${seg.arr||""}"></div>
-      </div>
-    </div>
-  </details>`;
-}
 
-function flightForm(k){
-  const f=normalizeFlightObj(data.flights[k],k);
-  const segs=[f.segments[0]||{}, f.segments[1]||{}];
-  const isOut=k==="out";
-  return `<div class="flightTransferBlock">
-    <label>航班型態</label>${flightTypeSelect(k,f.type||"direct")}
-    <div class="flightTypeHint">直飛顯示 1 段；轉機固定顯示 2 段。每段航班會各自產生一筆行程。</div>
-    <div id="${k}segmentsWrap">
-      ${flightSegmentForm(k,0,segs[0])}
-      ${flightSegmentForm(k,1,segs[1])}
-    </div>
-    <label>${isOut?"如何抵達出發機場":"如何從旅遊地前往回程機場"}</label>
-    <textarea id="${k}toAirport">${esc(f.toAirport||f.transfer||"")}</textarea>
-    <label>${isOut?"如何從降落機場到旅遊地／飯店":"如何從抵達機場回家"}</label>
-    <textarea id="${k}fromAirport">${esc(f.fromAirport||"")}</textarea>
-  </div>`;
-}
 
-const __renderTripBeforeV30 = renderTrip;
-renderTrip = function(){
-  __renderTripBeforeV30();
-  const flightDetails = Array.from(document.querySelectorAll("#tripView details.card"));
-  const flightCard = flightDetails[1];
-  if(flightCard){
-    flightCard.classList.add("flightDense");
-  }
-  afterRenderFlightForms();
-};
 function airportOptionsList(){
   return [
     "台灣｜TPE 桃園國際機場",
@@ -5304,72 +1633,6 @@ function normalizeFlightObj(f, direction){
   };
 }
 
-function flightSegmentForm(k, idx, seg){
-  seg = seg || {};
-  const defaultOpen = idx===0 ? "open" : "";
-  return `<details class="segmentBox" id="${k}segBox${idx}" ${defaultOpen}>
-    <summary><div class="segmentTitle">第 ${idx+1} 段航班 <span>${idx===0?"第一段":"第二段／轉機後"}</span></div></summary>
-    <div class="segmentInner">
-      <div class="three compactMobile">
-        <div><label>航班號</label><input id="${k}s${idx}no" value="${esc(seg.no||"")}" placeholder="例：BX794"></div>
-        <div><label>出發地 / 機場</label><input id="${k}s${idx}from" list="airportList" value="${esc(seg.from||"")}" placeholder="可選清單或自行輸入"></div>
-        <div><label>抵達地 / 機場</label><input id="${k}s${idx}to" list="airportList" value="${esc(seg.to||"")}" placeholder="可選清單或自行輸入"></div>
-      </div>
-      <div class="terminalPair">
-        <div><label>出發航廈</label><select id="${k}s${idx}fromTerminal">${terminalOptions(seg.fromTerminal||"未定")}</select></div>
-        <div><label>抵達航廈</label><select id="${k}s${idx}toTerminal">${terminalOptions(seg.toTerminal||"未定")}</select></div>
-      </div>
-      <div class="two">
-        <div><label>起飛時間</label><input id="${k}s${idx}dep" type="datetime-local" value="${seg.dep||""}"></div>
-        <div><label>抵達時間</label><input id="${k}s${idx}arr" type="datetime-local" value="${seg.arr||""}"></div>
-      </div>
-      <div class="airportQuickHint">機場清單已優先放台灣與亞洲常用機場；找不到也可以直接手動輸入。</div>
-    </div>
-  </details>`;
-}
-
-function flightForm(k){
-  const f=normalizeFlightObj(data.flights[k],k);
-  const segs=[f.segments[0]||{}, f.segments[1]||{}];
-  const isOut=k==="out";
-  return `<div class="flightTransferBlock">
-    ${airportDatalistHtml()}
-    <label>航班型態</label>${flightTypeSelect(k,f.type||"direct")}
-    <div class="flightTypeHint">直飛顯示 1 段；轉機固定顯示 2 段。每段航班會各自產生一筆行程。</div>
-    <div id="${k}segmentsWrap">
-      ${flightSegmentForm(k,0,segs[0])}
-      ${flightSegmentForm(k,1,segs[1])}
-    </div>
-    <label>${isOut?"如何抵達出發機場":"如何從旅遊地前往回程機場"}</label>
-    <textarea id="${k}toAirport">${esc(f.toAirport||f.transfer||"")}</textarea>
-    <label>${isOut?"如何從降落機場到旅遊地／飯店":"如何從抵達機場回家"}</label>
-    <textarea id="${k}fromAirport">${esc(f.fromAirport||"")}</textarea>
-  </div>`;
-}
-
-function readFlightForm(k){
-  const type=$(k+"type")?.value || "direct";
-  const count=type==="transfer"?2:1;
-  const segments=[];
-  for(let i=0;i<count;i++){
-    segments.push({
-      no:$(k+"s"+i+"no")?.value||"",
-      from:$(k+"s"+i+"from")?.value||"",
-      to:$(k+"s"+i+"to")?.value||"",
-      dep:$(k+"s"+i+"dep")?.value||"",
-      arr:$(k+"s"+i+"arr")?.value||"",
-      fromTerminal:$(k+"s"+i+"fromTerminal")?.value||"",
-      toTerminal:$(k+"s"+i+"toTerminal")?.value||""
-    });
-  }
-  return {
-    type,
-    segments,
-    toAirport:$(k+"toAirport")?.value||"",
-    fromAirport:$(k+"fromAirport")?.value||"",
-    transfer:$(k+"toAirport")?.value||""
-  };
-}
 
 function terminalNote(s){
   const fromT=s.fromTerminal && s.fromTerminal!=="未定" ? `出發航廈：${s.fromTerminal}` : "";
@@ -5377,106 +1640,6 @@ function terminalNote(s){
   return [fromT,toT].filter(Boolean).join("｜");
 }
 
-function flightPlanTemplates(){
-  const out=normalizeFlightObj(data.flights.out,"out");
-  const back=normalizeFlightObj(data.flights.back,"back");
-  const templates=[];
-
-  const firstOut=out.segments[0]||{};
-  const lastOut=out.segments[out.segments.length-1]||{};
-  const firstBack=back.segments[0]||{};
-  const lastBack=back.segments[back.segments.length-1]||{};
-
-  templates.push({
-    id:"flight-out-to-airport",
-    source:"flight",
-    sourceType:"flight",
-    lockedName:true,
-    day:String(firstOut.dep||data.trip.start).split("T")[0],
-    start:"14:00",
-    end:v16TimeFromDT(firstOut.dep),
-    type:"交通",
-    name:`前往 ${firstOut.from||"出發機場"}`,
-    note:out.toAirport||"",
-    memo:"由航班資料帶入"
-  });
-
-  out.segments.forEach((s,i)=>{
-    templates.push({
-      id:`flight-out-seg-${i}`,
-      source:"flight",
-      sourceType:"flight",
-      lockedName:true,
-      day:String(s.dep||data.trip.start).split("T")[0],
-      start:v16TimeFromDT(s.dep),
-      end:v16TimeFromDT(s.arr),
-      type:"航班",
-      name:`搭乘去程第 ${i+1} 段 ${s.no||""}`.trim(),
-      note:[`${s.from||""} → ${s.to||""}`, terminalNote(s)].filter(Boolean).join("\n"),
-      memo:"由航班資料帶入"
-    });
-  });
-
-  templates.push({
-    id:"flight-out-arrival-transfer",
-    source:"flight",
-    sourceType:"flight",
-    lockedName:true,
-    day:String(lastOut.arr||data.trip.start).split("T")[0],
-    start:v16TimeFromDT(lastOut.arr),
-    end:"",
-    type:"交通",
-    name:`從 ${lastOut.to||"降落機場"} 前往飯店／市區`,
-    note:out.fromAirport||"",
-    memo:"由航班資料帶入"
-  });
-
-  templates.push({
-    id:"flight-back-to-airport",
-    source:"flight",
-    sourceType:"flight",
-    lockedName:true,
-    day:String(firstBack.dep||data.trip.end).split("T")[0],
-    start:"",
-    end:v16TimeFromDT(firstBack.dep),
-    type:"交通",
-    name:`從飯店前往 ${firstBack.from||"回程機場"}`,
-    note:back.toAirport||"",
-    memo:"由航班資料帶入"
-  });
-
-  back.segments.forEach((s,i)=>{
-    templates.push({
-      id:`flight-back-seg-${i}`,
-      source:"flight",
-      sourceType:"flight",
-      lockedName:true,
-      day:String(s.dep||data.trip.end).split("T")[0],
-      start:v16TimeFromDT(s.dep),
-      end:v16TimeFromDT(s.arr),
-      type:"航班",
-      name:`搭乘回程第 ${i+1} 段 ${s.no||""}`.trim(),
-      note:[`${s.from||""} → ${s.to||""}`, terminalNote(s)].filter(Boolean).join("\n"),
-      memo:"由航班資料帶入"
-    });
-  });
-
-  templates.push({
-    id:"flight-back-home-transfer",
-    source:"flight",
-    sourceType:"flight",
-    lockedName:true,
-    day:String(lastBack.arr||data.trip.end).split("T")[0],
-    start:v16TimeFromDT(lastBack.arr),
-    end:"",
-    type:"交通",
-    name:`從 ${lastBack.to||"抵達機場"} 回家`,
-    note:back.fromAirport||"",
-    memo:"由航班資料帶入"
-  });
-
-  return templates;
-}
 function v32DateAdd(dateStr, days){
   const d=parseLocalDate(dateStr);
   d.setDate(d.getDate()+days);
@@ -5492,24 +1655,6 @@ function v32FlightDateRangeText(){
   return `${v32DateAdd(data.trip.start,-3)} ～ ${v32DateAdd(data.trip.end,3)}`;
 }
 
-function flightForm(k){
-  const f=normalizeFlightObj(data.flights[k],k);
-  const segs=[f.segments[0]||{}, f.segments[1]||{}];
-  const isOut=k==="out";
-  return `<div class="flightTransferBlock">
-    ${airportDatalistHtml()}
-    <label>航班型態</label>${flightTypeSelect(k,f.type||"direct")}
-    <div class="flightTypeHint">直飛 1 段，轉機 2 段；航班日期允許落在出發日前 3 天～回程日後 3 天。</div>
-    <div id="${k}segmentsWrap">
-      ${flightSegmentForm(k,0,segs[0])}
-      ${flightSegmentForm(k,1,segs[1])}
-    </div>
-    <label>${isOut?"抵達出發機場方式":"前往回程機場方式"}</label>
-    <textarea id="${k}toAirport" placeholder="${isOut?"例：14:00 從家出發，搭機捷到桃園機場":"例：從飯店搭地鐵／計程車到機場"}">${esc(f.toAirport||f.transfer||"")}</textarea>
-    <label>${isOut?"降落後到市區／飯店":"抵達後回家方式"}</label>
-    <textarea id="${k}fromAirport" placeholder="${isOut?"例：金海機場搭輕軌轉地鐵到飯店":"例：抵達桃園後搭機捷／接送回家"}">${esc(f.fromAirport||"")}</textarea>
-  </div>`;
-}
 
 function validateFlightSegments(){
   const out=readFlightForm("out");
@@ -5554,29 +1699,6 @@ function validateFlightSegments(){
   return true;
 }
 
-function flightSegmentForm(k, idx, seg){
-  seg = seg || {};
-  const defaultOpen = idx===0 ? "open" : "";
-  return `<details class="segmentBox" id="${k}segBox${idx}" ${defaultOpen}>
-    <summary><div class="segmentTitle">第 ${idx+1} 段航班 <span>${idx===0?"第一段":"第二段／轉機後"}</span></div></summary>
-    <div class="segmentInner">
-      <div class="three compactMobile">
-        <div><label>航班號</label><input id="${k}s${idx}no" value="${esc(seg.no||"")}" placeholder="例：BX794"></div>
-        <div><label>出發地 / 機場</label><input id="${k}s${idx}from" list="airportList" value="${esc(seg.from||"")}" placeholder="可選或輸入"></div>
-        <div><label>抵達地 / 機場</label><input id="${k}s${idx}to" list="airportList" value="${esc(seg.to||"")}" placeholder="可選或輸入"></div>
-      </div>
-      <div class="terminalPair">
-        <div><label>出發航廈</label><select id="${k}s${idx}fromTerminal">${terminalOptions(seg.fromTerminal||"未定")}</select></div>
-        <div><label>抵達航廈</label><select id="${k}s${idx}toTerminal">${terminalOptions(seg.toTerminal||"未定")}</select></div>
-      </div>
-      <div class="two">
-        <div><label>起飛時間</label><input id="${k}s${idx}dep" type="datetime-local" value="${seg.dep||""}"></div>
-        <div><label>抵達時間</label><input id="${k}s${idx}arr" type="datetime-local" value="${seg.arr||""}"></div>
-      </div>
-      <div class="airportQuickHint">台灣與亞洲機場優先列出；找不到可手動輸入。</div>
-    </div>
-  </details>`;
-}
 function budgetAllItems(){
   const items=[];
   (data.expenses||[]).forEach(x=>{
@@ -5696,32 +1818,6 @@ function budgetDetailsHtml(items){
   <div class="budgetMobileCards">${budgetMobileCards(items)}</div>`;
 }
 
-function renderBudget(){
-  const items=budgetAllItems();
-  $("budgetView").innerHTML=`<div class="section"><div><h2>預算總覽</h2><div class="hint">桌機顯示表格，手機顯示對齊卡片；上方依費用類型自動統計。</div></div><button class="iconBtn smallIcon" onclick="clearExpenseForm()">＋</button></div>
-  ${renderBudgetSummary(items)}
-  <div class="card">
-    <div class="three compactMobile">
-      <div><label>費用類型</label><select id="etype"><option>機票</option><option>住宿</option><option>網路</option><option>旅平險</option><option>交通票券</option><option>景點票券</option><option>餐飲</option><option>購物</option><option>其他</option></select></div>
-      <div><label>項目</label><input id="ename"></div>
-      <div><label>付款人</label><select id="epayer">${optsPayer("未定")}</select></div>
-    </div>
-    <div class="four compactMobile">
-      <div><label>${esc(data.trip.currency)} 金額</label><input id="eforeign" type="number" oninput="syncExpenseMoney('f')"></div>
-      <div><label>TWD</label><input id="etwd" type="number" oninput="syncExpenseMoney('t')"></div>
-      <div><label>付款方式</label><select id="epm">${optsPayMethod("未定")}</select></div>
-      <div><label>付款日</label><input id="eday" type="date"><div class="freeDateHint">付款日可留空，也可以早於出發日。</div></div>
-    </div>
-    <label>備註</label><input id="ememo">
-    <div class="btns">
-      <button class="btn dark" onclick="saveExpenseForm()">${editingExpenseId?"存好預算":"記一筆花費"}</button>
-      ${editingExpenseId?'<button class="btn soft" onclick="clearExpenseForm()">取消編輯 / 新增</button>':""}
-      <button class="btn blue" onclick="openRateSearch()">查一下匯率</button>
-    </div>
-  </div>
-  ${budgetDetailsHtml(items)}`;
-  if(editingExpenseId)fillExpenseForm(editingExpenseId);
-}
 // 1) 航班 / 住宿來源行程不自動建立預算；口袋景點 / 手動行程仍會建立。
 // 不改資料結構，只調整建立預算的小邏輯。
 function createBudgetFromPlanSnapshot(plan){
@@ -5877,138 +1973,7 @@ function v36FlightName(direction, idx, segCount, no){
   return isOut ? `搭乘去程第 ${idx+1} 段飛機${no ? " " + no : ""}` : `搭乘回程第 ${idx+1} 段飛機${no ? " " + no : ""}`;
 }
 
-function flightPlanTemplates(){
-  const out=normalizeFlightObj(data.flights.out,"out");
-  const back=normalizeFlightObj(data.flights.back,"back");
-  const templates=[];
 
-  const outSegs=(out.segments && out.segments.length ? out.segments : [{}]);
-  const backSegs=(back.segments && back.segments.length ? back.segments : [{}]);
-  const firstOut=outSegs[0]||{};
-  const lastOut=outSegs[outSegs.length-1]||{};
-  const firstBack=backSegs[0]||{};
-  const lastBack=backSegs[backSegs.length-1]||{};
-
-  templates.push({
-    id:"flight-out-to-airport",
-    source:"flight",
-    sourceType:"flight",
-    lockedName:true,
-    day:v36DateFromDT(firstOut.dep, data.trip.start),
-    start:"",
-    end:v36TimeFromDT(firstOut.dep),
-    type:"交通",
-    name:`出發去 ${firstOut.from||"機場"}`,
-    note:out.toAirport||"",
-    memo:"由航班資料帶入"
-  });
-
-  outSegs.forEach((s,i)=>{
-    templates.push({
-      id:`flight-out-seg-${i}`,
-      source:"flight",
-      sourceType:"flight",
-      lockedName:true,
-      day:v36DateFromDT(s.dep, data.trip.start),
-      start:v36TimeFromDT(s.dep),
-      end:v36TimeFromDT(s.arr),
-      type:"航班",
-      name:v36FlightName("out", i, outSegs.length, s.no||""),
-      note:[`${s.from||""} → ${s.to||""}`, terminalNote(s)].filter(Boolean).join("\n"),
-      memo:"由航班資料帶入"
-    });
-  });
-
-  templates.push({
-    id:"flight-out-arrival-transfer",
-    source:"flight",
-    sourceType:"flight",
-    lockedName:true,
-    day:v36DateFromDT(lastOut.arr, data.trip.start),
-    start:v36TimeFromDT(lastOut.arr),
-    end:"",
-    type:"交通",
-    name:`從 ${lastOut.to||"抵達機場"} 前往市區／飯店`,
-    note:out.fromAirport||"",
-    memo:"由航班資料帶入"
-  });
-
-  templates.push({
-    id:"flight-back-to-airport",
-    source:"flight",
-    sourceType:"flight",
-    lockedName:true,
-    day:v36DateFromDT(firstBack.dep, data.trip.end),
-    start:"",
-    end:v36TimeFromDT(firstBack.dep),
-    type:"交通",
-    name:`從飯店前往 ${firstBack.from||"回程機場"}`,
-    note:back.toAirport||"",
-    memo:"由航班資料帶入"
-  });
-
-  backSegs.forEach((s,i)=>{
-    templates.push({
-      id:`flight-back-seg-${i}`,
-      source:"flight",
-      sourceType:"flight",
-      lockedName:true,
-      day:v36DateFromDT(s.dep, data.trip.end),
-      start:v36TimeFromDT(s.dep),
-      end:v36TimeFromDT(s.arr),
-      type:"航班",
-      name:v36FlightName("back", i, backSegs.length, s.no||""),
-      note:[`${s.from||""} → ${s.to||""}`, terminalNote(s)].filter(Boolean).join("\n"),
-      memo:"由航班資料帶入"
-    });
-  });
-
-  templates.push({
-    id:"flight-back-home-transfer",
-    source:"flight",
-    sourceType:"flight",
-    lockedName:true,
-    day:v36DateFromDT(lastBack.arr, data.trip.end),
-    start:v36TimeFromDT(lastBack.arr),
-    end:"",
-    type:"交通",
-    name:`從 ${lastBack.to||"抵達機場"} 回家`,
-    note:back.fromAirport||"",
-    memo:"由航班資料帶入"
-  });
-
-  return templates;
-}
-
-function syncFlightPlans(){
-  v28NormalizePlans();
-  const templates=flightPlanTemplates();
-  const keepIds=templates.map(p=>p.id);
-  data.plans=data.plans.filter(p=>p.source!=="flight" || keepIds.includes(p.id));
-  data.conns=(data.conns||[]).filter(c=>data.plans.some(p=>p.id===c.a)&&data.plans.some(p=>p.id===c.b));
-  templates.forEach(p=>v28UpsertPlan(p));
-}
-
-function v16AddFlightsToPlans(doRender=true){
-  syncFlightPlans();
-  if(doRender) save();
-  toast("已幫你把航班帶入行程囉！");
-}
-
-function saveFlights(){
-  if(!validateFlightSegments())return;
-  data.flights.out=readFlightForm("out");
-  data.flights.back=readFlightForm("back");
-
-  if(flightHasPlans()){
-    syncFlightPlans();
-  }
-
-  silentSave();
-  render();
-  v16CollapseTripDetail(1);
-  toast("已幫你存好航班囉！");
-}
 function v38AirportOptions(){
   return typeof airportOptionsList==="function" ? airportOptionsList() : [
     "台灣｜TPE 桃園國際機場","台灣｜TSA 台北松山機場","台灣｜KHH 高雄小港機場",
@@ -6070,62 +2035,6 @@ function v38TerminalSelectHtml(id, val){
   return `<select class="mobileTerminalSelect" id="${id}">${terminalOptions(val||"未定")}</select>`;
 }
 
-function flightSegmentForm(k, idx, seg){
-  seg = seg || {};
-  const defaultOpen = idx===0 ? "open" : "";
-  const fromId=`${k}s${idx}from`;
-  const toId=`${k}s${idx}to`;
-  return `<details class="segmentBox" id="${k}segBox${idx}" ${defaultOpen}>
-    <summary><div class="segmentTitle">第 ${idx+1} 段航班 <span>${idx===0?"第一段":"第二段／轉機後"}</span></div></summary>
-    <div class="segmentInner">
-
-      <div class="flightDesktopOnly">
-        <div class="three compactMobile">
-          <div><label>航班號</label><input id="${k}s${idx}no" value="${esc(seg.no||"")}" placeholder="例：BX794"></div>
-          <div><label>出發地 / 機場</label><input id="${fromId}" list="airportList" value="${esc(seg.from||"")}" placeholder="可選清單或自行輸入"></div>
-          <div><label>抵達地 / 機場</label><input id="${toId}" list="airportList" value="${esc(seg.to||"")}" placeholder="可選清單或自行輸入"></div>
-        </div>
-        <div class="terminalPair">
-          <div><label>出發航廈</label><select id="${k}s${idx}fromTerminal">${terminalOptions(seg.fromTerminal||"未定")}</select></div>
-          <div><label>抵達航廈</label><select id="${k}s${idx}toTerminal">${terminalOptions(seg.toTerminal||"未定")}</select></div>
-        </div>
-        <div class="two">
-          <div><label>起飛時間</label><input id="${k}s${idx}dep" type="datetime-local" value="${seg.dep||""}"></div>
-          <div><label>抵達時間</label><input id="${k}s${idx}arr" type="datetime-local" value="${seg.arr||""}"></div>
-        </div>
-      </div>
-
-      <div class="flightMobileOnly">
-        <div class="mobileAirportGrid">
-          <div><label>航班號</label><input id="${k}s${idx}noM" value="${esc(seg.no||"")}" placeholder="例：BX794"></div>
-          <div><label>出發地 / 機場</label>${v38AirportSelectHtml(`${k}s${idx}fromM`, seg.from||"")}</div>
-          <div><label>抵達地 / 機場</label>${v38AirportSelectHtml(`${k}s${idx}toM`, seg.to||"")}</div>
-          <div><label>出發航廈</label>${v38TerminalSelectHtml(`${k}s${idx}fromTerminalM`, seg.fromTerminal||"未定")}</div>
-          <div><label>抵達航廈</label>${v38TerminalSelectHtml(`${k}s${idx}toTerminalM`, seg.toTerminal||"未定")}</div>
-        </div>
-        <div class="mobileTimeGrid">
-          <div>
-            <label>起飛時間</label>
-            <div class="mobileTimePair">
-              <div><input id="${k}s${idx}depDateM" type="date" value="${v38DatePart(seg.dep)}"></div>
-              <div><input id="${k}s${idx}depTimeM" type="time" value="${v38TimePart(seg.dep)}"></div>
-            </div>
-          </div>
-          <div>
-            <label>抵達時間</label>
-            <div class="mobileTimePair">
-              <div><input id="${k}s${idx}arrDateM" type="date" value="${v38DatePart(seg.arr)}"></div>
-              <div><input id="${k}s${idx}arrTimeM" type="time" value="${v38TimePart(seg.arr)}"></div>
-            </div>
-          </div>
-        </div>
-        <div class="mobileFieldNote">手機版將日期與時間分開填，儲存後仍會寫回原本航班時間欄位。</div>
-      </div>
-
-      <div class="airportQuickHint">台灣與亞洲機場優先列出；找不到可手動輸入。</div>
-    </div>
-  </details>`;
-}
 
 function v38IsMobileFlightUI(){
   return window.matchMedia && window.matchMedia("(max-width:620px)").matches;
@@ -6570,16 +2479,6 @@ async function uploadImageFileForPhotoBook(file, options={}, statusId="photoUplo
   };
 }
 
-function exportPhotoBookPDF(){
-  alert("匯出 PDF 建議使用電腦下載或列印，版面會比較穩定。手機也可以使用分享或列印功能另存 PDF。");
-  print();
-}
-
-function photoTagsHtml(tags){
-  const raw = String(tags||"").trim();
-  if(!raw)return "";
-  return `<div class="igTags">${raw.split(/[,\s，、]+/).filter(Boolean).map(t=>`<span class="igTag">${esc(t)}</span>`).join("")}</div>`;
-}
 
 async function addTripCover(file){
   if(!file)return;
@@ -6640,57 +2539,6 @@ async function addPhoto(){
   }
 }
 
-function renderPhotoBook(){
-  $("photoBookView").innerHTML=`<div class="section"><div><h2>📖 照片旅遊書</h2><div class="hint">封面、每日照片與日記會整理成一本旅行書；照片日記偏 IG 風格，橫圖顯示更好看。</div></div><button class="btn soft noPrint" onclick="exportPhotoBookPDF()">匯出 PDF</button></div>
-
-  <div class="photoBookSectionCard noPrint">
-    <div class="photoBookSectionTitle"><h3>① 封面上傳</h3><span>整本旅遊書封面</span></div>
-    <div class="photoUploadCard">
-      <label>照片書模板</label>
-      <div class="templateRail">
-        ${templateCard("fresh","🌿 韓系清新","米白淡綠、乾淨圓角")}
-        ${templateCard("fun","🌈 活潑可愛","貼紙感、虛線框、繽紛")}
-        ${templateCard("diary","✎ 手帳日記","紙張格線、手寫感")}
-      </div>
-      <label>選擇封面照片</label>
-      <input type="file" accept="image/*" onchange="addTripCover(this.files[0])">
-      <div class="mini" style="margin-top:6px">建議尺寸：橫式 1600×1000px 以上，或手機照片 4:3／16:9；匯出 PDF 會裁切成與網頁預覽一致的封面比例。</div>
-      <div class="photoUploadStatus" id="coverUploadStatus"></div>
-      <div class="coverUploadPreview">${data.tripCover?`<img src="${data.tripCover}">`:"尚未上傳整本封面照"}</div>
-    </div>
-  </div>
-
-  <div class="photoBookSectionCard noPrint">
-    <div class="photoBookSectionTitle"><h3>② 照片日記</h3><span>每日照片與心情紀錄</span></div>
-    <div class="photoUploadCard">
-      <div class="three compactMobile">
-        <div><label>照片日期</label><select id="phd">${optsDays(cur)}</select></div>
-        <div><label>照片標題</label><input id="pht" placeholder="例：海雲台散步"></div>
-        <div><label>自訂標籤</label><input id="phtag" placeholder="例：🌊 海邊 咖啡"></div>
-      </div>
-      <label>選擇照片</label><input id="phf" type="file" accept="image/*">
-      <div class="mini" style="margin-top:6px">橫圖會最接近照片書排版；也可用 emoji 或 tag 幫照片分類。</div>
-      <label>照片日記</label><textarea id="phm" placeholder="這天的天氣、心情、最好吃的一餐、最喜歡的瞬間……"></textarea>
-      <div class="btns"><button class="btn dark" onclick="addPhoto()">上傳並加入照片日記</button></div>
-      <div class="photoUploadStatus" id="photoUploadStatus"></div>
-    </div>
-  </div>
-
-  <div class="bookStyle-${data.meta.bookStyle||"fresh"}">
-    <div class="printCover">
-      <span class="bookOrnament"></span>
-      <h1>${esc(data.meta.title)}</h1>
-      <p class="coverSub">${esc(data.meta.subtitle)}</p>
-      ${data.tripCover?`<img class="printCoverPhoto" src="${data.tripCover}">`:""}
-      <div class="coverMeta">
-        <div><span class="mini">目的地</span><br><b>${esc(data.trip.dest)}</b></div>
-        <div><span class="mini">日期</span><br><b>${short(data.trip.start)} - ${short(data.trip.end)}</b></div>
-      </div>
-    </div>
-    <div class="card"><h2>${esc(data.meta.title)}</h2><div class="box mint">${esc(data.meta.subtitle)}</div></div>
-    ${data.days.map(d=>photoBookDay(d)).join("")}
-  </div>`;
-}
 
 function photoBookDay(d){
   const plans=sortedPlans(d.key);
@@ -6720,16 +2568,7 @@ function photoBookDay(d){
       </div>`).join("")||""}</div>
   </div>`;
 }
-function exportPhotoBookPDF(){
-  alert("匯出 PDF 建議使用電腦下載或列印，版面會比較穩定。這版已改成故事書列印版面，會盡量避免照片與段落被切頁。");
-  print();
-}
 
-function storyTagsHtml(tags){
-  const raw=String(tags||"").trim();
-  if(!raw)return "";
-  return `<div class="storyTags">${raw.split(/[,\s，、]+/).filter(Boolean).map(t=>`<span class="storyTag">${esc(t)}</span>`).join("")}</div>`;
-}
 
 function dayCoverManagerHtml(){
   return `<div class="dayCoverManager">${data.days.map(d=>{
@@ -6749,17 +2588,6 @@ function dayCoverManagerHtml(){
   }).join("")}</div>`;
 }
 
-function storyBookPhotoCard(p, idx){
-  return `<div class="storyPhotoCard ${idx===0?"featured":""}">
-    <div class="storyPhotoImage"><img src="${p.src}"></div>
-    <div class="storyPhotoText">
-      <h3>${esc(p.title||"照片紀錄")}</h3>
-      ${storyTagsHtml(p.tags)}
-      <p>${esc(p.memo||"")}</p>
-      <button class="small noPrint" onclick="delPhoto('${p.id}')">刪除</button>
-    </div>
-  </div>`;
-}
 
 function storyTimelineHtml(plans){
   if(!plans.length)return `<div class="storyEmpty">這天還沒有安排正式行程，可以先用照片記錄旅途。</div>`;
@@ -6773,107 +2601,7 @@ function storyTimelineHtml(plans){
     </div>`).join("")}</div>`;
 }
 
-function storyBookDay(d){
-  const plans=sortedPlans(d.key);
-  const photos=data.photos.filter(p=>p.day==d.key);
-  const cover=data.dayCovers[d.key] || photos[0]?.src || "";
-  return `<section class="storyDay">
-    <div class="storyDayHeader">
-      <div>
-        <span class="eyebrow">${d.title}</span>
-        <h2>${d.label} 的旅行故事</h2>
-        <p>住宿：${hotelFor(d.key)?.name||"未設定"}。今天收錄 ${plans.length} 個行程與 ${photos.length} 張照片。</p>
-      </div>
-      <div class="bookDayBadge">${plans.length} 行程｜${photos.length} 照片</div>
-    </div>
-    <div class="storyDayHero ${cover?"":"emptyHero"}">${cover?`<img src="${cover}">`:"尚未上傳本日封面圖"}</div>
-    <div class="storyDayBody">
-      <div>
-        <div class="storyTimelineTitle">今天的路線</div>
-        ${storyTimelineHtml(plans)}
-      </div>
-      <div>
-        <div class="storyPhotosTitle">今日照片日記</div>
-        ${photos.length?`<div class="storyPhotoLayout">${photos.map(storyBookPhotoCard).join("")}</div>`:`<div class="storyEmpty">還沒有照片日記，先上傳幾張今天的代表照片吧。</div>`}
-      </div>
-    </div>
-  </section>`;
-}
 
-function renderPhotoBook(){
-  const cover=data.tripCover;
-  $("photoBookView").innerHTML=`<div class="section">
-    <div><h2>📖 照片旅遊書</h2><div class="hint">把封面、每日封面、行程與照片日記整合成一本故事感旅行書。</div></div>
-    <button class="btn soft noPrint" onclick="exportPhotoBookPDF()">匯出 PDF</button>
-  </div>
-
-  <div class="photoBookEditor noPrint">
-    <div class="storyPanel">
-      <div class="storyPanelHead">
-        <div><h3>① 旅遊書封面</h3><p>整本旅遊書的主視覺，建議使用橫式照片。</p></div>
-        <span class="tag green">整本封面</span>
-      </div>
-      <div class="templateRail">
-        ${templateCard("fresh","🌿 韓系清新","米白淡綠、乾淨圓角")}
-        ${templateCard("fun","🌈 活潑可愛","貼紙感、虛線框、繽紛")}
-        ${templateCard("diary","✎ 手帳日記","紙張格線、手寫感")}
-      </div>
-      <label>選擇旅遊書封面照片</label>
-      <input type="file" accept="image/*" onchange="addTripCover(this.files[0])">
-      <div class="storyUploadNote">建議尺寸：橫式 1600×1000px 以上。匯出 PDF 時會固定比例，不會再讓封面過度放大。</div>
-      <div class="photoUploadStatus" id="coverUploadStatus"></div>
-      <div class="storyCoverPreview">${cover?`<img src="${cover}">`:"尚未上傳旅遊書封面"}</div>
-    </div>
-
-    <div class="storyPanel">
-      <div class="storyPanelHead">
-        <div><h3>② 每日封面</h3><p>每一天章節的代表照片，讓 PDF 看起來更像一本旅遊書。</p></div>
-        <span class="tag blue">Day Cover</span>
-      </div>
-      ${dayCoverManagerHtml()}
-    </div>
-
-    <div class="storyPanel">
-      <div class="storyPanelHead">
-        <div><h3>③ 照片日記</h3><p>照片會依日期自動收進每一天故事；橫圖效果最好，也可加入 emoji 或標籤。</p></div>
-        <span class="tag pink">Photo Diary</span>
-      </div>
-      <div class="storyPhotoEditorGrid">
-        <div><label>照片日期</label><select id="phd">${optsDays(cur)}</select></div>
-        <div><label>照片標題</label><input id="pht" placeholder="例：海雲台散步"></div>
-        <div><label>自訂標籤</label><input id="phtag" placeholder="例：🌊 海邊 咖啡"></div>
-      </div>
-      <label>選擇照片</label><input id="phf" type="file" accept="image/*">
-      <label>照片日記</label><textarea id="phm" placeholder="這天的天氣、心情、最好吃的一餐、最喜歡的瞬間……"></textarea>
-      <div class="btns"><button class="btn dark" onclick="addPhoto()">上傳並加入照片日記</button></div>
-      <div class="photoUploadStatus" id="photoUploadStatus"></div>
-    </div>
-  </div>
-
-  <div class="storyBookPreview bookStyle-${data.meta.bookStyle||"fresh"}">
-    <div class="storyBook">
-      <section class="storyBookCover">
-        ${cover?`<img class="storyBookCoverImage" src="${cover}">`:""}
-        <div class="storyBookCoverOverlay"></div>
-        <div class="storyBookCoverText">
-          <span class="eyebrow">MY TRAVEL BOOK</span>
-          <h1>${esc(data.meta.title)}</h1>
-          <p>${esc(data.meta.subtitle)}</p>
-          <div class="storyBookCoverMeta">
-            <span>目的地：${esc(data.trip.dest||"未設定")}</span>
-            <span>日期：${short(data.trip.start)} - ${short(data.trip.end)}</span>
-            <span>${data.days.length} 天旅行</span>
-          </div>
-        </div>
-      </section>
-      ${data.days.map(storyBookDay).join("")}
-    </div>
-  </div>`;
-}
-function exportPhotoBookPDF(){
-  alert("建議使用電腦 Chrome 匯出 PDF，版面最穩定。平板可預覽與簡單匯出，但 Safari 可能會讓背景、分頁或照片比例略有落差。");
-  print();
-}
 let photoBookMode = "story";
 
 function setPhotoBookMode(mode){
@@ -6881,20 +2609,6 @@ function setPhotoBookMode(mode){
   renderPhotoBook();
 }
 
-function exportPhotoBookPDF(){
-  if(photoBookMode !== "pdf"){
-    photoBookMode = "pdf";
-    renderPhotoBook();
-  }
-  alert("已切換到 PDF 預覽模式。建議使用電腦 Chrome 匯出 PDF，平板可預覽但 Safari 可能仍有些微落差。");
-  print();
-}
-
-function pdfTagsHtml(tags){
-  const raw=String(tags||"").trim();
-  if(!raw)return "";
-  return `<div class="pdfTags">${raw.split(/[,\s，、]+/).filter(Boolean).map(t=>`<span class="pdfTag">${esc(t)}</span>`).join("")}</div>`;
-}
 
 function pdfPhotoCard(p, idx){
   return `<div class="pdfPhoto ${idx===0?"featured":""}">
@@ -6963,32 +2677,6 @@ function pdfPreviewHtml(){
   </div>`;
 }
 
-const __renderPhotoBookBeforeV45 = renderPhotoBook;
-renderPhotoBook = function(){
-  __renderPhotoBookBeforeV45();
-
-  const section = $("photoBookView")?.querySelector(".section");
-  if(section){
-    const btnBox = section.querySelector(".btn.soft.noPrint")?.parentElement || section;
-    const switchHtml = `<div class="photoBookModeSwitch noPrint">
-      <button class="${photoBookMode==="story"?"active":""}" onclick="setPhotoBookMode('story')">故事預覽</button>
-      <button class="${photoBookMode==="pdf"?"active":""}" onclick="setPhotoBookMode('pdf')">PDF 預覽</button>
-    </div>`;
-    if(!section.querySelector(".photoBookModeSwitch")){
-      section.insertAdjacentHTML("beforeend", switchHtml);
-    }
-  }
-
-  const preview = $("photoBookView")?.querySelector(".storyBookPreview");
-  if(preview){
-    preview.classList.toggle("pdfMode", photoBookMode==="pdf");
-    const old = preview.querySelector(".pdfPreviewHint");
-    const oldWrap = preview.querySelector(".pdfPreviewWrap");
-    if(old) old.remove();
-    if(oldWrap) oldWrap.remove();
-    preview.insertAdjacentHTML("afterbegin", pdfPreviewHtml());
-  }
-};
 /*
 theme config 範例：
 const THEME_CONFIG = {
@@ -7065,236 +2753,17 @@ function themeOptions(obj, selected){
   return Object.entries(obj).map(([key,val])=>`<option value="${key}" ${key===selected?"selected":""}>${val.label}</option>`).join("");
 }
 
-function toggleThemeWidget(){
-  const el=$("themeWidget");
-  if(el)el.classList.toggle("open");
-}
 
-function renderThemeWidget(){
-  const prefs = applyThemePrefs(getThemePrefs());
-  return `<div class="themeWidget noPrint" id="themeWidget">
-    <div class="themeWidgetHead">
-      <div>
-        <b>🎨 主題切換</b>
-        <div class="mini">只套用 UI 外觀，不影響旅行資料。</div>
-      </div>
-      <button class="themeToggleBtn" onclick="toggleThemeWidget()">調整</button>
-    </div>
-    <div class="themeSwatches">
-      <span class="themeSwatch seoul"></span>
-      <span class="themeSwatch ocean"></span>
-      <span class="themeSwatch latte"></span>
-    </div>
-    <div class="themeControls">
-      <div>
-        <label>明暗模式</label>
-        <select id="themeModeSelect" onchange="setThemePrefs({mode:this.value})">${themeOptions(THEME_CONFIG.modes,prefs.mode)}</select>
-      </div>
-      <div>
-        <label>色系風格</label>
-        <select id="themePaletteSelect" onchange="setThemePrefs({palette:this.value})">${themeOptions(THEME_CONFIG.palettes,prefs.palette)}</select>
-      </div>
-      <div>
-        <label>卡片樣式</label>
-        <select id="themeCardStyleSelect" onchange="setThemePrefs({cardStyle:this.value})">${themeOptions(THEME_CONFIG.cardStyles,prefs.cardStyle)}</select>
-      </div>
-    </div>
-  </div>`;
-}
-
-function renderThemeWidgetState(){
-  const prefs = applyThemePrefs(getThemePrefs());
-  if($("themeModeSelect")) $("themeModeSelect").value = prefs.mode;
-  if($("themePaletteSelect")) $("themePaletteSelect").value = prefs.palette;
-  if($("themeCardStyleSelect")) $("themeCardStyleSelect").value = prefs.cardStyle;
-}
-
-function injectThemeWidget(){
-  const header=document.querySelector("header");
-  if(!header || $("themeWidget"))return;
-  header.insertAdjacentHTML("beforeend", renderThemeWidget());
-  renderThemeWidgetState();
-}
-
-const __renderHeadBeforeV46 = renderHead;
-renderHead = function(){
-  __renderHeadBeforeV46();
-  injectThemeWidget();
-};
-
-const __initBeforeV46 = init;
 init = function(){
   applyThemePrefs(getThemePrefs());
   __initBeforeV46();
   injectThemeWidget();
 };
-function exportPhotoBookPDF(){
-  if(typeof photoBookMode !== "undefined" && photoBookMode !== "pdf"){
-    photoBookMode = "pdf";
-    renderPhotoBook();
-  }
-  alert("已切換到 PDF 預覽模式。建議使用電腦 Chrome 匯出 PDF，會最接近貞選旅管家的 A4 小冊子排版。");
-  print();
-}
 function photoCountForDay(day){
   return (data.photos||[]).filter(p=>p.day==day).length;
 }
 
-async function addPhotoToDay(day, file){
-  if(!file)return;
-  const count = photoCountForDay(day);
-  if(count >= 10){
-    toast("這天最多上傳 10 張照片");
-    return;
-  }
-  try{
-    setPhotoUploadStatus(`storyPhotoStatus-${day}`, "上傳中...");
-    const img = await uploadImageFileForPhotoBook(file, {maxWidth:1600, quality:.82}, `storyPhotoStatus-${day}`);
-    const title = $(`storyPhotoTitle-${day}`)?.value || "";
-    const tags = $(`storyPhotoTags-${day}`)?.value || "";
-    const memo = $(`storyPhotoMemo-${day}`)?.value || "";
-    data.photos.unshift({
-      id:uid(),
-      day:day,
-      title:title,
-      memo:memo,
-      tags:tags,
-      src:img.src,
-      publicId:img.publicId,
-      cloudinary:true,
-      width:img.width,
-      height:img.height,
-      bytes:img.bytes
-    });
-    save();
-    toast("照片已加入這天的照片日記");
-  }catch(err){
-    setPhotoUploadStatus(`storyPhotoStatus-${day}`, "");
-    alert("照片上傳失敗：" + err.message);
-  }
-}
 
-function storyBookCoverHtml(){
-  const cover=data.tripCover;
-  if(cover){
-    return `<section class="storyBookCover">
-      <img class="storyBookCoverImage" src="${cover}">
-      <div class="storyBookCoverOverlay"></div>
-      <div class="storyBookCoverText">
-        <span class="eyebrow">JANESELECT</span>
-        <h1>${esc(data.meta.title)}</h1>
-        <p>${esc(data.meta.subtitle)}</p>
-        <div class="storyBookCoverMeta">
-          <span>目的地：${esc(data.trip.dest||"未設定")}</span>
-          <span>日期：${short(data.trip.start)} - ${short(data.trip.end)}</span>
-          <span>${data.days.length} 天旅行</span>
-        </div>
-      </div>
-    </section>`;
-  }
-  return `<section class="storyBookCover storyInlineEmpty noPrint">
-    <div>
-      <span class="eyebrow">JANESELECT</span>
-      <h1>${esc(data.meta.title)}</h1>
-      <p>${esc(data.meta.subtitle)}</p>
-      <div style="margin-top:16px">
-        <label class="photoInlineUpload">
-          ＋ 上傳整本封面
-          <input type="file" accept="image/*" onchange="addTripCover(this.files[0])">
-        </label>
-        <div class="photoUploadStatus" id="coverUploadStatus"></div>
-      </div>
-    </div>
-  </section>`;
-}
-
-function storyBookDay(d){
-  const plans=sortedPlans(d.key);
-  const photos=(data.photos||[]).filter(p=>p.day==d.key);
-  const cover=data.dayCovers[d.key] || photos[0]?.src || "";
-  const count=photos.length;
-  const canUpload=count<10;
-  return `<section class="storyDay">
-    <div class="storyDayHeader">
-      <div>
-        <span class="eyebrow">${d.title}</span>
-        <h2>${d.label} 的旅行故事</h2>
-        <p>住宿：${hotelFor(d.key)?.name||"未設定"}。今天收錄 ${plans.length} 個行程與 ${photos.length} 張照片。</p>
-      </div>
-      <div class="bookDayBadge">${plans.length} 行程｜${photos.length} 照片</div>
-    </div>
-    <div class="storyDayHero ${cover?"":"storyInlineEmpty"}">
-      ${cover?`<img src="${cover}">`:`<div><div>尚未上傳本日封面圖</div><label class="photoInlineUpload" style="margin-top:10px">＋ 上傳本日封面<input type="file" accept="image/*" onchange="addDayCover('${d.key}',this.files[0])"></label><div class="photoUploadStatus" id="dayCoverStatus-${d.key}"></div></div>`}
-    </div>
-    <div class="storyDayBody">
-      <div>
-        <div class="storyTimelineTitle">今天的路線</div>
-        ${storyTimelineHtml(plans)}
-      </div>
-      <div>
-        <div class="storyPhotoUploadRow">
-          <div>
-            <div class="storyPhotosTitle">今日照片日記</div>
-            <div class="storyPhotoLimit">${count}/10 張照片${canUpload?"，可繼續上傳":"，已達上限"}</div>
-          </div>
-        </div>
-        ${canUpload?`<div class="storyPhotoUploadCard noPrint">
-          <div class="storyPhotoQuickFields">
-            <input id="storyPhotoTitle-${d.key}" placeholder="照片標題，例如：海雲台散步">
-            <input id="storyPhotoTags-${d.key}" placeholder="標籤，例如：🌊 海邊 咖啡">
-          </div>
-          <input id="storyPhotoMemo-${d.key}" placeholder="一句照片日記">
-          <label class="photoInlineUpload">
-            ＋ 上傳照片到 ${d.title}
-            <input type="file" accept="image/*" onchange="addPhotoToDay('${d.key}',this.files[0])">
-          </label>
-          <div class="photoUploadStatus" id="storyPhotoStatus-${d.key}"></div>
-        </div>`:""}
-        ${photos.length?`<div class="storyPhotoLayout">${photos.map(storyBookPhotoCard).join("")}</div>`:`<div class="storyEmpty">還沒有照片日記，先上傳幾張今天的代表照片吧。</div>`}
-      </div>
-    </div>
-  </section>`;
-}
-
-function renderPhotoBook(){
-  $("photoBookView").innerHTML=`<div class="section">
-    <div><h2>📖 照片旅遊書</h2><div class="hint">直接在故事預覽中上傳封面與每日照片；每一天最多 10 張照片。</div></div>
-    <button class="btn soft noPrint" onclick="exportPhotoBookPDF()">匯出 PDF</button>
-  </div>
-
-  <div class="storyBookPreview bookStyle-${data.meta.bookStyle||"fresh"}">
-    <div class="storyBook">
-      ${storyBookCoverHtml()}
-      ${data.days.map(storyBookDay).join("")}
-    </div>
-  </div>`;
-}
-function exportPhotoBookPDF(){
-  // 不再切換 PDF 預覽；直接用目前故事預覽列印
-  alert("將使用目前故事預覽版面匯出 PDF。正式輸出建議使用電腦 Chrome，版面最穩定。");
-  print();
-}
-
-function renderPhotoBook(){
-  $("photoBookView").innerHTML=`<div class="section">
-    <div class="storyOnlyIntro">
-      <div>
-        <h2>📖 照片旅遊書</h2>
-        <div class="hint">直接在故事預覽中上傳封面與每日照片；每一天最多 10 張照片。</div>
-      </div>
-      <div class="storyOnlyActions noPrint">
-        <button class="btn soft" onclick="exportPhotoBookPDF()">匯出 PDF</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="storyBookPreview bookStyle-${data.meta.bookStyle||"fresh"}">
-    <div class="storyBook">
-      ${storyBookCoverHtml()}
-      ${data.days.map(storyBookDay).join("")}
-    </div>
-  </div>`;
-}
 /* 不新增原旅行 data 欄位；定位快取獨立存在 localStorage: travelBookMapCache */
 const MAP_CACHE_KEY = "travelBookMapCache";
 let routeMap = null;
@@ -7308,21 +2777,6 @@ function mapCacheRead(){
 function mapCacheWrite(cache){
   try{localStorage.setItem(MAP_CACHE_KEY, JSON.stringify(cache));}
   catch(e){}
-}
-function routeSearchText(plan){
-  const base = [
-    plan.name || "",
-    plan.note || "",
-    data.trip.dest || "",
-    data.trip.country || "",
-    data.trip.city || ""
-  ].filter(Boolean).join(" ");
-  return base.trim();
-}
-function routePlanCandidates(dayKey){
-  return sortedPlans(dayKey)
-    .filter(p => p && p.name && !["航班"].includes(p.type))
-    .slice(0, 10);
 }
 async function geocodeOSM(query){
   const cache = mapCacheRead();
@@ -7491,40 +2945,6 @@ function itinerarySourceText(p){
   return "手動行程";
 }
 
-function premiumPlanCard(p){
-  const t = itineraryTimeText(p);
-  const locked = p.lockedName || p.source==="flight" || p.source==="hotel";
-  return `<div class="itineraryItem" data-id="${p.id}">
-    <div class="itineraryDotWrap"><span class="itineraryDot"></span></div>
-    <article class="itineraryCard">
-      <div class="itineraryTop">
-        <div class="itineraryTimeBlock">
-          <span class="itineraryTime">${esc(t.start)}</span>
-          ${t.end?`<span class="itineraryEndTime">至 ${esc(t.end)}</span>`:""}
-        </div>
-        <div class="itineraryTitleBlock">
-          <div class="itineraryTitleLine">
-            <span class="itineraryMapIcon" title="預留地圖定位">📍</span>
-            <h3 class="itineraryTitle">${activityIcon(p.type)} ${esc(p.name)}</h3>
-          </div>
-          <div class="itineraryMeta">
-            <span class="itineraryTypePill">${esc(p.type||"其他")}</span>
-            <span class="itinerarySourcePill">${esc(itinerarySourceText(p))}</span>
-            ${p.adjusted?'<span class="itineraryTypePill">已依交通調整</span>':""}
-            ${moneyForeign(p)||moneyTwd(p)?`<span class="itinerarySourcePill">${esc(data.trip.currency)} ${fmt(moneyForeign(p))}｜TWD ${fmt(moneyTwd(p))}</span>`:""}
-          </div>
-          ${p.note?`<div class="itineraryNote"><b>注意：</b>${esc(p.note)}</div>`:""}
-          ${p.memo?`<div class="itineraryNote"><b>備註：</b>${esc(p.memo)}</div>`:""}
-        </div>
-        <div class="itineraryActions">
-          <button class="small" onclick="routeCurrent('${encodeURIComponent((p.name||"")+" "+(data.trip.dest||""))}')">地圖</button>
-          <button class="small" onclick="editPlan('${p.id}')">編輯</button>
-          <button class="small" onclick="delPlan('${p.id}')">刪除</button>
-        </div>
-      </div>
-    </article>
-  </div>`;
-}
 
 function planCards(plans){
   if(!plans.length) return '<div class="itineraryEmpty">這天還沒有行程，新增第一個景點後就會形成時間軸。</div>';
@@ -7536,49 +2956,7 @@ function planCards(plans){
   html += '</div>';
   return html;
 }
-function premiumPlanCard(p){
-  const t = itineraryTimeText(p);
-  return `<div class="itineraryItem" data-id="${p.id}">
-    <div class="itineraryDotWrap"><span class="itineraryDot"></span></div>
-    <article class="itineraryCard">
-      <div class="itineraryTop">
-        <div class="itineraryTimeBlock">
-          <span class="itineraryTime">${esc(t.start)}</span>
-          ${t.end?`<span class="itineraryEndTime">至 ${esc(t.end)}</span>`:""}
-        </div>
-        <div class="itineraryTitleBlock">
-          <div class="itineraryTitleLine">
-            <h3 class="itineraryTitle">${activityIcon(p.type)} ${esc(p.name)}</h3>
-          </div>
-          <div class="itineraryMeta">
-            <span class="itineraryTypePill">${esc(p.type||"其他")}</span>
-            <span class="itinerarySourcePill">${esc(itinerarySourceText(p))}</span>
-            ${p.adjusted?'<span class="itineraryTypePill">已依交通調整</span>':""}
-            ${moneyForeign(p)||moneyTwd(p)?`<span class="itinerarySourcePill">${esc(data.trip.currency)} ${fmt(moneyForeign(p))}｜TWD ${fmt(moneyTwd(p))}</span>`:""}
-          </div>
-          ${p.note?`<div class="itineraryNote"><b>注意：</b>${esc(p.note)}</div>`:""}
-          ${p.memo?`<div class="itineraryNote"><b>備註：</b>${esc(p.memo)}</div>`:""}
-        </div>
-        <div class="itineraryActions">
-          <button class="small" onclick="routeCurrent('${encodeURIComponent((p.name||"")+" "+(data.trip.dest||""))}')">地圖</button>
-          <button class="small" onclick="editPlan('${p.id}')">編輯</button>
-          <button class="small" onclick="delPlan('${p.id}')">刪除</button>
-        </div>
-      </div>
-    </article>
-  </div>`;
-}
 
-const __renderPlannerBeforeV51Map = renderPlanner;
-renderPlanner = function(){
-  __renderPlannerBeforeV51Map();
-  const view = $("plannerView");
-  if(!view) return;
-  const heading = view.querySelector(".section");
-  if(heading && !$("routeMapCard-" + cur)){
-    heading.insertAdjacentHTML("afterend", routeMapHtml(cur));
-  }
-};
 /*
 資料結構最小擴充：
 plan.address = ""  // 選填；舊資料沒有 address 時自動視為空字串
@@ -7597,13 +2975,11 @@ function v54EnsurePlanAddress(){
   });
 }
 
-const __v28NormalizePlansBeforeV54 = v28NormalizePlans;
 v28NormalizePlans = function(){
   __v28NormalizePlansBeforeV54();
   v54EnsurePlanAddress();
 };
 
-const __v28UpsertPlanBeforeV54 = v28UpsertPlan;
 v28UpsertPlan = function(plan){
   if(plan){
     if(plan.source==="flight" || plan.source==="hotel"){
@@ -7642,45 +3018,6 @@ function applyPlanFormDraft(draft){
   v21ApplyLockedNameState();
 }
 
-function renderPlanner(options={}){
-  v28NormalizePlans();
-  normalizeAllPlanTypes();
-  const draft = options.preserveForm ? getPlanFormDraft() : null;
-  cur=currentDay || cur || data.days?.[0]?.key;
-  normalizePlanTimes(cur);
-  let plans=sortedPlans(cur);
-  $("plannerView").innerHTML=`<div class="section"><div><h2>${dayTitle(cur)}</h2><div class="hint">住宿：${hotelFor(cur)?.name||"未設定"}。行程依開始時間排序。</div></div><button class="iconBtn smallIcon" onclick="clearPlanForm()">＋</button></div>
-  ${typeof routeMapHtml==="function" ? routeMapHtml(cur) : ""}
-  <details class="card" ${(editingPlanId||v16PendingSpotId||draft)?"open":""}><summary>${editingPlanId?"編輯行程":"＋ 新增行程"}</summary><div class="detailBody">
-    <div class="planFormLite">
-      <div class="three compactMobile">
-        <div class="full"><label>日期</label><select id="pday" onchange="handlePlanDayChange(this.value)">${optsDays(cur)}</select></div>
-        <div><label>開始</label><input id="ps" type="time" value="10:00"></div>
-        <div><label>結束</label><input id="pe" type="time" value="11:30"></div>
-      </div>
-      <div><label>分類</label><select id="ptype">${optsPlanTypes("景點")}</select></div>
-      <div><label>行程名稱</label><input id="pname"></div>
-      <div id="lockedNameHint" class="lockedFieldHint" style="display:none">此行程由航班／住宿／口袋景點帶入，名稱不可編輯；備註可以自由修改。</div>
-      <div>
-        <label>地址 / 地圖定位資訊（選填）</label>
-        <input id="paddress" placeholder="例：Haeundae Beach, Busan 或 韓國釜山海雲台">
-        <div class="planAddressHint">用於 OpenStreetMap 定位；可留空。未來若改接 Google Maps API 也能沿用這個欄位。</div>
-      </div>
-      <label>注意事項</label><textarea id="pnote"></textarea>
-      <label>備註</label><textarea id="pmemo"></textarea>
-      <div class="planBudgetHint">新增行程時會自動在「預算」建立一筆花費；地址不會帶入預算或照片書。</div>
-      <div class="btns"><button class="btn dark" onclick="savePlanForm()">${editingPlanId?"存好行程":"加入行程"}</button>${editingPlanId||v16PendingSpotId?'<button class="btn soft" onclick="clearPlanForm()">取消編輯 / 新增</button>':""}</div>
-    </div>
-  </div></details>
-  <div id="pcards">${planCards(plans)}</div>`;
-
-  if(editingPlanId) fillPlanForm(editingPlanId);
-  else if(v16PendingSpotId) v16FillPendingSpot();
-  else if(draft) applyPlanFormDraft({...draft, day:cur});
-  else if($("pday")) $("pday").value=cur;
-
-  v21ApplyLockedNameState();
-}
 
 function fillPlanForm(id){
   let p=data.plans.find(x=>x.id==id);
@@ -7698,20 +3035,6 @@ function fillPlanForm(id){
   v21ApplyLockedNameState();
 }
 
-function v16FillPendingSpot(){
-  const s=data.spots.find(x=>x.id==v16PendingSpotId);
-  if(!s)return;
-  const safeType=normalizePlanType(["景點","餐廳","咖啡廳","購物","其他"].includes(s.type)?s.type:"景點");
-  $("pday").value=s.day||currentDay||cur;
-  $("ptype").value=safeType;
-  $("pname").value=s.name;
-  if($("paddress")) $("paddress").value=s.addr||"";
-  $("pnote").value=s.memo;
-  $("pmemo").value="由口袋景點帶入";
-  $("pname").readOnly=true;
-  $("pname").classList.add("lockedInput");
-  $("lockedNameHint").style.display="block";
-}
 
 function savePlanForm(){
   if(!$("pname").value)return toast("請輸入行程名稱");
@@ -7867,44 +3190,6 @@ function routePlanCandidates(dayKey){
 - 照片書顯示
 - 航班 / 住宿 / 口袋景點既有關聯邏輯
 */
-function renderPlanner(options={}){
-  v28NormalizePlans();
-  normalizeAllPlanTypes();
-  const draft = options.preserveForm ? getPlanFormDraft() : null;
-  cur=currentDay || cur || data.days?.[0]?.key;
-  normalizePlanTimes(cur);
-  let plans=sortedPlans(cur);
-  $("plannerView").innerHTML=`<div class="section"><div><h2>${dayTitle(cur)}</h2><div class="hint">住宿：${hotelFor(cur)?.name||"未設定"}。行程依開始時間排序。</div></div><button class="iconBtn smallIcon" onclick="clearPlanForm()">＋</button></div>
-  <details class="card" ${(editingPlanId||v16PendingSpotId||draft)?"open":""}><summary>${editingPlanId?"編輯行程":"＋ 新增行程"}</summary><div class="detailBody">
-    <div class="planFormLite">
-      <div class="three compactMobile">
-        <div class="full"><label>日期</label><select id="pday" onchange="handlePlanDayChange(this.value)">${optsDays(cur)}</select></div>
-        <div><label>開始</label><input id="ps" type="time" value="10:00"></div>
-        <div><label>結束</label><input id="pe" type="time" value="11:30"></div>
-      </div>
-      <div><label>分類</label><select id="ptype">${optsPlanTypes("景點")}</select></div>
-      <div><label>行程名稱</label><input id="pname"></div>
-      <div id="lockedNameHint" class="lockedFieldHint" style="display:none">此行程由航班／住宿／口袋景點帶入，名稱不可編輯；備註可以自由修改。</div>
-      <div>
-        <label>地址 / 地圖定位資訊（選填）</label>
-        <input id="paddress" placeholder="例：Haeundae Beach, Busan 或 韓國釜山海雲台">
-        <div class="planAddressHint">此欄位先保留作為未來地圖串接使用；目前不會自動呼叫地圖 API，也不會帶入預算或照片書。</div>
-      </div>
-      <label>注意事項</label><textarea id="pnote"></textarea>
-      <label>備註</label><textarea id="pmemo"></textarea>
-      <div class="planBudgetHint">新增行程時會自動在「預算」建立一筆花費；地址不會帶入預算或照片書。</div>
-      <div class="btns"><button class="btn dark" onclick="savePlanForm()">${editingPlanId?"存好行程":"加入行程"}</button>${editingPlanId||v16PendingSpotId?'<button class="btn soft" onclick="clearPlanForm()">取消編輯 / 新增</button>':""}</div>
-    </div>
-  </div></details>
-  <div id="pcards">${planCards(plans)}</div>`;
-
-  if(editingPlanId) fillPlanForm(editingPlanId);
-  else if(v16PendingSpotId) v16FillPendingSpot();
-  else if(draft) applyPlanFormDraft({...draft, day:cur});
-  else if($("pday")) $("pday").value=cur;
-
-  v21ApplyLockedNameState();
-}
 
 // init() 移至檔案末尾執行，確保所有函式定義完畢
 // initFirebaseSync() 移至檔案末尾執行
@@ -7916,72 +3201,6 @@ function photoAttrEsc(v){
   return String(v ?? "").replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-function selectStoryPhotoFile(day, file){
-  if(!file){
-    delete storyPendingPhotoFiles[day];
-    const meta = document.getElementById(`storyPhotoPickMeta-${day}`);
-    if(meta) meta.textContent = '請先選擇 1 張照片，再輸入標題與日記內容。';
-    return;
-  }
-  storyPendingPhotoFiles[day] = file;
-  const meta = document.getElementById(`storyPhotoPickMeta-${day}`);
-  if(meta) meta.textContent = `已選擇：${file.name}`;
-}
-
-function clearPendingStoryPhoto(day){
-  delete storyPendingPhotoFiles[day];
-  const input = document.getElementById(`storyPhotoFile-${day}`);
-  if(input) input.value = '';
-  const meta = document.getElementById(`storyPhotoPickMeta-${day}`);
-  if(meta) meta.textContent = '請先選擇 1 張照片，再輸入標題與日記內容。';
-}
-
-async function addPhotoToDay(day){
-  const file = storyPendingPhotoFiles[day];
-  if(!file){
-    toast('請先選擇照片');
-    return;
-  }
-  const count = photoCountForDay(day);
-  if(count >= 10){
-    toast('這天最多上傳 10 張照片');
-    return;
-  }
-  try{
-    setPhotoUploadStatus(`storyPhotoStatus-${day}`, '上傳中...');
-    const img = await uploadImageFileForPhotoBook(file, {maxWidth:1600, quality:.82}, `storyPhotoStatus-${day}`);
-    const title = document.getElementById(`storyPhotoTitle-${day}`)?.value || '';
-    const tags = document.getElementById(`storyPhotoTags-${day}`)?.value || '';
-    const memo = document.getElementById(`storyPhotoMemo-${day}`)?.value || '';
-    data.photos.unshift({
-      id:uid(),
-      day:day,
-      title:title,
-      memo:memo,
-      tags:tags,
-      src:img.src,
-      publicId:img.publicId,
-      cloudinary:true,
-      width:img.width,
-      height:img.height,
-      bytes:img.bytes
-    });
-    delete storyPendingPhotoFiles[day];
-    storyEditingPhotoId = null;
-    const ids = [`storyPhotoTitle-${day}`, `storyPhotoTags-${day}`, `storyPhotoMemo-${day}`, `storyPhotoFile-${day}`];
-    ids.forEach(id=>{ const el = document.getElementById(id); if(el) el.value = ''; });
-    save();
-    toast('照片已加入這天的照片日記');
-  }catch(err){
-    setPhotoUploadStatus(`storyPhotoStatus-${day}`, '');
-    alert('照片上傳失敗：' + err.message);
-  }
-}
-
-function beginEditPhoto(id){
-  storyEditingPhotoId = id;
-  renderPhotoBook();
-}
 
 function cancelEditPhoto(){
   storyEditingPhotoId = null;
@@ -7999,115 +3218,6 @@ function saveEditedPhoto(id){
   toast('照片日記已更新');
 }
 
-function storyPhotoUploadForm(day, count){
-  const canUpload = count < 10;
-  if(!canUpload) return '';
-  const file = storyPendingPhotoFiles[day];
-  return `<div class="storyPhotoUploadCard noPrint">
-    <div class="storyPhotoPickBox">
-      <label class="storyPhotoPickLabel">
-        ${file ? '已選擇照片，可繼續補標題與日記' : '＋ 先選擇要上傳的照片'}
-        <input id="storyPhotoFile-${day}" type="file" accept="image/*" onchange="selectStoryPhotoFile('${day}',this.files[0])">
-      </label>
-      <div class="storyPhotoPickMeta" id="storyPhotoPickMeta-${day}">${file ? '已選擇：' + photoAttrEsc(file.name) : '請先選擇 1 張照片，再輸入標題與日記內容。'}</div>
-    </div>
-    <div class="storyPhotoQuickFields">
-      <input id="storyPhotoTitle-${day}" placeholder="照片標題，例如：海雲台散步">
-      <input id="storyPhotoTags-${day}" placeholder="標籤，例如：🌊 海邊 咖啡">
-    </div>
-    <input id="storyPhotoMemo-${day}" placeholder="一句照片日記">
-    <div class="storyPhotoUploadActions">
-      <button class="btn soft" type="button" onclick="clearPendingStoryPhoto('${day}')">清除照片</button>
-      <button class="btn dark" type="button" onclick="addPhotoToDay('${day}')">新增到 ${dayTitle(day)}</button>
-    </div>
-    <div class="photoUploadStatus" id="storyPhotoStatus-${day}"></div>
-  </div>`;
-}
-
-function storyBookPhotoCard(p, idx){
-  const editing = storyEditingPhotoId === p.id;
-  return `<div class="storyPhotoCard ${idx===0?"featured":""}">
-    <div class="storyPhotoImage"><img src="${p.src}"></div>
-    <div class="storyPhotoText">
-      <h3>${esc(p.title||"照片紀錄")}</h3>
-      ${photoTagsHtml(p.tags)}
-      <p>${esc(p.memo||"")}</p>
-      <div class="storyPhotoCardActions noPrint">
-        <button class="small" onclick="beginEditPhoto('${p.id}')">編輯</button>
-        <button class="small" onclick="delPhoto('${p.id}')">刪除</button>
-      </div>
-      ${editing ? `<div class="storyPhotoEditBox noPrint">
-        <label>照片標題</label>
-        <input id="editPhotoTitle-${p.id}" value="${photoAttrEsc(p.title||'')}">
-        <label>標籤</label>
-        <input id="editPhotoTags-${p.id}" value="${photoAttrEsc(p.tags||'')}">
-        <label>一句照片日記</label>
-        <textarea id="editPhotoMemo-${p.id}">${esc(p.memo||'')}</textarea>
-        <div class="storyPhotoEditActions">
-          <button class="btn dark" type="button" onclick="saveEditedPhoto('${p.id}')">儲存修改</button>
-          <button class="btn soft" type="button" onclick="cancelEditPhoto()">取消</button>
-        </div>
-      </div>` : ''}
-    </div>
-  </div>`;
-}
-
-function storyBookDay(d){
-  const plans = sortedPlans(d.key);
-  const photos = (data.photos||[]).filter(p=>p.day==d.key);
-  const cover = data.dayCovers[d.key] || photos[0]?.src || '';
-  const count = photos.length;
-  const canUpload = count < 10;
-  return `<section class="storyDay">
-    <div class="storyDayHeader">
-      <div>
-        <span class="eyebrow">${d.title}</span>
-        <h2>${d.label} 的旅行故事</h2>
-        <p>住宿：${hotelFor(d.key)?.name||"未設定"}。今天收錄 ${plans.length} 個行程與 ${photos.length} 張照片。</p>
-      </div>
-      <div class="bookDayBadge">${plans.length} 行程｜${photos.length} 照片</div>
-    </div>
-    <div class="storyDayHero ${cover?"":"storyInlineEmpty"}">
-      ${cover ? `<img src="${cover}">` : `<div><div>尚未上傳本日封面圖</div><label class="photoInlineUpload" style="margin-top:10px">＋ 上傳本日封面<input type="file" accept="image/*" onchange="addDayCover('${d.key}',this.files[0])"></label><div class="photoUploadStatus" id="dayCoverStatus-${d.key}"></div></div>`}
-    </div>
-    <div class="storyDayBody">
-      <div>
-        <div class="storyTimelineTitle">今天的路線</div>
-        ${storyTimelineHtml(plans)}
-      </div>
-      <div>
-        <div class="storyPhotoUploadRow">
-          <div>
-            <div class="storyPhotosTitle">今日照片日記</div>
-            <div class="storyPhotoLimit">${count}/10 張照片${canUpload?"，可繼續上傳":"，已達上限"}</div>
-          </div>
-        </div>
-        ${storyPhotoUploadForm(d.key, count)}
-        ${photos.length ? `<div class="storyPhotoLayout">${photos.map(storyBookPhotoCard).join("")}</div>` : `<div class="storyEmpty">還沒有照片日記，先上傳幾張今天的代表照片吧。</div>`}
-      </div>
-    </div>
-  </section>`;
-}
-
-function renderPhotoBook(){
-  document.getElementById('photoBookView').innerHTML = `<div class="section">
-    <div class="storyOnlyIntro">
-      <div>
-        <h2>📖 照片旅遊書</h2>
-        <div class="hint">直接在故事預覽中整理封面與每日照片；每一天最多 10 張照片，按下新增後才會正式加入日記。</div>
-      </div>
-      <div class="storyOnlyActions noPrint">
-        <button class="btn soft" onclick="exportPhotoBookPDF()">匯出 PDF</button>
-      </div>
-    </div>
-  </div>
-  <div class="storyBookPreview bookStyle-${data.meta.bookStyle||"fresh"}">
-    <div class="storyBook">
-      ${storyBookCoverHtml()}
-      ${data.days.map(storyBookDay).join('')}
-    </div>
-  </div>`;
-}
 
 try{
   if(typeof tab !== 'undefined' && tab === 'photoBook') renderPhotoBook();
@@ -8164,32 +3274,6 @@ function clearPendingStoryPhoto(day){
   }
 }
 
-function storyPhotoUploadForm(day, count){
-  const canUpload = count < 10;
-  if(!canUpload) return '';
-  const file = storyPendingPhotoFiles[day];
-  const previewUrl = storyPhotoPreviewUrls[day] || '';
-  return `<div class="storyPhotoUploadCard noPrint">
-    <div class="storyPhotoPickBox">
-      <label class="storyPhotoPickLabel">
-        ${file ? '已選擇照片，可繼續補標題與日記' : '＋ 先選擇要上傳的照片'}
-        <input id="storyPhotoFile-${day}" type="file" accept="image/*" onchange="selectStoryPhotoFile('${day}',this.files[0])">
-      </label>
-      <div class="storyPhotoPickMeta" id="storyPhotoPickMeta-${day}">${file ? '已選擇：' + photoAttrEsc(file.name) : '請先選擇 1 張照片，再輸入標題與日記內容。'}</div>
-      <div class="storyPhotoPickPreview ${previewUrl?'show':''}" id="storyPhotoPickPreview-${day}">${previewUrl?`<img src="${previewUrl}"><div>預覽照片：新增後會上傳到照片日記</div>`:''}</div>
-    </div>
-    <div class="storyPhotoQuickFields">
-      <input id="storyPhotoTitle-${day}" placeholder="照片標題，例如：海雲台散步">
-      <input id="storyPhotoTags-${day}" placeholder="標籤，例如：🌊 海邊 咖啡">
-    </div>
-    <input id="storyPhotoMemo-${day}" placeholder="一句照片日記">
-    <div class="storyPhotoUploadActions">
-      <button class="btn soft" type="button" onclick="clearPendingStoryPhoto('${day}')">清除照片</button>
-      <button class="btn dark" type="button" onclick="addPhotoToDay('${day}')">新增到 ${dayTitle(day)}</button>
-    </div>
-    <div class="photoUploadStatus" id="storyPhotoStatus-${day}"></div>
-  </div>`;
-}
 
 async function addPhotoToDay(day){
   const file = storyPendingPhotoFiles[day];
@@ -8233,39 +3317,6 @@ async function addPhotoToDay(day){
   }
 }
 
-function openPhotoEditModal(id){
-  const p = (data.photos||[]).find(x=>x.id===id);
-  if(!p) return;
-  activePhotoEditId = id;
-  let modal = document.getElementById('photoEditModal');
-  if(!modal){
-    modal = document.createElement('div');
-    modal.id = 'photoEditModal';
-    modal.className = 'photoEditModal noPrint';
-    document.body.appendChild(modal);
-  }
-  modal.innerHTML = `<div class="photoEditBox">
-    <div class="photoEditHeader">
-      <div>
-        <h3>編輯照片日記</h3>
-        <p>只修改照片文字內容，不會更換原照片。</p>
-      </div>
-      <button class="photoEditClose" onclick="closePhotoEditModal()">×</button>
-    </div>
-    <img class="photoEditPreview" src="${p.src}">
-    <label>照片標題</label>
-    <input id="modalPhotoTitle" value="${photoAttrEsc(p.title||'')}">
-    <label>標籤</label>
-    <input id="modalPhotoTags" value="${photoAttrEsc(p.tags||'')}" placeholder="例如：🌊 海邊 咖啡">
-    <label>一句照片日記</label>
-    <textarea id="modalPhotoMemo">${esc(p.memo||'')}</textarea>
-    <div class="photoEditActions">
-      <button class="btn dark" onclick="savePhotoEditModal()">儲存修改</button>
-      <button class="btn soft" onclick="closePhotoEditModal()">取消</button>
-    </div>
-  </div>`;
-  modal.classList.add('show');
-}
 
 function closePhotoEditModal(){
   const modal = document.getElementById('photoEditModal');
@@ -8273,56 +3324,11 @@ function closePhotoEditModal(){
   activePhotoEditId = null;
 }
 
-function savePhotoEditModal(){
-  const id = activePhotoEditId;
-  const p = (data.photos||[]).find(x=>x.id===id);
-  if(!p) return;
-  p.title = document.getElementById('modalPhotoTitle')?.value || '';
-  p.tags = document.getElementById('modalPhotoTags')?.value || '';
-  p.memo = document.getElementById('modalPhotoMemo')?.value || '';
-  closePhotoEditModal();
-  save();
-  toast('照片日記已更新');
-}
 
 function beginEditPhoto(id){
   openPhotoEditModal(id);
 }
 
-function storyBookPhotoCard(p, idx){
-  return `<div class="storyPhotoCard ${idx===0?"featured":""}">
-    <div class="storyPhotoImage"><img src="${p.src}"></div>
-    <div class="storyPhotoText">
-      <h3>${esc(p.title||"照片紀錄")}</h3>
-      ${photoTagsHtml(p.tags)}
-      <p>${esc(p.memo||"")}</p>
-      <div class="storyPhotoCardActions noPrint">
-        <button class="small" onclick="openPhotoEditModal('${p.id}')">編輯</button>
-        <button class="small" onclick="delPhoto('${p.id}')">刪除</button>
-      </div>
-    </div>
-  </div>`;
-}
-
-function renderPhotoBook(){
-  document.getElementById('photoBookView').innerHTML = `<div class="section">
-    <div class="storyOnlyIntro">
-      <div>
-        <h2>📖 照片旅遊書</h2>
-        <div class="hint">直接在故事預覽中整理封面與每日照片；每一天最多 10 張照片，選照片後可先預覽，按下新增才會正式加入日記。</div>
-      </div>
-      <div class="storyOnlyActions noPrint">
-        <button class="btn soft" onclick="exportPhotoBookPDF()">匯出 PDF</button>
-      </div>
-    </div>
-  </div>
-  <div class="storyBookPreview bookStyle-${data.meta.bookStyle||"fresh"}">
-    <div class="storyBook">
-      ${storyBookCoverHtml()}
-      ${data.days.map(storyBookDay).join('')}
-    </div>
-  </div>`;
-}
 
 try{
   if(typeof tab !== 'undefined' && tab === 'photoBook') renderPhotoBook();
@@ -8337,11 +3343,6 @@ function pdfPlain(v, fallback="未設定"){
   return s || fallback;
 }
 
-function pdfTags(tags){
-  const raw = String(tags||"").trim();
-  if(!raw) return "";
-  return `<div class="pdfPhotoTags">${raw.split(/[,\\s，、]+/).filter(Boolean).slice(0,5).map(t=>`<span>${pdfEsc(t)}</span>`).join("")}</div>`;
-}
 
 function pdfPhotoChunks(photos, size=4){
   const out=[];
@@ -8498,28 +3499,12 @@ function ensurePdfBookMount(){
   return mount;
 }
 
-function exportPhotoBookPDF(){
-  ensurePdfBookMount();
-  document.body.classList.add("printPhotoBook");
-  alert("已產生 PDF 專用 A4 旅行書版面。建議使用電腦 Chrome 匯出，手機／平板列印仍可能因瀏覽器而有些微差異。");
-  setTimeout(()=>window.print(), 80);
-}
 
 window.addEventListener("afterprint", ()=>{
   document.body.classList.remove("printPhotoBook");
 });
 
 /* index.html 保持旅行工具；照片書匯出改為開啟獨立出版頁 */
-function openPdfPublisher(autoPrint=false){
-  const url = autoPrint ? "export.html?print=1" : "export.html";
-  try{
-    save();
-  }catch(e){}
-  window.open(url, "_blank");
-}
-function exportPhotoBookPDF(){
-  openPdfPublisher(true);
-}
 
 function openPdfPublisher(autoPrint=false){
   try{ save(); }catch(e){}
@@ -8605,30 +3590,9 @@ function loadData(){
     return v63CloneBase();
   }
 }
-function v63PersistTripLocal(){
-  if(currentTripId){
-    localStorage.setItem(getLocalTripKey(currentTripId), JSON.stringify(data));
-  }
-}
-function save(){
-  v63PersistTripLocal();
-  v63UpdateCurrentTripMeta(false);
-  render();
-  scheduleCloudSave();
-}
-function silentSave(){
-  v63PersistTripLocal();
-  v63UpdateCurrentTripMeta(false);
-  scheduleCloudSave();
-}
 function v63TripIndexRef(){
   if(!fbUser) throw new Error("尚未登入");
   return fbDb.collection("users").doc(fbUser.uid).collection("tripIndex").doc("list");
-}
-function tripDocRef(){
-  if(!fbUser) throw new Error("尚未登入");
-  if(!currentTripId) throw new Error("尚未選擇旅程");
-  return fbDb.collection("users").doc(fbUser.uid).collection("trips").doc(currentTripId);
 }
 function v63IsAllowed(user){
   const email=(user?.email||"").toLowerCase();
@@ -8642,29 +3606,6 @@ function v63LoadTripListLocal(){
 }
 function v63SaveTripListLocal(){
   localStorage.setItem(getTripListKey(), JSON.stringify(tripList));
-}
-async function loadTrips(){
-  tripList = v63LoadTripListLocal();
-  if(fbUser && fbDb){
-    try{
-      const snap=await v63TripIndexRef().get();
-      if(snap.exists && Array.isArray(snap.data()?.trips)){
-        tripList=snap.data().trips;
-        v63SaveTripListLocal();
-      }else if(tripList.length){
-        await v63TripIndexRef().set({trips:tripList,updatedAtClient:Date.now(),ownerEmail:fbUser.email||""},{merge:true});
-      }
-    }catch(e){
-      console.warn("loadTrips fallback local", e);
-    }
-  }
-  return tripList;
-}
-async function v63SaveTripListCloud(){
-  v63SaveTripListLocal();
-  if(fbUser && fbDb){
-    try{await v63TripIndexRef().set({trips:tripList,updatedAtClient:Date.now(),ownerEmail:fbUser.email||""},{merge:true});}catch(e){console.warn(e)}
-  }
 }
 function v63TripMetaFromData(id=currentTripId){
   return {
@@ -8706,94 +3647,11 @@ function v63CurrentTripTitle(){
   const t=tripList.find(x=>x.id===currentTripId);
   return t?.title || data?.meta?.title || "目前旅程";
 }
-function v63ShowShell(mode){
-  const login=$("loginView"), list=$("tripListView"), app=$("mainApp")||document.querySelector(".app");
-  if(login)login.classList.toggle("hidden",mode!=="login");
-  if(list)list.classList.toggle("hidden",mode!=="list");
-  if(app)app.classList.toggle("hidden",mode!=="app");
-  if($("accountWidget"))$("accountWidget").style.display = mode==="app" ? "" : "none";
-}
-function renderLoginView(message=""){
-  const el=$("loginView"); if(!el)return;
-  const signed=!!fbUser;
-  el.innerHTML=`<div class="gateShell"><div class="loginCard">
-    <div class="loginBrand">J｜貞選旅管家</div>
-    <h1>Janeselect Travel Manager</h1>
-    <p>登入後才能建立與管理旅程。現階段採 Email 白名單開放，每個帳號最多可建立 ${V63_MAX_TRIPS} 個旅程。</p>
-    ${message?`<div class="box pink" style="margin-top:12px">${esc(message)}</div>`:""}
-    <div class="btns"><button class="btn dark" onclick="firebaseSignIn()">使用 Google 登入</button>${signed?'<button class="btn soft" onclick="firebaseSignOut()">登出目前帳號</button>':''}</div>
-    <div class="cloudHint">目前白名單：${V63_ALLOWED_EMAILS.map(esc).join("、")}</div>
-  </div></div>`;
-}
-function renderTripList(){
-  const el=$("tripListView"); if(!el)return;
-  const active=tripList.filter(t=>!t.archived);
-  const archived=tripList.filter(t=>t.archived);
-  el.innerHTML=`<div class="gateShell">
-    <div class="tripListHero"><div><div class="loginBrand">J｜貞選旅管家</div><h1>我的旅程</h1><p>每趟旅程都是一包獨立資料：旅遊地、航班住宿、行程、口袋景點、預算、行李與旅遊書都會分開保存。</p></div><div class="tripListCount">${active.length}/${V63_MAX_TRIPS} 個旅程</div></div>
-    <div class="tripGrid">${active.map(v63TripCard).join("") || '<div class="tripListCard"><h3>還沒有旅程</h3><div class="meta">先在下方新增第一趟旅程。</div></div>'}</div>
-    ${archived.length?`<details class="tripCreateCard"><summary style="cursor:pointer;font-weight:950">封存旅程</summary><div class="tripGrid">${archived.map(v63TripCard).join("")}</div></details>`:""}
-    <div class="tripCreateCard"><h3>＋ 新增旅程</h3><div class="tripCreateGrid"><div><label>旅程名稱</label><input id="newTripTitle" placeholder="例：2026 釜山自由行"></div><div><label>國家 / 區域</label><select id="newTripCountry" onchange="v63NewTripCountryChanged()">${Object.keys(currencyMap).map(c=>`<option value="${c}">${c}</option>`).join("")}<option value="其他">其他</option></select></div><div><label>城市 / 路線</label><input id="newTripCity" value="釜山"></div><div><label>出發日</label><input id="newTripStart" type="date"></div><div><label>回程日</label><input id="newTripEnd" type="date"></div><div style="align-self:end"><button class="btn dark" style="width:100%" onclick="createTrip()">建立旅程</button></div></div><div class="cloudHint">建立後會先進入旅遊地設定；完成旅遊地後才會解鎖其他功能。</div></div>
-    <div class="btns"><button class="btn soft" onclick="firebaseSignOut()">登出</button></div>
-  </div>`;
-}
-function v63TripCard(t){
-  return `<div class="tripListCard ${t.archived?"archived":""}"><span class="tripBadge">${t.archived?"已封存":"旅程"}</span><h3>${esc(t.title||"未命名旅程")}</h3><div class="meta">${esc(t.dest||"未設定目的地")}<br>${t.start&&t.end?`${esc(short(t.start))} - ${esc(short(t.end))}`:"尚未完成日期設定"}</div><div class="btns"><button class="btn dark compact" onclick="selectTrip('${t.id}')">繼續編輯</button>${t.archived?`<button class="btn blue compact" onclick="restoreTrip('${t.id}')">還原</button>`:`<button class="btn soft compact" onclick="archiveTrip('${t.id}')">封存</button>`}</div></div>`;
-}
 function v63NewTripCountryChanged(){
   const c=$("newTripCountry")?.value;
   const map=typeof v15CountryCityMaps==="function" ? v15CountryCityMaps().cityMap : {};
   const first=(map[c]||[])[0] || "";
   if($("newTripCity"))$("newTripCity").value=first;
-}
-async function createTrip(){
-  const active=tripList.filter(t=>!t.archived);
-  if(active.length>=V63_MAX_TRIPS)return toast(`每個帳號最多只能建立 ${V63_MAX_TRIPS} 個旅程`);
-  const title=$("newTripTitle")?.value.trim() || "我的新旅程";
-  const country=$("newTripCountry")?.value || "韓國";
-  const city=$("newTripCity")?.value.trim() || "";
-  const start=$("newTripStart")?.value || "";
-  const end=$("newTripEnd")?.value || "";
-  if(!start || !end)return toast("請先選擇出發日與回程日");
-  if(start>end)return toast("回程日不可早於出發日");
-  const id=`trip_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
-  currentTripId=id;
-  localStorage.setItem(V63_CURRENT_TRIP_KEY,id);
-  data=v63DefaultTripData({title,country,city,start,end});
-  cur=data.days?.[0]?.key || data.trip.start;
-  tripList.unshift(v63TripMetaFromData(id));
-  v63PersistTripLocal();
-  await v63SaveTripListCloud();
-  await saveToCloudNow();
-  v63ShowShell("app");
-  view="trip";
-  renderNav(); render(); scrollTo(0,0);
-  toast("已建立旅程");
-}
-async function selectTrip(id){
-  currentTripId=id;
-  localStorage.setItem(V63_CURRENT_TRIP_KEY,id);
-  let loaded=false;
-  if(fbUser && fbDb){
-    try{
-      const snap=await tripDocRef().get();
-      if(snap.exists && snap.data()?.data){
-        data=v63NormalizeData(snap.data().data);
-        loaded=true;
-      }
-    }catch(e){console.warn(e)}
-  }
-  if(!loaded){
-    try{data=v63NormalizeData(JSON.parse(localStorage.getItem(getLocalTripKey(id))||"{}"));}catch(e){data=v63CloneBase()}
-  }
-  cur=data.days?.[0]?.key || data.trip?.start || cur;
-  v63PersistTripLocal();
-  cloudReady=!!(fbUser && currentTripId);
-  if(cloudUnsub){cloudUnsub(); cloudUnsub=null;}
-  if(fbUser && fbDb)listenCloudChanges();
-  v63ShowShell("app");
-  view = v63TripReady() ? "trip" : "trip";
-  renderNav(); render(); scrollTo(0,0);
 }
 async function archiveTrip(id){
   if(!confirm("確定要封存這趟旅程？資料不會刪除，可在封存旅程中還原。"))return;
@@ -8808,130 +3666,10 @@ async function restoreTrip(id){
   renderTripList();
 }
 function deleteTrip(id){ return archiveTrip(id); }
-async function v63HandleAuth(user){
-  fbUser=user||null;
-  v63AuthPassed=!!(user && v63IsAllowed(user));
-  if(!user){
-    currentTripId="";
-    cloudReady=false;
-    renderLoginView();
-    v63ShowShell("login");
-    renderAccountWidget?.(null);
-    return;
-  }
-  if(!v63AuthPassed){
-    currentTripId="";
-    cloudReady=false;
-    renderLoginView(`${user.email || "這個帳號"} 尚未在白名單中，請改用授權帳號登入。`);
-    v63ShowShell("login");
-    renderAccountWidget?.(user);
-    return;
-  }
-  await loadTrips();
-  renderAccountWidget?.(user);
-  if(currentTripId && tripList.some(t=>t.id===currentTripId && !t.archived)){
-    await selectTrip(currentTripId);
-  }else{
-    currentTripId="";
-    localStorage.removeItem(V63_CURRENT_TRIP_KEY);
-    renderTripList();
-    v63ShowShell("list");
-  }
-}
 function firstCloudLoadOrCreate(){
   return currentTripId ? loadFromCloud().catch(()=>{}) : Promise.resolve();
 }
-async function saveToCloudNow(){
-  if(!fbUser)return toast("請先登入 Google");
-  if(!v63IsAllowed(fbUser))return toast("這個帳號還沒授權同步");
-  if(!currentTripId)return toast("請先選擇旅程");
-  try{
-    setSyncStatus("warn","同步中","正在存到雲端...");
-    const now=Date.now();
-    lastCloudUpdatedAt=now;
-    const payload=cloudPayload();
-    payload.updatedAtClient=now;
-    payload.tripMeta=v63TripMetaFromData(currentTripId);
-    await tripDocRef().set(payload,{merge:true});
-    await v63UpdateCurrentTripMeta(true);
-    localStorage.setItem(`janeselect_cloud_backup_${currentTripId}`, JSON.stringify(data));
-    setSyncStatus("on","同步好了",`${new Date().toLocaleTimeString("zh-TW",{hour:"2-digit",minute:"2-digit"})}`);
-  }catch(err){
-    setSyncStatus("off","同步失敗",err.message || "請檢查 Firestore Rules 與白名單。")
-  }
-}
-async function loadFromCloud(){
-  if(!fbUser)return toast("請先登入 Google");
-  if(!currentTripId)return toast("請先選擇旅程");
-  try{
-    const snap=await tripDocRef().get();
-    if(!snap.exists || !snap.data()?.data)return toast("這趟旅程雲端目前沒有資料");
-    suppressCloudSave=true;
-    data=v63NormalizeData(snap.data().data);
-    cur=data.days?.[0]?.key || data.trip?.start || cur;
-    v63PersistTripLocal();
-    render();
-    suppressCloudSave=false;
-    setSyncStatus("on","已載入雲端資料",`旅程：${v63CurrentTripTitle()}`);
-  }catch(err){
-    suppressCloudSave=false;
-    setSyncStatus("off","載入雲端失敗",err.message);
-  }
-}
-function listenCloudChanges(){
-  if(!fbUser || !currentTripId)return;
-  const ref=tripDocRef();
-  cloudUnsub=ref.onSnapshot(snap=>{
-    if(!snap.exists || !snap.data()?.data || !cloudReady)return;
-    const doc=snap.data();
-    const remoteUpdated=doc.updatedAtClient || 0;
-    if(remoteUpdated && remoteUpdated > lastCloudUpdatedAt + 5000){
-      lastCloudUpdatedAt=remoteUpdated;
-      setSyncStatus("warn","雲端有較新的資料","可按「載入雲端」更新此裝置。")
-    }
-  },err=>setSyncStatus("off","雲端監聽失敗",err.message));
-}
-const __v63SaveBasic = saveBasic;
-saveBasic=function(){
-  __v63SaveBasic();
-  setTimeout(()=>v63UpdateCurrentTripMeta(true),60);
-};
-function renderTrip(){
-  const selectedCity=typeof v15CurrentCity==="function" ? v15CurrentCity() : (data.trip.city||"");
-  const mapObj=typeof v15CountryCityMaps==="function" ? v15CountryCityMaps().cityMap : {};
-  const list=mapObj[data.trip.country]||[];
-  const customCity=list.includes(selectedCity)?"":selectedCity;
-  const showCustom=data.trip.country==="其他" || !list.includes(selectedCity);
-  $("tripView").innerHTML=`<div class="section"><div><h2>🌏 旅遊地設定</h2><div class="hint">先設定旅遊地、日期、幣別與旅伴。完成後才會開啟航班住宿、行程、口袋景點、預算、行李與旅遊書。</div></div></div>
-  <details class="card" open><summary>① 🌏 旅遊地與旅伴</summary><div class="detailBody">
-    <div class="three compactMobile"><div><label>國家 / 區域</label><select id="country" onchange="handleCountrySelectChange()">${countryOptions()}</select></div><div><label>城市 / 路線</label><select id="citySelect" onchange="updateDestByCity()">${v15CityOptions(selectedCity)}</select></div><div id="customCityBox" class="full" style="display:${showCustom?"block":"none"}"><label>自訂目的地</label><input id="cityCustom" value="${esc(customCity)}" oninput="updateDestByCity()" placeholder="例：釜山＋慶州"></div></div>
-    <div class="two"><div><label>幣別</label><input id="currency" value="${esc(data.trip.currency)}" oninput="countryChanged()"></div><div><label id="rateLabel">匯率：1 ${esc(data.trip.currency)} = TWD</label><input id="rateSetup" type="number" step="0.0001" value="${data.trip.rate}"></div></div>
-    <div class="three compactMobile"><div><label>出發日</label><input id="start" type="date" value="${data.trip.start||""}"></div><div><label>回程日</label><input id="end" type="date" value="${data.trip.end||""}"></div><div class="full"><label>匯率查詢</label><button class="btn blue compact" onclick="openRateSearch()">查一下匯率</button></div></div>
-    <div class="two"><div><label>旅遊人數</label><select id="travelerCount" onchange="previewTravelerCount()">${[1,2,3,4,5,6,7,8].map(n=>`<option value="${n}" ${Number(data.trip.travelerCount)==n?"selected":""}>${n} 人</option>`).join("")}</select></div><div class="hint" style="align-self:end">目前目的地：${esc(data.trip.dest||"尚未設定")}</div></div>
-    <div class="grid2" id="travelerBox">${travelerInputs()}</div>
-    <div class="btns"><button class="btn dark" onclick="saveBasic()">存好旅遊地設定</button><button class="btn soft" onclick="v63BackToTripList()">回我的旅程</button></div>
-  </div></details>`;
-}
-function renderStay(){
-  if(!$("stayView"))return;
-  const h=editingHotelId?data.hotels.find(x=>x.id==editingHotelId):null;
-  if(!v63TripReady()){
-    $("stayView").innerHTML=`<div class="empty">請先完成旅遊地設定，才能使用航班住宿。</div>`;
-    return;
-  }
-  if(typeof v18SortHotels==="function")v18SortHotels();
-  $("stayView").innerHTML=`<div class="section"><div><h2>✈️ 航班住宿</h2><div class="hint">這裡只管理航班、機場接送與住宿；旅遊地設定已拆到前一個頁籤。</div></div></div>
-  <details class="card" open><summary>① ✈️ 航班與機場接送</summary><div class="detailBody"><div class="grid2"><div class="box blue"><h3>去程</h3>${flightForm("out")}</div><div class="box pink"><h3>回程</h3>${flightForm("back")}</div></div>${typeof flightStatusHtml==="function"?flightStatusHtml():""}<div class="btns"><button class="btn dark" onclick="saveFlights()">存好航班設定</button></div></div></details>
-  <details class="card" ${v16KeepHotelOpen||editingHotelId?"open":""}><summary>② 🏨 住宿</summary><div class="detailBody"><div class="three compactMobile"><div class="full"><label>住宿名稱</label><input id="hname" value="${esc(h?.name||"")}"></div><div><label>入住日</label><input id="hstart" type="date" min="${data.trip.start}" max="${data.trip.end}" value="${h?.start||data.trip.start}"></div><div><label>退房日</label><input id="hend" type="date" min="${data.trip.start}" max="${data.trip.end}" value="${h?.end||data.trip.end}"></div></div><label>地址</label><div class="two"><input id="haddr" value="${esc(h?.addr||"")}" placeholder="可手動貼上飯店地址"><button class="btn blue compact" onclick="searchHotelAddress()">查地圖</button></div><label>備註</label><textarea id="hnote">${esc(h?.note||"")}</textarea><div class="btns"><button class="btn dark" onclick="saveHotel()">${h?"存好住宿修改":"新增住宿"}</button>${h?'<button class="btn soft" onclick="editingHotelId=null;v16KeepHotelOpen=true;renderStay()">取消編輯</button>':""}</div><div class="hotelSortedNote">住宿會依入住日自動排序；可選日期已限制在旅遊日期內。</div><div class="grid2" style="margin-top:10px">${data.hotels.map(hotelCard).join("")||'<div class="empty">還沒有新增住宿</div>'}</div></div></details>`;
-}
 function editHotel(id){editingHotelId=id;v16KeepHotelOpen=true;go("stay");}
-function v63BackToTripList(){
-  v63UpdateCurrentTripMeta(true);
-  currentTripId="";
-  localStorage.removeItem(V63_CURRENT_TRIP_KEY);
-  renderTripList();
-  v63ShowShell("list");
-}
 function renderNav(){
   const items=views.map(v=>{
     const locked=!v63TripReady() && !["trip","help"].includes(v[0]);
@@ -8959,33 +3697,6 @@ function go(v){
   render();
   scrollTo(0,0);
 }
-function render(){
-  renderHead();
-  renderSide();
-  renderTrip();
-  renderStay();
-  renderPlanner();
-  renderSpots();
-  renderBudget();
-  renderPacking();
-  renderPhotoBook();
-  renderHelp();
-  v63RenderTripSwitchBar();
-}
-function v63RenderTripSwitchBar(){
-  const header=document.querySelector("#mainApp header") || document.querySelector(".app header");
-  if(!header || !currentTripId)return;
-  let bar=$("tripSwitchBar");
-  if(!bar){bar=document.createElement("div");bar.id="tripSwitchBar";bar.className="tripSwitchBar noPrint";header.appendChild(bar);}
-  bar.innerHTML=`<div class="miniTrip"><b>${esc(v63CurrentTripTitle())}</b><br>${esc(data.trip.dest||"未設定目的地")}｜${data.trip.start&&data.trip.end?`${esc(short(data.trip.start))}-${esc(short(data.trip.end))}`:"尚未完成日期"}</div><div class="btns" style="margin:0"><button class="btn soft compact" onclick="v63BackToTripList()">切換旅程</button><button class="btn blue compact" onclick="saveToCloudNow()">同步</button></div>`;
-}
-function renderHead(){
-  $("titleText").textContent=data.meta.title||"貞選旅管家";
-  document.title=(data.meta.title||"貞選旅管家") + "｜Janeselect Travel Manager";
-  $("subtitleText").textContent=data.meta.subtitle||base.meta.subtitle;
-  $("sDest").textContent=data.trip.dest||"未設定";
-  $("sDate").textContent=data.trip.start&&data.trip.end?`${short(data.trip.start)}-${short(data.trip.end)}`:"未設定";
-}
 async function v63Boot(){
   if(v63Booted)return;
   v63Booted=true;
@@ -9012,36 +3723,6 @@ v63Boot();
 
 function v631BrandTitle(){
   document.title="貞選旅管家";
-}
-function renderHead(){
-  $("titleText").textContent=data.meta.title||"貞選旅管家";
-  v631BrandTitle();
-  $("subtitleText").textContent=data.meta.subtitle||base.meta.subtitle;
-  $("sDest").textContent=data.trip.dest||"未設定";
-  $("sDate").textContent=data.trip.start&&data.trip.end?`${short(data.trip.start)}-${short(data.trip.end)}`:"未設定";
-}
-function renderTripList(){
-  const el=$("tripListView"); if(!el)return;
-  const active=tripList.filter(t=>!t.archived);
-  const archived=tripList.filter(t=>t.archived);
-  el.innerHTML=`<div class="gateShell">
-    <div class="tripListHero"><div><div class="loginBrand">J｜貞選旅管家</div><h1>我的旅程</h1><p>每趟旅程都是一包獨立資料：旅遊地、航班住宿、行程、口袋景點、預算、行李與旅遊書都會分開保存。</p></div><div class="tripListCount">${active.length}/${V63_MAX_TRIPS} 個旅程</div></div>
-    <div class="tripGrid">${active.map(v63TripCard).join("") || '<div class="tripListCard"><div class="tripCardTop"><div><span class="tripBadge">尚未開始</span><h3>還沒有旅程</h3></div><div class="tripCardIcon">J</div></div><div class="meta">先在下方新增第一趟旅程。</div></div>'}</div>
-    ${archived.length?`<details class="tripCreateCard"><summary style="cursor:pointer;font-weight:950">封存旅程</summary><div class="tripGrid">${archived.map(v63TripCard).join("")}</div></details>`:""}
-    <div class="tripCreateCard"><h3>＋ 新增旅程</h3><div class="tripCreateGrid"><div><label>旅程名稱</label><input id="newTripTitle" placeholder="例：2026 釜山自由行"></div><div><label>國家 / 區域</label><select id="newTripCountry" onchange="v63NewTripCountryChanged()">${Object.keys(currencyMap).map(c=>`<option value="${c}">${c}</option>`).join("")}<option value="其他">其他</option></select></div><div><label>城市 / 路線</label><input id="newTripCity" value="釜山"></div><div><label>出發日</label><input id="newTripStart" type="date"></div><div><label>回程日</label><input id="newTripEnd" type="date"></div><div style="align-self:end"><button class="btn dark" style="width:100%" onclick="createTrip()">建立旅程</button></div></div><div class="cloudHint">建立後會先進入旅遊地設定；完成旅遊地後才會解鎖其他功能。</div></div>
-    <div class="btns"><button class="btn soft" onclick="firebaseSignOut()">登出</button></div>
-  </div>`;
-  v631BrandTitle();
-}
-function v63TripCard(t){
-  const dateText=t.start&&t.end?`${esc(short(t.start))} - ${esc(short(t.end))}`:"尚未完成";
-  const destText=t.dest||"未設定目的地";
-  return `<div class="tripListCard ${t.archived?"archived":""}">
-    <div class="tripCardTop"><div><span class="tripBadge">${t.archived?"已封存":"旅程"}</span><h3>${esc(t.title||"未命名旅程")}</h3></div><div class="tripCardIcon">J</div></div>
-    <div class="tripCardMetaGrid"><div><span>目的地</span><b>${esc(destText)}</b></div><div><span>日期</span><b>${dateText}</b></div></div>
-    <div class="meta">${t.updatedAtClient?`最後更新：${new Date(t.updatedAtClient).toLocaleDateString("zh-TW")}`:"尚未同步更新時間"}</div>
-    <div class="btns"><button class="btn dark compact" onclick="selectTrip('${t.id}')">繼續編輯</button>${t.archived?`<button class="btn blue compact" onclick="restoreTrip('${t.id}')">還原</button>`:`<button class="btn soft compact" onclick="archiveTrip('${t.id}')">封存</button>`}</div>
-  </div>`;
 }
 function renderStay(){
   if(!$("stayView"))return;
@@ -9099,31 +3780,6 @@ function tripDocRef(){
   if(!currentTripId) throw new Error("尚未選擇旅程");
   return fbDb.collection("users").doc(fbUser.uid).collection("trips").doc(currentTripId);
 }
-function cloudPayload(){
-  return {
-    appVersion: V632_VERSION,
-    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-    updatedAtClient: v632Now(),
-    ownerEmail: fbUser?.email || "",
-    tripId: currentTripId || "",
-    tripMeta: typeof v63TripMetaFromData === "function" ? v63TripMetaFromData(currentTripId) : {},
-    data: JSON.parse(JSON.stringify(data))
-  };
-}
-function setSyncStatus(kind,title,desc){
-  v632LastSyncState={kind:kind||"off",title:title||"",desc:desc||"",at:v632Now()};
-  const dotClass = kind==="on"?"on":kind==="warn"?"warn":"off";
-  const shortTitle = String(title||"").replace("已同步雲端","同步好了").replace("已同步到雲端","同步好了");
-  const html = `<span class="syncDot ${dotClass}"></span><b>${esc(shortTitle)}</b>${desc?`<br>${esc(desc)}`:""}`;
-  const el=$("syncStatus"); if(el)el.innerHTML=html;
-  const mini=$("syncMini");
-  if(mini){ mini.textContent = `${shortTitle}${desc?"｜"+desc:""}`; mini.classList.add("show"); setTimeout(()=>mini.classList.remove("show"),1800); }
-  const line=$("accountSyncLine");
-  if(line){
-    const state = kind==="on"?"success":kind==="warn"?"syncing":kind==="off"?"error":"";
-    line.innerHTML = `<span class="dot ${state}"></span>${esc(shortTitle||"同步狀態")}`;
-  }
-}
 function v632StatusBadge(){
   const s=v632LastSyncState || {};
   const kind=s.kind||"off";
@@ -9137,25 +3793,6 @@ function v63PersistTripLocal(){
     v632SetLocalMeta(currentTripId,{updatedAtClient:v632Now(), tripId:currentTripId, title:data?.meta?.title||"", dest:data?.trip?.dest||""});
     try{ localStorage.setItem("voyageMemoData", JSON.stringify(data)); }catch(e){}
   }
-}
-function save(){
-  v63PersistTripLocal();
-  if(typeof v63UpdateCurrentTripMeta === "function")v63UpdateCurrentTripMeta(false);
-  render();
-  scheduleCloudSave("save");
-}
-function silentSave(){
-  v63PersistTripLocal();
-  if(typeof v63UpdateCurrentTripMeta === "function")v63UpdateCurrentTripMeta(false);
-  scheduleCloudSave("silentSave");
-}
-function scheduleCloudSave(reason="auto"){
-  if(suppressCloudSave)return;
-  if(!v632CanUseCloud(false))return;
-  cloudReady=true;
-  clearTimeout(cloudSaveTimer);
-  setSyncStatus("warn","同步排程中", reason==="auto"?"即將存到雲端":`即將存到雲端：${reason}`);
-  cloudSaveTimer=setTimeout(()=>saveToCloudNow({silent:true,reason}),900);
 }
 async function v632SaveTripIndexCloud(){
   if(!fbUser || !fbDb)return;
@@ -9413,14 +4050,6 @@ async function v632CheckCloud(){
     alert("雲端檢查失敗："+(e.message||String(e)));
   }
 }
-const __v632RenderHelp = renderHelp;
-renderHelp=function(){
-  __v632RenderHelp();
-  const el=$("helpView");
-  if(el){
-    el.insertAdjacentHTML("afterbegin", `<div class="card"><h3>v63.2 雲端同步檢查</h3><div class="box mint">目前同步路徑：${esc(v632CloudPathText())}<br>如果平板有資料、手機看不到，請先在有資料的裝置按「強制同步」，再到另一台裝置按「載入」。</div><div class="btns"><button class="btn dark" onclick="saveToCloudNow()">強制同步</button><button class="btn blue" onclick="loadFromCloud({force:true})">載入雲端</button><button class="btn soft" onclick="v632CheckCloud()">檢查雲端筆數</button></div></div>`);
-  }
-};
 // 重新標示目前版本，保留頁尾原資訊之外再補 v63.2 狀態。
 document.addEventListener("DOMContentLoaded",()=>{
   const footer=document.querySelector("footer strong");
@@ -9455,33 +4084,12 @@ function renderThemeWidget(){
     </div>
   </div>`;
 }
-function openThemePanel(){
-  const el=$("themePanelBackdrop");
-  if(el){renderThemeWidgetState();el.classList.add("show");}
-}
-function closeThemePanel(){
-  const el=$("themePanelBackdrop");
-  if(el)el.classList.remove("show");
-}
-function toggleThemeWidget(){openThemePanel();}
 function renderThemeWidgetState(){
   const prefs=applyThemePrefs(getThemePrefs());
   if($("themeModeSelect")) $("themeModeSelect").value = prefs.mode;
   if($("themePaletteSelect")) $("themePaletteSelect").value = prefs.palette;
   if($("themeCardStyleSelect")) $("themeCardStyleSelect").value = prefs.cardStyle;
   if($("themeCurrentText")) $("themeCurrentText").textContent = v634ThemeLabel();
-}
-function injectThemeWidget(){
-  if(!document.body)return;
-  if($("themeWidget")){
-    renderThemeWidgetState();
-    return;
-  }
-  const anchor=$("mobileTopNav") || $("tabs") || document.querySelector("#mainApp header") || document.querySelector(".app header");
-  if(anchor){
-    anchor.insertAdjacentHTML("afterend", renderThemeWidget());
-    renderThemeWidgetState();
-  }
 }
 document.addEventListener("keydown", function(e){
   if(e.key==="Escape")closeThemePanel();
@@ -9545,16 +4153,6 @@ function closeThemePanel(){
   if(el)el.classList.remove('show');
 }
 function toggleThemeWidget(){ openThemePanel(); }
-const __renderAccountWidgetBeforeV635 = renderAccountWidget;
-renderAccountWidget = function(user){
-  __renderAccountWidgetBeforeV635(user);
-  ensureAccountThemeButton();
-};
-const __toggleAccountMenuBeforeV635 = toggleAccountMenu;
-toggleAccountMenu = function(){
-  ensureAccountThemeButton();
-  __toggleAccountMenuBeforeV635();
-};
 document.addEventListener('DOMContentLoaded',()=>{
   removeInlineThemeWidgets();
   ensureThemePanel();
@@ -9601,39 +4199,7 @@ async function updateTripCardColor(id,color){
 }
 
 /* 重新覆寫旅程清單：拿掉 J 圖示、加入色系欄位 */
-renderTripList = function(){
-  const el=$("tripListView"); if(!el)return;
-  const active=tripList.filter(t=>!t.archived);
-  const archived=tripList.filter(t=>t.archived);
-  el.innerHTML=`<div class="gateShell">
-    <div class="tripListHero"><div><div class="loginBrand">貞選旅管家</div><h1>我的旅程</h1><p>每趟旅程都是一包獨立資料：旅遊地、航班住宿、行程、口袋景點、預算、行李與旅遊書都會分開保存。</p></div><div class="tripListCount">${active.length}/${V63_MAX_TRIPS} 個旅程</div></div>
-    <div class="tripGrid">${active.map(v63TripCard).join("") || '<div class="tripListCard tripColor-cream"><div class="tripCardTop"><div><span class="tripBadge">尚未開始</span><h3>還沒有旅程</h3></div></div><div class="meta">先在下方新增第一趟旅程。</div></div>'}</div>
-    ${archived.length?`<details class="tripCreateCard" open><summary style="cursor:pointer;font-weight:950">封存旅程</summary><div class="tripGrid">${archived.map(v63TripCard).join("")}</div></details>`:""}
-    <div class="tripCreateCard"><h3>＋ 新增旅程</h3><div class="tripCreateGrid"><div><label>旅程名稱</label><input id="newTripTitle" placeholder="例：2026 釜山自由行"></div><div><label>國家 / 區域</label><select id="newTripCountry" onchange="v63NewTripCountryChanged()">${Object.keys(currencyMap).map(c=>`<option value="${c}">${c}</option>`).join("")}<option value="其他">其他</option></select></div><div><label>城市 / 路線</label><input id="newTripCity" value="釜山"></div><div><label>卡片色系</label><select id="newTripColor">${v636ColorOptions("cream")}</select></div><div><label>出發日</label><input id="newTripStart" type="date"></div><div><label>回程日</label><input id="newTripEnd" type="date"></div><div style="align-self:end"><button class="btn dark" style="width:100%" onclick="createTrip()">建立旅程</button></div></div><div class="cloudHint">建立後會先進入旅遊地設定；完成旅遊地後才會解鎖其他功能。旅程卡片色系只影響清單外觀，不會改變旅行資料。</div></div>
-    <div class="btns"><button class="btn soft" onclick="firebaseSignOut()">登出</button></div>
-  </div>`;
-  if(typeof v631BrandTitle==="function")v631BrandTitle();
-};
 
-v63TripCard = function(t){
-  const dateText=t.start&&t.end?`${esc(short(t.start))} - ${esc(short(t.end))}`:"尚未完成";
-  const destText=t.dest||"未設定目的地";
-  const color=v636ColorKey(t.cardColor);
-  return `<div class="tripListCard tripColor-${color} ${t.archived?"archived":""}">
-    <div class="tripCardTop"><div><span class="tripBadge">${t.archived?"已封存":"旅程"}</span><h3>${esc(t.title||"未命名旅程")}</h3></div></div>
-    <div class="tripCardMetaGrid"><div><span>目的地</span><b>${esc(destText)}</b></div><div><span>日期</span><b>${dateText}</b></div></div>
-    <div class="meta">${t.updatedAtClient?`最後更新：${new Date(t.updatedAtClient).toLocaleDateString("zh-TW")}`:"尚未同步更新時間"}</div>
-    <div class="tripCardTools">
-      <div class="tripColorControl"><span>卡片色系</span>${v636ColorDots(color,t.id)}</div>
-      <select class="tripColorSelect" onchange="updateTripCardColor('${t.id}',this.value)">${v636ColorOptions(color)}</select>
-    </div>
-    <div class="btns">
-      <button class="btn dark compact" onclick="selectTrip('${t.id}')">繼續編輯</button>
-      ${t.archived?`<button class="btn blue compact" onclick="restoreTrip('${t.id}')">還原</button>`:`<button class="btn soft compact" onclick="archiveTrip('${t.id}')">封存</button>`}
-      <button class="btn danger compact" onclick="deleteTrip('${t.id}')">刪除</button>
-    </div>
-  </div>`;
-};
 
 /* 覆寫新增旅程：多讀一個 cardColor 欄位，寫入旅程索引 */
 createTrip = async function(){
@@ -9690,7 +4256,6 @@ deleteTrip = async function(id){
 };
 
 /* 若舊旅程沒有顏色，補預設色，不影響資料內容 */
-const __v636LoadTripsBefore = loadTrips;
 loadTrips = async function(){
   const list=await __v636LoadTripsBefore();
   let changed=false;
@@ -9743,20 +4308,6 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 const V637_VERSION_TEXT = '版本：v63.7｜2026-05-31｜頁尾、標題編輯彈窗與旅程卡片色系優化版';
 
-function v637FooterHtml(){
-  return `<footer id="siteFooter" class="siteFooter noPrint">
-    <div class="siteFooterBrand">貞選旅管家 <span>Janeselect Travel Manager</span></div>
-    <div class="siteFooterVersion">${esc(V637_VERSION_TEXT)}</div>
-    <div class="siteFooterLinks">
-      <button type="button" onclick="v637PolicyToast('服務條款')">服務條款</button>
-      <span>・</span>
-      <button type="button" onclick="v637PolicyToast('隱私權政策')">隱私權政策</button>
-      <span>・</span>
-      <button type="button" onclick="v637PolicyToast('聯絡我們')">聯絡我們</button>
-    </div>
-    <div class="siteFooterCopy">© 2026 Janeselect Travel Manager. All rights reserved.</div>
-  </footer>`;
-}
 function v637PolicyToast(name){ toast(`${name}內容尚未設定，之後可接到獨立頁面或後台設定。`); }
 function v637EnsureFooter(){
   document.querySelectorAll('.app > footer').forEach(f=>f.classList.add('legacyFooter'));
@@ -9766,7 +4317,6 @@ function v637EnsureFooter(){
 }
 
 /* 讓 login/list/app 切換時，footer 都存在 */
-const __v637ShowShell = typeof v63ShowShell === 'function' ? v63ShowShell : null;
 if(__v637ShowShell){
   v63ShowShell = function(mode){
     __v637ShowShell(mode);
@@ -9840,20 +4390,6 @@ function v637SetNewTripColor(color){
 }
 
 /* 覆寫旅程清單：新增頁尾一致；新增旅程色系改圓點；旅程卡片不顯示下拉 */
-renderTripList = function(){
-  const el=$('tripListView'); if(!el)return;
-  const active=tripList.filter(t=>!t.archived);
-  const archived=tripList.filter(t=>t.archived);
-  el.innerHTML=`<div class="gateShell">
-    <div class="tripListHero"><div><div class="loginBrand">貞選旅管家</div><h1>我的旅程</h1><p>每趟旅程都是一包獨立資料：旅遊地、航班住宿、行程、口袋景點、預算、行李與旅遊書都會分開保存。</p></div><div class="tripListCount">${active.length}/${V63_MAX_TRIPS} 個旅程</div></div>
-    <div class="tripGrid">${active.map(v63TripCard).join('') || '<div class="tripListCard tripColor-cream"><div class="tripCardTop"><div><span class="tripBadge">尚未開始</span><h3>還沒有旅程</h3></div></div><div class="meta">先在下方新增第一趟旅程。</div></div>'}</div>
-    ${archived.length?`<details class="tripCreateCard" open><summary style="cursor:pointer;font-weight:950">封存旅程</summary><div class="tripGrid">${archived.map(v63TripCard).join('')}</div></details>`:''}
-    <div class="tripCreateCard"><h3>＋ 新增旅程</h3><div class="tripCreateGrid"><div><label>旅程名稱</label><input id="newTripTitle" placeholder="例：2026 釜山自由行"></div><div><label>國家 / 區域</label><select id="newTripCountry" onchange="v63NewTripCountryChanged()">${Object.keys(currencyMap).map(c=>`<option value="${c}">${c}</option>`).join('')}<option value="其他">其他</option></select></div><div><label>城市 / 路線</label><input id="newTripCity" value="釜山"></div><div><label>卡片色系</label><input id="newTripColor" type="hidden" value="cream"><div id="newTripColorDots" class="newTripColorDots">${v637ColorDotSet('cream','','new')}</div></div><div><label>出發日</label><input id="newTripStart" type="date"></div><div><label>回程日</label><input id="newTripEnd" type="date"></div><div style="align-self:end"><button class="btn dark" style="width:100%" onclick="createTrip()">建立旅程</button></div></div><div class="cloudHint">建立後會先進入旅遊地設定；完成旅遊地後才會解鎖其他功能。旅程卡片色系只影響清單外觀，不會改變旅行資料。</div></div>
-    <div class="btns"><button class="btn soft" onclick="firebaseSignOut()">登出</button></div>
-  </div>`;
-  if(typeof v631BrandTitle==='function')v631BrandTitle();
-  v637EnsureFooter();
-};
 
 v63TripCard = function(t){
   const dateText=t.start&&t.end?`${esc(short(t.start))} - ${esc(short(t.end))}`:'尚未完成';
@@ -9954,149 +4490,6 @@ function v64TripContext(){
   const packing=(data.packing||[]).map(x=>`${x.type==='out'?'離開飯店':'出國前'}｜${x.name}｜${x.note||''}`).join('\n') || '尚未建立行李清單';
   return {days,hotels,plans,spots,expenses,packing};
 }
-function v64BuildPrompt(type, spotId){
-  const c=v64TripContext();
-  const dest=data.trip?.dest||'未設定';
-  const country=data.trip?.country||'未設定';
-  const dates=`${data.trip?.start||''} ～ ${data.trip?.end||''}`;
-  const travelers=(data.trip?.travelers||[]).join('、') || '未設定';
-  const baseInfo=`旅行資料：
-- 目的地：${dest}
-- 國家 / 區域：${country}
-- 日期：${dates}
-- 旅伴：${travelers}
-- 幣別：${data.trip?.currency||''}
-
-旅行日期：
-${c.days}
-
-住宿：
-${c.hotels}`;
-  if(type==='spots'){
-    return `${baseInfo}
-
-請幫我推薦適合這趟旅程的口袋景點、餐廳、咖啡廳、購物點與雨天備案。請考慮交通順路性、旅遊節奏、熱門程度與是否適合第一次造訪。
-
-請只輸出純 JSON，不要 Markdown，不要解釋文字。格式如下：
-{
-  "janeselect_import_type": "spots",
-  "spots": [
-    {
-      "name": "景點或店名",
-      "type": "景點/餐廳/咖啡廳/購物/雨天備案/其他",
-      "day": "YYYY-MM-DD，可留空",
-      "addr": "地址或區域",
-      "memo": "推薦理由、玩法重點、適合時段或注意事項",
-      "krName": "若為韓國景點可填韓文名稱，否則留空",
-      "krAddress": "若為韓國景點可填韓文地址，否則留空"
-    }
-  ]
-}`;
-  }
-  if(type==='itinerary'){
-    return `${baseInfo}
-
-目前行程：
-${c.plans}
-
-口袋景點：
-${c.spots}
-
-請幫我檢查這趟行程是否順路、是否太趕、是否有交通時間或安排順序不合理的地方。請提出實用調整建議，但不要替我寫旅遊日記，也不要要求我一定照做。
-
-請輸出兩段：
-1. 白話健檢摘要。
-2. 純 JSON，格式如下：
-{
-  "janeselect_import_type": "itinerary_review",
-  "summary": "整體建議摘要",
-  "items": [
-    {
-      "day": "YYYY-MM-DD",
-      "level": "提醒/建議/注意",
-      "title": "建議標題",
-      "memo": "具體調整建議"
-    }
-  ]
-}`;
-  }
-  if(type==='packing'){
-    return `${baseInfo}
-
-目前行李清單：
-${c.packing}
-
-目前行程：
-${c.plans}
-
-請依據目的地、日期、天數、行程型態與住宿移動，補強行李清單。請避免太浮誇，優先列出真的會用到的東西。
-
-請只輸出純 JSON，不要 Markdown，不要解釋文字。格式如下：
-{
-  "janeselect_import_type": "packing",
-  "items": [
-    {
-      "type": "pre",
-      "name": "物品名稱",
-      "note": "為什麼建議帶，或使用提醒",
-      "checked": false
-    },
-    {
-      "type": "out",
-      "name": "離開飯店前要檢查的物品",
-      "note": "檢查提醒",
-      "checked": false
-    }
-  ]
-}`;
-  }
-  if(type==='budget'){
-    return `${baseInfo}
-
-目前行程：
-${c.plans}
-
-目前預算 / 額外費用：
-${c.expenses}
-
-請幫我檢查這趟旅程可能漏掉哪些預算項目，例如網卡、機場交通、市區交通、票券、保險、咖啡甜點、伴手禮、行李加購等。金額不要亂估，請預設 TWD 0，讓我匯入後自行調整。
-
-請只輸出純 JSON，不要 Markdown，不要解釋文字。格式如下：
-{
-  "janeselect_import_type": "budget",
-  "items": [
-    {
-      "type": "交通票券/景點票券/餐飲/購物/網路/旅平險/其他",
-      "name": "建議補充的預算項目",
-      "mode": "TWD",
-      "twd": 0,
-      "memo": "為什麼建議補這筆"
-    }
-  ]
-}`;
-  }
-  if(type==='spot_summary'){
-    const s=(data.spots||[]).find(x=>x.id===spotId)||{};
-    const q=v64SpotQuery(s);
-    return `我正在規劃 ${dest} 旅程，想快速了解這個景點是否值得排入行程。
-
-景點：${s.name||''}
-分類：${s.type||''}
-地址 / 區域：${s.addr||''}
-備註：${s.memo||''}
-
-請幫我整理：
-1. 這個景點大概長什麼樣、適合怎麼玩。
-2. 建議停留時間。
-3. 適合安排在早上、下午或晚上。
-4. 附近可順遊的方向。
-5. 可能要注意的排隊、交通、天氣或公休日問題。
-6. 如果我貼上遊記或搜尋結果連結，請幫我整理重點，不要直接複製原文。
-
-搜尋關鍵字參考：${q}`;
-  }
-  return '';
-}
 function v64EnsureAiPromptModal(){
   if($('v64AiPromptModal')) return;
   document.body.insertAdjacentHTML('beforeend', `<div class="v64AiModal noPrint" id="v64AiPromptModal" aria-hidden="true">
@@ -10114,14 +4507,6 @@ function v64EnsureAiPromptModal(){
       </div>
     </div>
   </div>`);
-}
-function v64ShowPrompt(type, title, desc, spotId){
-  v64EnsureAiPromptModal();
-  $('v64AiPromptTitle').textContent=title||'AI 輔助';
-  $('v64AiPromptDesc').textContent=desc||'複製提示詞後，可貼到 ChatGPT 或 Gemini 使用。';
-  $('v64AiPromptText').value=v64BuildPrompt(type, spotId);
-  $('v64AiPromptModal').classList.add('show');
-  $('v64AiPromptModal').setAttribute('aria-hidden','false');
 }
 function v64CloseAiPrompt(){
   $('v64AiPromptModal')?.classList.remove('show');
@@ -10154,13 +4539,6 @@ function v64EnsureImportModal(){
     </div>
   </div>`);
 }
-function v64OpenImportModal(){
-  v64EnsureImportModal();
-  $('v64AiImportText').value='';
-  $('v64AiImportPreview').textContent='支援：口袋景點、行李清單、預算草稿。AI 不會直接覆蓋既有資料。';
-  $('v64AiImportModal').classList.add('show');
-  $('v64AiImportModal').setAttribute('aria-hidden','false');
-}
 function v64CloseImportModal(){
   $('v64AiImportModal')?.classList.remove('show');
   $('v64AiImportModal')?.setAttribute('aria-hidden','true');
@@ -10172,92 +4550,9 @@ function v64ArrayFromImport(obj, fallbackKey){
   if(Array.isArray(obj.spots)) return obj.spots;
   return [];
 }
-function v64ImportAiObject(obj){
-  const type=String(obj.janeselect_import_type || obj.type || '').trim();
-  let count=0;
-  if(type==='spots' || Array.isArray(obj.spots)){
-    const items=v64ArrayFromImport(obj,'spots');
-    items.forEach(s=>{
-      if(!s || !s.name) return;
-      data.spots.push({
-        id:uid(),
-        name:String(s.name||''),
-        type:String(s.type||'景點'),
-        day:String(s.day||''),
-        addr:String(s.addr||s.address||''),
-        memo:String(s.memo||s.note||s.reason||''),
-        krName:String(s.krName||s.kr_name||''),
-        krAddress:String(s.krAddress||s.kr_address||''),
-        source:'ai'
-      });
-      count++;
-    });
-    if(count) return {count, label:'口袋景點'};
-  }
-  if(type==='packing'){
-    const items=v64ArrayFromImport(obj,'items');
-    items.forEach(x=>{
-      if(!x || !x.name) return;
-      data.packing.push({
-        id:uid(),
-        type:String(x.type||data.packView||'pre'),
-        name:String(x.name||''),
-        note:String(x.note||x.memo||'AI 建議'),
-        checked:!!x.checked,
-        source:'ai'
-      });
-      count++;
-    });
-    if(count) return {count, label:'行李項目'};
-  }
-  if(type==='budget'){
-    const items=v64ArrayFromImport(obj,'items');
-    items.forEach(x=>{
-      if(!x || !x.name) return;
-      data.expenses.push({
-        id:uid(),
-        source:'AI建議',
-        type:String(x.type||'其他'),
-        name:String(x.name||''),
-        payer:'未定',
-        payMethod:'未定',
-        day:String(x.day||''),
-        mode:String(x.mode||'TWD'),
-        foreign:Number(x.foreign||0),
-        twd:Number(x.twd||0),
-        memo:String(x.memo||x.note||'AI 建議補充，請自行調整金額')
-      });
-      count++;
-    });
-    if(count) return {count, label:'預算草稿'};
-  }
-  if(type==='itinerary_review'){
-    const summary = obj.summary || (Array.isArray(obj.items) ? obj.items.map(x=>`${x.day||''} ${x.title||''}：${x.memo||''}`).join('\n') : '');
-    if(summary){
-      v64ShowImportReview(summary);
-      return {count:1, label:'行程健檢摘要'};
-    }
-  }
-  return {count:0, label:'資料'};
-}
 function v64ShowImportReview(summary){
   v64EnsureImportModal();
   $('v64AiImportPreview').innerHTML = `<b>行程健檢結果</b><br>${esc(summary)}`;
-}
-function v64ImportAiText(){
-  const raw=$('v64AiImportText')?.value || '';
-  if(!raw.trim()) return toast('請先貼上 AI 回覆');
-  try{
-    const obj=JSON.parse(v64JsonText(raw));
-    const result=v64ImportAiObject(obj);
-    if(!result.count) throw new Error('no items');
-    silentSave();
-    render();
-    v64CloseImportModal();
-    toast(`已匯入 ${result.count} 筆${result.label}`);
-  }catch(e){
-    $('v64AiImportPreview').textContent='匯入失敗：請確認貼上的是純 JSON，且格式符合 AI 提示詞要求。';
-  }
 }
 
 function v64SpotQuery(s){
@@ -10317,45 +4612,6 @@ function v64CloseSpotExplore(){
   $('v64SpotExploreModal')?.setAttribute('aria-hidden','true');
 }
 
-function v64AiBarHtml(kind){
-  if(kind==='spots'){
-    return `<div class="v64AiBar" id="v64AiBar-spots">
-      <div class="v64AiBarHead"><div><b>AI 輔助</b><span>找景點、匯入 AI 回覆，或針對單一景點探索遊記與影片。</span></div></div>
-      <div class="v64AiActions">
-        <button class="btn pink compact" onclick="v64ShowPrompt('spots','AI 找景點','請 AI 依目前旅程推薦口袋景點，並回傳可匯入 JSON。')">AI 找景點</button>
-        <button class="btn blue compact" onclick="v64OpenImportModal()">AI 匯入</button>
-      </div>
-    </div>`;
-  }
-  if(kind==='planner'){
-    return `<div class="v64AiBar" id="v64AiBar-planner">
-      <div class="v64AiBarHead"><div><b>AI 輔助</b><span>檢查行程順路性與節奏，不會自動改動你的行程。</span></div></div>
-      <div class="v64AiActions">
-        <button class="btn pink compact" onclick="v64ShowPrompt('itinerary','AI 健檢','請 AI 檢查行程順不順、會不會太趕。')">AI 健檢</button>
-        <button class="btn blue compact" onclick="v64OpenImportModal()">AI 匯入</button>
-      </div>
-    </div>`;
-  }
-  if(kind==='packing'){
-    return `<div class="v64AiBar" id="v64AiBar-packing">
-      <div class="v64AiBarHead"><div><b>AI 輔助</b><span>依目的地、天數與行程補強行李清單。</span></div></div>
-      <div class="v64AiActions">
-        <button class="btn pink compact" onclick="v64ShowPrompt('packing','AI 行李','請 AI 產生可匯入的行李清單。')">AI 行李</button>
-        <button class="btn blue compact" onclick="v64OpenImportModal()">AI 匯入</button>
-      </div>
-    </div>`;
-  }
-  if(kind==='budget'){
-    return `<div class="v64AiBar" id="v64AiBar-budget">
-      <div class="v64AiBarHead"><div><b>AI 輔助</b><span>檢查可能漏掉的預算項目，匯入後金額預設 0 讓你自行調整。</span></div></div>
-      <div class="v64AiActions">
-        <button class="btn pink compact" onclick="v64ShowPrompt('budget','AI 預算','請 AI 檢查可能漏掉的預算項目。')">AI 預算</button>
-        <button class="btn blue compact" onclick="v64OpenImportModal()">AI 匯入</button>
-      </div>
-    </div>`;
-  }
-  return '';
-}
 function v64ReplaceOldSpotAiBar(){
   const root=$('spotsView');
   if(!root) return;
@@ -10386,17 +4642,6 @@ function v64PatchSpots(){
   v64ReplaceOldSpotAiBar();
   v64AddSpotExploreButtons();
 }
-function v64InsertAiBar(viewId, kind){
-  const root=$(viewId);
-  if(!root) return;
-  root.querySelectorAll(`#v64AiBar-${kind}`).forEach(x=>x.remove());
-  const section=root.querySelector('.section');
-  if(section) section.insertAdjacentHTML('afterend', v64AiBarHtml(kind));
-}
-function v64UpdateFooterVersion(){
-  document.querySelectorAll('footer strong,.siteFooterVersion').forEach(el=>el.textContent=V64_VERSION_SHORT);
-  if(typeof v637EnsureFooter === 'function') v637EnsureFooter();
-}
 try{
   if(typeof v637FooterHtml === 'function'){
     v637FooterHtml = function(){
@@ -10419,20 +4664,10 @@ try{
 
 const v64OriginalRenderSpots = typeof renderSpots === 'function' ? renderSpots : null;
 if(v64OriginalRenderSpots && !v64OriginalRenderSpots.__v64AiWrapped){
-  renderSpots = function(...args){
-    const r=v64OriginalRenderSpots.apply(this,args);
-    setTimeout(v64PatchSpots,0);
-    return r;
-  };
   renderSpots.__v64AiWrapped=true;
 }
 const v64OriginalRenderPlanner = typeof renderPlanner === 'function' ? renderPlanner : null;
 if(v64OriginalRenderPlanner && !v64OriginalRenderPlanner.__v64AiWrapped){
-  renderPlanner = function(...args){
-    const r=v64OriginalRenderPlanner.apply(this,args);
-    setTimeout(()=>v64InsertAiBar('plannerView','planner'),0);
-    return r;
-  };
   renderPlanner.__v64AiWrapped=true;
 }
 const v64OriginalRenderPacking = typeof renderPacking === 'function' ? renderPacking : null;
@@ -10455,19 +4690,6 @@ if(v64OriginalRenderBudget && !v64OriginalRenderBudget.__v64AiWrapped){
 }
 
 /* 說明頁：最新更新紀錄只保留最新版，其他歷史更新移除。 */
-renderHelp = function(){
-  const allowed = (typeof ALLOWED_EMAIL !== 'undefined') ? ALLOWED_EMAIL : '';
-  $('helpView').innerHTML=`<div class="section"><div><h2>說明與備份</h2><div class="hint">工具使用方式、AI 輔助、資料備份與還原放在這裡。</div></div></div>
-  <div class="card" id="v64UpdateLog">
-    <h3>最新更新紀錄</h3>
-    <div class="box mint"><b>${esc(V64_VERSION_TEXT)}</b><br>AI 輔助整合到各功能頁：口袋景點可 AI 找景點與匯入，行程可 AI 健檢，行李與預算可由 AI 產生 JSON 後貼回匯入；口袋景點新增「探索」快速開啟遊記、影片、打卡、官方資料與 AI 摘要。旅遊書日記不交給 AI，保留個人回憶。</div>
-  </div>
-  <div class="card"><h3>AI 輔助使用方式</h3><div class="box blue">在口袋景點、行程、行李、預算頁使用 AI 按鈕。ChatGPT / Gemini 會先複製提示詞再開新分頁；AI 回覆 JSON 後可用「AI 匯入」貼回網站。匯入只新增資料，不會自動覆蓋既有內容。</div></div>
-  <div class="card"><h3>Firebase 跨裝置同步</h3><div class="box mint">登入授權 Google 帳號後，旅遊資料會同步到 Firestore。照片本體仍存在 Cloudinary，Firestore 只保存圖片網址與旅行資料。</div><div class="btns"><button class="btn dark" onclick="saveToCloudNow()">立即同步到雲端</button><button class="btn blue" onclick="loadFromCloud()">載入雲端資料</button></div>${allowed?`<div class="cloudHint">目前授權 email：${esc(allowed)}</div>`:''}</div>
-  <div class="card"><h3>備份資料</h3><div class="box blue">匯出備份會下載 JSON。匯入備份會覆蓋目前資料。若要修改國家或日期，建議先匯出備份。</div><div class="btns"><button class="btn dark" onclick="exportBackup()">匯出備份</button><label class="btn soft" style="display:inline-block">匯入備份<input type="file" accept=".json,application/json" onchange="importBackup(this.files[0])" style="display:none"></label></div></div>`;
-  if(typeof v641PatchAnchorTargets === 'function') v641PatchAnchorTargets($('helpView'));
-  v64UpdateFooterVersion();
-};
 
 function v64AfterRender(){
   v64PatchSpots();
@@ -10479,11 +4701,6 @@ function v64AfterRender(){
 }
 const v64OriginalRender = typeof render === 'function' ? render : null;
 if(v64OriginalRender && !v64OriginalRender.__v64AiWrapped){
-  render = function(...args){
-    const r=v64OriginalRender.apply(this,args);
-    setTimeout(v64AfterRender,0);
-    return r;
-  };
   render.__v64AiWrapped=true;
 }
 document.addEventListener('DOMContentLoaded',()=>{
@@ -10578,66 +4795,9 @@ function v641ReviewHtml(){
 
 /* 重新定義 AI prompt 內容：行程健檢不再包含口袋景點 */
 const v641OriginalBuildPrompt = typeof v64BuildPrompt==='function' ? v64BuildPrompt : null;
-v64BuildPrompt = function(type, spotId){
-  if(type!=='itinerary') return v641OriginalBuildPrompt ? v641OriginalBuildPrompt(type, spotId) : '';
-  const c=v64TripContext();
-  const dest=data.trip?.dest||'未設定';
-  const country=data.trip?.country||'未設定';
-  const dates=`${data.trip?.start||''} ～ ${data.trip?.end||''}`;
-  const travelers=(data.trip?.travelers||[]).join('、') || '未設定';
-  return `旅行資料：
-- 目的地：${dest}
-- 國家 / 區域：${country}
-- 日期：${dates}
-- 旅伴：${travelers}
-- 幣別：${data.trip?.currency||''}
-
-使用者偏好（非必填，僅供調整口吻與建議方向）：
-${v641PrefsText()}
-
-旅行日期：
-${c.days}
-
-住宿：
-${c.hotels}
-
-已排入行程（只檢查這些，不要把口袋景點當成已排行程）：
-${c.plans}
-
-請幫我檢查「已排入行程」是否順路、是否太趕、是否有交通時間或安排順序不合理的地方。若行程看起來太空或使用者可能不知道怎麼排，請給我無腦可執行的安排原則，但不要自行加入未列入行程的口袋景點，也不要要求我一定照做。
-
-請輸出兩段：
-1. 白話健檢摘要。
-2. 純 JSON，格式如下：
-{
-  "janeselect_import_type": "itinerary_review",
-  "summary": "整體建議摘要",
-  "items": [
-    {
-      "day": "YYYY-MM-DD",
-      "level": "提醒/建議/注意",
-      "title": "建議標題",
-      "memo": "具體調整建議"
-    }
-  ]
-}`;
-};
 
 /* 重設 AI 工具列：保留短按鈕，但在行程加偏好欄位 */
 const v641OriginalAiBarHtml = typeof v64AiBarHtml==='function' ? v64AiBarHtml : null;
-v64AiBarHtml = function(kind){
-  if(kind==='planner'){
-    return `<div class="v64AiBar" id="v64AiBar-planner">
-      <div class="v64AiBarHead"><div><b>AI 輔助</b><span>只檢查已排入行程；偏好欄位可不填。</span></div></div>
-      <div class="v64AiActions">
-        <button class="btn pink compact" onclick="v64ShowPrompt('itinerary','AI 健檢','請 AI 檢查已排入行程的順路性與節奏。')">AI 健檢</button>
-        <button class="btn blue compact" onclick="v64OpenImportModal('itinerary')">AI 匯入</button>
-      </div>
-      ${v641PrefsHtml()}
-    </div>`;
-  }
-  return v641OriginalAiBarHtml ? v641OriginalAiBarHtml(kind) : '';
-};
 
 /* 匯入視窗支援指定目前期待的匯入類型，讓行程健檢不再無感 */
 const v641OriginalOpenImportModal = typeof v64OpenImportModal==='function' ? v64OpenImportModal : null;
@@ -10654,14 +4814,6 @@ v64OpenImportModal = function(expectedType){
 };
 
 const v641OriginalImportAiObject = typeof v64ImportAiObject==='function' ? v64ImportAiObject : null;
-v64ImportAiObject = function(obj){
-  const type=String(obj.janeselect_import_type || obj.type || '').trim();
-  if(type==='itinerary_review'){
-    const review=v641SaveItineraryReview(obj);
-    return {count:1, label:'AI 健檢建議', reviewId:review.id, keepModal:false};
-  }
-  return v641OriginalImportAiObject ? v641OriginalImportAiObject(obj) : {count:0,label:'資料'};
-};
 
 v64ImportAiText = function(){
   const raw=$('v64AiImportText')?.value || '';
@@ -10713,19 +4865,6 @@ v64ShowPrompt = function(type, title, desc, spotId){
 v64UpdateFooterVersion = function(){
   document.querySelectorAll('footer strong,.siteFooterVersion').forEach(el=>el.textContent=V641_VERSION_SHORT);
   if(typeof v637EnsureFooter === 'function') v637EnsureFooter();
-};
-renderHelp = function(){
-  const allowed = (typeof ALLOWED_EMAIL !== 'undefined') ? ALLOWED_EMAIL : '';
-  $('helpView').innerHTML=`<div class="section"><div><h2>說明與備份</h2><div class="hint">工具使用方式、AI 輔助、資料備份與還原放在這裡。</div></div></div>
-  <div class="card" id="v64UpdateLog">
-    <h3>最新更新紀錄</h3>
-    <div class="box mint"><b>${esc(V641_VERSION_TEXT)}</b><br>AI 健檢改為只檢查已排入行程，不再把口袋景點視為正式行程；新增非必填的旅遊風格、MBTI、星座偏好；AI 健檢匯入後會顯示在行程頁建議卡片；修正口袋景點探索內 AI 摘要彈窗層級。</div>
-  </div>
-  <div class="card"><h3>AI 輔助使用方式</h3><div class="box blue">在口袋景點、行程、行李、預算頁使用 AI 按鈕。ChatGPT / Gemini 會先複製提示詞再開新分頁；AI 回覆 JSON 後可用「AI 匯入」貼回網站。匯入只新增資料，不會自動覆蓋既有內容。</div></div>
-  <div class="card"><h3>Firebase 跨裝置同步</h3><div class="box mint">登入授權 Google 帳號後，旅遊資料會同步到 Firestore。照片本體仍存在 Cloudinary，Firestore 只保存圖片網址與旅行資料。</div><div class="btns"><button class="btn dark" onclick="saveToCloudNow()">立即同步到雲端</button><button class="btn blue" onclick="loadFromCloud()">載入雲端資料</button></div>${allowed?`<div class="cloudHint">目前授權 email：${esc(allowed)}</div>`:''}</div>
-  <div class="card"><h3>備份資料</h3><div class="box blue">匯出備份會下載 JSON。匯入備份會覆蓋目前資料。若要修改國家或日期，建議先匯出備份。</div><div class="btns"><button class="btn dark" onclick="exportBackup()">匯出備份</button><label class="btn soft" style="display:inline-block">匯入備份<input type="file" accept=".json,application/json" onchange="importBackup(this.files[0])" style="display:none"></label></div></div>`;
-  if(typeof v641PatchAnchorTargets === 'function') v641PatchAnchorTargets($('helpView'));
-  v64UpdateFooterVersion();
 };
 
 setTimeout(()=>{
@@ -11024,15 +5163,6 @@ if(v643PrevRenderTrip && !window.__v643RenderTripPatched){
 }
 const v643PrevRenderHelp = typeof renderHelp==='function' ? renderHelp : null;
 if(v643PrevRenderHelp && !window.__v643HelpPatched){
-  renderHelp=function(...args){
-    const r=v643PrevRenderHelp.apply(this,args);
-    const log=$("v64UpdateLog") || $("helpView")?.querySelector('.card');
-    if(log){
-      log.innerHTML=`<h3>最新更新紀錄</h3><div class="box mint"><b>${esc(V643_VERSION_TEXT)}</b><br>修改旅遊日期不再清空資料；新增「增減天數」與「整趟平移」兩種安全調整方式，行程、住宿、預算、照片書與行李會保留。</div>`;
-    }
-    v643UpdateFooterVersion();
-    return r;
-  };
   window.__v643HelpPatched=true;
 }
 function v643UpdateFooterVersion(){
@@ -11080,65 +5210,8 @@ function v644PrefsText(){
   if(typeof v641SavePrefsFromDom==='function') return v641PrefsText();
   return '未填寫，請以一般旅遊者需求判斷。';
 }
-function v644SpotPrompt(){
-  const c=typeof v64TripContext==='function' ? v64TripContext() : {days:'',hotels:'',plans:'',spots:''};
-  const dest=data.trip?.dest||'未設定';
-  const country=data.trip?.country||'未設定';
-  const dates=`${data.trip?.start||''} ～ ${data.trip?.end||''}`;
-  const travelers=(data.trip?.travelers||[]).join('、') || '未設定';
-  return `旅行資料：
-- 目的地：${dest}
-- 國家 / 區域：${country}
-- 日期：${dates}
-- 旅伴：${travelers}
-- 幣別：${data.trip?.currency||''}
-
-使用者偏好（非必填，僅供推薦方向參考）：
-${v644PrefsText()}
-
-航班資訊：
-${v644FlightContext()}
-
-住宿資訊：
-${c.hotels}
-
-已排入行程（請避開已經很滿的時段，並依空檔推薦備選日期與時間）：
-${v644PlannerByDayContext()}
-
-目前口袋景點（請避免重複推薦）：
-${v644ExistingSpotContext()}
-
-請幫我推薦適合這趟旅程的口袋景點、餐廳、咖啡廳、購物點與雨天備案。請考慮：
-1. 去程/回程航班時間，不要推薦不適合抵達日或離境日的安排。
-2. 住宿位置與已排入行程，盡量推薦順路或可補空檔的點。
-3. 使用者偏好、旅遊節奏、天氣備案與熱門程度。
-4. 每個推薦都要給「備選日期 day」與「建議時間 start/end」。如果不確定可留空，但請在 memo 說明適合早上/下午/晚上。
-5. 不要把已排入行程或已在口袋景點中的項目重複推薦。
-
-請只輸出純 JSON，不要 Markdown，不要解釋文字。格式如下：
-{
-  "janeselect_import_type": "spots",
-  "spots": [
-    {
-      "name": "景點或店名",
-      "type": "景點/餐廳/咖啡廳/購物/雨天備案/其他",
-      "day": "YYYY-MM-DD，可留空",
-      "start": "HH:MM，可留空",
-      "end": "HH:MM，可留空",
-      "addr": "地址或區域",
-      "memo": "推薦理由、玩法重點、為什麼適合這一天與這個時段、注意事項",
-      "krName": "若為韓國景點可填韓文名稱，否則留空",
-      "krAddress": "若為韓國景點可填韓文地址，否則留空"
-    }
-  ]
-}`;
-}
 
 const v644PrevBuildPrompt = typeof v64BuildPrompt==='function' ? v64BuildPrompt : null;
-v64BuildPrompt = function(type, spotId){
-  if(type==='spots') return v644SpotPrompt();
-  return v644PrevBuildPrompt ? v644PrevBuildPrompt(type, spotId) : '';
-};
 
 function v644EnsurePromptOptionsModal(){
   if($('v644PromptOptionsModal')) return;
@@ -11219,42 +5292,8 @@ function v644SpotMemo(s){
   return [parts.join('｜'), memo].filter(Boolean).join('\n');
 }
 const v644PrevImportAiObject = typeof v64ImportAiObject==='function' ? v64ImportAiObject : null;
-v64ImportAiObject = function(obj){
-  const type=String(obj.janeselect_import_type || obj.type || '').trim();
-  if(type==='spots' || Array.isArray(obj.spots)){
-    const items = (typeof v64ArrayFromImport==='function') ? v64ArrayFromImport(obj,'spots') : (Array.isArray(obj.spots)?obj.spots:[]);
-    let count=0;
-    items.forEach(s=>{
-      if(!s || !s.name) return;
-      const day=String(s.day||'');
-      data.spots.push({
-        id:uid(),
-        name:String(s.name||''),
-        type:String(s.type||'景點'),
-        day:v644ValidDay(day)?day:'',
-        addr:String(s.addr||s.address||''),
-        memo:v644SpotMemo(s),
-        krName:String(s.krName||s.kr_name||''),
-        krAddress:String(s.krAddress||s.kr_address||''),
-        source:'ai'
-      });
-      count++;
-    });
-    if(count) return {count, label:'口袋景點'};
-  }
-  return v644PrevImportAiObject ? v644PrevImportAiObject(obj) : {count:0,label:'資料'};
-};
 
 const v644PrevRenderHelp = typeof renderHelp==='function' ? renderHelp : null;
-renderHelp = function(...args){
-  const r = v644PrevRenderHelp ? v644PrevRenderHelp.apply(this,args) : undefined;
-  const log=$('v64UpdateLog') || $('helpView')?.querySelector('.card');
-  if(log){
-    log.innerHTML=`<h3>最新更新紀錄</h3><div class="box mint"><b>${esc(V644_VERSION_TEXT)}</b><br>AI 找景點提示詞加入航班、住宿、已排入行程與偏好參考，讓 AI 推薦的口袋景點備選日期與建議時間更符合實際旅程；行程 AI 偏好改為產生提示詞時設定，減少主畫面占用。</div>`;
-  }
-  v644UpdateFooterVersion();
-  return r;
-};
 function v644UpdateFooterVersion(){
   document.querySelectorAll('footer strong,.siteFooterVersion').forEach(el=>el.textContent=V644_VERSION_SHORT);
 }
@@ -11419,15 +5458,6 @@ if(typeof v64BuildPrompt==='function'){
 }
 
 const v645PrevRenderHelp = typeof renderHelp==='function' ? renderHelp : null;
-renderHelp = function(...args){
-  const r = v645PrevRenderHelp ? v645PrevRenderHelp.apply(this,args) : undefined;
-  const log=$('v64UpdateLog') || $('helpView')?.querySelector('.card');
-  if(log){
-    log.innerHTML=`<h3>最新更新紀錄</h3><div class="box mint"><b>${esc(V645_VERSION_TEXT)}</b><br>AI 匯入口袋景點時，會把 AI 回傳的 day / start / end 直接寫入口袋景點的候選日期、預設開始、預設結束欄位；之後點「排入行程」會自動帶入行程表單，不會只寫在備註裡。</div>`;
-  }
-  v645UpdateFooterVersion();
-  return r;
-};
 function v645UpdateFooterVersion(){
   document.querySelectorAll('footer strong,.siteFooterVersion').forEach(el=>el.textContent=V645_VERSION_SHORT);
 }
@@ -11499,18 +5529,6 @@ function v646PhotoOrientation(p){
   return 'landscape';
 }
 
-storyBookPhotoCard = function(p, idx){
-  const ori=v646PhotoOrientation(p);
-  return `<div class="storyPhotoCard ${idx===0?'featured':''} orientation-${ori}">
-    <div class="storyPhotoImage"><img src="${p.src}"></div>
-    <div class="storyPhotoText">
-      <h3>${esc(p.title||'照片紀錄')}</h3>
-      ${storyTagsHtml(p.tags)}
-      <p>${esc(p.memo||'')}</p>
-      <button class="small noPrint" onclick="delPhoto('${p.id}')">刪除</button>
-    </div>
-  </div>`;
-};
 
 storyBookCoverHtml = function(){
   const cover=data.tripCover;
@@ -11551,72 +5569,8 @@ storyBookCoverHtml = function(){
   </section>`;
 };
 
-storyBookDay = function(d){
-  if(!data.dayCovers) data.dayCovers={};
-  const plans=sortedPlans(d.key);
-  const photos=(data.photos||[]).filter(p=>p.day==d.key);
-  const dayCover=data.dayCovers[d.key] || '';
-  const cover=dayCover || photos[0]?.src || '';
-  const count=photos.length;
-  const canUpload=count<10;
-  const hasCustomDayCover=!!dayCover;
-  return `<section class="storyDay">
-    <div class="storyDayHeader">
-      <div>
-        <span class="eyebrow">${d.title}</span>
-        <h2>${d.label} 的旅行故事</h2>
-        <p>住宿：${hotelFor(d.key)?.name||'未設定'}。今天收錄 ${plans.length} 個行程與 ${photos.length} 張照片。</p>
-      </div>
-      <div class="bookDayBadge">${plans.length} 行程｜${photos.length} 照片</div>
-    </div>
-    <div class="storyDayHero ${cover?'':'storyInlineEmpty'}">
-      ${cover?`<img src="${cover}">`:`<div><div>尚未上傳本日封面圖</div><label class="photoInlineUpload" style="margin-top:10px">＋ 上傳本日封面<input type="file" accept="image/*" onchange="addDayCover('${d.key}',this.files[0])"></label><div class="photoUploadStatus" id="dayCoverStatus-${d.key}"></div></div>`}
-      ${cover?`<div class="storyDayCoverActions noPrint">
-        <label class="photoInlineUpload">${hasCustomDayCover?'更換封面':'設定為每日封面'}<input type="file" accept="image/*" onchange="addDayCover('${d.key}',this.files[0])"></label>
-        ${hasCustomDayCover?`<button type="button" class="danger" onclick="removeDayCover('${d.key}')">刪除封面</button>`:''}
-        <div class="photoUploadStatus" id="dayCoverStatus-${d.key}"></div>
-      </div>`:''}
-    </div>
-    <div class="storyDayBody">
-      <div>
-        <div class="storyTimelineTitle">今天的路線</div>
-        ${storyTimelineHtml(plans)}
-      </div>
-      <div>
-        <div class="storyPhotoUploadRow">
-          <div>
-            <div class="storyPhotosTitle">今日照片日記</div>
-            <div class="storyPhotoLimit">${count}/10 張照片${canUpload?'，可繼續上傳':'，已達上限'}</div>
-          </div>
-        </div>
-        ${canUpload?`<div class="storyPhotoUploadCard noPrint">
-          <div class="storyPhotoQuickFields">
-            <input id="storyPhotoTitle-${d.key}" placeholder="照片標題，例如：海雲台散步">
-            <input id="storyPhotoTags-${d.key}" placeholder="標籤，例如：🌊 海邊 咖啡">
-          </div>
-          <input id="storyPhotoMemo-${d.key}" placeholder="一句照片日記">
-          <label class="photoInlineUpload">
-            ＋ 上傳照片到 ${d.title}
-            <input type="file" accept="image/*" onchange="addPhotoToDay('${d.key}',this.files[0])">
-          </label>
-          <div class="photoUploadStatus" id="storyPhotoStatus-${d.key}"></div>
-        </div>`:''}
-        ${photos.length?`<div class="storyPhotoLayout">${photos.map(storyBookPhotoCard).join('')}</div>`:`<div class="storyEmpty">還沒有照片日記，先上傳幾張今天的代表照片吧。</div>`}
-      </div>
-    </div>
-  </section>`;
-};
 
 const v646PrevRenderHelp = typeof renderHelp==='function' ? renderHelp : null;
-renderHelp = function(...args){
-  const r = v646PrevRenderHelp ? v646PrevRenderHelp.apply(this,args) : undefined;
-  const log=$('v64UpdateLog') || $('helpView')?.querySelector('.card');
-  if(log){
-    log.innerHTML=`<h3>最新更新紀錄</h3><div class="box mint"><b>${esc(V646_VERSION_TEXT)}</b><br>直飛航班只顯示第 1 段，轉機才開放第 2 段；照片旅遊書的整本封面與每日封面可以刪除後重新上傳，照片縮圖也改為依直式／橫式照片比例顯示。</div>`;
-  }
-  v646UpdateFooterVersion();
-  return r;
-};
 function v646UpdateFooterVersion(){
   document.querySelectorAll('footer strong,.siteFooterVersion').forEach(el=>el.textContent=V646_VERSION_SHORT);
 }
@@ -11638,18 +5592,6 @@ function v647CanUseCloud(showToast=false){
   return true;
 }
 
-scheduleCloudSave = function(reason='auto'){
-  if(suppressCloudSave) return;
-  if(!v647CanUseCloud(false)){
-    if(typeof setSyncStatus === 'function') setSyncStatus('warn','本機已儲存','登入後可手動同步到雲端。');
-    return;
-  }
-  v647LastSaveReason = reason;
-  clearTimeout(cloudSaveTimer);
-  clearTimeout(v647CloudSaveTimer);
-  if(typeof setSyncStatus === 'function') setSyncStatus('warn','等待同步','已先儲存在本機，稍後寫入雲端。');
-  v647CloudSaveTimer = setTimeout(()=>saveToCloudNow({silent:true, reason}), 1800);
-};
 
 saveToCloudNow = async function(options={}){
   const silent=!!options.silent;
@@ -11725,31 +5667,6 @@ if(typeof clearPendingStoryPhoto !== 'function'){
   };
 }
 
-storyPhotoUploadForm = function(day, count){
-  if(count>=10) return '';
-  const file = storyPendingPhotoFiles[day];
-  const previewUrl = (typeof storyPhotoPreviewUrls !== 'undefined' && storyPhotoPreviewUrls[day]) ? storyPhotoPreviewUrls[day] : '';
-  return `<div class="storyPhotoUploadCard noPrint">
-    <div class="storyPhotoPickBox">
-      <label class="storyPhotoPickLabel">
-        ${file ? '已選擇照片，可繼續補標題與日記' : '＋ 先選擇要上傳的照片'}
-        <input id="storyPhotoFile-${day}" type="file" accept="image/*" onchange="selectStoryPhotoFile('${day}',this.files[0])">
-      </label>
-      <div class="storyPhotoPickMeta" id="storyPhotoPickMeta-${day}">${file ? '已選擇：' + v647PhotoAttr(file.name) : '請先選擇 1 張照片，再輸入標題、標籤與一句照片日記。'}</div>
-      <div class="storyPhotoPickPreview ${previewUrl?'show':''}" id="storyPhotoPickPreview-${day}">${previewUrl?`<img src="${previewUrl}"><div>預覽照片：新增後會上傳到照片日記</div>`:''}</div>
-    </div>
-    <div class="storyPhotoQuickFields">
-      <input id="storyPhotoTitle-${day}" placeholder="照片標題，例如：海雲台散步">
-      <input id="storyPhotoTags-${day}" placeholder="標籤，例如：🌊 海邊 咖啡">
-    </div>
-    <input id="storyPhotoMemo-${day}" placeholder="一句照片日記">
-    <div class="storyPhotoUploadActions">
-      <button class="btn soft" type="button" onclick="clearPendingStoryPhoto('${day}')">清除照片</button>
-      <button class="btn dark" type="button" onclick="addPhotoToDay('${day}')">新增到 ${dayTitle(day)}</button>
-    </div>
-    <div class="photoUploadStatus" id="storyPhotoStatus-${day}"></div>
-  </div>`;
-};
 
 addPhotoToDay = async function(day){
   const file = storyPendingPhotoFiles[day];
@@ -11781,80 +5698,9 @@ addPhotoToDay = async function(day){
   }
 };
 
-storyBookPhotoCard = function(p, idx){
-  const ori = typeof v646PhotoOrientation === 'function' ? v646PhotoOrientation(p) : 'landscape';
-  const editBtn = typeof openPhotoEditModal === 'function'
-    ? `<button class="small" onclick="openPhotoEditModal('${p.id}')">編輯</button>`
-    : `<button class="small" onclick="beginEditPhoto('${p.id}')">編輯</button>`;
-  return `<div class="storyPhotoCard ${idx===0?'featured':''} orientation-${ori}">
-    <div class="storyPhotoImage"><img src="${p.src}"></div>
-    <div class="storyPhotoText">
-      <h3>${esc(p.title||'照片紀錄')}</h3>
-      ${typeof storyTagsHtml==='function' ? storyTagsHtml(p.tags) : (typeof photoTagsHtml==='function' ? photoTagsHtml(p.tags) : '')}
-      <p>${esc(p.memo||'')}</p>
-      <div class="storyPhotoCardActions noPrint">
-        ${editBtn}
-        <button class="small" onclick="delPhoto('${p.id}')">刪除</button>
-      </div>
-    </div>
-  </div>`;
-};
-
-storyBookDay = function(d){
-  if(!data.dayCovers) data.dayCovers={};
-  const plans=sortedPlans(d.key);
-  const photos=(data.photos||[]).filter(p=>p.day==d.key);
-  const dayCover=data.dayCovers[d.key] || '';
-  const cover=dayCover || photos[0]?.src || '';
-  const count=photos.length;
-  const hasCustomDayCover=!!dayCover;
-  return `<section class="storyDay">
-    <div class="storyDayHeader">
-      <div>
-        <span class="eyebrow">${d.title}</span>
-        <h2>${d.label} 的旅行故事</h2>
-        <p>住宿：${hotelFor(d.key)?.name||'未設定'}。今天收錄 ${plans.length} 個行程與 ${photos.length} 張照片。</p>
-      </div>
-      <div class="bookDayBadge">${plans.length} 行程｜${photos.length} 照片</div>
-    </div>
-    <div class="storyDayHero ${cover?'':'storyInlineEmpty'}">
-      ${cover?`<img src="${cover}">`:`<div><div>尚未上傳本日封面圖</div><label class="photoInlineUpload" style="margin-top:10px">＋ 上傳本日封面<input type="file" accept="image/*" onchange="addDayCover('${d.key}',this.files[0])"></label><div class="photoUploadStatus" id="dayCoverStatus-${d.key}"></div></div>`}
-      ${cover?`<div class="storyDayCoverActions noPrint">
-        <label class="photoInlineUpload">${hasCustomDayCover?'更換封面':'設定為每日封面'}<input type="file" accept="image/*" onchange="addDayCover('${d.key}',this.files[0])"></label>
-        ${hasCustomDayCover?`<button type="button" class="danger" onclick="removeDayCover('${d.key}')">刪除封面</button>`:''}
-        <div class="photoUploadStatus" id="dayCoverStatus-${d.key}"></div>
-      </div>`:''}
-    </div>
-    <div class="storyDayBody">
-      <div>
-        <div class="storyTimelineTitle">今天的路線</div>
-        ${storyTimelineHtml(plans)}
-      </div>
-      <div>
-        <div class="storyPhotoUploadRow">
-          <div>
-            <div class="storyPhotosTitle">今日照片日記</div>
-            <div class="storyPhotoLimit">${count}/10 張照片${count<10?'，可繼續上傳':'，已達上限'}</div>
-          </div>
-        </div>
-        ${storyPhotoUploadForm(d.key,count)}
-        ${photos.length?`<div class="storyPhotoLayout">${photos.map(storyBookPhotoCard).join('')}</div>`:`<div class="storyEmpty">還沒有照片日記，先上傳幾張今天的代表照片吧。</div>`}
-      </div>
-    </div>
-  </section>`;
-};
 
 /* 說明與版本 */
 const v647PrevRenderHelp = typeof renderHelp === 'function' ? renderHelp : null;
-renderHelp = function(...args){
-  const r = v647PrevRenderHelp ? v647PrevRenderHelp.apply(this,args) : undefined;
-  const log=$('v64UpdateLog') || $('helpView')?.querySelector('.card');
-  if(log){
-    log.innerHTML=`<h3>最新更新紀錄</h3><div class="box mint"><b>${esc(V647_VERSION_TEXT)}</b><br>修正照片旅遊書同步狀態偶爾卡住的問題，改成排隊式雲端同步；今日照片日記恢復「先選照片、再填標題/標籤/一句日記、最後新增」流程，並保留照片日記編輯與刪除。</div>`;
-  }
-  v647UpdateFooterVersion();
-  return r;
-};
 function v647UpdateFooterVersion(){
   document.querySelectorAll('footer strong,.siteFooterVersion').forEach(el=>el.textContent=V647_VERSION_SHORT);
 }
@@ -11866,42 +5712,6 @@ function v648FormatSyncTime(at){
   const t = Number(at || 0);
   if(!t) return "";
   try{return new Date(t).toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});}catch(e){return "";}
-}
-function v648SyncLabelFromState(){
-  const s = (typeof v632LastSyncState !== 'undefined' && v632LastSyncState) ? v632LastSyncState : null;
-  if(s && s.title){
-    const title = String(s.title || '');
-    if(s.kind === 'on') return `已同步${v648FormatSyncTime(s.at) ? ' ' + v648FormatSyncTime(s.at) : ''}`;
-    if(s.kind === 'warn'){
-      if(title.includes('等待')) return '等待同步';
-      if(title.includes('排隊')) return '同步排隊中';
-      if(title.includes('載入')) return '載入中';
-      return '同步中';
-    }
-    if(s.kind === 'off'){
-      if(title.includes('尚未登入')) return '尚未登入';
-      if(title.includes('尚未同步')) return '尚未同步';
-      if(title.includes('無資料')) return '雲端無資料';
-      if(title.includes('未授權')) return '帳號未授權';
-      return title || '同步失敗';
-    }
-  }
-  try{
-    if(typeof syncStatusText === 'function') return syncStatusText();
-  }catch(e){}
-  return fbUser ? '尚未同步' : '尚未登入';
-}
-function v648SyncDotClassFromState(){
-  const s = (typeof v632LastSyncState !== 'undefined' && v632LastSyncState) ? v632LastSyncState : null;
-  if(s && s.kind){
-    if(s.kind === 'on') return 'success';
-    if(s.kind === 'warn') return 'syncing';
-    if(s.kind === 'off') return 'error';
-  }
-  try{
-    if(typeof syncStatus !== 'undefined') return syncStatus === 'syncing' ? 'syncing' : syncStatus === 'success' ? 'success' : syncStatus === 'error' ? 'error' : '';
-  }catch(e){}
-  return '';
 }
 
 /* 右上角帳號選單原本有自己的「尚未同步」狀態，與雲端 setSyncStatus 沒有完全連動。
@@ -11915,31 +5725,6 @@ updateAccountSyncLine = function(){
 };
 
 const v648PreviousSetSyncStatus = typeof setSyncStatus === 'function' ? setSyncStatus : null;
-setSyncStatus = function(kind,title,desc){
-  if(typeof v632LastSyncState !== 'undefined'){
-    v632LastSyncState = {kind:kind||'off', title:title||'', desc:desc||'', at:(typeof v632Now === 'function' ? v632Now() : Date.now())};
-  }
-  try{
-    if(typeof syncStatus !== 'undefined'){
-      const t = String(title || '');
-      if(kind === 'warn') syncStatus = 'syncing';
-      else if(kind === 'on'){
-        syncStatus = 'success';
-        if(typeof lastSyncTime !== 'undefined') lastSyncTime = new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
-      }else if(kind === 'off') syncStatus = 'error';
-    }
-  }catch(e){}
-  if(v648PreviousSetSyncStatus){
-    v648PreviousSetSyncStatus(kind,title,desc);
-  }else{
-    const el=document.getElementById('syncStatus');
-    if(el){
-      const dotClass = kind==='on'?'on':kind==='warn'?'warn':'off';
-      el.innerHTML = `<span class="syncDot ${dotClass}"></span><b>${esc(title||'')}</b>${desc?`<br>${esc(desc)}`:''}`;
-    }
-  }
-  updateAccountSyncLine();
-};
 
 const v648PreviousToggleAccountMenu = typeof toggleAccountMenu === 'function' ? toggleAccountMenu : null;
 toggleAccountMenu = function(){
@@ -11972,15 +5757,6 @@ saveToCloudNow = async function(options={}){
 };
 
 const v648PrevRenderHelp = typeof renderHelp === 'function' ? renderHelp : null;
-renderHelp = function(...args){
-  const r = v648PrevRenderHelp ? v648PrevRenderHelp.apply(this,args) : undefined;
-  const log=document.getElementById('v64UpdateLog') || document.getElementById('helpView')?.querySelector('.card');
-  if(log){
-    log.innerHTML=`<h3>最新更新紀錄</h3><div class="box mint"><b>${esc(V648_VERSION_TEXT)}</b><br>修正右上角帳號選單的同步狀態未跟雲端同步結果連動的問題。手動同步成功後，狀態會正確顯示為已同步；照片書上傳與日記編輯流程維持 v64.7 的修正。</div>`;
-  }
-  v648UpdateFooterVersion();
-  return r;
-};
 function v648UpdateFooterVersion(){
   document.querySelectorAll('footer strong,.siteFooterVersion').forEach(el=>el.textContent=V648_VERSION_SHORT);
 }
@@ -12298,15 +6074,6 @@ v648SyncDotClassFromState = function(){
 };
 
 const v649PrevRenderHelp = typeof renderHelp === 'function' ? renderHelp : null;
-renderHelp = function(){
-  const r = v649PrevRenderHelp ? v649PrevRenderHelp.apply(this,arguments) : undefined;
-  const log=document.getElementById('v64UpdateLog') || document.getElementById('helpView')?.querySelector('.card');
-  if(log){
-    log.innerHTML=`<h3>最新更新紀錄</h3><div class="box mint"><b>${esc(V649_VERSION_TEXT)}</b><br>新增單一編輯裝置鎖：同一帳號可在多裝置登入，但同一趟旅程同時間只允許一台裝置編輯，其他裝置會進入檢視模式，避免舊資料自動同步覆蓋新資料。可用「接手編輯」先載入雲端最新資料後切換編輯權。</div>`;
-  }
-  v649UpdateFooterVersion();
-  return r;
-};
 function v649UpdateFooterVersion(){
   document.querySelectorAll('footer strong,.siteFooterVersion').forEach(el=>el.textContent=V649_VERSION_SHORT);
 }
@@ -12549,15 +6316,6 @@ renderPhotoBook = function(){
 };
 
 const v650PrevRenderHelp = typeof renderHelp === 'function' ? renderHelp : null;
-renderHelp = function(...args){
-  const r = v650PrevRenderHelp ? v650PrevRenderHelp.apply(this,args) : undefined;
-  const log=document.getElementById('v64UpdateLog') || document.getElementById('helpView')?.querySelector('.card');
-  if(log){
-    log.innerHTML=`<h3>最新更新紀錄</h3><div class="box mint"><b>${esc(V650_VERSION_TEXT)}</b><br>照片旅遊書今日封面不再自動套用第一張照片；可自行上傳封面，或從今日照片日記挑選一張設為封面。今日照片日記移除標籤輸入與顯示，保留照片標題、一句照片日記、編輯與刪除功能。</div>`;
-  }
-  v650UpdateFooterVersion();
-  return r;
-};
 function v650UpdateFooterVersion(){
   document.querySelectorAll('footer strong,.siteFooterVersion').forEach(el=>el.textContent=V650_VERSION_SHORT);
 }
