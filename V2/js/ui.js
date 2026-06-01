@@ -58,6 +58,10 @@ function renderHead() {
   const header = $('header');
   if (!header) return;
 
+  // 更新 badge logo
+  const badge = header.querySelector('.badge');
+  if (badge) badge.innerHTML = `<svg viewBox="0 0 64 64" width="18" height="18" style="vertical-align:-3px;margin-right:4px" aria-hidden="true"><rect width="64" height="64" rx="18" fill="#4A5D4E"/><rect x="10" y="13" width="40" height="43" rx="10" fill="#FFFAF2"/><path d="M22 13c1.7-5.4 13.9-5.4 15.6 0" fill="none" stroke="#FFFAF2" stroke-width="4" stroke-linecap="round"/><path d="M21 28h18M21 38h14" stroke="#4A5D4E" stroke-width="4" stroke-linecap="round"/><circle cx="45" cy="18" r="6" fill="#E5ECE9"/><path d="M45 14v4l3 2" stroke="#4A5D4E" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg> 貞選旅管家`;
+
   // 標題區
   const titleEl    = $('titleText');
   const subtitleEl = $('subtitleText');
@@ -135,7 +139,7 @@ function renderTrip() {
   el.innerHTML = `
     <div class="section"><div>
       <h2>🌏 旅遊地設定</h2>
-      <div class="hint">儲存後所有功能才會解鎖。</div>
+      <div class="hint">先設定旅遊地、日期、幣別與旅伴。完成後才會開啟航班住宿、行程、口袋景點、預算、行李與旅遊書。</div>
     </div></div>
 
     <details class="card" open><summary>① 旅遊地與旅伴</summary>
@@ -325,6 +329,23 @@ function renderPlanner() {
   else if ($('pday')) $('pday').value = currentDay;
 
   applyLockedNameState();
+
+  // AI bar
+  const aiBar = el.querySelector('.aiBarPlanner');
+  if (!aiBar) {
+    const section = el.querySelector('.section');
+    if (section) section.insertAdjacentHTML('afterend', `
+      <div class="card aiBarPlanner">
+        <div class="aiBarLabel">AI 輔助</div>
+        <div class="hint" style="margin-bottom:10px">只檢查已排入行程；偏好在產生提示詞時設定。</div>
+        <div class="btns">
+          <button class="btn dark compact" onclick="showAIPrompt('itinerary')">AI 健檢</button>
+          <button class="btn blue compact" onclick="openImportModal()">AI 匯入</button>
+          <button class="btn soft compact" onclick="openShareModal()">分享行程</button>
+        </div>
+        ${aiReviewHtml()}
+      </div>`);
+  }
 }
 
 function renderSpots() {
@@ -340,9 +361,11 @@ function renderSpots() {
       <button class="iconBtn smallIcon" onclick="clearSpotForm()">＋</button>
     </div>
 
-    <div class="card">
+    <div class="card aiBarSpots">
+      <div class="aiBarLabel">AI 輔助</div>
+      <div class="hint" style="margin-bottom:10px">依航班、住宿、已排入行程與偏好推薦口袋景點。</div>
       <div class="btns">
-        <button class="btn pink compact" onclick="showAIPrompt('spots')">AI 景點提示詞</button>
+        <button class="btn dark compact" onclick="showAIPrompt('spots')">AI 找景點</button>
         <label class="btn blue compact" style="display:inline-block">匯入 AI 回傳
           <input type="file" accept=".json,.txt" onchange="importSpotFile(this.files[0])" style="display:none">
         </label>
@@ -450,6 +473,14 @@ function renderBudget() {
         ${editingExpenseId
           ? '<button class="btn soft" onclick="clearExpenseForm()">取消</button>' : ''}
         <button class="btn blue compact" onclick="openRateSearch()">查匯率</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="aiBarLabel">AI 輔助</div>
+      <div class="hint" style="margin-bottom:10px">檢查可能漏掉的預算項目，匯入後金額預設 0 讓你自行調整。</div>
+      <div class="btns">
+        <button class="btn dark compact" onclick="showAIPrompt('itinerary')">AI 預算</button>
+        <button class="btn blue compact" onclick="openImportModal()">AI 匯入</button>
       </div>
     </div>
     ${budgetListHtml(items)}`;
