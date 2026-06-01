@@ -7327,3 +7327,17 @@ body.readonly .btn:not(.btn-allow) { opacity: .4; pointer-events: none; }
 /* noPrint / printOnly */
 @media screen { .printOnly { display: none !important; } }
 @media print  { .noPrint   { display: none !important; } }
+
+/* ── AI bar / review ── */
+.aiBarLabel { font-weight: 900; font-size: 13px; color: #628f80; margin-bottom: 4px; }
+.aiReviewList { display: flex; flex-direction: column; gap: 10px; }
+.aiReviewCard { border: 1px solid #eadfd4; border-radius: 16px; padding: 12px; }
+.aiReviewHead { display: flex; justify-content: space-between; align-items: flex-start; }
+.aiReviewHead div { display: flex; flex-direction: column; gap: 2px; }
+.aiReviewHead b { font-size: 14px; font-weight: 900; }
+.aiReviewHead span { font-size: 11px; color: #8b827a; }
+.aiReviewItem { display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-start; padding: 6px 0; border-bottom: 1px solid #f3ede4; }
+.aiReviewItem:last-child { border-bottom: none; }
+.aiReviewItem b { font-size: 13px; }
+.tag.pink  { background: #fbedf2; color: #a03050; border-color: #f3b8c8; }
+.tag.green { background: #edf8f3; color: #2d6a50; border-color: #b9dccc; }
