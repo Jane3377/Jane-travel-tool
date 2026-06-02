@@ -7876,3 +7876,50 @@ body.shareView .aiBarPlanner,
 body.shareView .aiBarPacking { display: none !important; }
 body.shareView .shareEditOnly { display: none !important; }
 body.shareView .check input[type="checkbox"] { pointer-events: none; }
+
+/* ── 分享獨立行程頁 ── */
+.sharePg {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 24px 16px 60px;
+  font-family: "PingFang TC","Noto Sans TC","Helvetica Neue",sans-serif;
+}
+.sharePgHead {
+  background: linear-gradient(135deg, #f7f3ec, #f0f6f2);
+  border: 1px solid #e2ddd5;
+  border-radius: 20px;
+  padding: 24px;
+  margin-bottom: 16px;
+}
+.sharePgHeroRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.sharePgTitle { font-size: 22px; margin: 0 0 4px; font-weight: 900; }
+.sharePgSub   { color: #8b827a; font-size: 13px; margin: 0; }
+.sharePgActions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.shareSyncBadge {
+  font-size: 11px;
+  color: #6f9f80;
+  background: #eaf4ee;
+  border: 1px solid #c8e6d8;
+  border-radius: 999px;
+  padding: 3px 10px;
+  white-space: nowrap;
+}
+.sharePgBody { display: flex; flex-direction: column; gap: 12px; }
+.sharePgFooter {
+  text-align: center;
+  color: #b0a89f;
+  font-size: 11px;
+  margin-top: 32px;
+}

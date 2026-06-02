@@ -443,14 +443,21 @@ async function bootFirebase() {
 }
 
 /* ══════════════════════════════════════════
-   分享唯讀模式
+   分享唯讀模式（獨立行程頁）
    ══════════════════════════════════════════ */
 
 async function loadSharedTrip(token) {
   shareViewMode  = true;
   shareViewToken = token;
-  deviceReadOnly = true;
-  document.body.classList.add('shareView');
+
+  // 先顯示 loading
+  const loginEl = $('loginView');
+  if (loginEl) loginEl.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:center;height:80vh;flex-direction:column;gap:12px;color:#8b827a">
+      <div class="badge">J 貞選旅管家</div>
+      <p>載入分享行程中…</p>
+    </div>`;
+  showShell('login');
 
   try {
     const snap = await fbDb.collection('publicShares').doc(token).get();
@@ -459,22 +466,14 @@ async function loadSharedTrip(token) {
       return;
     }
 
-    const doc = snap.data();
-    data = normalizeData(doc.data);
-    cur  = currentDay = data.days?.[0]?.key || data.trip?.start || '';
-
-    showShell('app');
-    view = 'trip';
-    renderNav();
-    render();
-    _renderShareBanner(doc.ownerEmail || '');
-    scrollTo(0, 0);
+    data = normalizeData(snap.data().data);
+    _renderSharePage();
 
     // 即時監聽更新
     fbDb.collection('publicShares').doc(token).onSnapshot(snap2 => {
       if (!snap2.exists || !snap2.data()?.data) return;
       data = normalizeData(snap2.data().data);
-      render();
+      _renderSharePage();
     }, err => console.warn('share listener error', err));
 
   } catch (e) {
@@ -482,21 +481,123 @@ async function loadSharedTrip(token) {
   }
 }
 
-function _renderShareBanner(ownerEmail) {
-  const header = document.querySelector('#mainApp header');
-  if (!header) return;
-  let el = $('shareBanner');
-  if (!el) {
-    el = document.createElement('div');
-    el.id = 'shareBanner';
-    header.appendChild(el);
-  }
-  el.className = 'shareBannerBar noPrint';
+function _renderSharePage() {
+  const el = $('loginView');
+  if (!el) return;
+
+  const title  = data.meta?.title || '我的旅程';
+  const dest   = data.trip?.dest  || '';
+  const start  = data.trip?.start ? short(data.trip.start) : '';
+  const end    = data.trip?.end   ? short(data.trip.end)   : '';
+  const now    = new Date().toLocaleTimeString('zh-TW', { hour:'2-digit', minute:'2-digit' });
+
   el.innerHTML = `
-    <div>
-      <b>唯讀分享</b>
-      <span>${ownerEmail ? esc(ownerEmail) + ' 分享的旅程｜' : ''}資料即時更新，你可以查看但無法修改。</span>
+    <div class="sharePg noPrint">
+      <div class="sharePgHead">
+        <div class="sharePgHeroRow">
+          <div>
+            <div class="badge" style="margin-bottom:8px">J 貞選旅管家</div>
+            <h1 class="sharePgTitle">${esc(title)}</h1>
+            <p class="sharePgSub">${esc(dest)}${start ? '｜' + start + ' — ' + end : ''}</p>
+          </div>
+          <div class="sharePgActions">
+            <button class="btn dark" onclick="printSharePage()">匯出 PDF</button>
+            <span class="shareSyncBadge">已更新 ${esc(now)}</span>
+          </div>
+        </div>
+      </div>
+      <div class="sharePgBody">
+        <div class="shareSection"><h4>✈️ 機票與交通</h4>${_buildFlightSection()}</div>
+        <div class="shareSection"><h4>🏨 住宿資訊</h4>${_buildHotelSection()}</div>
+        <div class="shareSection"><h4>🗓️ 每日行程</h4>${_buildDaySection()}</div>
+      </div>
+      <div class="sharePgFooter">貞選旅管家 Janeselect Travel Manager｜此頁面即時更新</div>
     </div>`;
+
+  showShell('login');
+}
+
+function printSharePage() {
+  const w = window.open('', '_blank');
+  if (!w) { alert('請允許瀏覽器開啟新視窗後再試一次。'); return; }
+  const title   = data.meta?.title || '旅程行程';
+  const dest    = data.trip?.dest  || '';
+  const start   = data.trip?.start || '';
+  const end     = data.trip?.end   || '';
+
+  const dayHtml = (data.days || []).map(d => {
+    const plans = sortedPlans(d.key).filter(p => p.source !== 'flight' && p.source !== 'hotel');
+    return `<div class="item">
+      <div class="dayHead">${esc(d.title)}｜${esc(d.label)}</div>
+      ${plans.length ? plans.map(p => {
+        const time = [p.start, p.end].filter(Boolean).join('－') || '未定';
+        return `<div class="plan">
+          <span class="pill">${esc(time)}</span>
+          <div>
+            <div class="main">${esc(p.name||'未命名')}</div>
+            ${p.address ? `<div class="mini">地址：${esc(p.address)}</div>` : ''}
+            ${p.note    ? `<div class="mini">注意：${esc(p.note)}</div>`    : ''}
+          </div>
+        </div>`;
+      }).join('') : '<div class="mini">尚未安排正式行程</div>'}
+    </div>`;
+  }).join('');
+
+  w.document.write(`<!DOCTYPE html>
+<html lang="zh-Hant"><head>
+<meta charset="UTF-8">
+<title>${esc(title)}</title>
+<style>
+  @page { size:A4; margin:12mm }
+  * { box-sizing:border-box }
+  body { font-family:"PingFang TC","Noto Sans TC","Helvetica Neue",sans-serif;
+         color:#2C2A29; background:#F7F3EC; margin:0; padding:24px }
+  .page { max-width:900px; margin:auto; background:#FFFDFC;
+          border:1px solid #E2DDD5; border-radius:28px;
+          overflow:hidden; box-shadow:0 18px 48px rgba(44,42,41,.08) }
+  .hero { padding:28px; background:linear-gradient(135deg,#FFFDFC,#F2F6F4);
+          border-bottom:1px solid #E2DDD5 }
+  .brand { display:inline-flex; border-radius:999px; background:#F2F6F4;
+           color:#4A5D4E; border:1px solid #E2DDD5;
+           padding:7px 12px; font-size:12px; font-weight:900; margin-bottom:14px }
+  h1 { font-size:26px; margin:0 0 6px }
+  .sub { color:#8B827A; font-size:13px }
+  .content { padding:22px }
+  .sec { border:1px solid #E2DDD5; border-radius:20px; padding:16px;
+         margin-bottom:14px; break-inside:avoid; background:#fff }
+  h2 { font-size:15px; margin:0 0 10px }
+  .item { border:1px solid #EEE8DF; border-radius:14px; padding:11px;
+          margin:8px 0; break-inside:avoid }
+  .dayHead { font-weight:900; margin-bottom:8px; font-size:14px }
+  .plan { display:grid; grid-template-columns:90px 1fr; gap:8px; margin:6px 0; align-items:start }
+  .pill { display:inline-flex; justify-content:center; border-radius:999px;
+          background:#F3EEE8; color:#6F6257; padding:4px 8px;
+          font-size:11px; font-weight:900; white-space:nowrap }
+  .main { font-weight:900; line-height:1.5 }
+  .mini { color:#8B827A; font-size:12px; margin-top:3px }
+  .footer { text-align:center; color:#8B827A; font-size:11px;
+            padding:14px; border-top:1px solid #E2DDD5 }
+  @media print {
+    body { background:#fff; padding:0 }
+    .page { box-shadow:none; border:0; border-radius:0 }
+  }
+</style></head>
+<body><div class="page">
+  <div class="hero">
+    <div class="brand">貞選旅管家</div>
+    <h1>${esc(title)}</h1>
+    <div class="sub">${esc(dest)}${start ? '｜' + start + ' — ' + end : ''}</div>
+  </div>
+  <div class="content">
+    <div class="sec"><h2>✈️ 機票與交通</h2>${_buildFlightSection().replace(/class="share/g,'class="')}</div>
+    <div class="sec"><h2>🏨 住宿資訊</h2>${_buildHotelSection().replace(/class="share/g,'class="')}</div>
+    <div class="sec"><h2>🗓️ 每日行程</h2>${dayHtml}</div>
+  </div>
+  <div class="footer">貞選旅管家 Janeselect Travel Manager</div>
+</div>
+<script>setTimeout(()=>window.print(),350)<\/script>
+</body></html>`);
+  w.document.close();
 }
 
 function _renderShareError(msg) {
