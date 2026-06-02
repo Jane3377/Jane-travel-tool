@@ -60,9 +60,11 @@ function savePlanForm() {
     const spot = data.spots.find(s => s.id === v16PendingSpotId);
     const plan = data.plans.find(p => p.name === name && p.day === day);
     if (spot && plan) {
-      spot.planId = plan.id;
-      plan.source = 'spot';
-      plan.lockedName = true;
+      spot.planId        = plan.id;
+      plan.source        = 'spot';
+      plan.lockedName    = true;
+      plan.krName        = spot.krName    || '';
+      plan.krAddress     = spot.krAddress || '';
     }
     v16PendingSpotId = null;
   }

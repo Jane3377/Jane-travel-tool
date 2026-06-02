@@ -7782,3 +7782,37 @@ body.readonly .btn:not(.btn-allow) { opacity: .4; pointer-events: none; }
   margin: 4px 12px 8px;
   background: #faf8f5;
 }
+
+/* ── 手機版行程卡片：按鈕移底部橫排，標題/注意全寬 ── */
+@media (max-width: 620px) {
+  .itineraryTop {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .itineraryTimeBlock {
+    flex-direction: row;
+    align-items: center;
+    grid-column: unset;
+    min-width: 0;
+  }
+  .itineraryTitleBlock {
+    grid-column: unset;
+    width: 100%;
+    min-width: 0;
+  }
+  .itineraryActions {
+    grid-column: unset;
+    flex-direction: row;
+    gap: 6px;
+    opacity: 1 !important;
+    transform: none !important;
+    align-self: auto;
+    margin-top: 2px;
+  }
+  .itineraryTitle {
+    -webkit-line-clamp: unset;
+    overflow: visible;
+    display: block;
+  }
+}

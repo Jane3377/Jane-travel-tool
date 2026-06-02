@@ -34,9 +34,11 @@ function saveSpot() {
         end:   item.end   || '11:30',
         type:  normalizePlanType(item.type),
         name:  item.name,
-        address: item.addr || '',
-        note:  item.memo || '',
-        memo:  '由口袋景點帶入',
+        address:   item.addr      || '',
+        note:      item.memo      || '',
+        memo:      '由口袋景點帶入',
+        krName:    item.krName    || '',
+        krAddress: item.krAddress || '',
         mode: 'foreign', foreign: 0, twd: 0, payer: '未定', payMethod: '未定',
         adjusted: false
       };
