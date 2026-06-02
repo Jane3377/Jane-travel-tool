@@ -476,7 +476,7 @@ function renderBudget() {
       <div class="aiBarLabel">AI 輔助</div>
       <div class="hint" style="margin-bottom:10px">檢查可能漏掉的預算項目，匯入後金額預設 0 讓你自行調整。</div>
       <div class="btns">
-        <button class="btn dark compact" onclick="showAIPrompt('itinerary')">AI 預算</button>
+        <button class="btn dark compact" onclick="showBudgetPrompt()">AI 預算</button>
         <button class="btn blue compact" onclick="openImportModal()">AI 匯入</button>
       </div>
     </div>

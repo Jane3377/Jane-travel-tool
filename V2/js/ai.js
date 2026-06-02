@@ -252,11 +252,13 @@ function _savePrefsAndShowPrompt(type) {
    提示詞 Modal（自動複製 + 開啟 AI）
    ────────────────────────────────────────── */
 function _showPromptModal(type) {
-  const prompt = type === 'spots'    ? buildSpotsPrompt()
-               : type === 'packing'  ? buildPackingPrompt()
+  const prompt = type === 'spots'   ? buildSpotsPrompt()
+               : type === 'packing' ? buildPackingPrompt()
+               : type === 'budget'  ? buildBudgetPrompt()
                : buildItineraryPrompt();
-  const title  = type === 'spots'    ? 'AI 找景點'
-               : type === 'packing'  ? 'AI 行李清單'
+  const title  = type === 'spots'   ? 'AI 找景點'
+               : type === 'packing' ? 'AI 行李清單'
+               : type === 'budget'  ? 'AI 預算'
                : 'AI 行程健檢';
 
   let modal = $('aiPromptModal');
@@ -341,6 +343,76 @@ function ensureAiModal() {
 }
 
 /* ══════════════════════════════════════════
+   AI 預算提示詞
+   ══════════════════════════════════════════ */
+
+function buildBudgetPrompt() {
+  const c = buildTripContext();
+
+  // 住宿
+  const hotels = data.hotels.map(h =>
+    `${short(h.start)}~${short(h.end)} ${h.name}${h.addr ? '｜' + h.addr : ''}${h.note ? '｜' + h.note : ''}`
+  ).join('\n') || '尚未設定住宿';
+
+  // 完整行程（含來源）
+  const allPlans = data.days.map(d => {
+    const plans = sortedPlans(d.key);
+    if (!plans.length) return '';
+    return plans.map(p => {
+      const time = [p.start, p.end].filter(Boolean).join('-');
+      const parts = [`${d.key} ${time ? time + '｜' : ''}${p.type}｜${p.name}`];
+      if (p.address) parts.push(`地址：${p.address}`);
+      if (p.note)    parts.push(`注意：${p.note}`);
+      return parts.join('｜');
+    }).join('\n');
+  }).filter(Boolean).join('\n');
+
+  // 已記預算
+  const expenses = data.expenses.map(e =>
+    `${e.type}｜${e.name}｜TWD ${e.twd || 0}${e.memo ? '｜' + e.memo : ''}`
+  ).join('\n') || '尚未記錄任何費用';
+
+  return `旅行資料：
+- 目的地：${c.dest}
+- 國家 / 區域：${c.country}
+- 日期：${c.dates}（${data.days.length} 天）
+- 旅伴：${c.travelers}
+- 幣別：${data.trip.currency}
+
+旅行日期：
+${c.days}
+
+住宿：
+${hotels}
+
+目前行程：
+${allPlans || '尚未安排行程'}
+
+目前預算 / 額外費用：
+${expenses}
+
+請幫我檢查這趟旅程可能漏掉哪些預算項目，例如網卡、機場交通、市區交通、票券、保險、咖啡甜點、伴手禮、行李加購等。金額不要亂估，請預設 TWD 0，讓我匯入後自行調整。
+
+請只輸出純 JSON，不要 Markdown，不要解釋文字。格式如下：
+{
+  "janeselect_import_type": "budget",
+  "items": [
+    {
+      "type": "交通票券/景點票券/餐飲/購物/網路/旅平險/其他",
+      "name": "建議補充的預算項目",
+      "mode": "TWD",
+      "twd": 0,
+      "memo": "為什麼建議補這筆"
+    }
+  ]
+}`;
+}
+
+function showBudgetPrompt() {
+  _showPromptModal('budget');
+}
+
+/* ══════════════════════════════════════════
    AI 匯入
    ══════════════════════════════════════════ */
 
@@ -383,6 +455,29 @@ function importAiJson() {
     const obj     = JSON.parse(raw);
     const spots   = Array.isArray(obj.spots) ? obj.spots : [];
     const reviews = Array.isArray(obj.items) ? obj.items : [];
+
+    // 預算匯入
+    if (obj.janeselect_import_type === 'budget' && Array.isArray(obj.items)) {
+      const budgetItems = obj.items.filter(x => x.name);
+      budgetItems.forEach(x => {
+        data.expenses.push({
+          id: uid(), source: 'AI匯入',
+          type:      String(x.type      || '其他'),
+          name:      String(x.name      || ''),
+          payer:     '未定',
+          payMethod: '未定',
+          day:       '',
+          mode:      String(x.mode      || 'TWD'),
+          foreign:   Number(x.foreign   || 0),
+          twd:       Number(x.twd       || 0),
+          memo:      String(x.memo      || 'AI 建議補充')
+        });
+      });
+      save();
+      toast(`已匯入 ${budgetItems.length} 筆預算項目`);
+      closeImportModal();
+      return;
+    }
 
     // 行李清單匯入
     const packItems = Array.isArray(obj.packing) ? obj.packing : [];
