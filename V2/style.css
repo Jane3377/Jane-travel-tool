@@ -7370,6 +7370,18 @@ body.readonly .btn:not(.btn-allow) { opacity: .4; pointer-events: none; }
 .aiReviewSummary b { font-size: 14px; font-weight: 900; }
 .aiReviewSummary > div > span { font-size: 11px; color: #8b827a; }
 .aiReviewCard[open] .aiReviewSummary { border-bottom: 1px solid #eadfd4; background: #faf7f2; }
+.aiReviewDelete {
+  border: 0;
+  background: transparent;
+  color: #b0a49a;
+  font-size: 11px;
+  font-weight: 900;
+  padding: 3px 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.aiReviewDelete:hover { color: #a85252; background: #ffecec; }
 .aiReviewBody { padding: 10px 12px; }
 .aiReviewItem { display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-start; padding: 6px 0; border-bottom: 1px solid #f3ede4; }
 .aiReviewItem:last-child { border-bottom: none; }
