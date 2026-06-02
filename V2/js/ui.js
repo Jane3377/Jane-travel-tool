@@ -137,13 +137,9 @@ function renderTrip() {
   data.hotels.sort((a, b) => String(a.start).localeCompare(b.start));
 
   el.innerHTML = `
-    <div class="section"><div>
-      <h2>🌏 旅遊地設定</h2>
-      <div class="hint">先設定旅遊地、日期、幣別與旅伴。完成後才會開啟航班住宿、行程、口袋景點、預算、行李與旅遊書。</div>
-    </div></div>
-
-    <details class="card" open><summary>① 旅遊地與旅伴</summary>
-    <div class="detailBody">
+    <div class="card">
+      <h2 style="margin:0 0 4px">🌏 旅遊地設定</h2>
+      <div class="hint" style="margin-bottom:14px">先設定旅遊地、日期、幣別與旅伴。完成後才會開啟航班住宿、行程、口袋景點、預算、行李與旅遊書。</div>
       <div class="three compactMobile">
         <div><label>國家 / 區域</label>
           <select id="country" onchange="countryChanged()">
@@ -187,7 +183,7 @@ function renderTrip() {
         ).join('')}
       </div>
       <div class="btns"><button class="btn dark" onclick="saveBasic()">儲存旅遊地設定</button></div>
-    </div></details>`;
+    </div>`;
 }
 
 function renderStay() {
@@ -358,7 +354,6 @@ function renderSpots() {
       <div><h2>📍 口袋景點</h2>
         <div class="hint">可手動新增，也可以用 AI 產出 JSON 後匯入。</div>
       </div>
-      <button class="iconBtn smallIcon" onclick="clearSpotForm()">＋</button>
     </div>
 
     <div class="card aiBarSpots">
@@ -470,7 +465,6 @@ function renderBudget() {
       <div><h2>💰 預算總覽</h2>
         <div class="hint">新增行程時會自動建立一筆花費，可在這裡補金額。</div>
       </div>
-      <button class="iconBtn smallIcon" onclick="clearExpenseForm()">＋</button>
     </div>
     ${budgetSummaryHtml(items)}
     <div class="card">
