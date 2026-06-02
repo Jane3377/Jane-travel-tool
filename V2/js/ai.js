@@ -648,36 +648,6 @@ async function revokeShareLink() {
   toast('分享連結已停用');
 }
 
-function _shareLinkSectionHtml() {
-  if (shareViewMode) return ''; // 分享檢視模式不顯示此區
-  const url   = _getShareUrl();
-  const hasCloud = canUseCloud();
-  if (url) {
-    return `
-      <div class="shareSection">
-        <h4>🔗 即時分享連結</h4>
-        <p class="shareMuted">任何人打開連結即可查看此行程（唯讀），資料即時更新。</p>
-        <div class="shareLinkRow">
-          <input class="shareLinkInput" readonly value="${esc(url)}">
-          <button class="btn soft compact" onclick="copyShareLink()">複製</button>
-        </div>
-        <div class="btns" style="margin-top:8px">
-          <button class="btn blue" onclick="shareToLine()">分享到 LINE</button>
-          <button class="btn soft" onclick="copyShareLink()">複製連結</button>
-          <button class="btn danger compact" onclick="revokeShareLink()">停用連結</button>
-        </div>
-      </div>`;
-  }
-  return `
-    <div class="shareSection">
-      <h4>🔗 即時分享連結</h4>
-      <p class="shareMuted">產生連結後，任何人都可以即時查看此行程（唯讀）。</p>
-      ${hasCloud
-        ? `<div class="btns"><button class="btn soft" onclick="generateShareLink()">產生即時分享連結</button></div>`
-        : `<p class="shareMuted" style="color:#c0857a">請先登入 Google 才能使用分享功能。</p>`}
-    </div>`;
-}
-
 /* ──────────────────────────────────────────
    分享行程 Modal（漂亮版面，含 PDF 匯出）
    ────────────────────────────────────────── */
@@ -748,6 +718,8 @@ function openShareModal() {
     document.body.appendChild(modal);
   }
 
+  const url = _getShareUrl();
+
   modal.innerHTML = `
     <div class="shareBox">
       <div class="shareHero">
@@ -761,14 +733,32 @@ function openShareModal() {
         </div>
       </div>
       <div class="shareScroll">
-        ${_shareLinkSectionHtml()}
         <div class="shareSection"><h4>✈️ 機票與交通</h4>${_buildFlightSection()}</div>
         <div class="shareSection"><h4>🏨 住宿資訊</h4>${_buildHotelSection()}</div>
         <div class="shareSection"><h4>🗓️ 每日簡易行程</h4>${_buildDaySection()}</div>
       </div>
-      <div class="shareActions">
-        <button class="btn soft" onclick="copyItinerary()">複製分享文字</button>
-        <button class="btn dark" onclick="printItinerary()">匯出 PDF / 列印</button>
+      <div class="shareActionsBar">
+        ${url ? `
+          <div class="shareLinkRow">
+            <input class="shareLinkInput" readonly value="${esc(url)}">
+            <button class="btn soft compact" onclick="copyShareLink()">複製</button>
+          </div>
+          <div class="shareActionsRow">
+            <button class="btn blue compact" onclick="shareToLine()">LINE 分享</button>
+            <button class="btn soft compact" onclick="copyShareLink()">複製連結</button>
+            <button class="btn soft compact" onclick="copyItinerary()">複製文字</button>
+            <button class="btn dark compact" onclick="printItinerary()">匯出 PDF</button>
+            <button class="shareRevokeBtn" onclick="revokeShareLink()">停用連結</button>
+          </div>
+        ` : `
+          <div class="shareActionsRow">
+            ${canUseCloud()
+              ? `<button class="btn soft compact" onclick="generateShareLink()">🔗 產生即時連結</button>`
+              : `<span class="shareMuted" style="font-size:12px;align-self:center">登入後可產生即時連結</span>`}
+            <button class="btn soft compact" onclick="copyItinerary()">複製文字</button>
+            <button class="btn dark compact" onclick="printItinerary()">匯出 PDF</button>
+          </div>
+        `}
       </div>
     </div>`;
   modal.classList.add('show');
