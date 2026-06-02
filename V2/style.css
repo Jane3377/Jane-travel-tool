@@ -7865,3 +7865,14 @@ body.shareView .noPrint.accountWidget { display: none !important; }
   color: var(--ink);
   min-width: 0;
 }
+
+/* ── 分享唯讀：隱藏所有編輯元素 ── */
+body.shareView details.card { display: none !important; }
+body.shareView button.small { display: none !important; }
+body.shareView .iconBtn { display: none !important; }
+body.shareView .panel .btns { display: none !important; }
+body.shareView .aiBarSpots,
+body.shareView .aiBarPlanner,
+body.shareView .aiBarPacking { display: none !important; }
+body.shareView .shareEditOnly { display: none !important; }
+body.shareView .check input[type="checkbox"] { pointer-events: none; }

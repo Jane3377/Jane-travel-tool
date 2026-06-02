@@ -182,7 +182,7 @@ function renderTrip() {
            <input id="traveler${i}" value="${esc(data.trip.travelers?.[i]||String.fromCharCode(65+i))}"></div>`
         ).join('')}
       </div>
-      <div class="btns"><button class="btn dark" onclick="saveBasic()">儲存旅遊地設定</button></div>
+      <div class="btns shareEditOnly"><button class="btn dark" onclick="saveBasic()">儲存旅遊地設定</button></div>
     </div>`;
 }
 
@@ -330,14 +330,15 @@ function renderPlanner() {
   if (!aiBar) {
     const section = el.querySelector('.section');
     if (section) section.insertAdjacentHTML('afterend', `
-      <div class="card aiBarPlanner">
+      <div class="card ${shareViewMode ? '' : 'aiBarPlanner'}">
+        ${shareViewMode ? '' : `
         <div class="aiBarLabel">AI 輔助</div>
         <div class="hint" style="margin-bottom:10px">只檢查已排入行程；偏好在產生提示詞時設定。</div>
         <div class="btns">
           <button class="btn dark compact" onclick="showAIPrompt('itinerary')">AI 健檢</button>
           <button class="btn blue compact" onclick="openImportModal()">AI 匯入</button>
           <button class="btn soft compact" onclick="openShareModal()">分享行程</button>
-        </div>
+        </div>`}
         ${aiReviewHtml()}
       </div>`);
   }
@@ -440,9 +441,9 @@ function renderSpots() {
             </div>
             ${s.memo ? `<div class="box pink">${esc(s.memo)}</div>` : ''}
             <div class="btns">
-              ${hasP
+              ${shareViewMode ? '' : (hasP
                 ? `<button class="btn soft compact" onclick="returnSpotToPocket('${s.id}')">放回口袋</button>`
-                : `<button class="btn soft compact" onclick="useSpot('${s.id}')">排入行程</button>`}
+                : `<button class="btn soft compact" onclick="useSpot('${s.id}')">排入行程</button>`)}
               <button class="btn blue compact" onclick="openExploreModal('${s.id}')">探索</button>
               <button class="btn soft compact" onclick="openMap('${encodeURIComponent(s.name+' '+(s.addr||data.trip.dest))}')">地圖</button>
               ${isKorea ? `<button class="btn soft compact" onclick="naverMapSpot('${s.id}')">NAVER 地圖</button>` : ''}
@@ -467,7 +468,7 @@ function renderBudget() {
       </div>
     </div>
     ${budgetSummaryHtml(items)}
-    <div class="card">
+    <div class="card shareEditOnly">
       <div class="three compactMobile">
         <div><label>費用類型</label>
           <select id="etype">
@@ -495,7 +496,7 @@ function renderBudget() {
         <button class="btn blue compact" onclick="openRateSearch()">查匯率</button>
       </div>
     </div>
-    <div class="card">
+    <div class="card shareEditOnly">
       <div class="aiBarLabel">AI 輔助</div>
       <div class="hint" style="margin-bottom:10px">檢查可能漏掉的預算項目，匯入後金額預設 0 讓你自行調整。</div>
       <div class="btns">
@@ -523,7 +524,7 @@ function renderPacking() {
         <option value="out" ${current==='out'?'selected':''}>離開飯店</option>
       </select>
     </div>
-    <div class="card">
+    <div class="card shareEditOnly">
       <div class="two">
         <div><label>新增項目</label><input id="pkn"></div>
         <div><label>備註</label><input id="pkm"></div>
