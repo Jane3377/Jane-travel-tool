@@ -165,34 +165,99 @@ ${dayPlans}
    AI 提示詞 Modal
    ══════════════════════════════════════════ */
 
+/* ──────────────────────────────────────────
+   AI 偏好 Modal（先選偏好再產生提示詞）
+   適用：spots / itinerary / packing
+   ────────────────────────────────────────── */
 function showAIPrompt(type = 'spots') {
-  const modal = ensureAiModal();
-  const prompt = type === 'spots'     ? buildSpotsPrompt()
+  // packing 不需要偏好，直接跳到提示詞
+  if (type === 'packing') { _showPromptModal(type); return; }
+
+  // spots / itinerary 先顯示偏好 modal
+  let modal = $('aiPrefsModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'aiPrefsModal';
+    modal.className = 'aiPromptModal';
+    modal.onclick = e => { if (e.target === modal) modal.classList.remove('show'); };
+    document.body.appendChild(modal);
+  }
+
+  const isSpot = type === 'spots';
+  const prefs  = loadAiPrefs();
+  modal.innerHTML = `
+    <div class="aiPromptBox">
+      <div class="aiModalHead">
+        <div>
+          <h3>${isSpot ? 'AI 找景點' : 'AI 行程健檢'}</h3>
+          <p>${isSpot
+            ? '加入偏好後，AI 會依航班、住宿與已排入行程推薦更適合的口袋景點。'
+            : '加入偏好後，AI 會用更貼近你的旅行節奏檢查行程。'}</p>
+        </div>
+        <button class="aiModalClose" onclick="$('aiPrefsModal').classList.remove('show')">×</button>
+      </div>
+      ${aiPrefsHtml()}
+      <div class="aiModalNote box mint" style="margin-top:12px">
+        ${isSpot
+          ? '提示詞會帶入航班、住宿、已排入行程與既有口袋景點，讓 AI 推薦備選日期與建議時間。'
+          : 'AI 健檢只會檢查已排入行程，不會把口袋景點當成正式行程。'}
+      </div>
+      <div class="btns" style="margin-top:14px">
+        <button class="btn dark" onclick="_savePrefsAndShowPrompt('${type}')">產生提示詞</button>
+        <button class="btn soft" onclick="$('aiPrefsModal').classList.remove('show')">取消</button>
+      </div>
+    </div>`;
+  modal.classList.add('show');
+}
+
+function _savePrefsAndShowPrompt(type) {
+  saveAiPrefs();
+  $('aiPrefsModal')?.classList.remove('show');
+  _showPromptModal(type);
+}
+
+/* ──────────────────────────────────────────
+   提示詞 Modal（自動複製 + 開啟 AI）
+   ────────────────────────────────────────── */
+function _showPromptModal(type) {
+  const prompt = type === 'spots'    ? buildSpotsPrompt()
                : type === 'packing'  ? buildPackingPrompt()
                : buildItineraryPrompt();
   const title  = type === 'spots'    ? 'AI 找景點'
                : type === 'packing'  ? 'AI 行李清單'
                : 'AI 行程健檢';
 
+  let modal = $('aiPromptModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'aiPromptModal';
+    modal.className = 'aiPromptModal';
+    modal.onclick = e => { if (e.target === modal) modal.classList.remove('show'); };
+    document.body.appendChild(modal);
+  }
+
   modal.innerHTML = `
     <div class="aiPromptBox">
-      <div class="section">
-        <h3>${esc(title)}</h3>
-        <button class="iconBtn" onclick="closeAIPrompt()">×</button>
+      <div class="aiModalHead">
+        <div>
+          <h3>${esc(title)}</h3>
+          <p>點下方按鈕會自動複製提示詞並開啟 AI，請在新分頁貼上即可。</p>
+        </div>
+        <button class="aiModalClose" onclick="closeAIPrompt()">×</button>
       </div>
-      <p style="font-size:13px;color:#8b827a;margin-bottom:10px">複製提示詞後，可貼到 ChatGPT 或 Gemini 使用。點按鈕會自動複製並開啟新分頁。</p>
-      ${(type === 'itinerary' || type === 'spots') ? aiPrefsHtml() : ''}
-      <textarea id="aiPromptText">${esc(prompt)}</textarea>
-      <div class="btns">
+      <textarea id="aiPromptText" readonly style="font-size:12px;line-height:1.6;min-height:140px;background:#f7f3ec">${esc(prompt)}</textarea>
+      <div class="aiTargetBtns">
         <button class="btn dark"  onclick="openAiTarget('chatgpt')">ChatGPT</button>
         <button class="btn blue"  onclick="openAiTarget('gemini')">Gemini</button>
         <button class="btn soft"  onclick="openAiTarget('claude')">Claude</button>
-        <button class="btn"       onclick="copyAIPrompt()">複製</button>
-        <button class="btn soft"  onclick="closeAIPrompt()">關閉</button>
       </div>
+      <div class="btns" style="margin-top:8px">
+        <button class="btn soft compact" onclick="copyAIPrompt()">只複製</button>
+        <button class="btn soft compact" onclick="closeAIPrompt()">關閉</button>
+      </div>
+      <p class="aiPromptNote">匯入 AI 回傳的 JSON 請用下方「AI 匯入」按鈕。</p>
     </div>`;
   modal.classList.add('show');
-  if ($('aiPromptText')) $('aiPromptText').value = prompt;
 }
 
 function closeAIPrompt() {
@@ -386,26 +451,97 @@ function itineraryText() {
   return lines.join('\n');
 }
 
+/* ──────────────────────────────────────────
+   分享行程 Modal（漂亮版面，含 PDF 匯出）
+   ────────────────────────────────────────── */
+
+function _buildFlightSection() {
+  const sections = ['out','back'].map(k => {
+    const f = normalizeFlightObj(data.flights[k]);
+    const segs = f.segments.filter(s => s.no || s.from || s.dep);
+    if (!segs.length) return '';
+    const dir  = k === 'out' ? '去程' : '回程';
+    const type = f.type === 'transfer' ? '轉機' : '直飛';
+    return `<div class="shareFlightItem">
+      <div class="shareTag">${esc(dir)}｜${esc(type)}</div>
+      ${segs.map((s, i) => `
+        <div class="shareFlightSeg">
+          <div class="shareSegLabel">第 ${i+1} 段</div>
+          <div class="shareFlightLine">
+            <b>${esc(s.no || '—')}</b>
+            <span>${esc(s.from||'')} → ${esc(s.to||'')}</span>
+            <span class="shareTimePill">${(s.dep||'').slice(5,16).replace('T',' ')} → ${(s.arr||'').slice(5,16).replace('T',' ')}</span>
+          </div>
+        </div>`).join('')}
+    </div>`;
+  }).filter(Boolean);
+  return sections.length ? sections.join('') : '<div class="shareMuted">尚未設定航班</div>';
+}
+
+function _buildHotelSection() {
+  if (!data.hotels?.length) return '<div class="shareMuted">尚未新增住宿</div>';
+  return data.hotels.map(h => `
+    <div class="shareHotelItem">
+      <b>${esc(h.name)}</b>
+      <span class="shareTimePill">${short(h.start)} — ${short(h.end)}</span>
+      ${h.addr ? `<div class="shareMuted" style="margin-top:4px">${esc(h.addr)}</div>` : ''}
+    </div>`).join('');
+}
+
+function _buildDaySection() {
+  return (data.days || []).map(d => {
+    const plans = sortedPlans(d.key).filter(p => p.source !== 'flight' && p.source !== 'hotel');
+    return `<div class="shareDayItem">
+      <div class="shareDayHead">
+        <b>${esc(d.title)}｜${esc(d.label)}</b>
+        <span class="shareTimePill">${plans.length} 個行程</span>
+      </div>
+      ${plans.length ? plans.map(p => {
+        const time = [p.start, p.end].filter(Boolean).join('－') || '未定時間';
+        return `<div class="sharePlanRow">
+          <span class="shareTimePill">${esc(time)}</span>
+          <div>
+            <div class="sharePlanName">${activityIcon(p.type)} ${esc(p.name||'未命名')}</div>
+            ${p.address ? `<div class="shareMuted">地址：${esc(p.address)}</div>` : ''}
+            ${p.note    ? `<div class="shareMuted">注意：${esc(p.note)}</div>` : ''}
+          </div>
+        </div>`;
+      }).join('') : '<div class="shareMuted">尚未安排正式行程</div>'}
+    </div>`;
+  }).join('');
+}
+
 function openShareModal() {
   let modal = $('itineraryShareModal');
   if (!modal) {
     modal = document.createElement('div');
-    modal.id        = 'itineraryShareModal';
-    modal.className = 'aiPromptModal';
+    modal.id = 'itineraryShareModal';
+    modal.className = 'shareModal';
+    modal.onclick = e => { if (e.target === modal) closeShareModal(); };
     document.body.appendChild(modal);
   }
+
   modal.innerHTML = `
-    <div class="aiPromptBox">
-      <div class="section">
-        <h3>分享行程</h3>
-        <button class="iconBtn" onclick="closeShareModal()">×</button>
+    <div class="shareBox">
+      <div class="shareHero">
+        <div class="shareHeroTop">
+          <div>
+            <div class="shareBrand">貞選旅管家 Janeselect Travel Manager</div>
+            <h3>${esc(data.meta.title || '我的旅行行程')}</h3>
+            <p>${esc(data.trip.dest || '')}｜${esc(data.trip.start && data.trip.end ? `${short(data.trip.start)} — ${short(data.trip.end)}` : '未設定')}</p>
+          </div>
+          <button class="shareClose" onclick="closeShareModal()">×</button>
+        </div>
       </div>
-      <div class="btns">
-        <button class="btn dark" onclick="copyItinerary()">複製純文字</button>
-        <button class="btn blue" onclick="printItinerary()">列印行程單</button>
-        <button class="btn soft" onclick="closeShareModal()">關閉</button>
+      <div class="shareScroll">
+        <div class="shareSection"><h4>✈️ 機票與交通</h4>${_buildFlightSection()}</div>
+        <div class="shareSection"><h4>🏨 住宿資訊</h4>${_buildHotelSection()}</div>
+        <div class="shareSection"><h4>🗓️ 每日簡易行程</h4>${_buildDaySection()}</div>
       </div>
-      <pre class="sharePreview">${esc(itineraryText())}</pre>
+      <div class="shareActions">
+        <button class="btn soft" onclick="copyItinerary()">複製分享文字</button>
+        <button class="btn dark" onclick="printItinerary()">匯出 PDF / 列印</button>
+      </div>
     </div>`;
   modal.classList.add('show');
 }
@@ -414,31 +550,102 @@ function closeShareModal() {
   $('itineraryShareModal')?.classList.remove('show');
 }
 
-function copyItinerary() {
+async function copyItinerary() {
   const text = itineraryText();
-  navigator.clipboard?.writeText(text)
-    .then(() => toast('已複製行程'))
-    .catch(() => {
-      const ta = document.createElement('textarea');
-      ta.value = text;
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
-      toast('已複製行程');
-    });
+  try {
+    await navigator.clipboard.writeText(text);
+    toast('已複製分享文字');
+  } catch (e) {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.left = '-9999px';
+    document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); ta.remove();
+    toast('已複製分享文字');
+  }
 }
 
 function printItinerary() {
-  const w = window.open('', '_blank', 'width=800,height=900');
-  if (!w) return;
-  w.document.write(`<!DOCTYPE html><html lang="zh-Hant"><head>
-    <meta charset="UTF-8"><title>${esc(data.meta.title||'行程')}</title>
-    <style>body{font-family:'PingFang TC',sans-serif;max-width:640px;margin:24px auto;font-size:14px;line-height:1.8}
-    pre{white-space:pre-wrap;font-family:inherit}</style></head>
-    <body><pre>${esc(itineraryText())}</pre></body></html>`);
+  const w = window.open('', '_blank');
+  if (!w) { alert('請允許瀏覽器開啟新視窗後再試一次。'); return; }
+  const title = data.meta.title || '簡易行程';
+
+  const dayPrint = (data.days || []).map(d => {
+    const plans = sortedPlans(d.key).filter(p => p.source !== 'flight' && p.source !== 'hotel');
+    return `<div class="item">
+      <div class="dayHead"><b>${esc(d.title)}｜${esc(d.label)}</b></div>
+      ${plans.length ? plans.map(p => {
+        const time = [p.start, p.end].filter(Boolean).join('－') || '未定';
+        return `<div class="plan">
+          <span class="pill">${esc(time)}</span>
+          <div>
+            <div class="main">${esc(p.name||'未命名')}</div>
+            ${p.address ? `<div class="mini">地址：${esc(p.address)}</div>` : ''}
+            ${p.note    ? `<div class="mini">注意：${esc(p.note)}</div>`    : ''}
+          </div>
+        </div>`;
+      }).join('') : '<div class="mini">尚未安排正式行程</div>'}
+    </div>`;
+  }).join('');
+
+  w.document.write(`<!DOCTYPE html>
+<html lang="zh-Hant"><head>
+<meta charset="UTF-8">
+<title>${esc(title)}</title>
+<style>
+  @page { size:A4; margin:12mm }
+  * { box-sizing:border-box }
+  body { font-family:"PingFang TC","Noto Sans TC","Helvetica Neue",sans-serif;
+         color:#2C2A29; background:#F7F3EC; margin:0; padding:24px }
+  .page { max-width:900px; margin:auto; background:#FFFDFC;
+          border:1px solid #E2DDD5; border-radius:28px;
+          overflow:hidden; box-shadow:0 18px 48px rgba(44,42,41,.08) }
+  .hero { padding:28px;
+          background:linear-gradient(135deg,#FFFDFC,#F2F6F4);
+          border-bottom:1px solid #E2DDD5 }
+  .brand { display:inline-flex; border-radius:999px; background:#F2F6F4;
+           color:#4A5D4E; border:1px solid #E2DDD5;
+           padding:7px 12px; font-size:12px; font-weight:900; margin-bottom:14px }
+  h1 { font-size:28px; margin:0 0 6px }
+  .sub { color:#8B827A; font-size:13px; line-height:1.6 }
+  .content { padding:22px }
+  .sec { border:1px solid #E2DDD5; border-radius:20px; padding:16px;
+         margin-bottom:14px; break-inside:avoid; background:#fff }
+  h2 { font-size:16px; margin:0 0 10px }
+  .item { border:1px solid #EEE8DF; border-radius:16px;
+          padding:11px; margin:8px 0; break-inside:avoid }
+  .dayHead { font-weight:900; margin-bottom:8px; font-size:14px }
+  .plan { display:grid; grid-template-columns:90px 1fr;
+          gap:8px; margin:6px 0; align-items:start }
+  .pill { display:inline-flex; justify-content:center;
+          border-radius:999px; background:#F3EEE8; color:#6F6257;
+          padding:4px 8px; font-size:11px; font-weight:900;
+          white-space:nowrap }
+  .main { font-weight:900; line-height:1.5 }
+  .mini { color:#8B827A; font-size:12px; margin-top:3px }
+  .footer { text-align:center; color:#8B827A; font-size:11px;
+            padding:14px; border-top:1px solid #E2DDD5 }
+  @media print {
+    body { background:#fff; padding:0 }
+    .page { box-shadow:none; border:0; border-radius:0 }
+    .sec { page-break-inside:avoid }
+  }
+</style></head>
+<body><div class="page">
+  <div class="hero">
+    <div class="brand">貞選旅管家 Janeselect Travel Manager</div>
+    <h1>${esc(title)}</h1>
+    <div class="sub">${esc(data.trip.dest||'')}｜${esc(data.trip.start && data.trip.end ? `${data.trip.start} — ${data.trip.end}` : '')}</div>
+  </div>
+  <div class="content">
+    <div class="sec"><h2>✈️ 機票與交通</h2>${_buildFlightSection().replace(/class="share/g, 'class="')}</div>
+    <div class="sec"><h2>🏨 住宿資訊</h2>${_buildHotelSection().replace(/class="share/g, 'class="')}</div>
+    <div class="sec"><h2>🗓️ 每日行程</h2>${dayPrint}</div>
+  </div>
+  <div class="footer">貞選旅管家 Janeselect Travel Manager</div>
+</div>
+<script>setTimeout(()=>window.print(),350)<\/script>
+</body></html>`);
   w.document.close();
-  setTimeout(() => w.print(), 200);
 }
 
 /* ── AI 健檢建議顯示（在行程頁顯示） ── */
