@@ -7329,7 +7329,7 @@ body.readonly .btn:not(.btn-allow) { opacity: .4; pointer-events: none; }
 @media print  { .noPrint   { display: none !important; } }
 
 /* ── 航班表單緊湊版 ── */
-.flightBox { padding: 10px; }
+.flightBox { padding: 10px; white-space: normal; }
 .flightBoxTitle {
   display: block;
   font-size: 14px;
