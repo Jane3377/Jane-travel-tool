@@ -200,11 +200,6 @@ function showAIPrompt(type = 'spots') {
         <button class="aiModalClose" onclick="$('aiPrefsModal').classList.remove('show')">×</button>
       </div>
       ${aiPrefsHtml()}
-      <div class="aiModalNote box mint" style="margin-top:6px">
-        ${isSpot
-          ? '提示詞會帶入航班、住宿、已排入行程與既有口袋景點，讓 AI 推薦備選日期與建議時間。'
-          : 'AI 健檢只會檢查已排入行程，不會把口袋景點當成正式行程。'}
-      </div>
       <div class="btns" style="margin-top:14px">
         <button class="btn dark" onclick="_savePrefsAndShowPrompt('${type}')">產生提示詞</button>
         <button class="btn soft" onclick="$('aiPrefsModal').classList.remove('show')">取消</button>
