@@ -198,9 +198,26 @@ function changeConnMode(id, val) {
 }
 
 function connHtml(a, b) {
-  const conn    = getOrCreateConn(a, b);
-  const arrival = addMinutes(a.end, Number(conn.h || 0) * 60 + Number(conn.m || 0));
-  const isTaxi  = conn.mode === '開車/計程車';
+  const conn     = getOrCreateConn(a, b);
+  const totalH   = Number(conn.h || 0);
+  const totalM   = Number(conn.m || 0);
+  const arrival  = addMinutes(a.end, totalH * 60 + totalM);
+  const isTaxi   = conn.mode === '開車/計程車';
+  const isKorea  = data.trip.country === '韓國';
+  const timeLabel = totalH > 0 && totalM > 0 ? `${totalH}時${totalM}分`
+                  : totalH > 0 ? `${totalH}時`
+                  : totalM > 0 ? `${totalM}分` : '0分';
+
+  // Summary route button — Kakao for Korea, Google Maps for others
+  const aName = isKorea ? (a.krName || a.name) : a.name;
+  const bName = isKorea ? (b.krName || b.name) : b.name;
+  const summaryRouteBtn = isKorea
+    ? `<button class="btn blue compact" onclick="event.stopPropagation();window.open('https://map.kakao.com/?sName=${encodeURIComponent(aName)}&eName=${encodeURIComponent(bName)}','_blank')">Kakao 路線</button>`
+    : `<button class="btn blue compact" onclick="event.stopPropagation();openRoute('${encodeURIComponent(a.name+' '+data.trip.dest)}','${encodeURIComponent(b.name+' '+data.trip.dest)}','${conn.mode}')">Google Maps</button>`;
+
+  const detailRouteBtn = isKorea
+    ? `<button class="btn blue" onclick="window.open('https://map.kakao.com/?sName=${encodeURIComponent(aName)}&eName=${encodeURIComponent(bName)}','_blank')">Kakao Maps 查路線</button>`
+    : `<button class="btn blue" onclick="openRoute('${encodeURIComponent(a.name+' '+data.trip.dest)}','${encodeURIComponent(b.name+' '+data.trip.dest)}','${conn.mode}')">Google Maps 查路線</button>`;
 
   const taxiBlock = isTaxi ? `
     <div class="four" style="margin-top:8px">
@@ -219,51 +236,57 @@ function connHtml(a, b) {
     </div>` : '';
 
   return `
-    <div class="connector">
-      <div class="arrow">↓</div>
-      <div class="connbox">
+    <details class="connRow">
+      <summary class="connSummary">
+        <span>${esc(conn.mode || '大眾運輸')}</span>
+        <span>${timeLabel}</span>
+        ${arrival ? `<span>→ 預計抵達 ${esc(arrival)}</span>` : ''}
+        ${summaryRouteBtn}
+      </summary>
+      <div class="connDetail">
         <div class="three">
           <div><label>交通方式</label>
             <select onchange="changeConnMode('${conn.id}',this.value)">
-              ${['大眾運輸','走路','開車/計程車'].map(m =>
-                `<option ${conn.mode===m?'selected':''}>${m}</option>`).join('')}
+              ${['大眾運輸','走路','開車/計程車'].map(mode =>
+                `<option ${conn.mode===mode?'selected':''}>${mode}</option>`).join('')}
             </select></div>
           <div><label>預估時間</label>
             <div class="two">
               <select onchange="updateConn('${conn.id}','h',this.value)">
-                ${Array.from({length:24},(_,h)=>`<option value="${h}" ${Number(conn.h)===h?'selected':''}>${h}時</option>`).join('')}
+                ${Array.from({length:24},(_,hi)=>`<option value="${hi}" ${Number(conn.h)===hi?'selected':''}>${hi}時</option>`).join('')}
               </select>
               <select onchange="updateConn('${conn.id}','m',this.value)">
-                ${Array.from({length:60},(_,m)=>`<option value="${m}" ${Number(conn.m)===m?'selected':''}>${m}分</option>`).join('')}
+                ${Array.from({length:60},(_,mi)=>`<option value="${mi}" ${Number(conn.m)===mi?'selected':''}>${mi}分</option>`).join('')}
               </select>
             </div></div>
           <div><label>預計抵達</label>
             <input value="${arrival||''}" disabled></div>
         </div>
         ${taxiBlock}
-        <div class="btns">
-          <button class="btn blue"
-            onclick="openRoute('${encodeURIComponent(a.name+' '+data.trip.dest)}','${encodeURIComponent(b.name+' '+data.trip.dest)}','${conn.mode}')">
-            Google Maps 查路線</button>
-        </div>
+        <div class="btns">${detailRouteBtn}</div>
         <input value="${esc(conn.memo)}" placeholder="交通備註"
                oninput="updateConn('${conn.id}','memo',this.value)">
       </div>
-    </div>`;
+    </details>`;
 }
 
 /* ══════════════════════════════════════════
    行程卡片
    ══════════════════════════════════════════ */
 
-function planCard(p) {
+function planCard(p, num = null) {
+  const isAuto   = num === null;
   const mapQuery = encodeURIComponent(
     [(p.address||''), p.name, data.trip.dest].filter(Boolean).join(' ')
   );
   return `
     <div class="itineraryItem">
-      <div class="itineraryDotWrap"><span class="itineraryDot"></span></div>
-      <article class="itineraryCard">
+      <div class="itineraryDotWrap">
+        ${isAuto
+          ? '<span class="itineraryDot"></span>'
+          : `<span class="planIndex">${num}</span>`}
+      </div>
+      <article class="itineraryCard${isAuto ? ' planCard--auto' : ''}">
         <div class="itineraryTop">
           <div class="itineraryTimeBlock">
             <span class="itineraryTime">${esc(p.start||'--:--')}</span>
@@ -294,9 +317,12 @@ function planCard(p) {
 function planCards(plans) {
   if (!plans.length) return '<div class="empty">這天還沒有行程</div>';
   let html = '<div class="itineraryTimeline">';
+  let manualIndex = 0;
   plans.forEach((p, i) => {
+    const isAuto = p.source === 'flight' || p.source === 'hotel';
+    const num = isAuto ? null : ++manualIndex;
     if (i > 0) html += connHtml(plans[i-1], p);
-    html += planCard(p);
+    html += planCard(p, num);
   });
   html += '</div>';
   return html;
