@@ -49,7 +49,7 @@ function aiPrefsHtml() {
           <select id="aiZodiac" onchange="saveAiPrefs()">${opts(AI_ZODIACS, p.zodiac)}</select></div>
       </div>
       <label style="margin-top:10px">描述需求（選填）</label>
-      <textarea id="aiUserNote" rows="2" style="min-height:56px;font-size:13px"
+      <textarea id="aiUserNote" rows="3" style="min-height:72px;max-height:90px;font-size:13px;resize:none"
         placeholder="例：想找步行可達的咖啡廳，避開太觀光的地點，喜歡有設計感的小店…"
         oninput="saveAiPrefs()">${esc(p.note||'')}</textarea>
     </div>`;
@@ -118,6 +118,12 @@ function buildPackingPrompt() {
 
 function buildSpotsPrompt() {
   const c = buildTripContext();
+  const dayPlans = data.days.map(d => {
+    const plans = sortedPlans(d.key).filter(p => p.source !== 'flight' && p.source !== 'hotel');
+    if (!plans.length) return `${d.title}（${d.key}）：尚無行程`;
+    return `${d.title}（${d.key}）：` + plans.map(p => `${p.start||'--:--'} ${p.name}`).join('、');
+  }).join('\n');
+
   return `請依照以下旅行設定，幫我產出可匯入「貞選旅管家」的口袋景點 JSON。
 
 旅行設定：
@@ -133,16 +139,17 @@ ${aiPrefsText()}
 航班資訊：
 ${buildFlightContext()}
 
-旅行日期：
-${c.days}
-
 住宿：
 ${c.hotels}
 
+已安排行程（供參考，請推薦可補充的景點，避免重複）：
+${dayPlans}
+
 請注意：
-1. 推薦景點、餐廳、咖啡廳、購物、雨天備案。
+1. 推薦景點、餐廳、咖啡廳、購物、雨天備案，避免與已安排行程重複。
 2. 如果適合某天，請填 day（YYYY-MM-DD 格式）；不確定就留空。
-3. 只輸出純 JSON，格式如下：
+3. 可選填 start / end 建議時間（HH:MM 格式），若無把握請留空。
+4. 只輸出純 JSON，格式如下：
 
 {
   "spots": [
@@ -151,7 +158,9 @@ ${c.hotels}
       "type": "景點/餐廳/咖啡廳/購物/雨天備案/其他",
       "day": "YYYY-MM-DD 或留空",
       "addr": "地址或區域",
-      "memo": "推薦理由或注意事項"
+      "memo": "推薦理由或注意事項",
+      "start": "HH:MM 或留空",
+      "end": "HH:MM 或留空"
     }
   ]
 }`;

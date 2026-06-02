@@ -421,7 +421,8 @@ function renderSpots() {
               ${hasP
                 ? `<button class="btn soft compact" onclick="returnSpotToPocket('${s.id}')">放回口袋</button>`
                 : `<button class="btn soft compact" onclick="useSpot('${s.id}')">排入行程</button>`}
-              <button class="btn blue compact" onclick="openMap('${encodeURIComponent(s.name+' '+(s.addr||data.trip.dest))}')">地圖</button>
+              <button class="btn blue compact" onclick="openExploreModal('${s.id}')">探索</button>
+              <button class="btn soft compact" onclick="openMap('${encodeURIComponent(s.name+' '+(s.addr||data.trip.dest))}')">地圖</button>
               <button class="small" onclick="editSpot('${s.id}')">編輯</button>
               <button class="small" onclick="deleteSpot('${s.id}')">刪除</button>
             </div>

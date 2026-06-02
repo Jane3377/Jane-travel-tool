@@ -104,6 +104,90 @@ function spotPlanExists(s) {
   return !!(s.planId && data.plans.some(p => p.id === s.planId));
 }
 
+/* ══════════════════════════════════════════
+   探索景點 Modal
+   ══════════════════════════════════════════ */
+
+let _exploreSpot = null;
+
+function openExploreModal(id) {
+  _exploreSpot = data.spots.find(s => s.id === id);
+  if (!_exploreSpot) return;
+
+  let modal = $('exploreModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'exploreModal';
+    modal.className = 'exploreModal';
+    modal.onclick = e => { if (e.target === modal) closeExploreModal(); };
+    document.body.appendChild(modal);
+  }
+
+  const s = _exploreSpot;
+  const keyword = [s.name, s.addr || '', data.trip.dest].filter(Boolean).join(' ');
+
+  modal.innerHTML = `
+    <div class="exploreBox">
+      <div class="exploreHead">
+        <div>
+          <h3>${esc(s.name)}</h3>
+          <p>${esc(s.type)}${s.addr ? '｜' + esc(s.addr) : ''}</p>
+        </div>
+        <button class="exploreClose" onclick="closeExploreModal()">×</button>
+      </div>
+      <div class="exploreKeywordRow">
+        <span class="exploreKeywordLabel">搜尋關鍵字：</span>
+        <input id="exploreKeyword" class="exploreKeywordInput" value="${esc(keyword)}">
+      </div>
+      <div class="exploreGrid">
+        <button class="btn dark" onclick="runExplore('blog')">遊記</button>
+        <button class="btn soft" onclick="runExplore('video')">影片</button>
+        <button class="btn soft" onclick="runExplore('checkin')">打卡</button>
+        <button class="btn soft" onclick="runExplore('official')">官方</button>
+        <button class="btn soft exploreAiBtn" onclick="runExplore('ai')">AI 摘要</button>
+      </div>
+    </div>`;
+  modal.classList.add('show');
+}
+
+function closeExploreModal() {
+  $('exploreModal')?.classList.remove('show');
+}
+
+function runExplore(type) {
+  const kw = encodeURIComponent($('exploreKeyword')?.value || (_exploreSpot?.name || ''));
+  const urls = {
+    blog:     `https://www.google.com/search?q=${kw}+遊記心得`,
+    video:    `https://www.youtube.com/results?search_query=${kw}`,
+    checkin:  `https://www.google.com/search?q=${kw}+打卡推薦`,
+    official: `https://www.google.com/search?q=${kw}+官方網站`
+  };
+  if (type === 'ai') {
+    const s    = _exploreSpot || {};
+    const name = $('exploreKeyword')?.value || s.name || '';
+    const prompt = `請幫我簡單介紹「${name}」，包含：
+- 景點特色與亮點
+- 建議停留時間
+- 開放時間與票價（如有）
+- 交通方式
+- 注意事項或小提醒
+
+請用繁體中文條列式回覆，簡潔清楚即可。`;
+    navigator.clipboard?.writeText(prompt).catch(() => {
+      const ta = document.createElement('textarea');
+      ta.value = prompt;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      ta.remove();
+    });
+    toast('已複製 AI 摘要提示詞，請貼到 AI 工具');
+    window.open('https://claude.ai/', '_blank');
+    return;
+  }
+  if (urls[type]) window.open(urls[type], '_blank');
+}
+
 function importSpotFile(file) {
   if (!file) return;
   const reader = new FileReader();
