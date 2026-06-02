@@ -1157,6 +1157,88 @@ textarea{min-height:58px}
   font-size:13px;
 }
 
+/* ── 預算表格（桌機）/ 卡片（手機） ── */
+.budgetTableWrap {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  overflow: hidden;
+  background: #fffdf9;
+}
+.budgetTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.budgetTable thead tr {
+  background: #fff6df;
+}
+.budgetTable th {
+  padding: 10px 11px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--muted);
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+.budgetRow td {
+  padding: 10px 11px;
+  border-bottom: 1px solid #f3ede4;
+  vertical-align: top;
+  line-height: 1.45;
+}
+.budgetRow:last-child td { border-bottom: none; }
+.budgetRow:hover { background: #faf7f2; }
+.budgetNameCell { max-width: 260px; }
+.budgetMemo { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.budgetTypeTag {
+  display: inline-flex;
+  background: #eef8f3;
+  color: #527b70;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+.budgetNum { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.budgetTwd { font-weight: 900; color: #365f54; }
+.budgetActions { white-space: nowrap; }
+
+/* 手機：表格改卡片 */
+@media (max-width: 680px) {
+  .budgetTableWrap { border: none; background: transparent; }
+  .budgetTable thead { display: none; }
+  .budgetTable, .budgetTable tbody { display: block; }
+  .budgetRow {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 10px;
+    background: #fffdf9;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 11px 13px;
+    margin-bottom: 8px;
+  }
+  .budgetRow td {
+    padding: 0;
+    border: none;
+    font-size: 12px;
+  }
+  .budgetRow td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 10px;
+    color: var(--muted);
+    font-weight: 900;
+    margin-bottom: 1px;
+  }
+  .budgetRow td[data-label="項目"] { grid-column: 1 / -1; font-weight: 900; font-size: 13px; }
+  .budgetRow td[data-label="TWD"]  { grid-column: 1 / -1; color: #365f54; font-weight: 900; font-size: 14px; }
+  .budgetRow td[data-label="操作"] { grid-column: 1 / -1; }
+  .budgetNum { text-align: left; }
+}
+
 /* 航班區：密度與手機體驗 */
 .flightDense .box{
   padding:10px;
