@@ -7341,3 +7341,189 @@ body.readonly .btn:not(.btn-allow) { opacity: .4; pointer-events: none; }
 .aiReviewItem b { font-size: 13px; }
 .tag.pink  { background: #fbedf2; color: #a03050; border-color: #f3b8c8; }
 .tag.green { background: #edf8f3; color: #2d6a50; border-color: #b9dccc; }
+
+/* ── AI modal header / close / misc ── */
+.aiModalHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.aiModalHead h3 { margin: 0 0 4px; font-size: 17px; }
+.aiModalHead p  { margin: 0; font-size: 13px; color: #8b827a; line-height: 1.5; }
+.aiModalClose {
+  flex-shrink: 0;
+  border: 0;
+  background: #f3eee8;
+  color: #5d554e;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  font-size: 18px;
+  font-weight: 900;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.aiModalNote { font-size: 13px; line-height: 1.55; }
+.aiTargetBtns {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+.aiPromptNote { font-size: 12px; color: #8b827a; margin: 8px 0 0; }
+
+/* ── 分享行程 Modal ── */
+.shareModal {
+  position: fixed;
+  inset: 0;
+  background: rgba(44,38,32,.42);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 99;
+}
+.shareModal.show { display: flex; }
+.shareBox {
+  width: min(680px, 100%);
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  background: rgba(255,255,255,.97);
+  border: 1px solid rgba(255,255,255,.88);
+  box-shadow: var(--shadow);
+  border-radius: 22px;
+  overflow: hidden;
+}
+.shareHero {
+  padding: 18px 18px 14px;
+  background: linear-gradient(135deg, #f2f6f4, #fdf4f8);
+  border-bottom: 1px solid #eadfd4;
+  flex-shrink: 0;
+}
+.shareHeroTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+.shareHeroTop h3 { margin: 6px 0 4px; font-size: 19px; }
+.shareHeroTop p  { margin: 0; font-size: 13px; color: #8b827a; }
+.shareBrand {
+  display: inline-flex;
+  border-radius: 999px;
+  background: rgba(255,255,255,.7);
+  color: #4a5d4e;
+  border: 1px solid #d5ede2;
+  padding: 5px 11px;
+  font-size: 11px;
+  font-weight: 900;
+}
+.shareClose {
+  flex-shrink: 0;
+  border: 0;
+  background: rgba(255,255,255,.7);
+  color: #5d554e;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  font-size: 18px;
+  font-weight: 900;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.shareScroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.shareSection { display: flex; flex-direction: column; gap: 8px; }
+.shareSection h4 { margin: 0 0 4px; font-size: 14px; font-weight: 900; }
+.shareFlightItem {
+  border: 1px solid #eadfd4;
+  border-radius: 14px;
+  padding: 10px 12px;
+  background: #fffdf8;
+}
+.shareTag {
+  display: inline-flex;
+  background: #edf8f3;
+  color: #3f6a5a;
+  border-radius: 999px;
+  padding: 3px 9px;
+  font-size: 11px;
+  font-weight: 900;
+  margin-bottom: 7px;
+}
+.shareFlightSeg { margin-top: 4px; }
+.shareSegLabel { font-size: 11px; color: #8b827a; font-weight: 900; margin-bottom: 3px; }
+.shareFlightLine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+.shareFlightLine b { font-size: 14px; }
+.shareTimePill {
+  display: inline-flex;
+  background: #f3eee8;
+  color: #6f6257;
+  border-radius: 999px;
+  padding: 3px 9px;
+  font-size: 11px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+.shareHotelItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  border: 1px solid #eadfd4;
+  border-radius: 14px;
+  padding: 9px 12px;
+  background: #fffdf8;
+  font-size: 13px;
+}
+.shareDayItem {
+  border: 1px solid #eadfd4;
+  border-radius: 14px;
+  padding: 10px 12px;
+  background: #fffdf8;
+}
+.shareDayHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+.sharePlanRow {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px;
+  align-items: start;
+  padding: 5px 0;
+  border-top: 1px solid #f3ede4;
+  font-size: 13px;
+}
+.sharePlanName { font-weight: 900; line-height: 1.4; }
+.shareMuted { font-size: 12px; color: #8b827a; margin-top: 2px; }
+.shareActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 12px 18px;
+  border-top: 1px solid #eadfd4;
+  background: #fffdf8;
+  flex-shrink: 0;
+}
