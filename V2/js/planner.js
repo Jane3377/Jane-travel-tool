@@ -208,16 +208,19 @@ function connHtml(a, b) {
                   : totalH > 0 ? `${totalH}時`
                   : totalM > 0 ? `${totalM}分` : '0分';
 
-  // Summary route button — Kakao for Korea, Google Maps for others
+  // Summary route buttons — Korea: Naver Map + Google Maps; others: Google Maps only
   const aName = isKorea ? (a.krName || a.name) : a.name;
   const bName = isKorea ? (b.krName || b.name) : b.name;
-  const summaryRouteBtn = isKorea
-    ? `<button class="btn blue compact" onclick="event.stopPropagation();window.open('https://map.kakao.com/?sName=${encodeURIComponent(aName)}&eName=${encodeURIComponent(bName)}','_blank')">Kakao 路線</button>`
-    : `<button class="btn blue compact" onclick="event.stopPropagation();openRoute('${encodeURIComponent(a.name+' '+data.trip.dest)}','${encodeURIComponent(b.name+' '+data.trip.dest)}','${conn.mode}')">Google Maps</button>`;
+  const googleMapsBtn = (compact) => `<button class="btn blue ${compact?'compact':''}" onclick="${compact?'event.stopPropagation();':''}openRoute('${encodeURIComponent(a.name+' '+data.trip.dest)}','${encodeURIComponent(b.name+' '+data.trip.dest)}','${conn.mode}')">Google Maps${compact?'':' 查路線'}</button>`;
+  const naverMapBtn   = (compact) => `<button class="btn soft ${compact?'compact':''}" onclick="${compact?'event.stopPropagation();':''}window.open('https://map.naver.com/p/search/${encodeURIComponent(bName)}','_blank')">NAVER Map${compact?'':' 搜尋'}</button>`;
 
-  const detailRouteBtn = isKorea
-    ? `<button class="btn blue" onclick="window.open('https://map.kakao.com/?sName=${encodeURIComponent(aName)}&eName=${encodeURIComponent(bName)}','_blank')">Kakao Maps 查路線</button>`
-    : `<button class="btn blue" onclick="openRoute('${encodeURIComponent(a.name+' '+data.trip.dest)}','${encodeURIComponent(b.name+' '+data.trip.dest)}','${conn.mode}')">Google Maps 查路線</button>`;
+  const summaryRouteBtns = isKorea
+    ? naverMapBtn(true) + googleMapsBtn(true)
+    : googleMapsBtn(true);
+
+  const detailRouteBtns = isKorea
+    ? naverMapBtn(false) + googleMapsBtn(false)
+    : googleMapsBtn(false);
 
   const taxiBlock = isTaxi ? `
     <div class="four" style="margin-top:8px">
@@ -241,7 +244,7 @@ function connHtml(a, b) {
         <span>${esc(conn.mode || '大眾運輸')}</span>
         <span>${timeLabel}</span>
         ${arrival ? `<span>→ 預計抵達 ${esc(arrival)}</span>` : ''}
-        ${summaryRouteBtn}
+        ${summaryRouteBtns}
       </summary>
       <div class="connDetail">
         <div class="three">
@@ -263,7 +266,7 @@ function connHtml(a, b) {
             <input value="${arrival||''}" disabled></div>
         </div>
         ${taxiBlock}
-        <div class="btns">${detailRouteBtn}</div>
+        <div class="btns">${detailRouteBtns}</div>
         <input value="${esc(conn.memo)}" placeholder="交通備註"
                oninput="updateConn('${conn.id}','memo',this.value)">
       </div>
