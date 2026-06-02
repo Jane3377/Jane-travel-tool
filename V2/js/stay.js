@@ -139,8 +139,23 @@ function validateFlightForm() {
   return true;
 }
 
+/* 輸入後自動儲存（不驗證），防止資料因忘按按鈕而遺失 */
+let _flightAutoSaveTimer = null;
+function scheduleFlightAutoSave() {
+  clearTimeout(_flightAutoSaveTimer);
+  _flightAutoSaveTimer = setTimeout(() => {
+    data.flights.out  = readFlightForm('out');
+    data.flights.back = readFlightForm('back');
+    silentSave();
+    v39FlightDirty = false;
+    refreshFlightStatus();
+  }, 600);
+}
+
+/* 驗證後同步行程／預算 */
 function saveFlights() {
   if (!validateFlightForm()) return;
+  clearTimeout(_flightAutoSaveTimer);
   const hadPlans = flightHasPlans();
   data.flights.out  = readFlightForm('out');
   data.flights.back = readFlightForm('back');
@@ -148,7 +163,7 @@ function saveFlights() {
   if (hadPlans) syncFlightPlans();
   silentSave();
   renderStay();
-  toast(hadPlans ? '已存好航班，並更新行程' : '已存好航班');
+  toast(hadPlans ? '已驗證航班並更新行程' : '已驗證並儲存航班');
 }
 
 /* ── 航班行程同步 ── */

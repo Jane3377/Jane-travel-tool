@@ -201,16 +201,16 @@ function renderStay() {
 
     <details class="card">
       <summary>✈️ 航班設定</summary>
-      <div class="detailBody">
+      <div class="detailBody flightFormWrap">
         <div class="grid2">
-          <div class="box blue"><h3>去程</h3>${flightForm('out')}</div>
-          <div class="box pink"><h3>回程</h3>${flightForm('back')}</div>
+          <div class="box blue flightBox"><b class="flightBoxTitle">去程</b>${flightForm('out')}</div>
+          <div class="box pink flightBox"><b class="flightBoxTitle">回程</b>${flightForm('back')}</div>
         </div>
         <div class="flightStatusBox" id="flightStatusBox">
           ${flightStatusHtml()}
         </div>
         <div class="btns">
-          <button class="btn dark" onclick="saveFlights()">存好航班設定</button>
+          <button class="btn dark" onclick="saveFlights()">驗證並同步行程</button>
         </div>
       </div>
     </details>
@@ -245,10 +245,10 @@ function renderStay() {
   v16KeepHotelOpen = false;
   // 初始化航班段落顯示
   setTimeout(() => { toggleFlightSegments('out'); toggleFlightSegments('back'); }, 0);
-  // 監聽航班表單變更
-  el.querySelectorAll('input,select,textarea').forEach(input => {
-    input.addEventListener('change', () => { v39FlightDirty = true; refreshFlightStatus(); });
-    input.addEventListener('input',  () => { v39FlightDirty = true; refreshFlightStatus(); });
+  // 航班欄位：輸入後自動儲存（與住宿欄位分開監聽）
+  el.querySelector('.flightFormWrap')?.querySelectorAll('input,select,textarea').forEach(input => {
+    input.addEventListener('change', () => { v39FlightDirty = true; scheduleFlightAutoSave(); });
+    input.addEventListener('input',  () => { v39FlightDirty = true; scheduleFlightAutoSave(); });
   });
 }
 
