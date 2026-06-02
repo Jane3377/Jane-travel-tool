@@ -7350,13 +7350,13 @@ body.readonly .btn:not(.btn-allow) { opacity: .4; pointer-events: none; }
 .aiReviewCard { border: 1px solid #eadfd4; border-radius: 16px; overflow: hidden; }
 .aiReviewSummary {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   gap: 8px;
   padding: 10px 12px;
   cursor: pointer;
   list-style: none;
 }
+.aiReviewSummary > div { flex: 1; }
 .aiReviewSummary::-webkit-details-marker { display: none; }
 .aiReviewSummary::after {
   content: "⌄";
@@ -7421,6 +7421,76 @@ body.readonly .btn:not(.btn-allow) { opacity: .4; pointer-events: none; }
   margin-top: 10px;
 }
 .aiPromptNote { font-size: 12px; color: #8b827a; margin: 8px 0 0; }
+
+/* ── 探索景點 Modal ── */
+.exploreModal {
+  position: fixed;
+  inset: 0;
+  background: rgba(44,38,32,.42);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 99;
+}
+.exploreModal.show { display: flex; }
+.exploreBox {
+  width: min(520px, 100%);
+  background: #fff;
+  border-radius: 22px;
+  box-shadow: var(--shadow);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.exploreHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+.exploreHead h3 { margin: 0 0 4px; font-size: 20px; }
+.exploreHead p  { margin: 0; font-size: 13px; color: #8b827a; }
+.exploreClose {
+  flex-shrink: 0;
+  border: 0;
+  background: #f3eee8;
+  color: #5d554e;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  font-size: 18px;
+  font-weight: 900;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.exploreKeywordRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #f7f3ec;
+  border-radius: 14px;
+  padding: 8px 12px;
+}
+.exploreKeywordLabel { font-size: 12px; color: #8b827a; white-space: nowrap; }
+.exploreKeywordInput {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  font-size: 13px;
+  color: var(--ink);
+  padding: 0;
+  min-height: unset;
+  border-radius: 0;
+}
+.exploreGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.exploreAiBtn { grid-column: 1; }
 
 /* ── 分享行程 Modal ── */
 .shareModal {
