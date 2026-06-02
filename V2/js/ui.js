@@ -410,8 +410,29 @@ function renderSpots() {
       </div>
     </details>
 
+    <div class="card spotFilterBar">
+      <div class="spotTypeChips">
+        ${['全部','景點','餐廳','咖啡廳','購物','雨天備案','其他'].map(t =>
+          `<button class="filterChip ${spotFilterType===(t==='全部'?'':t)?'active':''}"
+            onclick="spotFilterType='${t==='全部'?'':t}';renderSpots()">${t}</button>`
+        ).join('')}
+      </div>
+      <select class="spotDaySelect" onchange="spotFilterDay=this.value;renderSpots()">
+        <option value="">全部日期</option>
+        <option value="none" ${spotFilterDay==='none'?'selected':''}>未排</option>
+        ${data.days.map(d =>
+          `<option value="${d.key}" ${spotFilterDay===d.key?'selected':''}>${d.title}（${d.label}）</option>`
+        ).join('')}
+      </select>
+    </div>
+
     <div class="grid2">
-      ${data.spots.map(s => {
+      ${data.spots.filter(s => {
+        if (spotFilterType && s.type !== spotFilterType) return false;
+        if (spotFilterDay === 'none' && s.day) return false;
+        if (spotFilterDay && spotFilterDay !== 'none' && s.day !== spotFilterDay) return false;
+        return true;
+      }).map(s => {
         const hasP = spotPlanExists(s);
         return `
           <div class="card ${hasP?'spotUsed':''}">
@@ -435,7 +456,7 @@ function renderSpots() {
               <button class="small" onclick="deleteSpot('${s.id}')">刪除</button>
             </div>
           </div>`;
-      }).join('') || '<div class="empty">尚未加入口袋景點</div>'}
+      }).join('') || '<div class="empty">沒有符合條件的景點</div>'}
     </div>`;
 }
 

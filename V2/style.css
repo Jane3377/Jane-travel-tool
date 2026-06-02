@@ -7816,3 +7816,15 @@ body.readonly .btn:not(.btn-allow) { opacity: .4; pointer-events: none; }
     display: block;
   }
 }
+
+/* ── 口袋景點篩選欄 ── */
+.spotFilterBar { padding: 10px 12px !important; display: flex; flex-direction: column; gap: 8px; }
+.spotTypeChips { display: flex; flex-wrap: wrap; gap: 5px; }
+.filterChip {
+  border: 1px solid var(--line); background: #fff;
+  border-radius: 999px; padding: 4px 11px;
+  font-size: 12px; font-weight: 900; color: var(--muted);
+  cursor: pointer; white-space: nowrap;
+}
+.filterChip.active { background: var(--ink); color: #fff; border-color: var(--ink); }
+.spotDaySelect { width: 100%; font-size: 13px; margin-top: 2px; }

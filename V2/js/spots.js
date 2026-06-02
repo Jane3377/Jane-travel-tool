@@ -2,6 +2,9 @@
    spots.js — 口袋景點
    ================================================================ */
 
+let spotFilterType = '';
+let spotFilterDay  = '';
+
 function saveSpot() {
   if (!$('sn')?.value) return toast('請輸入景點名稱');
 
@@ -83,15 +86,38 @@ function mapSpotDraft() {
 function useSpot(id) {
   const s = data.spots.find(x => x.id === id);
   if (!s) return;
-  v16PendingSpotId = id;
-  editingPlanId    = null;
+
+  const planDay = s.day || currentDay || data.days?.[0]?.key || '';
+  const plan = {
+    id: uid(), source: 'spot', sourceType: 'spot', lockedName: true,
+    day:       planDay,
+    start:     s.start || '10:00',
+    end:       s.end   || '11:30',
+    type:      normalizePlanType(s.type),
+    name:      s.name,
+    address:   s.addr      || '',
+    note:      s.memo      || '',
+    memo:      '由口袋景點帶入',
+    krName:    s.krName    || '',
+    krAddress: s.krAddress || '',
+    mode: 'foreign', foreign: 0, twd: 0, payer: '未定', payMethod: '未定',
+    adjusted: false
+  };
+  data.plans.push(plan);
+  s.planId = plan.id;
+  data.expenses.push({
+    id: uid(), source: '行程',
+    type: budgetTypeFromPlanType(s.type),
+    name: s.name, payer: '未定', payMethod: '未定',
+    day: planDay, mode: 'TWD', foreign: 0, twd: 0,
+    memo: `由${s.type}行程建立`
+  });
+
+  currentDay = cur = planDay;
+  save();
+  toast(`已排入 ${dayTitle(planDay)}`);
   go('planner');
-  setTimeout(() => {
-    const form = document.querySelector('#plannerView details.card');
-    if (form) form.setAttribute('open', '');
-    fillFromSpot(id);
-    scrollTo(0, 0);
-  }, 80);
+  scrollTo(0, 0);
 }
 
 function returnSpotToPocket(id) {
