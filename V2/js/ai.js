@@ -589,6 +589,95 @@ function itineraryText() {
   return lines.join('\n');
 }
 
+/* ══════════════════════════════════════════
+   即時分享連結
+   ══════════════════════════════════════════ */
+
+function _getShareUrl() {
+  const token = data.meta?.shareToken;
+  if (!token) return '';
+  const base = window.location.origin + window.location.pathname;
+  return `${base}?share=${token}`;
+}
+
+async function generateShareLink() {
+  if (!canUseCloud()) return toast('請先登入才能產生分享連結');
+  if (data.meta?.shareToken) return;
+
+  data.meta.shareToken = 'sh_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 10);
+  localSaveTrip();
+  const ok = await saveToCloudNow();
+  if (ok) {
+    openShareModal();
+    toast('分享連結已產生');
+  } else {
+    delete data.meta.shareToken;
+    toast('產生失敗，請確認網路連線');
+  }
+}
+
+function copyShareLink() {
+  const url = _getShareUrl();
+  if (!url) return;
+  navigator.clipboard?.writeText(url).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = url; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); ta.remove();
+  });
+  toast('已複製分享連結');
+}
+
+function shareToLine() {
+  const url = _getShareUrl();
+  if (!url) return;
+  const title = data.meta?.title || '我的旅程行程';
+  const msg   = `【${title}】\n即時行程連結：${url}`;
+  window.open(`https://line.me/R/msg/text/?${encodeURIComponent(msg)}`, '_blank');
+}
+
+async function revokeShareLink() {
+  if (!confirm('確定停用此分享連結？所有人的連結都將失效。')) return;
+  const token = data.meta?.shareToken;
+  if (token && fbDb) {
+    try { await publicShareRef(token).delete(); }
+    catch (e) { console.warn('revoke share failed', e); }
+  }
+  delete data.meta.shareToken;
+  await saveToCloudNow();
+  openShareModal();
+  toast('分享連結已停用');
+}
+
+function _shareLinkSectionHtml() {
+  if (shareViewMode) return ''; // 分享檢視模式不顯示此區
+  const url   = _getShareUrl();
+  const hasCloud = canUseCloud();
+  if (url) {
+    return `
+      <div class="shareSection">
+        <h4>🔗 即時分享連結</h4>
+        <p class="shareMuted">任何人打開連結即可查看此行程（唯讀），資料即時更新。</p>
+        <div class="shareLinkRow">
+          <input class="shareLinkInput" readonly value="${esc(url)}">
+          <button class="btn soft compact" onclick="copyShareLink()">複製</button>
+        </div>
+        <div class="btns" style="margin-top:8px">
+          <button class="btn blue" onclick="shareToLine()">分享到 LINE</button>
+          <button class="btn soft" onclick="copyShareLink()">複製連結</button>
+          <button class="btn danger compact" onclick="revokeShareLink()">停用連結</button>
+        </div>
+      </div>`;
+  }
+  return `
+    <div class="shareSection">
+      <h4>🔗 即時分享連結</h4>
+      <p class="shareMuted">產生連結後，任何人都可以即時查看此行程（唯讀）。</p>
+      ${hasCloud
+        ? `<div class="btns"><button class="btn soft" onclick="generateShareLink()">產生即時分享連結</button></div>`
+        : `<p class="shareMuted" style="color:#c0857a">請先登入 Google 才能使用分享功能。</p>`}
+    </div>`;
+}
+
 /* ──────────────────────────────────────────
    分享行程 Modal（漂亮版面，含 PDF 匯出）
    ────────────────────────────────────────── */
@@ -672,6 +761,7 @@ function openShareModal() {
         </div>
       </div>
       <div class="shareScroll">
+        ${_shareLinkSectionHtml()}
         <div class="shareSection"><h4>✈️ 機票與交通</h4>${_buildFlightSection()}</div>
         <div class="shareSection"><h4>🏨 住宿資訊</h4>${_buildHotelSection()}</div>
         <div class="shareSection"><h4>🗓️ 每日簡易行程</h4>${_buildDaySection()}</div>

@@ -26,6 +26,10 @@ function tripIndexRef() {
   if (!fbUser) throw new Error('尚未登入');
   return fbDb.collection('users').doc(fbUser.uid).collection('tripIndex').doc('list');
 }
+function publicShareRef(token) {
+  if (!fbDb) throw new Error('Firebase 未初始化');
+  return fbDb.collection('publicShares').doc(token);
+}
 
 /* ── 本機存取 ── */
 function localSaveTrip() {
@@ -125,6 +129,7 @@ function loadData(tripId = currentTripId) {
 
 /* ── 儲存（本機 + 排隊雲端） ── */
 function save() {
+  if (shareViewMode) return;
   if (deviceReadOnly) {
     toast('目前是檢視模式，請先接手編輯');
     return;
@@ -136,7 +141,7 @@ function save() {
 }
 
 function silentSave() {
-  if (deviceReadOnly) return;
+  if (shareViewMode || deviceReadOnly) return;
   localSaveTrip();
   updateTripMeta();
   scheduleCloudSave();
@@ -198,6 +203,21 @@ async function saveToCloudNow() {
     }));
 
     await saveTripListCloud();
+
+    // 同步公開分享（如有分享連結）
+    if (data.meta?.shareToken) {
+      try {
+        await publicShareRef(data.meta.shareToken).set({
+          data:       JSON.parse(JSON.stringify(data)),
+          updatedAt:  firebase.firestore.FieldValue.serverTimestamp(),
+          ownerEmail: fbUser.email || '',
+          tripMeta:   { title: data.meta?.title || '', dest: data.trip?.dest || '' }
+        });
+      } catch (e) {
+        console.warn('publicShare sync failed', e);
+      }
+    }
+
     setSyncStatus('on', '同步好了', new Date(now).toLocaleTimeString('zh-TW', { hour:'2-digit', minute:'2-digit' }));
 
     cloudSaveInFlight = false;

@@ -430,7 +430,85 @@ async function bootFirebase() {
   fbAuth = firebase.auth();
   fbDb   = firebase.firestore();
 
+  // 檢查是否為分享連結（?share=TOKEN）
+  const urlToken = new URLSearchParams(window.location.search).get('share');
+  if (urlToken) {
+    await loadSharedTrip(urlToken);
+    return;
+  }
+
   // 載入白名單後再掛 auth 監聽
   await loadWhitelist();
   fbAuth.onAuthStateChanged(handleAuth);
+}
+
+/* ══════════════════════════════════════════
+   分享唯讀模式
+   ══════════════════════════════════════════ */
+
+async function loadSharedTrip(token) {
+  shareViewMode  = true;
+  shareViewToken = token;
+  deviceReadOnly = true;
+  document.body.classList.add('shareView');
+
+  try {
+    const snap = await fbDb.collection('publicShares').doc(token).get();
+    if (!snap.exists || !snap.data()?.data) {
+      _renderShareError('找不到此分享連結，可能已被停用或尚未產生資料。');
+      return;
+    }
+
+    const doc = snap.data();
+    data = normalizeData(doc.data);
+    cur  = currentDay = data.days?.[0]?.key || data.trip?.start || '';
+
+    showShell('app');
+    view = 'trip';
+    renderNav();
+    render();
+    _renderShareBanner(doc.ownerEmail || '');
+    scrollTo(0, 0);
+
+    // 即時監聽更新
+    fbDb.collection('publicShares').doc(token).onSnapshot(snap2 => {
+      if (!snap2.exists || !snap2.data()?.data) return;
+      data = normalizeData(snap2.data().data);
+      render();
+    }, err => console.warn('share listener error', err));
+
+  } catch (e) {
+    _renderShareError('載入失敗：' + (e.message || e));
+  }
+}
+
+function _renderShareBanner(ownerEmail) {
+  const header = document.querySelector('#mainApp header');
+  if (!header) return;
+  let el = $('shareBanner');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'shareBanner';
+    header.appendChild(el);
+  }
+  el.className = 'shareBannerBar noPrint';
+  el.innerHTML = `
+    <div>
+      <b>唯讀分享</b>
+      <span>${ownerEmail ? esc(ownerEmail) + ' 分享的旅程｜' : ''}資料即時更新，你可以查看但無法修改。</span>
+    </div>`;
+}
+
+function _renderShareError(msg) {
+  const el = $('loginView');
+  if (el) {
+    el.innerHTML = `
+      <div class="gateCard" style="max-width:460px;margin:60px auto;text-align:center">
+        <div class="badge" style="margin-bottom:16px">J 貞選旅管家</div>
+        <h2 style="margin:0 0 12px">無法開啟分享連結</h2>
+        <p style="color:#8b827a;margin:0 0 20px">${esc(msg)}</p>
+        <a class="btn dark" href="${window.location.pathname}">返回首頁</a>
+      </div>`;
+  }
+  showShell('login');
 }

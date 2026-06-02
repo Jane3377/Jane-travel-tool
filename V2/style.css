@@ -7828,3 +7828,40 @@ body.readonly .btn:not(.btn-allow) { opacity: .4; pointer-events: none; }
 }
 .filterChip.active { background: var(--ink); color: #fff; border-color: var(--ink); }
 .spotDaySelect { width: 100%; font-size: 13px; margin-top: 2px; }
+
+/* ── 分享唯讀 Banner ── */
+.shareBannerBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 16px;
+  background: #e8f4ef;
+  border-top: 1px solid #c8e6d8;
+  font-size: 13px;
+  line-height: 1.5;
+  flex-wrap: wrap;
+}
+.shareBannerBar b { color: #2a6645; margin-right: 6px; }
+.shareBannerBar span { color: #4a6856; }
+
+/* 分享模式：隱藏編輯區塊 */
+body.shareView .noPrint.accountWidget { display: none !important; }
+
+/* ── 分享連結列 ── */
+.shareLinkRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+.shareLinkInput {
+  flex: 1;
+  font-size: 12px;
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f7f3ec;
+  color: var(--ink);
+  min-width: 0;
+}

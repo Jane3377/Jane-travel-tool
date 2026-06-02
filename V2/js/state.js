@@ -117,3 +117,7 @@ let deviceLockOwner  = null;
 let heartbeatTimer   = null;
 let lockUnsub        = null;
 let selectingTrip    = false;
+
+/* ── 分享唯讀模式 ── */
+let shareViewMode  = false;
+let shareViewToken = null;
