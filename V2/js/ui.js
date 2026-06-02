@@ -289,7 +289,6 @@ function renderPlanner() {
       <div><h2>${dayTitle(currentDay)}</h2>
         <div class="hint">住宿：${hotelFor(currentDay)?.name || '未設定'}</div>
       </div>
-      <button class="iconBtn smallIcon" onclick="clearPlanForm()">＋</button>
     </div>
 
     <details class="card" ${editingPlanId || v16PendingSpotId ? 'open' : ''}>
@@ -579,8 +578,8 @@ function renderHelp() {
     </div>
 
     <div class="card"><h3>🤖 AI 功能</h3>
-      ${aiPrefsHtml()}
-      <div class="btns" style="margin-top:10px">
+      <div class="hint" style="margin-bottom:8px">旅遊偏好請在產生提示詞時於 modal 內設定。</div>
+      <div class="btns">
         <button class="btn blue" onclick="showAIPrompt('spots')">AI 景點提示詞</button>
         <button class="btn blue" onclick="showAIPrompt('itinerary')">AI 行程健檢</button>
         <button class="btn soft" onclick="openImportModal()">匯入 AI 回傳</button>

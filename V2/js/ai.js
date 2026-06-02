@@ -200,7 +200,7 @@ function showAIPrompt(type = 'spots') {
         <button class="aiModalClose" onclick="$('aiPrefsModal').classList.remove('show')">×</button>
       </div>
       ${aiPrefsHtml()}
-      <div class="aiModalNote box mint" style="margin-top:12px">
+      <div class="aiModalNote box mint" style="margin-top:6px">
         ${isSpot
           ? '提示詞會帶入航班、住宿、已排入行程與既有口袋景點，讓 AI 推薦備選日期與建議時間。'
           : 'AI 健檢只會檢查已排入行程，不會把口袋景點當成正式行程。'}
@@ -651,29 +651,31 @@ function printItinerary() {
   w.document.close();
 }
 
-/* ── AI 健檢建議顯示（在行程頁顯示） ── */
+/* ── AI 健檢建議顯示（在行程頁顯示，可收縮） ── */
 function aiReviewHtml() {
   const reviews = (data?.aiReviews?.itinerary || []).slice(0, 3);
   if (!reviews.length) return '';
-  return `<div class="aiReviewList" style="margin-top:14px">
+  return `<div class="aiReviewList">
     ${reviews.map(r => `
-      <div class="aiReviewCard">
-        <div class="aiReviewHead">
+      <details class="aiReviewCard">
+        <summary class="aiReviewSummary">
           <div>
             <b>AI 健檢建議</b>
-            <span>${esc((r.createdAt||'').slice(0,10))}｜只作為調整參考，不會自動覆蓋行程。</span>
+            <span>${esc((r.createdAt||'').slice(0,10))}｜只作為調整參考</span>
           </div>
-          <button class="small" onclick="deleteAiReview('${r.id}')">刪除</button>
+          <button class="small" onclick="event.stopPropagation();deleteAiReview('${r.id}')">刪除</button>
+        </summary>
+        <div class="aiReviewBody">
+          ${r.summary ? `<div class="box mint" style="margin-bottom:8px">${esc(r.summary)}</div>` : ''}
+          ${r.items?.length ? r.items.map(x => `
+            <div class="aiReviewItem">
+              <span class="tag ${x.level==='注意'?'pink':x.level==='OK'?'green':''}">${esc(x.level)}</span>
+              <b>${esc(x.title)}</b>
+              ${x.day ? `<span style="color:#8b827a;font-size:12px">${esc(x.day)}</span>` : ''}
+              ${x.memo ? `<div style="font-size:13px;color:#8b827a;margin-top:3px">${esc(x.memo)}</div>` : ''}
+            </div>`).join('') : ''}
         </div>
-        ${r.summary ? `<div class="box mint" style="margin-top:8px">${esc(r.summary)}</div>` : ''}
-        ${r.items?.length ? `<div style="margin-top:8px">${r.items.map(x => `
-          <div class="aiReviewItem">
-            <span class="tag ${x.level==='注意'?'pink':x.level==='OK'?'green':''}">${esc(x.level)}</span>
-            <b>${esc(x.title)}</b>
-            ${x.day ? `<span style="color:#8b827a;font-size:12px">${esc(x.day)}</span>` : ''}
-            ${x.memo ? `<div style="font-size:13px;color:#8b827a;margin-top:3px">${esc(x.memo)}</div>` : ''}
-          </div>`).join('')}</div>` : ''}
-      </div>`).join('')}
+      </details>`).join('')}
   </div>`;
 }
 
@@ -681,4 +683,5 @@ function deleteAiReview(id) {
   if (!data.aiReviews?.itinerary) return;
   data.aiReviews.itinerary = data.aiReviews.itinerary.filter(x => x.id !== id);
   save();
+  renderPlanner();
 }
