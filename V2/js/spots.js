@@ -6,13 +6,15 @@ function saveSpot() {
   if (!$('sn')?.value) return toast('請輸入景點名稱');
 
   const item = {
-    name:  $('sn').value,
-    type:  $('st')?.value || '景點',
-    day:   $('sd')?.value || '',
-    addr:  $('sa')?.value || '',
-    memo:  $('sm')?.value || '',
-    start: $('sStart')?.value || '',
-    end:   $('sEnd')?.value   || ''
+    name:      $('sn').value,
+    type:      $('st')?.value || '景點',
+    day:       $('sd')?.value || '',
+    addr:      $('sa')?.value || '',
+    memo:      $('sm')?.value || '',
+    start:     $('sStart')?.value || '',
+    end:       $('sEnd')?.value   || '',
+    krName:    $('skrName')?.value || '',
+    krAddress: $('skrAddr')?.value || ''
   };
 
   if (editingSpotId) {
@@ -250,6 +252,25 @@ function _openSpotAiTarget(target) {
   window.open(url, '_blank');
 }
 
+function naverMapSpot(id) {
+  const s = data.spots.find(x => x.id === id);
+  if (!s) return;
+  const q = encodeURIComponent(s.krName || s.name);
+  window.open(`https://map.naver.com/p/search/${q}`, '_blank');
+}
+
+function copyKoreanText(id) {
+  const s = data.spots.find(x => x.id === id);
+  if (!s?.krName) return;
+  const text = [s.krName, s.krAddress].filter(Boolean).join('\n');
+  navigator.clipboard?.writeText(text).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); ta.remove();
+  });
+  toast('已複製，可貼到 NAVER 記事');
+}
+
 function importSpotFile(file) {
   if (!file) return;
   const reader = new FileReader();
@@ -271,13 +292,15 @@ function importSpotFile(file) {
         if (s.day && !day) cleared++;
         data.spots.push({
           id: uid(), source: 'AI匯入',
-          name:  String(s.name  || ''),
-          type:  String(s.type  || '景點'),
+          name:      String(s.name      || ''),
+          type:      String(s.type      || '景點'),
           day,
-          addr:  String(s.addr  || s.address || ''),
-          memo:  String(s.memo  || s.note    || ''),
-          start: String(s.start || ''),
-          end:   String(s.end   || '')
+          addr:      String(s.addr      || s.address || ''),
+          memo:      String(s.memo      || s.note    || ''),
+          start:     String(s.start     || ''),
+          end:       String(s.end       || ''),
+          krName:    String(s.krName    || ''),
+          krAddress: String(s.krAddress || '')
         });
       });
 

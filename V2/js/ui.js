@@ -350,7 +350,8 @@ function renderPlanner() {
 function renderSpots() {
   const el = $('spotsView');
   if (!el) return;
-  const e  = editingSpotId ? data.spots.find(s => s.id === editingSpotId) : null;
+  const e        = editingSpotId ? data.spots.find(s => s.id === editingSpotId) : null;
+  const isKorea  = data.trip.country === '韓國';
 
   el.innerHTML = `
     <div class="section">
@@ -388,6 +389,11 @@ function renderSpots() {
           <button class="btn blue compact" onclick="mapSpotDraft()">查地圖</button>
         </div>
         <label>注意事項</label><textarea id="sm">${esc(e?.memo||'')}</textarea>
+        ${isKorea ? `
+        <div class="two">
+          <div><label>韓文名稱（選填）</label><input id="skrName" value="${esc(e?.krName||'')}" placeholder="예: 감천문화마을"></div>
+          <div><label>韓文地址（選填）</label><input id="skrAddr" value="${esc(e?.krAddress||'')}" placeholder="예: 부산광역시 사하구 감내2로 203"></div>
+        </div>` : ''}
         <div class="three compactMobile">
           <div class="full"><label>排入行程？</label>
             <select id="sToPlan">
@@ -423,6 +429,8 @@ function renderSpots() {
                 : `<button class="btn soft compact" onclick="useSpot('${s.id}')">排入行程</button>`}
               <button class="btn blue compact" onclick="openExploreModal('${s.id}')">探索</button>
               <button class="btn soft compact" onclick="openMap('${encodeURIComponent(s.name+' '+(s.addr||data.trip.dest))}')">地圖</button>
+              ${isKorea ? `<button class="btn soft compact" onclick="naverMapSpot('${s.id}')">NAVER 地圖</button>` : ''}
+              ${isKorea && s.krName ? `<button class="btn soft compact" onclick="copyKoreanText('${s.id}')">複製韓文</button>` : ''}
               <button class="small" onclick="editSpot('${s.id}')">編輯</button>
               <button class="small" onclick="deleteSpot('${s.id}')">刪除</button>
             </div>

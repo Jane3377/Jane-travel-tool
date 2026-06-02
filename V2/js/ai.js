@@ -117,7 +117,8 @@ function buildPackingPrompt() {
 }
 
 function buildSpotsPrompt() {
-  const c = buildTripContext();
+  const c        = buildTripContext();
+  const isKorea  = data.trip.country === '韓國';
   const dayPlans = data.days.map(d => {
     const plans = sortedPlans(d.key).filter(p => p.source !== 'flight' && p.source !== 'hotel');
     if (!plans.length) return `${d.title}（${d.key}）：尚無行程`;
@@ -148,8 +149,11 @@ ${dayPlans}
 請注意：
 1. 推薦景點、餐廳、咖啡廳、購物、雨天備案，避免與已安排行程重複。
 2. 如果適合某天，請填 day（YYYY-MM-DD 格式）；不確定就留空。
-3. 可選填 start / end 建議時間（HH:MM 格式），若無把握請留空。
-4. 只輸出純 JSON，格式如下：
+3. 可選填 start / end 建議時間（HH:MM 格式），若無把握請留空。${isKorea ? `
+4. 請額外提供：
+   - krName: 韓文名稱
+   - krAddress: 韓文地址（精確到路名門牌）` : ''}
+${isKorea ? '5' : '4'}. 只輸出純 JSON，格式如下：
 
 {
   "spots": [
@@ -160,7 +164,9 @@ ${dayPlans}
       "addr": "地址或區域",
       "memo": "推薦理由或注意事項",
       "start": "HH:MM 或留空",
-      "end": "HH:MM 或留空"
+      "end": "HH:MM 或留空"${isKorea ? `,
+      "krName": "韓文名稱",
+      "krAddress": "韓文地址（精確到路名門牌）"` : ''}
     }
   ]
 }`;
@@ -501,8 +507,13 @@ function importAiJson() {
         const day = data.days.some(d => d.key === s.day) ? s.day : '';
         data.spots.push({
           id: uid(), source: 'AI匯入',
-          name: String(s.name || ''), type: String(s.type || '景點'),
-          day, addr: String(s.addr || ''), memo: String(s.memo || '')
+          name:      String(s.name      || ''),
+          type:      String(s.type      || '景點'),
+          day,
+          addr:      String(s.addr      || ''),
+          memo:      String(s.memo      || ''),
+          krName:    String(s.krName    || ''),
+          krAddress: String(s.krAddress || '')
         });
       });
       save();
