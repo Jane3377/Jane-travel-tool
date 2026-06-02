@@ -17,7 +17,8 @@ function saveAiPrefs() {
   const prefs = {
     style:  $('aiTravelStyle')?.value || '',
     mbti:   $('aiMbti')?.value        || '',
-    zodiac: $('aiZodiac')?.value      || ''
+    zodiac: $('aiZodiac')?.value      || '',
+    note:   $('aiUserNote')?.value    || ''
   };
   try { localStorage.setItem(AI_PREF_KEY, JSON.stringify(prefs)); } catch (e) {}
   return prefs;
@@ -28,6 +29,7 @@ function aiPrefsText() {
   if (p.style)  parts.push('旅遊風格：' + p.style);
   if (p.mbti)   parts.push('MBTI：' + p.mbti);
   if (p.zodiac) parts.push('星座：' + p.zodiac);
+  if (p.note)   parts.push('其他需求：' + p.note);
   return parts.length ? parts.join('\n') : '未填寫，請以一般旅遊者需求判斷。';
 }
 function aiPrefsHtml() {
@@ -46,12 +48,32 @@ function aiPrefsHtml() {
         <div><label>星座</label>
           <select id="aiZodiac" onchange="saveAiPrefs()">${opts(AI_ZODIACS, p.zodiac)}</select></div>
       </div>
+      <label style="margin-top:10px">描述需求（選填）</label>
+      <textarea id="aiUserNote" rows="2" style="min-height:56px;font-size:13px"
+        placeholder="例：想找步行可達的咖啡廳，避開太觀光的地點，喜歡有設計感的小店…"
+        oninput="saveAiPrefs()">${esc(p.note||'')}</textarea>
     </div>`;
 }
 
 /* ══════════════════════════════════════════
    AI 提示詞產生
    ══════════════════════════════════════════ */
+
+function buildFlightContext() {
+  const lines = [];
+  ['out', 'back'].forEach(k => {
+    const f   = normalizeFlightObj(data.flights[k]);
+    const dir = k === 'out' ? '去程' : '回程';
+    const segs = f.segments.filter(s => s.no || s.from || s.dep);
+    if (!segs.length) return;
+    segs.forEach((s, i) => {
+      const dep = (s.dep || '').slice(0, 16).replace('T', ' ');
+      const arr = (s.arr || '').slice(0, 16).replace('T', ' ');
+      lines.push(`${dir}第${i+1}段：${s.no||''} ${s.from||''}→${s.to||''} ${dep}起飛 / ${arr}抵達`);
+    });
+  });
+  return lines.join('\n') || '尚未設定航班';
+}
 
 function buildTripContext() {
   return {
@@ -107,6 +129,9 @@ function buildSpotsPrompt() {
 
 使用者偏好：
 ${aiPrefsText()}
+
+航班資訊：
+${buildFlightContext()}
 
 旅行日期：
 ${c.days}
@@ -658,7 +683,7 @@ function aiReviewHtml() {
             <b>AI 健檢建議</b>
             <span>${esc((r.createdAt||'').slice(0,10))}｜只作為調整參考</span>
           </div>
-          <button class="small" onclick="event.stopPropagation();deleteAiReview('${r.id}')">刪除</button>
+          <button class="aiReviewDelete" onclick="event.stopPropagation();deleteAiReview('${r.id}')">刪除</button>
         </summary>
         <div class="aiReviewBody">
           ${r.summary ? `<div class="box mint" style="margin-bottom:8px">${esc(r.summary)}</div>` : ''}

@@ -365,10 +365,7 @@ function renderSpots() {
       <div class="hint" style="margin-bottom:10px">依航班、住宿、已排入行程與偏好推薦口袋景點。</div>
       <div class="btns">
         <button class="btn dark compact" onclick="showAIPrompt('spots')">AI 找景點</button>
-        <label class="btn blue compact" style="display:inline-block">匯入 AI 回傳
-          <input type="file" accept=".json,.txt" onchange="importSpotFile(this.files[0])" style="display:none">
-        </label>
-        <button class="btn soft compact" onclick="openImportModal()">貼上 JSON 匯入</button>
+        <button class="btn blue compact" onclick="openImportModal()">AI 匯入</button>
       </div>
     </div>
 
