@@ -745,7 +745,6 @@ function openShareModal() {
           </div>
           <div class="shareActionsRow">
             <button class="btn blue compact" onclick="shareToLine()">LINE 分享</button>
-            <button class="btn soft compact" onclick="copyShareLink()">複製連結</button>
             <button class="btn soft compact" onclick="copyItinerary()">複製文字</button>
             <button class="btn dark compact" onclick="printItinerary()">匯出 PDF</button>
             <button class="shareRevokeBtn" onclick="revokeShareLink()">停用連結</button>

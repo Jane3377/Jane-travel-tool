@@ -7939,3 +7939,29 @@ body.shareView .check input[type="checkbox"] { pointer-events: none; }
   font-size: 11px;
   margin-top: 32px;
 }
+
+/* ── 旅程卡片色系 ── */
+.tripColor-cream { --card-accent: #f7f3ec; background: #f7f3ec !important; }
+.tripColor-mint  { --card-accent: #d8ede4; background: #d8ede4 !important; }
+.tripColor-rose  { --card-accent: #f5d8d8; background: #f5d8d8 !important; }
+.tripColor-sky   { --card-accent: #d4e8f5; background: #d4e8f5 !important; }
+.tripColor-latte { --card-accent: #e8d9c4; background: #e8d9c4 !important; }
+
+/* ── 新增旅程：色點選色器 ── */
+.newTripColorDots { display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
+.tripColorDot {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  outline: none;
+  transition: transform 0.12s, border-color 0.12s;
+  flex-shrink: 0;
+}
+.tripColorDot:hover { transform: scale(1.15); }
+.tripColorDot.active { border-color: var(--ink); transform: scale(1.2); }
+.tripColorDot.color-cream { background: #f7f3ec; border-color: #d4cec6; }
+.tripColorDot.color-mint  { background: #d8ede4; border-color: #b8d8c8; }
+.tripColorDot.color-rose  { background: #f5d8d8; border-color: #dbb8b8; }
+.tripColorDot.color-sky   { background: #d4e8f5; border-color: #b4c8d8; }
+.tripColorDot.color-latte { background: #e8d9c4; border-color: #c8b8a0; }

@@ -154,7 +154,10 @@ async function createTrip() {
 
   const title    = $('newTripTitle')?.value.trim() || '我的新旅程';
   const country  = $('newTripCountry')?.value || '韓國';
-  const city     = $('newTripCity')?.value.trim() || '';
+  const citySelect = $('newTripCitySelect');
+  const city = (citySelect?.value === '自訂')
+    ? ($('newTripCityCustom')?.value.trim() || '')
+    : (citySelect?.value || '');
   const start    = $('newTripStart')?.value || '';
   const end      = $('newTripEnd')?.value || '';
   const cardColor = $('newTripColor')?.value || 'cream';

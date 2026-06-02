@@ -684,15 +684,20 @@ function renderTripList() {
         <div class="tripCreateGrid">
           <div><label>旅程名稱</label><input id="newTripTitle" placeholder="例：2026 釜山自由行"></div>
           <div><label>國家</label>
-            <select id="newTripCountry">
+            <select id="newTripCountry" onchange="newTripCountryChanged()">
               ${[...Object.keys(CURRENCY_MAP),'其他'].map(c=>`<option>${c}</option>`).join('')}
             </select></div>
-          <div><label>城市</label><input id="newTripCity" value="釜山"></div>
+          <div><label>城市 / 路線</label>
+            <select id="newTripCitySelect" onchange="newTripCityVisibility()">
+              ${cityOptions('韓國', '釜山')}
+            </select>
+            <input id="newTripCityCustom" placeholder="自訂城市名稱" style="display:none;margin-top:6px">
+          </div>
           <div><label>卡片色系</label>
             <input id="newTripColor" type="hidden" value="cream">
             <div class="newTripColorDots">
-              ${CARD_COLORS.map(({key,label}) =>
-                `<button type="button" class="tripColorDot color-${key}" title="${label}"
+              ${CARD_COLORS.map(({key,label}, i) =>
+                `<button type="button" class="tripColorDot color-${key}${i===0?' active':''}" title="${label}"
                   onclick="$('newTripColor').value='${key}';this.parentElement.querySelectorAll('.tripColorDot').forEach(b=>b.classList.remove('active'));this.classList.add('active')"
                 ></button>`).join('')}
             </div></div>
@@ -733,6 +738,20 @@ function tripCard(t) {
         <button class="btn danger compact" onclick="deleteTrip('${t.id}')">刪除</button>
       </div>
     </div>`;
+}
+
+function newTripCountryChanged() {
+  const country = $('newTripCountry')?.value || '韓國';
+  const sel = $('newTripCitySelect');
+  if (sel) sel.innerHTML = cityOptions(country, '');
+  newTripCityVisibility();
+}
+
+function newTripCityVisibility() {
+  const sel    = $('newTripCitySelect');
+  const custom = $('newTripCityCustom');
+  if (!sel || !custom) return;
+  custom.style.display = sel.value === '自訂' ? '' : 'none';
 }
 
 /* ══════════════════════════════════════════
