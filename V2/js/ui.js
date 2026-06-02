@@ -2,6 +2,12 @@
    ui.js — render 函式、頁面切換、導覽列
    ================================================================ */
 
+/* ── 品牌 Logo HTML ── */
+function _brandHtml() {
+  const svg = `<svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="18" fill="#4A5D4E"/><rect x="10" y="13" width="40" height="43" rx="10" fill="#FFFAF2"/><path d="M22 13c1.7-5.4 13.9-5.4 15.6 0" fill="none" stroke="#FFFAF2" stroke-width="4" stroke-linecap="round"/><path d="M21 28h18M21 38h14" stroke="#4A5D4E" stroke-width="4" stroke-linecap="round"/><circle cx="45" cy="18" r="6" fill="#E5ECE9"/><path d="M45 14v4l3 2" stroke="#4A5D4E" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>`;
+  return `<div class="loginBrand"><span class="brandMark">${svg}</span><span>貞選旅管家<small>Janeselect Travel Manager</small></span></div>`;
+}
+
 /* ══════════════════════════════════════════
    頁面切換
    ══════════════════════════════════════════ */
@@ -637,10 +643,7 @@ function renderLoginView(message = '') {
   el.innerHTML = `
     <div class="gateShell">
       <div class="loginCard">
-        <div class="loginBrand">
-          <b>貞選旅管家</b>
-          <small>Janeselect Travel Manager</small>
-        </div>
+        ${_brandHtml()}
         <h1>登入以使用旅管家</h1>
         <p>登入後可建立與管理旅程，並跨裝置同步資料。</p>
         ${message ? `<div class="box pink" style="margin-top:12px">${esc(message)}</div>` : ''}
@@ -662,7 +665,7 @@ function renderTripList() {
     <div class="gateShell">
       <div class="tripListHero">
         <div>
-          <b>貞選旅管家</b>
+          ${_brandHtml()}
           <h1>我的旅程</h1>
           <p>每趟旅程都是一包獨立資料，資料分開保存。</p>
         </div>
@@ -730,6 +733,12 @@ function tripCard(t) {
         <div><span>日期</span><b>${t.start && t.end ? `${short(t.start)}-${short(t.end)}` : '未設定'}</b></div>
       </div>
       <div class="meta">${t.updatedAtClient ? `最後更新：${new Date(t.updatedAtClient).toLocaleDateString('zh-TW')}` : ''}</div>
+      <div class="tripCardColorRow">
+        ${CARD_COLORS.map(({key, label}) =>
+          `<button type="button" class="tripColorDot color-${key}${key === color ? ' active' : ''}" title="${label}"
+            onclick="event.stopPropagation();setTripColor('${t.id}','${key}')"></button>`
+        ).join('')}
+      </div>
       <div class="btns">
         <button class="btn dark compact"  onclick="selectTrip('${t.id}')">繼續編輯</button>
         ${t.archived
@@ -738,6 +747,14 @@ function tripCard(t) {
         <button class="btn danger compact" onclick="deleteTrip('${t.id}')">刪除</button>
       </div>
     </div>`;
+}
+
+function setTripColor(id, key) {
+  const t = tripList.find(t => t.id === id);
+  if (!t) return;
+  t.cardColor = key;
+  saveTripListCloud();
+  renderTripList();
 }
 
 function newTripCountryChanged() {

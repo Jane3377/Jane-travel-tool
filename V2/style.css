@@ -7941,11 +7941,11 @@ body.shareView .check input[type="checkbox"] { pointer-events: none; }
 }
 
 /* ── 旅程卡片色系 ── */
-.tripColor-cream { --card-accent: #f7f3ec; background: #f7f3ec !important; }
-.tripColor-mint  { --card-accent: #d8ede4; background: #d8ede4 !important; }
-.tripColor-rose  { --card-accent: #f5d8d8; background: #f5d8d8 !important; }
-.tripColor-sky   { --card-accent: #d4e8f5; background: #d4e8f5 !important; }
-.tripColor-latte { --card-accent: #e8d9c4; background: #e8d9c4 !important; }
+.tripColor-cream { --card-accent: #faf8f4; background: #faf8f4 !important; }
+.tripColor-mint  { --card-accent: #edf6f1; background: #edf6f1 !important; }
+.tripColor-rose  { --card-accent: #f8eeee; background: #f8eeee !important; }
+.tripColor-sky   { --card-accent: #e8f2f8; background: #e8f2f8 !important; }
+.tripColor-latte { --card-accent: #f2ebe0; background: #f2ebe0 !important; }
 
 /* ── 新增旅程：色點選色器 ── */
 .newTripColorDots { display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
@@ -7960,8 +7960,10 @@ body.shareView .check input[type="checkbox"] { pointer-events: none; }
 }
 .tripColorDot:hover { transform: scale(1.15); }
 .tripColorDot.active { border-color: var(--ink); transform: scale(1.2); }
-.tripColorDot.color-cream { background: #f7f3ec; border-color: #d4cec6; }
-.tripColorDot.color-mint  { background: #d8ede4; border-color: #b8d8c8; }
-.tripColorDot.color-rose  { background: #f5d8d8; border-color: #dbb8b8; }
-.tripColorDot.color-sky   { background: #d4e8f5; border-color: #b4c8d8; }
-.tripColorDot.color-latte { background: #e8d9c4; border-color: #c8b8a0; }
+.tripColorDot.color-cream { background: #faf8f4; border-color: #ddd8d0; }
+.tripColorDot.color-mint  { background: #edf6f1; border-color: #c5dece; }
+.tripColorDot.color-rose  { background: #f8eeee; border-color: #e0c8c8; }
+.tripColorDot.color-sky   { background: #e8f2f8; border-color: #baced8; }
+.tripColorDot.color-latte { background: #f2ebe0; border-color: #d0bfa8; }
+.tripCardColorRow { display:flex; gap:6px; margin-top:8px; padding-top:8px; border-top:1px solid rgba(0,0,0,.06); }
+.tripCardColorRow .tripColorDot { width:22px; height:22px; }

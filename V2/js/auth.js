@@ -457,7 +457,7 @@ async function loadSharedTrip(token) {
   const loginEl = $('loginView');
   if (loginEl) loginEl.innerHTML = `
     <div style="display:flex;align-items:center;justify-content:center;height:80vh;flex-direction:column;gap:12px;color:#8b827a">
-      <div class="badge">J 貞選旅管家</div>
+      ${_brandHtml()}
       <p>載入分享行程中…</p>
     </div>`;
   showShell('login');
@@ -499,7 +499,7 @@ function _renderSharePage() {
       <div class="sharePgHead">
         <div class="sharePgHeroRow">
           <div>
-            <div class="badge" style="margin-bottom:8px">J 貞選旅管家</div>
+            ${_brandHtml()}
             <h1 class="sharePgTitle">${esc(title)}</h1>
             <p class="sharePgSub">${esc(dest)}${start ? '｜' + start + ' — ' + end : ''}</p>
           </div>
@@ -608,7 +608,7 @@ function _renderShareError(msg) {
   if (el) {
     el.innerHTML = `
       <div class="gateCard" style="max-width:460px;margin:60px auto;text-align:center">
-        <div class="badge" style="margin-bottom:16px">J 貞選旅管家</div>
+        ${_brandHtml()}
         <h2 style="margin:0 0 12px">無法開啟分享連結</h2>
         <p style="color:#8b827a;margin:0 0 20px">${esc(msg)}</p>
         <a class="btn dark" href="${window.location.pathname}">返回首頁</a>
