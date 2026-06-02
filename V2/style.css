@@ -7328,6 +7328,22 @@ body.readonly .btn:not(.btn-allow) { opacity: .4; pointer-events: none; }
 @media screen { .printOnly { display: none !important; } }
 @media print  { .noPrint   { display: none !important; } }
 
+/* ── 航班表單緊湊版 ── */
+.flightBox { padding: 10px; }
+.flightBoxTitle {
+  display: block;
+  font-size: 14px;
+  font-weight: 900;
+  margin-bottom: 6px;
+  color: var(--ink);
+}
+.flightFormWrap label { margin: 4px 0 2px; }
+.flightFormWrap input,
+.flightFormWrap select,
+.flightFormWrap textarea { min-height: 34px; padding: 6px 10px; font-size: 14px; }
+.flightFormWrap textarea { min-height: 52px; }
+.flightFormWrap .segmentBox { margin-top: 6px; }
+
 /* ── AI bar / review ── */
 .aiBarLabel { font-weight: 900; font-size: 13px; color: #628f80; margin-bottom: 4px; }
 .aiReviewList { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
@@ -7342,6 +7358,14 @@ body.readonly .btn:not(.btn-allow) { opacity: .4; pointer-events: none; }
   list-style: none;
 }
 .aiReviewSummary::-webkit-details-marker { display: none; }
+.aiReviewSummary::after {
+  content: "⌄";
+  font-size: 16px;
+  color: var(--dark);
+  transition: .18s;
+  flex-shrink: 0;
+}
+.aiReviewCard[open] .aiReviewSummary::after { transform: rotate(180deg); }
 .aiReviewSummary div { display: flex; flex-direction: column; gap: 2px; }
 .aiReviewSummary b { font-size: 14px; font-weight: 900; }
 .aiReviewSummary > div > span { font-size: 11px; color: #8b827a; }
