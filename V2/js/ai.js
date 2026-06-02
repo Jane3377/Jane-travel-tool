@@ -65,6 +65,35 @@ function buildTripContext() {
   };
 }
 
+function buildPackingPrompt() {
+  const c = buildTripContext();
+  const existing = (data.packing || []).map(x => x.name).join('、') || '（尚無）';
+  return `請依照以下旅行設定，幫我產出可匯入「貞選旅管家」的行李清單 JSON。
+
+旅行設定：
+- 目的地：${c.dest}
+- 國家/區域：${c.country}
+- 日期：${c.dates}（${data.days.length} 天）
+- 旅伴：${c.travelers}
+
+已有的行李項目：${existing}
+
+請注意：
+1. 只輸出目前清單沒有的新項目。
+2. type 只能是 "pre"（出發前）或 "out"（離開飯店前）。
+3. 只輸出純 JSON，格式如下：
+
+{
+  "packing": [
+    {
+      "type": "pre",
+      "name": "項目名稱",
+      "note": "備註說明"
+    }
+  ]
+}`;
+}
+
 function buildSpotsPrompt() {
   const c = buildTripContext();
   return `請依照以下旅行設定，幫我產出可匯入「貞選旅管家」的口袋景點 JSON。
@@ -138,8 +167,12 @@ ${dayPlans}
 
 function showAIPrompt(type = 'spots') {
   const modal = ensureAiModal();
-  const prompt = type === 'spots' ? buildSpotsPrompt() : buildItineraryPrompt();
-  const title  = type === 'spots' ? 'AI 口袋景點提示詞' : 'AI 行程健檢提示詞';
+  const prompt = type === 'spots'     ? buildSpotsPrompt()
+               : type === 'packing'  ? buildPackingPrompt()
+               : buildItineraryPrompt();
+  const title  = type === 'spots'    ? 'AI 找景點'
+               : type === 'packing'  ? 'AI 行李清單'
+               : 'AI 行程健檢';
 
   modal.innerHTML = `
     <div class="aiPromptBox">
@@ -147,12 +180,15 @@ function showAIPrompt(type = 'spots') {
         <h3>${esc(title)}</h3>
         <button class="iconBtn" onclick="closeAIPrompt()">×</button>
       </div>
-      ${type === 'itinerary' ? aiPrefsHtml() : ''}
+      <p style="font-size:13px;color:#8b827a;margin-bottom:10px">複製提示詞後，可貼到 ChatGPT 或 Gemini 使用。點按鈕會自動複製並開啟新分頁。</p>
+      ${(type === 'itinerary' || type === 'spots') ? aiPrefsHtml() : ''}
       <textarea id="aiPromptText">${esc(prompt)}</textarea>
       <div class="btns">
-        <button class="btn dark" onclick="copyAIPrompt()">複製提示詞</button>
-        <button class="btn blue" onclick="window.open('https://claude.ai/','_blank')">開啟 Claude AI</button>
-        <button class="btn soft" onclick="closeAIPrompt()">關閉</button>
+        <button class="btn dark"  onclick="openAiTarget('chatgpt')">ChatGPT</button>
+        <button class="btn blue"  onclick="openAiTarget('gemini')">Gemini</button>
+        <button class="btn soft"  onclick="openAiTarget('claude')">Claude</button>
+        <button class="btn"       onclick="copyAIPrompt()">複製</button>
+        <button class="btn soft"  onclick="closeAIPrompt()">關閉</button>
       </div>
     </div>`;
   modal.classList.add('show');
@@ -176,6 +212,24 @@ function copyAIPrompt() {
       document.body.removeChild(ta);
       toast('已複製提示詞');
     });
+}
+
+function openAiTarget(target) {
+  // 先自動複製，再開新分頁
+  const text = $('aiPromptText')?.value || '';
+  navigator.clipboard?.writeText(text).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  });
+  toast('已複製，請在新分頁貼上');
+  const url = target === 'gemini' ? 'https://gemini.google.com/app'
+            : target === 'claude' ? 'https://claude.ai/'
+            : 'https://chatgpt.com/';
+  window.open(url, '_blank');
 }
 
 function ensureAiModal() {
@@ -232,6 +286,22 @@ function importAiJson() {
     const obj     = JSON.parse(raw);
     const spots   = Array.isArray(obj.spots) ? obj.spots : [];
     const reviews = Array.isArray(obj.items) ? obj.items : [];
+
+    // 行李清單匯入
+    const packItems = Array.isArray(obj.packing) ? obj.packing : [];
+    if (packItems.length) {
+      packItems.forEach(x => {
+        if (!x.name) return;
+        data.packing.push({
+          id: uid(), type: x.type === 'out' ? 'out' : 'pre',
+          name: String(x.name || ''), note: String(x.note || ''), checked: false
+        });
+      });
+      save();
+      toast(`已匯入 ${packItems.length} 個行李項目`);
+      closeImportModal();
+      return;
+    }
 
     if (spots.length) {
       spots.forEach(s => {

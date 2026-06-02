@@ -43,7 +43,7 @@ function renderNav() {
   }
   if (mobile) {
     // 手機底部只顯示主要幾個
-    const mobileViews = [['trip','旅遊地'],['stay','機酒'],['planner','行程'],['spots','景點'],['budget','預算'],['photoBook','旅遊書']];
+    const mobileViews = [['trip','旅遊地'],['stay','機酒'],['planner','行程'],['spots','景點'],['budget','預算'],['packing','行李'],['photoBook','旅遊書']];
     mobile.innerHTML = mobileViews.map(([k, l]) =>
       `<button class="nav ${k===view?'active':''}" onclick="go('${k}')">${l}</button>`
     ).join('');
@@ -511,6 +511,14 @@ function renderPacking() {
       <div class="btns">
         <button class="btn dark" onclick="addPackItem()">新增到此清單</button>
         <button class="btn soft" onclick="uncheckCurrentList()">取消勾選</button>
+      </div>
+    </div>
+    <div class="card aiBarPacking">
+      <div class="aiBarLabel">AI 輔助</div>
+      <div class="hint" style="margin-bottom:10px">依目的地、天數與行程補強行李清單。</div>
+      <div class="btns">
+        <button class="btn pink compact" onclick="showAIPrompt('packing')">AI 行李</button>
+        <button class="btn blue compact" onclick="openImportModal()">AI 匯入</button>
       </div>
     </div>
     <div class="grid2">
