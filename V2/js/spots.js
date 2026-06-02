@@ -155,37 +155,99 @@ function closeExploreModal() {
 }
 
 function runExplore(type) {
-  const kw = encodeURIComponent($('exploreKeyword')?.value || (_exploreSpot?.name || ''));
-  const urls = {
-    blog:     `https://www.google.com/search?q=${kw}+遊記心得`,
-    video:    `https://www.youtube.com/results?search_query=${kw}`,
-    checkin:  `https://www.google.com/search?q=${kw}+打卡推薦`,
-    official: `https://www.google.com/search?q=${kw}+官方網站`
-  };
-  if (type === 'ai') {
-    const s    = _exploreSpot || {};
-    const name = $('exploreKeyword')?.value || s.name || '';
-    const prompt = `請幫我簡單介紹「${name}」，包含：
-- 景點特色與亮點
-- 建議停留時間
-- 開放時間與票價（如有）
-- 交通方式
-- 注意事項或小提醒
+  const kw  = encodeURIComponent($('exploreKeyword')?.value || (_exploreSpot?.name || ''));
+  const kwRaw = $('exploreKeyword')?.value || (_exploreSpot?.name || '');
 
-請用繁體中文條列式回覆，簡潔清楚即可。`;
-    navigator.clipboard?.writeText(prompt).catch(() => {
-      const ta = document.createElement('textarea');
-      ta.value = prompt;
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      ta.remove();
-    });
-    toast('已複製 AI 摘要提示詞，請貼到 AI 工具');
-    window.open('https://claude.ai/', '_blank');
-    return;
+  if (type === 'blog') {
+    window.open(`https://www.google.com/search?q=${kw}+遊記心得`, '_blank'); return;
   }
-  if (urls[type]) window.open(urls[type], '_blank');
+  if (type === 'video') {
+    window.open(`https://www.youtube.com/results?search_query=${kw}`, '_blank'); return;
+  }
+  if (type === 'checkin') {
+    window.open(`https://www.google.com/search?q=${kw}+site:instagram.com+OR+site:facebook.com+OR+site:threads.net`, '_blank'); return;
+  }
+  if (type === 'official') {
+    window.open(`https://www.google.com/search?q=${kw}+官方網站`, '_blank'); return;
+  }
+  if (type === 'ai') {
+    const s = _exploreSpot || {};
+    const prompt = `我正在規劃 ${data.trip.dest || '旅程'}，想快速了解這個景點是否值得排入行程。
+
+景點：${s.name || ''}
+分類：${s.type || ''}
+地址／區域：${s.addr || '（未填）'}${s.memo ? '\n備註：' + s.memo : ''}
+
+請幫我整理：
+1. 這個景點大概長什麼樣、適合怎麼玩。
+2. 建議停留時間。
+3. 適合安排在早上、下午或晚上。
+4. 附近可順遊的方向。
+5. 可能要注意的排隊、交通、天氣或公休日問題。
+6. 如果我貼上遊記或搜尋結果連結，請幫我整理重點，不要直接複製原文。
+
+搜尋關鍵字參考：${kwRaw}`;
+
+    // 關閉探索 modal，顯示提示詞 modal
+    closeExploreModal();
+    _showSpotAiModal(prompt);
+  }
+}
+
+function _showSpotAiModal(prompt) {
+  let modal = $('spotAiModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'spotAiModal';
+    modal.className = 'aiPromptModal';
+    modal.onclick = e => { if (e.target === modal) modal.classList.remove('show'); };
+    document.body.appendChild(modal);
+  }
+  modal.innerHTML = `
+    <div class="aiPromptBox">
+      <div class="aiModalHead">
+        <div>
+          <h3>AI 摘要</h3>
+          <p>可把搜尋結果或遊記連結一起貼給 AI，整理成玩法重點。</p>
+        </div>
+        <button class="aiModalClose" onclick="$('spotAiModal').classList.remove('show')">×</button>
+      </div>
+      <textarea id="spotAiPromptText" readonly style="font-size:12px;line-height:1.6;min-height:200px;background:#f7f3ec">${esc(prompt)}</textarea>
+      <div class="aiTargetBtns">
+        <button class="btn dark"  onclick="_openSpotAiTarget('chatgpt')">ChatGPT</button>
+        <button class="btn blue"  onclick="_openSpotAiTarget('gemini')">Gemini</button>
+        <button class="btn soft"  onclick="_openSpotAiTarget('claude')">Claude</button>
+      </div>
+      <div class="btns" style="margin-top:8px">
+        <button class="btn soft compact" onclick="_copySpotAiPrompt()">複製</button>
+        <button class="btn soft compact" onclick="$('spotAiModal').classList.remove('show')">關閉</button>
+      </div>
+    </div>`;
+  modal.classList.add('show');
+}
+
+function _copySpotAiPrompt() {
+  const text = $('spotAiPromptText')?.value || '';
+  navigator.clipboard?.writeText(text).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); ta.remove();
+  });
+  toast('已複製提示詞');
+}
+
+function _openSpotAiTarget(target) {
+  const text = $('spotAiPromptText')?.value || '';
+  navigator.clipboard?.writeText(text).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); ta.remove();
+  });
+  toast('已複製，請在新分頁貼上');
+  const url = target === 'gemini' ? 'https://gemini.google.com/app'
+            : target === 'claude' ? 'https://claude.ai/'
+            : 'https://chatgpt.com/';
+  window.open(url, '_blank');
 }
 
 function importSpotFile(file) {
