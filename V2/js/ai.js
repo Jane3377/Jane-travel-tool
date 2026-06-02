@@ -105,6 +105,9 @@ function buildSpotsPrompt() {
 - 日期：${c.dates}
 - 旅伴：${c.travelers}
 
+使用者偏好：
+${aiPrefsText()}
+
 旅行日期：
 ${c.days}
 
