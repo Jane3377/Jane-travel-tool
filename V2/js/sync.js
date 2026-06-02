@@ -85,37 +85,22 @@ function ensureLockBanner() {
 }
 
 function applyLockBanner() {
-  const el = ensureLockBanner();
-  if (!el) return;
-
-  if (!fbUser || !currentTripId) {
-    el.remove();
+  if (!fbUser || !currentTripId || !deviceReadOnly) {
+    $('lockBanner')?.remove();
     return;
   }
-
-  if (deviceReadOnly) {
-    el.className = 'lockBanner viewOnly';
-    el.innerHTML = `
-      <div>
-        <b>檢視模式</b>
-        <span>由 ${esc(lockOwnerText())} 編輯中。可查看資料，但不會自動同步。</span>
-      </div>
-      <div class="btns">
-        <button class="btn blue compact" onclick="loadFromCloud({force:true})">載入最新</button>
-        <button class="btn dark compact" onclick="takeOverEdit()">接手編輯</button>
-      </div>`;
-  } else {
-    el.className = 'lockBanner editing';
-    el.innerHTML = `
-      <div>
-        <b>${esc(deviceName())} 正在編輯</b>
-        <span>其他裝置會進入檢視模式，避免資料互相覆蓋。</span>
-      </div>
-      <div class="btns">
-        <button class="btn blue compact" onclick="saveToCloudNow()">同步</button>
-        <button class="btn soft compact" onclick="loadFromCloud({force:true})">載入</button>
-      </div>`;
-  }
+  const el = ensureLockBanner();
+  if (!el) return;
+  el.className = 'lockBanner viewOnly';
+  el.innerHTML = `
+    <div>
+      <b>檢視模式</b>
+      <span>由 ${esc(lockOwnerText())} 編輯中。可查看資料，但不會自動同步。</span>
+    </div>
+    <div class="btns">
+      <button class="btn blue compact" onclick="loadFromCloud({force:true})">載入最新</button>
+      <button class="btn dark compact" onclick="takeOverEdit()">接手編輯</button>
+    </div>`;
 }
 
 /* ══════════════════════════════════════════
@@ -134,14 +119,11 @@ function renderTripSwitchBar() {
   }
   bar.innerHTML = `
     <div class="miniTrip">
-      <b>${esc(data.meta.title || '目前旅程')}</b>
-      ${esc(data.trip.dest || '')}｜${data.trip.start && data.trip.end ? `${short(data.trip.start)}-${short(data.trip.end)}` : '未設定'}
-      <br>${syncBadge()}
+      <div class="tripMetaDest">${esc(data.trip.dest || '')}${data.trip.start && data.trip.end ? `｜${short(data.trip.start)}-${short(data.trip.end)}` : ''}</div>
+      ${syncBadge()}
     </div>
     <div class="btns" style="margin:0">
       <button class="btn soft compact" onclick="backToTripList()">切換</button>
-      <button class="btn blue compact" onclick="loadFromCloud({force:true})">載入</button>
-      <button class="btn dark compact" onclick="saveToCloudNow()">同步</button>
     </div>`;
 }
 

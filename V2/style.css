@@ -7726,3 +7726,12 @@ body.readonly .btn:not(.btn-allow) { opacity: .4; pointer-events: none; }
   background: #fffdf8;
   flex-shrink: 0;
 }
+
+/* ── 手機版 Header 精簡 ── */
+@media (max-width: 620px) {
+  .subRow { display: none; }
+  .tripSwitchBar { padding: 6px 10px; margin: 6px 0 0; align-items: flex-start; }
+  .tripSwitchBar .btns { width: auto; display: flex; grid-template-columns: unset; }
+  .tripSwitchBar .btns .btn { width: auto; padding-left: 10px !important; padding-right: 10px !important; }
+  .tripSwitchBar .miniTrip .tripMetaDest { font-size: 12px; color: var(--muted); }
+}

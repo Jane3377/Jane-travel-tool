@@ -26,19 +26,6 @@
       <p class="sub" id="subtitleText"></p>
       <button class="iconBtn" onclick="editSubtitle()">✎</button>
     </div>
-    <div class="heroStats">
-      <div><span>目的地</span><strong id="sDest">—</strong></div>
-      <div class="syncBar noPrint">
-        <div class="syncStatus" id="syncStatus">
-          <span class="syncDot off"></span><b>尚未登入</b>
-        </div>
-        <button class="btn dark compact" id="loginBtn" onclick="firebaseSignIn()">Google 登入</button>
-        <button class="btn soft compact hidden" id="logoutBtn"     onclick="firebaseSignOut()">登出</button>
-        <button class="btn blue compact hidden" id="cloudLoadBtn"  onclick="loadFromCloud({force:true})">載入雲端</button>
-        <button class="btn pink compact hidden" id="cloudSaveBtn"  onclick="saveToCloudNow()">立即同步</button>
-      </div>
-      <div><span>日期</span><strong id="sDate">—</strong></div>
-    </div>
   </header>
 
   <div class="tabs" id="tabs"></div>
