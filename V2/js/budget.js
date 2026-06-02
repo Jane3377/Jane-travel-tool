@@ -123,26 +123,36 @@ function budgetSummaryHtml(items) {
 
 function budgetListHtml(items) {
   if (!items.length) return '<div class="empty">尚未新增預算</div>';
-  return `<div class="budgetList">${items.map(x => `
-    <details class="budgetItem">
-      <summary>
-        <div class="budgetItemTitle">
-          <b>${esc(x.name)}</b>
-          <span>${esc(x.type)}｜${x.day ? esc(x.day) : '未指定'}｜${esc(x.source)}</span>
-        </div>
-        <div class="budgetAmount">TWD ${fmt(x.twd)}</div>
-      </summary>
-      <div class="budgetItemBody">
-        <div class="budgetMetaGrid">
-          <div><span>付款人</span><b>${esc(travelerName(x.payer))}</b></div>
-          <div><span>方式</span><b>${esc(payMethodLabel(x.payMethod))}</b></div>
-          <div><span>${esc(data.trip.currency)}</span><b>${fmt(x.foreign)}</b></div>
-          <div><span>備註</span><b>${esc(x.memo || '—')}</b></div>
-        </div>
-        ${x.editable ? `<div class="btns">
-          <button class="small" onclick="editExpense('${x.id}')">編輯</button>
-          <button class="small" onclick="deleteExpense('${x.id}')">刪除</button>
-        </div>` : ''}
-      </div>
-    </details>`).join('')}</div>`;
+  const cur = esc(data.trip.currency || 'KRW');
+  const rows = items.map(x => `
+    <tr class="budgetRow">
+      <td data-label="來源">${esc(x.source)}</td>
+      <td data-label="日期">${x.day ? esc(x.day) : '—'}</td>
+      <td data-label="類型"><span class="budgetTypeTag">${esc(x.type)}</span></td>
+      <td data-label="項目" class="budgetNameCell">${esc(x.name)}${x.memo ? `<div class="budgetMemo">${esc(x.memo)}</div>` : ''}</td>
+      <td data-label="付款人">${esc(travelerName(x.payer))}</td>
+      <td data-label="付款方式">${esc(payMethodLabel(x.payMethod))}</td>
+      <td data-label="${cur}" class="budgetNum">${x.foreign ? fmt(x.foreign) : '—'}</td>
+      <td data-label="TWD" class="budgetNum budgetTwd">TWD ${fmt(x.twd)}</td>
+      <td data-label="操作" class="budgetActions">
+        ${x.editable
+          ? `<button class="small" onclick="editExpense('${x.id}')">編輯</button>
+             <button class="small" onclick="deleteExpense('${x.id}')">刪除</button>`
+          : '<span class="budgetMemo">自動</span>'}
+      </td>
+    </tr>`).join('');
+
+  return `
+    <div class="budgetTableWrap">
+      <table class="budgetTable">
+        <thead>
+          <tr>
+            <th>來源</th><th>日期</th><th>類型</th><th>項目</th>
+            <th>付款人</th><th>付款方式</th>
+            <th>${cur}</th><th>TWD</th><th>操作</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
 }
