@@ -300,8 +300,18 @@ function renderPlanner() {
         <div class="three compactMobile">
           <div class="full"><label>日期</label>
             <select id="pday">${optsDays(currentDay)}</select></div>
-          <div><label>開始</label><input id="ps" type="time" value="10:00"></div>
-          <div><label>結束</label><input id="pe" type="time" value="11:30"></div>
+          <div><label>開始</label><input id="ps" type="time" value="10:00" onchange="planStartChange()"></div>
+          <div><label>時長</label>
+            <select id="pdur" onchange="planDurationChange()">
+              <option value="">（選填）</option>
+              ${[30,60,90,120,150,180,210,240,270,300].map(m => {
+                const h = Math.floor(m/60), r = m%60;
+                const label = h && r ? `${h} 小時 ${r} 分` : h ? `${h} 小時` : `${r} 分`;
+                return `<option value="${m}">${label}</option>`;
+              }).join('')}
+            </select></div>
+          <div><label>結束 <span id="pdurDisplay" class="pdurDisplay"></span></label>
+            <input id="pe" type="time" value="11:30" onchange="planEndChange()"></div>
         </div>
         <div class="two">
           <div><label>分類</label><select id="ptype">${optsPlanTypes()}</select></div>

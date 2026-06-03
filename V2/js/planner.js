@@ -6,6 +6,52 @@
    行程 CRUD
    ══════════════════════════════════════════ */
 
+/* ── 時長連動 ── */
+function planStartChange() {
+  // 如果有選時長，重算結束時間
+  const dur = Number($('pdur')?.value || 0);
+  if (dur > 0 && $('ps')?.value) planDurationChange();
+  else planEndChange();
+}
+
+function planDurationChange() {
+  const s   = $('ps')?.value;
+  const dur = Number($('pdur')?.value || 0);
+  if (!s || !dur) return;
+  if ($('pe')) $('pe').value = addMinutes(s, dur);
+  planEndChange();
+}
+
+function planEndChange() {
+  const s = $('ps')?.value;
+  const e = $('pe')?.value;
+  const el = $('pdurDisplay');
+  if (!el) return;
+  if (s && e) {
+    const mins = timeToMin(e) - timeToMin(s);
+    if (mins > 0) {
+      const h = Math.floor(mins / 60), m = mins % 60;
+      el.textContent = h && m ? `${h}h${m}m` : h ? `${h} 小時` : `${m} 分`;
+      el.style.display = '';
+      // 若符合整 30 分，同步更新時長下拉
+      if (mins % 30 === 0 && mins <= 300 && $('pdur')) $('pdur').value = String(mins);
+      return;
+    }
+  }
+  el.textContent = '';
+  el.style.display = 'none';
+}
+
+function planSyncDurDisplay() {
+  const s = $('ps')?.value;
+  const e = $('pe')?.value;
+  if (s && e) {
+    const mins = timeToMin(e) - timeToMin(s);
+    if (mins > 0 && mins % 30 === 0 && mins <= 300 && $('pdur')) $('pdur').value = String(mins);
+  }
+  planEndChange();
+}
+
 function savePlanForm() {
   const name = $('pname')?.value.trim();
   if (!name) return toast('請輸入行程名稱');
@@ -109,6 +155,7 @@ function fillPlanForm(id) {
   if ($('pkrAddr'))  $('pkrAddr').value  = p.krAddress || '';
   if ($('pnote'))    $('pnote').value    = p.note      || '';
   if ($('pmemo'))    $('pmemo').value    = p.memo      || '';
+  planSyncDurDisplay();
   applyLockedNameState();
 }
 
@@ -125,6 +172,7 @@ function fillFromSpot(spotId) {
   if ($('pmemo'))    $('pmemo').value    = '由口袋景點帶入';
   if ($('ps') && s.start) $('ps').value = s.start;
   if ($('pe') && s.end)   $('pe').value = s.end;
+  planSyncDurDisplay();
   const hint = $('lockedNameHint');
   if (hint) hint.style.display = '';
 }
