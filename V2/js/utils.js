@@ -46,12 +46,17 @@ function short(k) {
   const [, m, d] = k.split('-');
   return `${Number(m)}/${Number(d)}`;
 }
+const _WDAYS = ['日','一','二','三','四','五','六'];
+function shortWithDay(k) {
+  if (!k) return '';
+  const dt = parseLocalDate(k);
+  return `${dt.getMonth()+1}/${dt.getDate()}(${_WDAYS[dt.getDay()]})`;
+}
 function mkDays(start, end) {
   if (!start || !end) return [];
   let i = 1;
   return dateRange(start, end).map(key => {
-    const dt = parseLocalDate(key);
-    return { key, label: `${dt.getMonth()+1}/${dt.getDate()}`, title: `Day ${i++}` };
+    return { key, label: shortWithDay(key), title: `Day ${i++}` };
   });
 }
 function daysBetween(a, b) {
@@ -94,7 +99,7 @@ function payMethodLabel(v) {
 /* ── 行程工具 ── */
 function dayTitle(k) {
   const d = data.days.find(x => x.key === k);
-  return d ? `${d.title}｜${d.label}` : k;
+  return d ? `${d.title}｜${shortWithDay(k)}` : k;
 }
 function hotelFor(k) {
   return data.hotels.find(h => k >= h.start && k <= h.end);
@@ -134,7 +139,7 @@ function cityOptions(country, selected) {
 /* ── 表單工具 ── */
 function optsDays(selected = '') {
   return data.days.map(d =>
-    `<option value="${d.key}" ${d.key === selected ? 'selected' : ''}>${d.label} ${d.title}</option>`
+    `<option value="${d.key}" ${d.key === selected ? 'selected' : ''}>${shortWithDay(d.key)} ${d.title}</option>`
   ).join('');
 }
 function optsPayer(selected = '未定') {

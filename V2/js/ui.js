@@ -121,7 +121,7 @@ function renderSide() {
     return `
       <div class="day ${d.key === currentDay ? 'active' : ''}"
            onclick="currentDay='${d.key}';cur='${d.key}';go('planner')">
-        <b>${d.title}｜${d.label}</b>
+        <b>${d.title}｜${shortWithDay(d.key)}</b>
         <span>${count} 行程｜住宿：${hotel ? esc(hotel.name) : '未設定'}</span>
       </div>`;
   }).join('');
@@ -343,7 +343,6 @@ function renderPlanner() {
         <div class="btns">
           <button class="btn dark compact" onclick="showAIPrompt('itinerary')">AI 健檢</button>
           <button class="btn blue compact" onclick="openImportModal()">AI 匯入</button>
-          <button class="btn soft compact" onclick="openShareModal()">分享行程</button>
         </div>`}
         ${aiReviewHtml()}
       </div>`);
