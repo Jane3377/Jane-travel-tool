@@ -17,9 +17,11 @@ function savePlanForm() {
 
   const item = {
     day, start, end, type, name,
-    address:    $('paddress')?.value || '',
-    note:       $('pnote')?.value    || '',
-    memo:       $('pmemo')?.value    || '',
+    address:    $('paddress')?.value       || '',
+    krName:     $('pkrName')?.value.trim() || '',
+    krAddress:  $('pkrAddr')?.value.trim() || '',
+    note:       $('pnote')?.value          || '',
+    memo:       $('pmemo')?.value          || '',
     mode:       'foreign',
     foreign:    0,
     twd:        0,
@@ -101,10 +103,12 @@ function fillPlanForm(id) {
   if ($('ps'))       $('ps').value       = p.start   || '';
   if ($('pe'))       $('pe').value       = p.end     || '';
   if ($('ptype'))    $('ptype').value    = normalizePlanType(p.type);
-  if ($('pname'))    $('pname').value    = p.name    || '';
-  if ($('paddress')) $('paddress').value = p.address || '';
-  if ($('pnote'))    $('pnote').value    = p.note    || '';
-  if ($('pmemo'))    $('pmemo').value    = p.memo    || '';
+  if ($('pname'))    $('pname').value    = p.name      || '';
+  if ($('paddress')) $('paddress').value = p.address   || '';
+  if ($('pkrName'))  $('pkrName').value  = p.krName    || '';
+  if ($('pkrAddr'))  $('pkrAddr').value  = p.krAddress || '';
+  if ($('pnote'))    $('pnote').value    = p.note      || '';
+  if ($('pmemo'))    $('pmemo').value    = p.memo      || '';
   applyLockedNameState();
 }
 
@@ -114,8 +118,10 @@ function fillFromSpot(spotId) {
   if ($('pday'))     $('pday').value     = s.day || currentDay;
   if ($('ptype'))    $('ptype').value    = normalizePlanType(s.type);
   if ($('pname'))    { $('pname').value  = s.name; $('pname').readOnly = true; $('pname').classList.add('lockedInput'); }
-  if ($('paddress')) $('paddress').value = s.addr || '';
-  if ($('pnote'))    $('pnote').value    = s.memo || '';
+  if ($('paddress')) $('paddress').value = s.addr      || '';
+  if ($('pkrName'))  $('pkrName').value  = s.krName    || '';
+  if ($('pkrAddr'))  $('pkrAddr').value  = s.krAddress || '';
+  if ($('pnote'))    $('pnote').value    = s.memo      || '';
   if ($('pmemo'))    $('pmemo').value    = '由口袋景點帶入';
   if ($('ps') && s.start) $('ps').value = s.start;
   if ($('pe') && s.end)   $('pe').value = s.end;
@@ -281,9 +287,13 @@ function connHtml(a, b) {
 
 function planCard(p, num = null) {
   const isAuto   = num === null;
+  const isKorea  = data.trip.country === '韓國';
   const mapQuery = encodeURIComponent(
-    [(p.address||''), p.name, data.trip.dest].filter(Boolean).join(' ')
+    isKorea && (p.krAddress || p.krName)
+      ? [(p.krAddress||''), (p.krName||p.name)].filter(Boolean).join(' ')
+      : [(p.address||''), p.name, data.trip.dest].filter(Boolean).join(' ')
   );
+  const hasKr = isKorea && (p.krName || p.krAddress);
   return `
     <div class="itineraryItem">
       <div class="itineraryDotWrap">
@@ -308,6 +318,12 @@ function planCard(p, num = null) {
             </div>
             ${p.note ? `<div class="itineraryNote"><b>注意：</b>${esc(p.note)}</div>` : ''}
             ${p.memo ? `<div class="itineraryNote"><b>備註：</b>${esc(p.memo)}</div>` : ''}
+            ${hasKr ? `
+            <details class="planKrDetails">
+              <summary>한국어 정보</summary>
+              ${p.krName    ? `<div class="planKrRow"><span>이름</span><b>${esc(p.krName)}</b><button class="planKrCopy" onclick="event.stopPropagation();copyText('${esc(p.krName)}')">複製</button></div>` : ''}
+              ${p.krAddress ? `<div class="planKrRow"><span>주소</span><b>${esc(p.krAddress)}</b><button class="planKrCopy" onclick="event.stopPropagation();copyText('${esc(p.krAddress)}')">複製</button></div>` : ''}
+            </details>` : ''}
           </div>
           <div class="itineraryActions">
             <button class="small" onclick="openMap('${mapQuery}')">地圖</button>

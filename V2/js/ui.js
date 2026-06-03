@@ -314,6 +314,11 @@ function renderPlanner() {
         </div>
         <label>地址（選填）</label>
         <input id="paddress" placeholder="未來地圖功能使用">
+        ${data.trip.country === '韓國' ? `
+        <div class="two">
+          <div><label>韓文名稱（選填）</label><input id="pkrName" placeholder="예: 감천문화마을"></div>
+          <div><label>韓文地址（選填）</label><input id="pkrAddr" placeholder="예: 부산광역시 사하구 감내2로 203"></div>
+        </div>` : ''}
         <label>注意事項</label><textarea id="pnote"></textarea>
         <label>備註</label><textarea id="pmemo"></textarea>
         <div class="btns">

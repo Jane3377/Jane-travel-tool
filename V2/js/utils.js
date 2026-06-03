@@ -169,3 +169,9 @@ function openRoute(a, b, mode) {
 function openRateSearch() {
   open(`https://www.google.com/search?q=${encodeURIComponent((data.trip.currency || 'KRW') + ' TWD 匯率')}`, '_blank');
 }
+
+function copyText(text) {
+  navigator.clipboard?.writeText(text)
+    .then(() => toast("已複製"))
+    .catch(() => toast("複製失敗，請手動複製"));
+}
