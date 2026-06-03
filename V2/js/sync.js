@@ -98,8 +98,8 @@ function applyLockBanner() {
       <span>由 ${esc(lockOwnerText())} 編輯中。可查看資料，但不會自動同步。</span>
     </div>
     <div class="btns">
-      <button class="btn blue compact" onclick="loadFromCloud({force:true})">載入最新</button>
-      <button class="btn dark compact" onclick="takeOverEdit()">接手編輯</button>
+      <button class="btn blue compact btn-allow" onclick="loadFromCloud({force:true})">載入最新</button>
+      <button class="btn dark compact btn-allow" onclick="takeOverEdit()">接手編輯</button>
     </div>`;
 }
 
