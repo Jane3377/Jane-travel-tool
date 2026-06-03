@@ -157,6 +157,7 @@ function fillPlanForm(id) {
   if ($('pmemo'))    $('pmemo').value    = p.memo      || '';
   planSyncDurDisplay();
   applyLockedNameState();
+  applyLockedTimeState();
 }
 
 function fillFromSpot(spotId) {
@@ -185,6 +186,17 @@ function applyLockedNameState() {
     $('pname').classList.toggle('lockedInput', locked);
   }
   const hint = $('lockedNameHint');
+  if (hint) hint.style.display = locked ? '' : 'none';
+}
+
+function applyLockedTimeState() {
+  const p = editingPlanId ? data.plans.find(x => x.id === editingPlanId) : null;
+  const locked = !!p?.lockedTime;
+  ['psH','psM','peH','peM','pdur'].forEach(id => {
+    const el = $(id);
+    if (el) el.disabled = locked;
+  });
+  const hint = $('lockedTimeHint');
   if (hint) hint.style.display = locked ? '' : 'none';
 }
 
@@ -234,7 +246,7 @@ function getOrCreateConn(a, b) {
   if (!conn) {
     conn = {
       id: uid(), a: a.id, b: b.id,
-      mode: '大眾運輸', h: 0, m: 30,
+      mode: '大眾運輸', h: 0, m: 0,
       memo: '', fareForeign: 0, fareTwd: 0,
       payer: '未定', payMethod: '未定'
     };

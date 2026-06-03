@@ -317,6 +317,9 @@ function renderPlanner() {
           <div><label>分類</label><select id="ptype">${optsPlanTypes()}</select></div>
           <div></div>
         </div>
+        <div id="lockedTimeHint" class="lockedFieldHint" style="display:none">
+          飛行時間由航班設定決定，請從「航班」頁調整。
+        </div>
         <label>行程名稱</label>
         <input id="pname">
         <div id="lockedNameHint" class="lockedFieldHint" style="display:none">

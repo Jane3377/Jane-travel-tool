@@ -187,41 +187,45 @@ function flightPlanTemplates() {
     return { day: formatLocalDate(d), time: `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}` };
   };
 
-  const makeNode = (id, dir, name, dayTime, type, note) => ({
+  const flightNode = (id, name, startDt, endDt, type, note) => ({
     id, source: 'flight', sourceType: 'flight', lockedName: true,
-    day: dayTime.day, start: '', end: dayTime.time,
+    day: startDt.day, start: startDt.time, end: endDt.time,
     type, name, note: note || '', memo: '由航班資料帶入'
   });
 
   // 去程
   const os = out.segments[0] || {};
   const ol = out.segments[out.segments.length - 1] || {};
-  if (os.dep) tpls.push(makeNode('flight-out-to-airport', 'out', `出發去 ${os.from || '機場'}`, addMin(os.dep, -120), '交通', out.toAirport));
+  if (os.dep) tpls.push(flightNode('flight-out-to-airport', `出發去 ${os.from || '機場'}`,
+    addMin(os.dep, -180), addMin(os.dep, -120), '交通', out.toAirport));
   out.segments.forEach((s, i) => {
     if (!s.dep) return;
     tpls.push({
-      id: `flight-out-seg-${i}`, source: 'flight', sourceType: 'flight', lockedName: true,
+      id: `flight-out-seg-${i}`, source: 'flight', sourceType: 'flight', lockedName: true, lockedTime: true,
       day: pad(s.dep).day, start: pad(s.dep).time, end: pad(s.arr).time,
       type: '航班', name: `去程飛機${s.no ? ' ' + s.no : ''}`,
       note: `${s.from || ''} → ${s.to || ''}`, memo: '由航班資料帶入'
     });
   });
-  if (ol.arr) tpls.push(makeNode('flight-out-arrival', 'out', `從 ${ol.to || '機場'} 前往飯店`, addMin(ol.arr, 60), '交通', out.fromAirport));
+  if (ol.arr) tpls.push(flightNode('flight-out-arrival', `從 ${ol.to || '機場'} 前往飯店`,
+    pad(ol.arr), addMin(ol.arr, 120), '交通', out.fromAirport));
 
   // 回程
   const bs = back.segments[0] || {};
   const bl = back.segments[back.segments.length - 1] || {};
-  if (bs.dep) tpls.push(makeNode('flight-back-to-airport', 'back', `從飯店前往 ${bs.from || '機場'}`, addMin(bs.dep, -120), '交通', back.toAirport));
+  if (bs.dep) tpls.push(flightNode('flight-back-to-airport', `從飯店前往 ${bs.from || '機場'}`,
+    addMin(bs.dep, -180), addMin(bs.dep, -120), '交通', back.toAirport));
   back.segments.forEach((s, i) => {
     if (!s.dep) return;
     tpls.push({
-      id: `flight-back-seg-${i}`, source: 'flight', sourceType: 'flight', lockedName: true,
+      id: `flight-back-seg-${i}`, source: 'flight', sourceType: 'flight', lockedName: true, lockedTime: true,
       day: pad(s.dep).day, start: pad(s.dep).time, end: pad(s.arr).time,
       type: '航班', name: `回程飛機${s.no ? ' ' + s.no : ''}`,
       note: `${s.from || ''} → ${s.to || ''}`, memo: '由航班資料帶入'
     });
   });
-  if (bl.arr) tpls.push(makeNode('flight-back-home', 'back', `從 ${bl.to || '機場'} 回家`, addMin(bl.arr, 60), '交通', back.fromAirport));
+  if (bl.arr) tpls.push(flightNode('flight-back-home', `從 ${bl.to || '機場'} 回家`,
+    pad(bl.arr), addMin(bl.arr, 120), '交通', back.fromAirport));
 
   return tpls.filter(t => t.day);
 }
