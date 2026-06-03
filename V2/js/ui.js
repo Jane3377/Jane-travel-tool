@@ -311,7 +311,7 @@ function renderPlanner() {
               }).join('')}
             </select></div>
           <div><label>結束 <span id="pdurDisplay" class="pdurDisplay"></span></label>
-            <input id="pe" type="time" value="11:30" onchange="planEndChange()"></div>
+            <input id="pe" type="time" value="11:30" onchange="planEndChange()" oninput="planEndChange()"></div>
         </div>
         <div class="two">
           <div><label>分類</label><select id="ptype">${optsPlanTypes()}</select></div>

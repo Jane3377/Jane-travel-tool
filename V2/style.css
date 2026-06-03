@@ -7818,7 +7818,9 @@ body[data-theme-mode="dark"] .day.active span:not(.dayDate) {
 }
 .connSummary::-webkit-details-marker { display: none; }
 .connSummary::marker { display: none; }
-.connSummary::before { content: '↓'; color: #c8c0b8; margin-right: 2px; }
+.connSummary::before { content: none; }
+.connSummary::after { content: '⌄'; color: #c8c0b8; font-size: 15px; margin-left: auto; transition: transform .2s; flex-shrink: 0; }
+.connRow[open] .connSummary::after { transform: rotate(180deg); }
 .connDetail {
   border: 1px dashed #e0d8cf;
   border-radius: 14px;

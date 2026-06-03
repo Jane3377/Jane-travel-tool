@@ -32,7 +32,7 @@ function planEndChange() {
     if (mins > 0) {
       const h = Math.floor(mins / 60), m = mins % 60;
       el.textContent = h && m ? `${h} 小時 ${m} 分` : h ? `${h} 小時` : `${m} 分`;
-      el.style.display = '';
+      el.style.display = 'inline';
       // 若符合整 30 分，同步更新時長下拉
       if (mins % 30 === 0 && mins <= 300 && $('pdur')) $('pdur').value = String(mins);
       return;
@@ -294,10 +294,12 @@ function connHtml(a, b) {
           ${optsPayMethod(conn.payMethod)}</select></div>
     </div>` : '';
 
+  const modeLabel = conn.mode === '自訂' ? (conn.customMode || '自訂') : (conn.mode || '大眾運輸');
+
   return `
     <details class="connRow">
       <summary class="connSummary">
-        <span>${esc(conn.mode || '大眾運輸')}</span>
+        <span>${esc(modeLabel)}</span>
         <span>${timeLabel}</span>
         ${arrival ? `<span>→ 預計抵達 ${esc(arrival)}</span>` : ''}
         ${summaryRouteBtns}
@@ -306,9 +308,14 @@ function connHtml(a, b) {
         <div class="three">
           <div><label>交通方式</label>
             <select onchange="changeConnMode('${conn.id}',this.value)">
-              ${['大眾運輸','走路','開車/計程車'].map(mode =>
+              ${['大眾運輸','走路','開車/計程車','自訂'].map(mode =>
                 `<option ${conn.mode===mode?'selected':''}>${mode}</option>`).join('')}
-            </select></div>
+            </select>
+            ${conn.mode === '自訂' ? `
+            <input style="margin-top:6px" value="${esc(conn.customMode||'')}"
+                   placeholder="例：自行車、轉乘、包車"
+                   oninput="updateConn('${conn.id}','customMode',this.value)">` : ''}
+          </div>
           <div><label>預估時間</label>
             <div class="two">
               <select onchange="updateConn('${conn.id}','h',this.value)">
