@@ -169,8 +169,8 @@ function fillFromSpot(spotId) {
   if ($('paddress')) $('paddress').value = s.addr      || '';
   if ($('pkrName'))  $('pkrName').value  = s.krName    || '';
   if ($('pkrAddr'))  $('pkrAddr').value  = s.krAddress || '';
-  if ($('pnote'))    $('pnote').value    = s.memo      || '';
-  if ($('pmemo'))    $('pmemo').value    = '由口袋景點帶入';
+  if ($('pnote'))    $('pnote').value    = s.note || s.memo || '';
+  if ($('pmemo'))    $('pmemo').value    = s.note ? (s.memo || '由口袋景點帶入') : '由口袋景點帶入';
   if (s.start) setTimeVal('ps', s.start);
   if (s.end)   setTimeVal('pe', s.end);
   planSyncDurDisplay();

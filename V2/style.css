@@ -5224,6 +5224,42 @@ body[data-theme-mode] .btn.pink{
 .mobileTopNav .nav.lockedTab{
   opacity:.58;
 }
+/* ── 行程設定摘要列 ── */
+#setupStrip {
+  display: flex;
+  gap: 6px;
+  padding: 6px 16px 8px;
+  flex-wrap: wrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+#setupStrip::-webkit-scrollbar { display: none; }
+.stripChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #fff;
+  border: 1px solid var(--line, #e8dfd6);
+  border-radius: 999px;
+  padding: 5px 13px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  color: var(--dark, #2c2a29);
+  transition: background .15s;
+}
+.stripChip:hover { background: var(--hover, #f0ebe3); }
+.stripChip.done {
+  background: var(--mint, #d9efe6);
+  border-color: var(--theme-primary, #628f80);
+  color: var(--theme-primary, #628f80);
+}
+.stripChip.pending {
+  color: #aaa;
+  border-style: dashed;
+}
 .themeWidget{
   display:flex !important;
   justify-content:flex-end !important;

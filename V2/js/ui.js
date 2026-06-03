@@ -54,6 +54,25 @@ function renderNav() {
       `<button class="nav ${k===view?'active':''}" onclick="go('${k}')">${l}</button>`
     ).join('');
   }
+  renderSetupStrip();
+}
+
+function renderSetupStrip() {
+  const el = $('setupStrip');
+  if (!el) return;
+  const inSetup = view === 'trip' || view === 'stay';
+  const dest = data.trip?.dest;
+  if (inSetup || !dest) { el.innerHTML = ''; el.style.display = 'none'; return; }
+  const start = data.trip.start ? short(data.trip.start) : '';
+  const end   = data.trip.end   ? short(data.trip.end)   : '';
+  const dateStr = start ? `${start}–${end}` : '';
+  const hasFlights = (data.flights?.out?.segments?.length > 0) || (data.flights?.back?.segments?.length > 0);
+  const hotelCount = data.hotels?.length || 0;
+  el.style.display = '';
+  el.innerHTML = `
+    <button class="stripChip" onclick="go('trip')">📍 ${esc(dest)}${dateStr ? ' ' + dateStr : ''}</button>
+    <button class="stripChip ${hasFlights ? 'done' : 'pending'}" onclick="go('stay')">✈️ ${hasFlights ? '航班已設定' : '航班未設定'}</button>
+    <button class="stripChip ${hotelCount ? 'done' : 'pending'}" onclick="go('stay')">🏨 ${hotelCount ? hotelCount + ' 間住宿' : '住宿未設定'}</button>`;
 }
 
 /* ══════════════════════════════════════════
@@ -408,7 +427,8 @@ function renderSpots() {
           <input id="sa" value="${esc(e?.addr||'')}">
           <button class="btn blue compact" onclick="mapSpotDraft()">查地圖</button>
         </div>
-        <label>注意事項</label><textarea id="sm">${esc(e?.memo||'')}</textarea>
+        <label>注意事項</label><textarea id="sm">${esc(e?.note || e?.memo || '')}</textarea>
+        <label>備註（內部筆記）</label><textarea id="smemo">${esc(e?.note ? (e?.memo || '') : '')}</textarea>
         ${isKorea ? `
         <div class="two">
           <div><label>韓文名稱（選填）</label><input id="skrName" value="${esc(e?.krName||'')}" placeholder="예: 감천문화마을"></div>
