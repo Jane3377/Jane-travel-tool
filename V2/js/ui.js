@@ -121,7 +121,8 @@ function renderSide() {
     return `
       <div class="day ${d.key === currentDay ? 'active' : ''}"
            onclick="currentDay='${d.key}';cur='${d.key}';go('planner')">
-        <b>${d.title}｜${shortWithDay(d.key)}</b>
+        <b>${d.title}</b>
+        <span class="dayDate">${shortWithDay(d.key)}</span>
         <span>${count} 行程｜住宿：${hotel ? esc(hotel.name) : '未設定'}</span>
       </div>`;
   }).join('');
