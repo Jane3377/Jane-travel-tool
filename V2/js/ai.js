@@ -743,18 +743,21 @@ function _buildHotelSection() {
 
 function _buildDaySection() {
   return (data.days || []).map(d => {
-    const plans = sortedPlans(d.key).filter(p => p.source !== 'flight' && p.source !== 'hotel');
+    const plans = sortedPlans(d.key);
     return `<div class="shareDayItem">
       <div class="shareDayHead">
         <b>${esc(d.title)}｜${esc(d.label)}</b>
         <span class="shareTimePill">${plans.length} 個行程</span>
       </div>
-      ${plans.length ? plans.map(p => {
+      ${plans.length ? plans.map((p, i) => {
         const time = [p.start, p.end].filter(Boolean).join('－') || '未定時間';
+        const autoTag = p.source === 'flight' ? '航班帶入' : p.source === 'hotel' ? '住宿帶入' : '';
         return `<div class="sharePlanRow">
+          <span class="shareSeqNum">${i + 1}</span>
           <span class="shareTimePill">${esc(time)}</span>
           <div>
             <div class="sharePlanName">${activityIcon(p.type)} ${esc(p.name||'未命名')}</div>
+            ${autoTag ? `<span class="shareAutoTag">${autoTag}</span>` : ''}
             ${p.address ? `<div class="shareMuted">地址：${esc(p.address)}</div>` : ''}
             ${p.note    ? `<div class="shareMuted">注意：${esc(p.note)}</div>` : ''}
           </div>

@@ -7793,10 +7793,52 @@ body[data-theme-mode="dark"] .day.active span:not(.dayDate) {
   font-weight: 900;
   flex-shrink: 0;
 }
+.planIndex--conflict {
+  background: #f59e0b;
+}
 .planCard--auto {
   background: #f9f7f4 !important;
   border-style: dashed !important;
   opacity: 0.82;
+}
+.planCard--conflict {
+  border-color: #f59e0b !important;
+  border-width: 2px !important;
+}
+.conflictBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: #fef3c7;
+  color: #92400e;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 900;
+}
+/* ── 分享頁序號 ── */
+.shareSeqNum {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: #628f80;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 900;
+  flex-shrink: 0;
+  margin-right: 4px;
+}
+.shareAutoTag {
+  display: inline-block;
+  background: #f0f0e8;
+  color: #6b7a6e;
+  border-radius: 999px;
+  padding: 1px 7px;
+  font-size: 11px;
+  font-weight: 700;
+  margin: 2px 0 3px;
 }
 
 /* ── 交通折疊列 ── */

@@ -529,15 +529,16 @@ function printSharePage() {
   const end     = data.trip?.end   || '';
 
   const dayHtml = (data.days || []).map(d => {
-    const plans = sortedPlans(d.key).filter(p => p.source !== 'flight' && p.source !== 'hotel');
+    const plans = sortedPlans(d.key);
     return `<div class="item">
       <div class="dayHead">${esc(d.title)}｜${esc(d.label)}</div>
-      ${plans.length ? plans.map(p => {
+      ${plans.length ? plans.map((p, i) => {
         const time = [p.start, p.end].filter(Boolean).join('－') || '未定';
+        const autoTag = p.source === 'flight' ? ' ✈️' : p.source === 'hotel' ? ' 🏨' : '';
         return `<div class="plan">
-          <span class="pill">${esc(time)}</span>
+          <span class="pill">${i + 1}. ${esc(time)}</span>
           <div>
-            <div class="main">${esc(p.name||'未命名')}</div>
+            <div class="main">${esc(p.name||'未命名')}${autoTag}</div>
             ${p.address ? `<div class="mini">地址：${esc(p.address)}</div>` : ''}
             ${p.note    ? `<div class="mini">注意：${esc(p.note)}</div>`    : ''}
           </div>

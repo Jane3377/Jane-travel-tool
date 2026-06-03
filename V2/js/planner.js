@@ -372,8 +372,8 @@ function connHtml(a, b) {
    行程卡片
    ══════════════════════════════════════════ */
 
-function planCard(p, num = null) {
-  const isAuto   = num === null;
+function planCard(p, num, conflict = false) {
+  const isAuto   = p.source === 'flight' || p.source === 'hotel';
   const isKorea  = data.trip.country === '韓國';
   const mapQuery = encodeURIComponent(
     isKorea && (p.krAddress || p.krName)
@@ -384,11 +384,9 @@ function planCard(p, num = null) {
   return `
     <div class="itineraryItem">
       <div class="itineraryDotWrap">
-        ${isAuto
-          ? '<span class="itineraryDot"></span>'
-          : `<span class="planIndex">${num}</span>`}
+        <span class="planIndex${conflict ? ' planIndex--conflict' : ''}">${num}</span>
       </div>
-      <article class="itineraryCard${isAuto ? ' planCard--auto' : ''}">
+      <article class="itineraryCard${isAuto ? ' planCard--auto' : ''}${conflict ? ' planCard--conflict' : ''}">
         <div class="itineraryTop">
           <div class="itineraryTimeBlock">
             <span class="itineraryTime">${esc(p.start||'--:--')}</span>
@@ -401,6 +399,7 @@ function planCard(p, num = null) {
               ${p.source==='flight' ? '<span class="itinerarySourcePill">航班帶入</span>' : ''}
               ${p.source==='hotel'  ? '<span class="itinerarySourcePill">住宿帶入</span>' : ''}
               ${p.adjusted ? '<span class="itineraryTypePill">已自動調整</span>' : ''}
+              ${conflict ? '<span class="conflictBadge">⚠ 時間重疊</span>' : ''}
               ${moneyTwd(p) ? `<span class="itinerarySourcePill">TWD ${fmt(moneyTwd(p))}</span>` : ''}
             </div>
             ${p.note ? `<div class="itineraryNote"><b>注意：</b>${esc(p.note)}</div>` : ''}
@@ -422,15 +421,26 @@ function planCard(p, num = null) {
     </div>`;
 }
 
+function plansOverlap(a, b) {
+  if (!a.start || !a.end || !b.start || !b.end) return false;
+  return timeToMin(a.start) < timeToMin(b.end) && timeToMin(b.start) < timeToMin(a.end);
+}
+
 function planCards(plans) {
   if (!plans.length) return '<div class="empty">這天還沒有行程</div>';
+  const conflicts = new Set();
+  for (let i = 0; i < plans.length; i++) {
+    for (let j = i + 1; j < plans.length; j++) {
+      if (plansOverlap(plans[i], plans[j])) {
+        conflicts.add(plans[i].id);
+        conflicts.add(plans[j].id);
+      }
+    }
+  }
   let html = '<div class="itineraryTimeline">';
-  let manualIndex = 0;
   plans.forEach((p, i) => {
-    const isAuto = p.source === 'flight' || p.source === 'hotel';
-    const num = isAuto ? null : ++manualIndex;
     if (i > 0) html += connHtml(plans[i-1], p);
-    html += planCard(p, num);
+    html += planCard(p, i + 1, conflicts.has(p.id));
   });
   html += '</div>';
   return html;
