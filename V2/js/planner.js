@@ -31,7 +31,7 @@ function planEndChange() {
     const mins = timeToMin(e) - timeToMin(s);
     if (mins > 0) {
       const h = Math.floor(mins / 60), m = mins % 60;
-      el.textContent = h && m ? `${h}h${m}m` : h ? `${h} 小時` : `${m} 分`;
+      el.textContent = h && m ? `${h} 小時 ${m} 分` : h ? `${h} 小時` : `${m} 分`;
       el.style.display = '';
       // 若符合整 30 分，同步更新時長下拉
       if (mins % 30 === 0 && mins <= 300 && $('pdur')) $('pdur').value = String(mins);
