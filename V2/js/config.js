@@ -100,13 +100,13 @@ const PACK_DEFAULTS = [
 
 /* ── Tab 頁面清單 ── */
 const VIEWS = [
-  ['trip',      '旅遊地'],
-  ['stay',      '航班住宿'],
   ['planner',   '行程'],
   ['spots',     '口袋景點'],
   ['budget',    '預算'],
   ['packing',   '行李'],
   ['photoBook', '旅遊書'],
+  ['trip',      '旅遊地'],
+  ['stay',      '航班住宿'],
   ['help',      '說明']
 ];
 

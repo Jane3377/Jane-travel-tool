@@ -123,7 +123,7 @@ async function selectTrip(id) {
     if (cloudReady) listenCloudChanges();
 
     showShell('app');
-    view = 'trip';
+    view = data.trip?.dest ? 'planner' : 'trip';
     renderNav();
     render();
     scrollTo(0, 0);

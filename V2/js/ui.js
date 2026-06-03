@@ -49,7 +49,7 @@ function renderNav() {
   }
   if (mobile) {
     // 手機底部只顯示主要幾個
-    const mobileViews = [['trip','旅遊地'],['stay','機酒'],['planner','行程'],['spots','景點'],['budget','預算'],['packing','行李'],['photoBook','旅遊書']];
+    const mobileViews = [['planner','行程'],['spots','景點'],['budget','預算'],['packing','行李'],['photoBook','旅遊書'],['trip','旅遊地'],['stay','機酒']];
     mobile.innerHTML = mobileViews.map(([k, l]) =>
       `<button class="nav ${k===view?'active':''}" onclick="go('${k}')">${l}</button>`
     ).join('');
@@ -352,7 +352,6 @@ function renderPlanner() {
           <div><label>韓文地址（選填）</label><input id="pkrAddr" placeholder="예: 부산광역시 사하구 감내2로 203"></div>
         </div>` : ''}
         <label>注意事項</label><textarea id="pnote"></textarea>
-        <label>備註</label><textarea id="pmemo"></textarea>
         <div class="btns">
           <button class="btn dark" onclick="savePlanForm()">${editingPlanId ? '儲存行程' : '加入行程'}</button>
           ${editingPlanId || v16PendingSpotId
@@ -428,7 +427,6 @@ function renderSpots() {
           <button class="btn blue compact" onclick="mapSpotDraft()">查地圖</button>
         </div>
         <label>注意事項</label><textarea id="sm">${esc(e?.note || e?.memo || '')}</textarea>
-        <label>備註（內部筆記）</label><textarea id="smemo">${esc(e?.note ? (e?.memo || '') : '')}</textarea>
         ${isKorea ? `
         <div class="two">
           <div><label>韓文名稱（選填）</label><input id="skrName" value="${esc(e?.krName||'')}" placeholder="예: 감천문화마을"></div>

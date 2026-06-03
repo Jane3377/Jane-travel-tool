@@ -67,7 +67,9 @@ function savePlanForm() {
     krName:     $('pkrName')?.value.trim() || '',
     krAddress:  $('pkrAddr')?.value.trim() || '',
     note:       $('pnote')?.value          || '',
-    memo:       $('pmemo')?.value          || '',
+    memo:       editingPlanId
+                  ? (data.plans.find(p => p.id === editingPlanId)?.memo || '')
+                  : (v16PendingSpotId ? '由口袋景點帶入' : ''),
     mode:       'foreign',
     foreign:    0,
     twd:        0,
@@ -154,7 +156,6 @@ function fillPlanForm(id) {
   if ($('pkrName'))  $('pkrName').value  = p.krName    || '';
   if ($('pkrAddr'))  $('pkrAddr').value  = p.krAddress || '';
   if ($('pnote'))    $('pnote').value    = p.note      || '';
-  if ($('pmemo'))    $('pmemo').value    = p.memo      || '';
   planSyncDurDisplay();
   applyLockedNameState();
   applyLockedTimeState();
@@ -170,7 +171,6 @@ function fillFromSpot(spotId) {
   if ($('pkrName'))  $('pkrName').value  = s.krName    || '';
   if ($('pkrAddr'))  $('pkrAddr').value  = s.krAddress || '';
   if ($('pnote'))    $('pnote').value    = s.note || s.memo || '';
-  if ($('pmemo'))    $('pmemo').value    = s.note ? (s.memo || '由口袋景點帶入') : '由口袋景點帶入';
   if (s.start) setTimeVal('ps', s.start);
   if (s.end)   setTimeVal('pe', s.end);
   planSyncDurDisplay();
