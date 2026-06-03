@@ -10,21 +10,21 @@
 function planStartChange() {
   // 如果有選時長，重算結束時間
   const dur = Number($('pdur')?.value || 0);
-  if (dur > 0 && $('ps')?.value) planDurationChange();
+  if (dur > 0 && getTimeVal('ps')) planDurationChange();
   else planEndChange();
 }
 
 function planDurationChange() {
-  const s   = $('ps')?.value;
+  const s   = getTimeVal('ps');
   const dur = Number($('pdur')?.value || 0);
   if (!s || !dur) return;
-  if ($('pe')) $('pe').value = addMinutes(s, dur);
+  setTimeVal('pe', addMinutes(s, dur));
   planEndChange();
 }
 
 function planEndChange() {
-  const s = $('ps')?.value;
-  const e = $('pe')?.value;
+  const s = getTimeVal('ps');
+  const e = getTimeVal('pe');
   const el = $('pdurDisplay');
   if (!el) return;
   if (s && e) {
@@ -43,8 +43,8 @@ function planEndChange() {
 }
 
 function planSyncDurDisplay() {
-  const s = $('ps')?.value;
-  const e = $('pe')?.value;
+  const s = getTimeVal('ps');
+  const e = getTimeVal('pe');
   if (s && e) {
     const mins = timeToMin(e) - timeToMin(s);
     if (mins > 0 && mins % 30 === 0 && mins <= 300 && $('pdur')) $('pdur').value = String(mins);
@@ -57,8 +57,8 @@ function savePlanForm() {
   if (!name) return toast('請輸入行程名稱');
 
   const day   = $('pday')?.value || currentDay;
-  const start = $('ps')?.value   || '';
-  const end   = $('pe')?.value   || '';
+  const start = getTimeVal('ps');
+  const end   = getTimeVal('pe');
   const type  = normalizePlanType($('ptype')?.value);
 
   const item = {
@@ -146,8 +146,8 @@ function fillPlanForm(id) {
   const p = data.plans.find(x => x.id === id);
   if (!p) return;
   if ($('pday'))     $('pday').value     = p.day     || currentDay;
-  if ($('ps'))       $('ps').value       = p.start   || '';
-  if ($('pe'))       $('pe').value       = p.end     || '';
+  setTimeVal('ps', p.start || '');
+  setTimeVal('pe', p.end   || '');
   if ($('ptype'))    $('ptype').value    = normalizePlanType(p.type);
   if ($('pname'))    $('pname').value    = p.name      || '';
   if ($('paddress')) $('paddress').value = p.address   || '';
@@ -170,8 +170,8 @@ function fillFromSpot(spotId) {
   if ($('pkrAddr'))  $('pkrAddr').value  = s.krAddress || '';
   if ($('pnote'))    $('pnote').value    = s.memo      || '';
   if ($('pmemo'))    $('pmemo').value    = '由口袋景點帶入';
-  if ($('ps') && s.start) $('ps').value = s.start;
-  if ($('pe') && s.end)   $('pe').value = s.end;
+  if (s.start) setTimeVal('ps', s.start);
+  if (s.end)   setTimeVal('pe', s.end);
   planSyncDurDisplay();
   const hint = $('lockedNameHint');
   if (hint) hint.style.display = '';

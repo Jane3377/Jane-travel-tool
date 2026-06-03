@@ -175,3 +175,33 @@ function copyText(text) {
     .then(() => toast("已複製"))
     .catch(() => toast("複製失敗，請手動複製"));
 }
+
+/* ── 24 小時制時間選單 ── */
+function timeSelHtml(id, val, onchange) {
+  const [hh = '10', mm = '00'] = (val || '10:00').split(':');
+  const mRound = String(Math.min(Math.round(Number(mm) / 5) * 5, 55)).padStart(2, '0');
+  const ev = onchange ? ` onchange="${onchange}"` : '';
+  const hours = Array.from({length: 24}, (_, i) => {
+    const v = String(i).padStart(2, '0');
+    return `<option value="${v}"${v === hh ? ' selected' : ''}>${v}</option>`;
+  }).join('');
+  const mins = Array.from({length: 12}, (_, i) => {
+    const v = String(i * 5).padStart(2, '0');
+    return `<option value="${v}"${v === mRound ? ' selected' : ''}>${v}</option>`;
+  }).join('');
+  return `<div class="timeSelWrap"><select id="${id}H"${ev}>${hours}</select><span class="timeSep">:</span><select id="${id}M"${ev}>${mins}</select></div>`;
+}
+function getTimeVal(id) {
+  const h = document.getElementById(id + 'H');
+  const m = document.getElementById(id + 'M');
+  if (!h || !m) return '';
+  return `${h.value}:${m.value}`;
+}
+function setTimeVal(id, val) {
+  const h = document.getElementById(id + 'H');
+  const m = document.getElementById(id + 'M');
+  if (!h || !m || !val) return;
+  const [hh = '10', mm = '00'] = val.split(':');
+  h.value = hh;
+  m.value = String(Math.min(Math.round(Number(mm) / 5) * 5, 55)).padStart(2, '0');
+}

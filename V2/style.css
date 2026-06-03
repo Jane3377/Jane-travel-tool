@@ -8019,3 +8019,7 @@ body.shareView .check input[type="checkbox"] { pointer-events: none; }
 .planKrCopy:hover { background:var(--mint); }
 /* ── 行程時長顯示 ── */
 .pdurDisplay { display:none; font-size:11px; font-weight:900; color:var(--dark,#628f80); background:var(--mint,#d9efe6); border-radius:999px; padding:2px 7px; margin-left:4px; vertical-align:middle; }
+/* ── 24 小時時間選單 ── */
+.timeSelWrap { display:flex; align-items:center; gap:3px; }
+.timeSelWrap select { flex:1; min-width:0; }
+.timeSep { font-size:15px; font-weight:700; color:var(--muted); padding:0 1px; line-height:1; }

@@ -14,8 +14,8 @@ function saveSpot() {
     day:       $('sd')?.value || '',
     addr:      $('sa')?.value || '',
     memo:      $('sm')?.value || '',
-    start:     $('sStart')?.value || '',
-    end:       $('sEnd')?.value   || '',
+    start:     getTimeVal('sStart'),
+    end:       getTimeVal('sEnd'),
     krName:    $('skrName')?.value || '',
     krAddress: $('skrAddr')?.value || ''
   };

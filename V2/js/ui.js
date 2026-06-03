@@ -300,7 +300,7 @@ function renderPlanner() {
         <div class="three compactMobile">
           <div class="full"><label>日期</label>
             <select id="pday">${optsDays(currentDay)}</select></div>
-          <div><label>開始</label><input id="ps" type="time" value="10:00" onchange="planStartChange()"></div>
+          <div><label>開始</label>${timeSelHtml('ps', '10:00', 'planStartChange()')}</div>
           <div><label>時長</label>
             <select id="pdur" onchange="planDurationChange()">
               <option value="">（選填）</option>
@@ -311,7 +311,7 @@ function renderPlanner() {
               }).join('')}
             </select></div>
           <div><label>結束 <span id="pdurDisplay" class="pdurDisplay"></span></label>
-            <input id="pe" type="time" value="11:30" onchange="planEndChange()" oninput="planEndChange()"></div>
+            ${timeSelHtml('pe', '11:30', 'planEndChange()')}</div>
         </div>
         <div class="two">
           <div><label>分類</label><select id="ptype">${optsPlanTypes()}</select></div>
@@ -417,8 +417,8 @@ function renderSpots() {
               <option value="no">先放口袋</option>
               <option value="yes">同步排入行程</option>
             </select></div>
-          <div><label>預設開始</label><input id="sStart" type="time" value="${esc(e?.start||'10:00')}"></div>
-          <div><label>預設結束</label><input id="sEnd"   type="time" value="${esc(e?.end||'11:30')}"></div>
+          <div><label>預設開始</label>${timeSelHtml('sStart', e?.start||'10:00')}</div>
+          <div><label>預設結束</label>${timeSelHtml('sEnd', e?.end||'11:30')}</div>
         </div>
         <div class="btns">
           <button class="btn dark" onclick="saveSpot()">${e ? '儲存修改' : '加入景點'}</button>
