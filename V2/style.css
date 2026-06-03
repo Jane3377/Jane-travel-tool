@@ -8101,3 +8101,17 @@ body.shareView .check input[type="checkbox"] { pointer-events: none; }
 .timeSelWrap { display:flex; align-items:center; gap:3px; }
 .timeSelWrap select { flex:1; min-width:0; }
 .timeSep { font-size:15px; font-weight:700; color:var(--muted); padding:0 1px; line-height:1; }
+/* ── 行李清單管理 ── */
+.packListRow { display:flex; align-items:center; gap:6px; }
+.packListRow select { flex:1; }
+#packListEditor { margin-top:10px; border-top:1px solid var(--line); padding-top:10px; }
+.packListEditorItems { display:flex; flex-direction:column; gap:6px; margin-bottom:10px; }
+.packListEditRow { display:flex; align-items:center; gap:6px; }
+.packListEditRow input { flex:1; padding:7px 10px; font-size:14px; }
+.packListBuiltIn { font-size:11px; color:var(--muted); padding:0 6px; white-space:nowrap; flex-shrink:0; }
+.packListAddRow { display:flex; gap:6px; align-items:center; }
+.packListAddRow input { flex:1; }
+/* ── 行李項目刪除靠右 ── */
+.check { align-items:center; }
+.checkContent { flex:1; min-width:0; }
+.packDeleteBtn { margin-left:auto; flex-shrink:0; }

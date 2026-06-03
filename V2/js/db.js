@@ -102,7 +102,8 @@ function normalizeData(raw) {
   if (!d.dayCovers)    d.dayCovers    = {};
   if (!d.dayCoverMeta) d.dayCoverMeta = {};
   if (!d.aiReviews)    d.aiReviews    = {};
-  if (!d.packing?.length) d.packing   = makePacking();
+  if (!d.packing?.length)   d.packing   = makePacking();
+  if (!d.packLists?.length) d.packLists = [{ id: 'pre', name: '出國前' }, { id: 'out', name: '離開飯店' }];
 
   // 重建 days
   if (!d.days?.length && d.trip.start && d.trip.end) {

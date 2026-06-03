@@ -33,6 +33,7 @@ function makeDefaultData() {
     conns:      [],
     packing:    makePacking(),
     packView:   'pre',
+    packLists:  [{ id: 'pre', name: '出國前' }, { id: 'out', name: '離開飯店' }],
     photos:     [],
     dayCovers:  {},
     dayCoverMeta: {},

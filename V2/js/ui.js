@@ -555,16 +555,37 @@ function renderPacking() {
   const el      = $('packingView');
   if (!el) return;
   const current = data.packView || 'pre';
+  const lists   = data.packLists || [{ id: 'pre', name: '出國前' }, { id: 'out', name: '離開飯店' }];
   const list    = data.packing.filter(x => x.type === current);
+  const builtIn = new Set(['pre', 'out']);
 
   el.innerHTML = `
     <div class="section"><div><h2>🧳 行李清單</h2></div></div>
     <div class="card">
       <label>清單情境</label>
-      <select id="packView" onchange="data.packView=this.value;save()">
-        <option value="pre" ${current==='pre'?'selected':''}>出國前</option>
-        <option value="out" ${current==='out'?'selected':''}>離開飯店</option>
-      </select>
+      <div class="packListRow">
+        <select id="packView" onchange="data.packView=this.value;renderPacking()">
+          ${lists.map(l => `<option value="${l.id}" ${l.id===current?'selected':''}>${esc(l.name)}</option>`).join('')}
+        </select>
+        <button class="iconBtn smallIcon" title="管理清單" onclick="togglePackListEditor()">✎</button>
+      </div>
+      <div id="packListEditor" hidden>
+        <div class="packListEditorItems">
+          ${lists.map(l => `
+            <div class="packListEditRow">
+              <input class="packListNameInput" value="${esc(l.name)}"
+                     onchange="renamePackList('${l.id}',this.value)"
+                     placeholder="清單名稱">
+              ${!builtIn.has(l.id)
+                ? `<button class="iconBtn smallIcon" onclick="deletePackList('${l.id}')">×</button>`
+                : `<span class="packListBuiltIn">預設</span>`}
+            </div>`).join('')}
+        </div>
+        <div class="packListAddRow">
+          <input id="newPackListName" placeholder="輸入新清單名稱…">
+          <button class="btn dark compact" onclick="addPackList()">＋ 新增</button>
+        </div>
+      </div>
     </div>
     <div class="card shareEditOnly">
       <div class="two">
@@ -588,8 +609,8 @@ function renderPacking() {
       ${list.map(x => `
         <div class="check ${x.checked?'checked':''}">
           <input type="checkbox" ${x.checked?'checked':''} onchange="togglePackItem('${x.id}')">
-          <div><strong>${esc(x.name)}</strong><div class="mini">${esc(x.note)}</div></div>
-          <button class="small" onclick="deletePackItem('${x.id}')">刪除</button>
+          <div class="checkContent"><strong>${esc(x.name)}</strong><div class="mini">${esc(x.note)}</div></div>
+          <button class="small packDeleteBtn" onclick="deletePackItem('${x.id}')">刪除</button>
         </div>`).join('') || '<div class="empty">此清單尚無項目</div>'}
     </div>`;
 }
