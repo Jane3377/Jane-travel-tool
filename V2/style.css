@@ -7995,3 +7995,13 @@ body.shareView .check input[type="checkbox"] { pointer-events: none; }
 .tripColorDot.color-latte { background: #f2ebe0; border-color: #d0bfa8; }
 .tripCardColorRow { display:flex; gap:6px; margin-top:8px; padding-top:8px; border-top:1px solid rgba(0,0,0,.06); }
 .tripCardColorRow .tripColorDot { width:22px; height:22px; }
+/* ── 景點 AI 匯入預覽 ── */
+.spotsImportList { display:flex; flex-direction:column; gap:4px; max-height:52vh; overflow-y:auto; margin:0 -4px; padding:4px; }
+.spotsImportRow { display:flex; align-items:center; gap:8px; padding:8px 10px; border:1px solid var(--line); border-radius:14px; background:var(--card,#fffdfa); cursor:pointer; font-size:14px; line-height:1.4; }
+.spotsImportRow:hover { background:var(--mint,#d9efe6); }
+.spotsImportRow input[type="checkbox"] { width:18px; height:18px; flex:0 0 auto; accent-color:var(--dark,#628f80); }
+.spotsImportAll { background:var(--green,#edf8f3) !important; border-style:dashed !important; }
+.spotsImportIcon { font-size:16px; flex:0 0 auto; }
+.spotsImportName { font-weight:900; flex:1; min-width:0; }
+.spotsImportType { font-size:11px; background:#f3eee8; border-radius:999px; padding:3px 7px; white-space:nowrap; color:var(--muted); }
+.spotsImportAddr { font-size:11px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:90px; }

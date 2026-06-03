@@ -125,6 +125,11 @@ function buildSpotsPrompt() {
     return `${d.title}（${d.key}）：` + plans.map(p => `${p.start||'--:--'} ${p.name}`).join('、');
   }).join('\n');
 
+  const unscheduled = data.spots
+    .filter(s => !spotPlanExists(s))
+    .map(s => s.name)
+    .filter(Boolean);
+
   return `請依照以下旅行設定，幫我產出可匯入「貞選旅管家」的口袋景點 JSON。
 
 旅行設定：
@@ -146,8 +151,11 @@ ${c.hotels}
 已安排行程（供參考，請推薦可補充的景點，避免重複）：
 ${dayPlans}
 
+已收藏口袋景點（未排入行程，請避免重複推薦）：
+${unscheduled.length ? unscheduled.join('、') : '（無）'}
+
 請注意：
-1. 推薦景點、餐廳、咖啡廳、購物、雨天備案，避免與已安排行程重複。
+1. 推薦景點、餐廳、咖啡廳、購物、雨天備案，避免與已安排行程及已收藏景點重複。
 2. 如果適合某天，請填 day（YYYY-MM-DD 格式）；不確定就留空。
 3. 可選填 start / end 建議時間（HH:MM 格式），若無把握請留空。${isKorea ? `
 4. 請額外提供：
@@ -450,6 +458,70 @@ function closeImportModal() {
   $('aiImportModal')?.classList.remove('show');
 }
 
+let _importPreviewSpots = [];
+
+function _showSpotsImportPreview(spots) {
+  _importPreviewSpots = spots.filter(s => s.name);
+  const modal = $('aiImportModal');
+  if (!modal) return;
+
+  const TYPE_ICONS = { '景點':'📍','餐廳':'🍜','咖啡廳':'☕','購物':'🛍️','雨天備案':'☔','其他':'✨' };
+
+  modal.innerHTML = `
+    <div class="aiPromptBox">
+      <div class="section">
+        <h3>預覽匯入景點（${_importPreviewSpots.length} 個）</h3>
+        <button class="iconBtn" onclick="closeImportModal()">×</button>
+      </div>
+      <div class="hint" style="margin-bottom:10px">勾選要匯入的景點，再按「確定匯入」。</div>
+      <div class="spotsImportList">
+        <label class="spotsImportRow spotsImportAll">
+          <input type="checkbox" id="spotsImportSelectAll" checked onchange="spotsImportToggleAll(this.checked)">
+          <b>全選 / 全不選</b>
+        </label>
+        ${_importPreviewSpots.map((s, i) => `
+          <label class="spotsImportRow">
+            <input type="checkbox" class="spotsImportChk" data-i="${i}" checked>
+            <span class="spotsImportIcon">${TYPE_ICONS[s.type] || '📍'}</span>
+            <span class="spotsImportName">${esc(s.name)}</span>
+            <span class="spotsImportType">${esc(s.type || '景點')}</span>
+            ${s.addr ? `<span class="spotsImportAddr">${esc(s.addr)}</span>` : ''}
+          </label>`).join('')}
+      </div>
+      <div class="btns" style="margin-top:12px">
+        <button class="btn dark" onclick="confirmSpotsImport()">確定匯入</button>
+        <button class="btn soft" onclick="closeImportModal()">取消</button>
+      </div>
+    </div>`;
+}
+
+function spotsImportToggleAll(checked) {
+  document.querySelectorAll('.spotsImportChk').forEach(cb => cb.checked = checked);
+}
+
+function confirmSpotsImport() {
+  const checked = [...document.querySelectorAll('.spotsImportChk:checked')]
+    .map(cb => Number(cb.dataset.i));
+  const toImport = checked.map(i => _importPreviewSpots[i]).filter(Boolean);
+  toImport.forEach(s => {
+    const day = data.days.some(d => d.key === s.day) ? s.day : '';
+    data.spots.push({
+      id: uid(), source: 'AI匯入',
+      name:      String(s.name      || ''),
+      type:      String(s.type      || '景點'),
+      day,
+      addr:      String(s.addr      || ''),
+      memo:      String(s.memo      || ''),
+      krName:    String(s.krName    || ''),
+      krAddress: String(s.krAddress || '')
+    });
+  });
+  save();
+  toast(`已匯入 ${toImport.length} 個景點`);
+  closeImportModal();
+  _importPreviewSpots = [];
+}
+
 function importAiJson() {
   let raw = $('aiImportText')?.value || '';
   // 清理 markdown
@@ -502,23 +574,7 @@ function importAiJson() {
     }
 
     if (spots.length) {
-      spots.forEach(s => {
-        if (!s.name) return;
-        const day = data.days.some(d => d.key === s.day) ? s.day : '';
-        data.spots.push({
-          id: uid(), source: 'AI匯入',
-          name:      String(s.name      || ''),
-          type:      String(s.type      || '景點'),
-          day,
-          addr:      String(s.addr      || ''),
-          memo:      String(s.memo      || ''),
-          krName:    String(s.krName    || ''),
-          krAddress: String(s.krAddress || '')
-        });
-      });
-      save();
-      toast(`已匯入 ${spots.length} 個景點`);
-      closeImportModal();
+      _showSpotsImportPreview(spots);
     } else if (reviews.length || obj.summary) {
       if (!data.aiReviews) data.aiReviews = {};
       if (!Array.isArray(data.aiReviews.itinerary)) data.aiReviews.itinerary = [];
