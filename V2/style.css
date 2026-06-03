@@ -7760,16 +7760,24 @@ body.readonly .btn:not(.btn-allow) { opacity: .4; pointer-events: none; }
 }
 /* ── 深色模式日期及選取色 ── */
 body[data-theme-mode] .day .dayDate {
-  color: var(--theme-primary) !important;
+  color: var(--theme-primary, var(--dark)) !important;
 }
 body[data-theme-mode] .day span {
-  color: var(--theme-muted) !important;
+  color: var(--theme-muted, var(--muted)) !important;
 }
-body[data-theme-mode] .day.active,
-body[data-theme-mode] .day.active b,
-body[data-theme-mode] .day.active .dayDate,
-body[data-theme-mode] .day.active span {
-  color: var(--theme-ink) !important;
+/* 深色模式：選取卡片改用中間色背景避免全黑，並強制白色文字 */
+body[data-theme-mode="dark"] .day.active {
+  background: var(--theme-primary-soft, #29453c) !important;
+  border-color: var(--theme-primary, #8ec8b5) !important;
+}
+body[data-theme-mode="dark"] .day.active b {
+  color: #fff !important;
+}
+body[data-theme-mode="dark"] .day.active .dayDate {
+  color: var(--theme-primary, #8ec8b5) !important;
+}
+body[data-theme-mode="dark"] .day.active span:not(.dayDate) {
+  color: rgba(255,255,255,.78) !important;
 }
 
 /* ── 行程卡片編號與航班/住宿淡化 ── */
