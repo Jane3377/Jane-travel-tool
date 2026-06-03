@@ -246,11 +246,43 @@ function getOrCreateConn(a, b) {
 
 function updateConn(id, key, val) {
   const conn = data.conns.find(c => c.id === id);
-  if (conn) { conn[key] = val; save(); }
+  if (!conn) return;
+  conn[key] = val;
+  silentSave();
+  _refreshConnSummary(conn);
+}
+
+function _refreshConnSummary(conn) {
+  const el = document.querySelector(`details.connRow[data-conn-id="${conn.id}"]`);
+  if (!el) return;
+  const summary = el.querySelector('.connSummary');
+  if (!summary) return;
+  const totalH   = Number(conn.h || 0);
+  const totalM   = Number(conn.m || 0);
+  const modeLabel = conn.mode === '自訂' ? (conn.customMode || '自訂') : (conn.mode || '大眾運輸');
+  const timeLabel = totalH > 0 && totalM > 0 ? `${totalH}時${totalM}分`
+                  : totalH > 0 ? `${totalH}時`
+                  : totalM > 0 ? `${totalM}分` : '0分';
+  const planA  = data.plans.find(p => p.id === conn.a);
+  const arrival = planA ? addMinutes(planA.end, totalH * 60 + totalM) : '';
+  const spans  = summary.querySelectorAll(':scope > span');
+  if (spans[0]) spans[0].textContent = modeLabel;
+  if (spans[1]) spans[1].textContent = timeLabel;
+  if (spans[2] && arrival) spans[2].textContent = `→ 預計抵達 ${arrival}`;
 }
 
 function changeConnMode(id, val) {
-  updateConn(id, 'mode', val);
+  const openSet = new Set(
+    [...document.querySelectorAll('details.connRow[open]')]
+      .map(el => el.dataset.connId).filter(Boolean)
+  );
+  const conn = data.conns.find(c => c.id === id);
+  if (!conn) return;
+  conn.mode = val;
+  save();
+  document.querySelectorAll('details.connRow[data-conn-id]').forEach(el => {
+    if (openSet.has(el.dataset.connId)) el.open = true;
+  });
 }
 
 function connHtml(a, b) {
@@ -297,7 +329,7 @@ function connHtml(a, b) {
   const modeLabel = conn.mode === '自訂' ? (conn.customMode || '自訂') : (conn.mode || '大眾運輸');
 
   return `
-    <details class="connRow">
+    <details class="connRow" data-conn-id="${conn.id}">
       <summary class="connSummary">
         <span>${esc(modeLabel)}</span>
         <span>${timeLabel}</span>
