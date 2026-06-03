@@ -320,9 +320,9 @@ function planCard(p, num = null) {
             ${p.memo ? `<div class="itineraryNote"><b>備註：</b>${esc(p.memo)}</div>` : ''}
             ${hasKr ? `
             <details class="planKrDetails">
-              <summary>한국어 정보</summary>
-              ${p.krName    ? `<div class="planKrRow"><span>이름</span><b>${esc(p.krName)}</b><button class="planKrCopy" onclick="event.stopPropagation();copyText('${esc(p.krName)}')">複製</button></div>` : ''}
-              ${p.krAddress ? `<div class="planKrRow"><span>주소</span><b>${esc(p.krAddress)}</b><button class="planKrCopy" onclick="event.stopPropagation();copyText('${esc(p.krAddress)}')">複製</button></div>` : ''}
+              <summary>韓文資訊</summary>
+              ${p.krName    ? `<div class="planKrRow"><span>韓文名稱</span><b>${esc(p.krName)}</b><button class="planKrCopy" onclick="event.stopPropagation();copyText('${esc(p.krName)}')">複製</button></div>` : ''}
+              ${p.krAddress ? `<div class="planKrRow"><span>韓文地址</span><b>${esc(p.krAddress)}</b><button class="planKrCopy" onclick="event.stopPropagation();copyText('${esc(p.krAddress)}')">複製</button></div>` : ''}
             </details>` : ''}
           </div>
           <div class="itineraryActions">
