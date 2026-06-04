@@ -72,6 +72,7 @@ async function addTripCover(file) {
     save();
     setUploadStatus('coverUploadStatus', '');
     toast('封面已上傳');
+    renderPhotoBook();
   } catch (err) {
     setUploadStatus('coverUploadStatus', '');
     alert('封面上傳失敗：' + err.message);
@@ -79,10 +80,11 @@ async function addTripCover(file) {
 }
 
 function removeTripCover() {
-  if (!confirm('確定刪除整本旅遊書封面？')) return;
-  delete data.tripCover;
-  delete data.tripCoverMeta;
+  if (!confirm('確定刪除封面照？')) return;
+  data.tripCover     = null;
+  data.tripCoverMeta = null;
   save();
+  renderPhotoBook();
 }
 
 /* ══════════════════════════════════════════
@@ -204,6 +206,7 @@ async function addPhotoToDay(day) {
 
     clearPendingPhoto(day);
     save();
+    renderPhotoBook();
     setUploadStatus(statusId, '');
     toast('照片已加入照片日記');
   } catch (err) {
@@ -215,6 +218,7 @@ async function addPhotoToDay(day) {
 function deletePhoto(id) {
   data.photos = data.photos.filter(p => p.id !== id);
   save();
+  renderPhotoBook();
 }
 
 /* ── 照片編輯 modal ── */
@@ -475,9 +479,14 @@ function _flushDiaryTexts() {
 
 function diaryRemoveTag(day, idx) {
   _flushDiaryTexts();
-  const tags = data.dayMoods?.[day]?.tags;
-  if (!tags) return;
-  tags.splice(idx, 1);
+  if (!data.dayMoods?.[day]?.tags) return;
+  const removedTag = data.dayMoods[day].tags[idx];
+  data.dayMoods[day].tags.splice(idx, 1);
+  if (removedTag) {
+    if (!data.dayMoods[day].dismissed) data.dayMoods[day].dismissed = [];
+    if (!data.dayMoods[day].dismissed.includes(removedTag))
+      data.dayMoods[day].dismissed.push(removedTag);
+  }
   save();
   renderPhotoBook();
 }
@@ -489,10 +498,19 @@ function diaryTogglePlanTag(day, planId) {
   const tag = `${activityIcon(p.type)} ${p.name}`;
   if (!data.dayMoods) data.dayMoods = {};
   if (!data.dayMoods[day]) data.dayMoods[day] = {};
-  const tags = data.dayMoods[day].tags || [];
+  const tags      = data.dayMoods[day].tags      || [];
+  const dismissed = data.dayMoods[day].dismissed || [];
   const idx = tags.indexOf(tag);
-  if (idx >= 0) tags.splice(idx, 1); else tags.push(tag);
-  data.dayMoods[day].tags = tags;
+  if (idx >= 0) {
+    tags.splice(idx, 1);
+    if (!dismissed.includes(tag)) dismissed.push(tag);
+  } else {
+    tags.push(tag);
+    const di = dismissed.indexOf(tag);
+    if (di >= 0) dismissed.splice(di, 1);
+  }
+  data.dayMoods[day].tags      = tags;
+  data.dayMoods[day].dismissed = dismissed;
   save();
   renderPhotoBook();
 }
@@ -538,9 +556,10 @@ function diaryDayHtml(d) {
   const savedTags = mood.tags || [];
   const lineText  = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
 
+  const dismissed = mood.dismissed || [];
   const planSuggestions = plans.filter(p => {
     const t = `${activityIcon(p.type)} ${p.name}`;
-    return !savedTags.includes(t);
+    return !savedTags.includes(t) && !dismissed.includes(t);
   });
 
   return `
@@ -666,7 +685,8 @@ ${cssHref ? `<link rel="stylesheet" href="${cssHref}">` : ''}
   .diaryDay { max-width:none; page-break-after:always; }
   .diaryCoverPage { page-break-after:always; }
   .noPrint, .diaryMoodPicker, .diarySetup, .diaryPhotoCtrl,
-  .storyPhotoUploadCard { display:none!important; }
+  .storyPhotoUploadCard, .diaryTagRemove, .diaryTagInput,
+  .diaryPlanTag.suggestion { display:none!important; }
   .diaryDayText { border:none!important; background:transparent!important; }
   @media print { body { background:#fff; } }
 </style>
