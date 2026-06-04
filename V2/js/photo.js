@@ -627,9 +627,9 @@ function diaryDayHtml(d) {
           </button>`).join('')}
         ${shareViewMode ? '' : `
           <span class="diaryTagInputWrap">
-            <input class="diaryTagInput" id="dti-${d.key}" placeholder="自訂標籤"
+            <input class="diaryTagInput" placeholder="自訂標籤"
               onkeydown="if(event.key==='Enter'){diaryAddCustomTag('${d.key}',this);event.preventDefault()}">
-            <button class="diaryTagAddBtn" onclick="diaryAddCustomTag('${d.key}',document.getElementById('dti-${d.key}'))">＋</button>
+            <button class="diaryTagAddBtn" type="button" onclick="diaryAddCustomTag('${d.key}',this.previousElementSibling)">＋</button>
           </span>`}
       </div>
 
@@ -710,6 +710,10 @@ ${cssHref ? `<link rel="stylesheet" href="${cssHref}">` : ''}
   .storyPhotoUploadCard, .diaryTagRemove, .diaryTagInputWrap,
   .diaryPlanTag.suggestion { display:none!important; }
   .diaryDayText { border:none!important; background:transparent!important; }
+  /* 確保標籤即使外部 CSS 未載入也能顯示 */
+  .diaryTagsSection { display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; padding-top:0; }
+  .diaryPlanTag { display:inline-flex!important; align-items:center; gap:4px; background:#f0ece6; border-radius:20px; padding:4px 10px; font-size:11px; color:#7a6e64; }
+  .diaryPlanTag.active { background:#d9efe6!important; color:#2e4a38!important; font-weight:600; }
   @media print { body { background:#fff; } }
 </style>
 </head>

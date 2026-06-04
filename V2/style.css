@@ -8777,15 +8777,17 @@ body.sheetOpen { overflow: hidden; }
   background: none;
   border: 1.5px dashed #c0b8b0;
   border-radius: 20px;
-  color: #7a6e64;
-  font-size: 15px;
+  color: #4A5D4E;
+  font-size: 16px;
   font-weight: 700;
   cursor: pointer;
-  padding: 2px 9px;
-  line-height: 1.2;
+  padding: 4px 13px;
+  min-height: 34px;
+  line-height: 1;
   font-family: inherit;
   transition: all .12s;
   flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
 }
 .diaryTagAddBtn:hover { border-color: #4A5D4E; color: #4A5D4E; background: #f0f7f3; }
 
