@@ -8696,15 +8696,66 @@ body.sheetOpen { overflow: hidden; }
 .diaryDayText:empty::before { content: attr(data-placeholder); color: #c0b8b0; }
 .diaryDayText:focus { border-color: #4A5D4E; }
 
-/* ── 行程摘要標籤 ── */
-.diaryPlanSummary { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+/* ── 標籤區（可編輯） ── */
+.diaryTagsSection {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  min-height: 28px;
+}
 .diaryPlanTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   background: #f0ece6;
+  border: none;
   border-radius: 20px;
-  padding: 3px 10px;
+  padding: 4px 10px;
   font-size: 11px;
   color: #7a6e64;
+  cursor: default;
+  font-family: inherit;
 }
+.diaryPlanTag.active {
+  background: #d9efe6;
+  color: #2e4a38;
+  font-weight: 600;
+}
+.diaryPlanTag.suggestion {
+  border: 1.5px dashed #c0b8b0;
+  background: transparent;
+  color: #9b8e85;
+  cursor: pointer;
+  transition: all .12s;
+}
+.diaryPlanTag.suggestion:hover { border-color: #4A5D4E; color: #4A5D4E; background: #f0f7f3; }
+.diaryTagPlus { font-size: 10px; opacity: .7; }
+.diaryTagRemove {
+  background: none;
+  border: none;
+  color: #9b8e85;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  margin-left: 2px;
+}
+.diaryTagRemove:hover { color: #c0392b; }
+.diaryTagInput {
+  border: 1.5px dashed #c0b8b0;
+  border-radius: 20px;
+  background: transparent;
+  font-size: 11px;
+  color: #7a6e64;
+  padding: 3px 10px;
+  outline: none;
+  width: 90px;
+  font-family: inherit;
+  transition: border-color .15s;
+}
+.diaryTagInput:focus { border-color: #4A5D4E; color: #2e4a38; width: 130px; }
 
 /* ── 風格主題 ── */
 
@@ -8747,13 +8798,20 @@ body.sheetOpen { overflow: hidden; }
 .diaryStyle-film .diaryDayNum { color: #f0c060; font-family: 'Courier New', monospace; }
 .diaryStyle-film .diaryDayDate { color: #888; }
 .diaryStyle-film .diaryDayHotel { background: #333; color: #aaa; }
-.diaryStyle-film .diaryDayText { background: #2a2a2a; border-color: #444; color: #f0e8d0; font-family: 'Courier New', monospace; }
-.diaryStyle-film .diaryDayText:focus { border-color: #f0c060; }
-.diaryStyle-film .diaryPlanTag { background: #333; color: #ccc; }
-.diaryStyle-film .diaryIconBtn { background: #333; }
-.diaryStyle-film .diaryIconBtn.active { border-color: #f0c060; background: #3a3000; }
-.diaryStyle-film .diaryNoPhotos { border-color: #444; color: #666; }
-.diaryStyle-film .diaryPhotoItem { background: #333; }
+.diaryDay.diaryStyle-film .diaryDayText { background: #2a2a2a; border-color: #444; color: #f0e8d0; caret-color: #f0e8d0; font-family: 'Courier New', monospace; }
+.diaryDay.diaryStyle-film .diaryDayText:focus { border-color: #f0c060; }
+.diaryDay.diaryStyle-film .diaryDayText:empty::before { color: #666; }
+.diaryDay.diaryStyle-film .diaryTagInput { border-color: #555; color: #ccc; }
+.diaryDay.diaryStyle-film .diaryTagInput:focus { border-color: #f0c060; color: #f0e8d0; }
+.diaryDay.diaryStyle-film .diaryPlanTag { background: #333; color: #ccc; }
+.diaryDay.diaryStyle-film .diaryPlanTag.active { background: #3a3000; color: #f0c060; }
+.diaryDay.diaryStyle-film .diaryPlanTag.suggestion { border-color: #555; color: #888; }
+.diaryDay.diaryStyle-film .diaryPlanTag.suggestion:hover { border-color: #f0c060; color: #f0c060; background: #2a2000; }
+.diaryDay.diaryStyle-film .diaryTagRemove { color: #666; }
+.diaryDay.diaryStyle-film .diaryIconBtn { background: #333; }
+.diaryDay.diaryStyle-film .diaryIconBtn.active { border-color: #f0c060; background: #3a3000; }
+.diaryDay.diaryStyle-film .diaryNoPhotos { border-color: #444; color: #666; }
+.diaryDay.diaryStyle-film .diaryPhotoItem { background: #333; }
 
 /* ── 列印 ── */
 @media print {

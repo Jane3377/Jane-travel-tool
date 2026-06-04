@@ -447,6 +447,7 @@ const WEATHER_ICONS = ['☀️','🌤','⛅','🌧','🌪','❄️','🌈'];
 const MOOD_ICONS    = ['😊','🥰','😌','🤩','😴','😔','🫠'];
 
 function setDayMood(day, field, value) {
+  _flushDiaryTexts();
   if (!data.dayMoods) data.dayMoods = {};
   if (!data.dayMoods[day]) data.dayMoods[day] = {};
   data.dayMoods[day][field] = data.dayMoods[day][field] === value ? '' : value;
@@ -459,6 +460,53 @@ function saveDayText(day, text) {
   if (!data.dayMoods[day]) data.dayMoods[day] = {};
   data.dayMoods[day].text = text;
   save();
+}
+
+function _flushDiaryTexts() {
+  document.querySelectorAll('.diaryDay[data-day]').forEach(el => {
+    const day = el.dataset.day;
+    const textEl = el.querySelector('.diaryDayText[contenteditable]');
+    if (!textEl || !day) return;
+    if (!data.dayMoods) data.dayMoods = {};
+    if (!data.dayMoods[day]) data.dayMoods[day] = {};
+    data.dayMoods[day].text = textEl.innerText;
+  });
+}
+
+function diaryRemoveTag(day, idx) {
+  _flushDiaryTexts();
+  const tags = data.dayMoods?.[day]?.tags;
+  if (!tags) return;
+  tags.splice(idx, 1);
+  save();
+  renderPhotoBook();
+}
+
+function diaryTogglePlanTag(day, planId) {
+  _flushDiaryTexts();
+  const p = data.plans.find(x => x.id === planId);
+  if (!p) return;
+  const tag = `${activityIcon(p.type)} ${p.name}`;
+  if (!data.dayMoods) data.dayMoods = {};
+  if (!data.dayMoods[day]) data.dayMoods[day] = {};
+  const tags = data.dayMoods[day].tags || [];
+  const idx = tags.indexOf(tag);
+  if (idx >= 0) tags.splice(idx, 1); else tags.push(tag);
+  data.dayMoods[day].tags = tags;
+  save();
+  renderPhotoBook();
+}
+
+function diaryAddCustomTag(day, inputEl) {
+  const tag = (inputEl.value || '').trim();
+  if (!tag) return;
+  _flushDiaryTexts();
+  if (!data.dayMoods) data.dayMoods = {};
+  if (!data.dayMoods[day]) data.dayMoods[day] = {};
+  const tags = data.dayMoods[day].tags || [];
+  if (!tags.includes(tag)) { tags.push(tag); data.dayMoods[day].tags = tags; save(); }
+  inputEl.value = '';
+  renderPhotoBook();
 }
 
 function diaryPhotoGridHtml(photos) {
@@ -481,16 +529,22 @@ function diaryPhotoGridHtml(photos) {
 }
 
 function diaryDayHtml(d) {
-  const style  = data.meta.bookStyle || 'fresh';
-  const photos = photosForDay(d.key);
-  const mood   = (data.dayMoods || {})[d.key] || {};
-  const hotel  = hotelFor(d.key);
-  const plans  = sortedPlans(d.key);
-  const text   = mood.text || '';
-  const lineText = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+  const style     = data.meta.bookStyle || 'fresh';
+  const photos    = photosForDay(d.key);
+  const mood      = (data.dayMoods || {})[d.key] || {};
+  const hotel     = hotelFor(d.key);
+  const plans     = sortedPlans(d.key);
+  const text      = mood.text || '';
+  const savedTags = mood.tags || [];
+  const lineText  = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+
+  const planSuggestions = plans.filter(p => {
+    const t = `${activityIcon(p.type)} ${p.name}`;
+    return !savedTags.includes(t);
+  });
 
   return `
-    <div class="diaryDay diaryStyle-${style}">
+    <div class="diaryDay diaryStyle-${style}" data-day="${d.key}">
 
       <div class="diaryDayHeader">
         <div class="diaryDayMeta">
@@ -524,10 +578,20 @@ function diaryDayHtml(d) {
                   data-placeholder="寫下今天的心情…">${lineText}</div>`}
       </div>
 
-      ${plans.length ? `
-        <div class="diaryPlanSummary">
-          ${plans.map(p => `<span class="diaryPlanTag">${activityIcon(p.type)} ${esc(p.name)}</span>`).join('')}
-        </div>` : ''}
+      <div class="diaryTagsSection">
+        ${savedTags.map((t, i) => `
+          <span class="diaryPlanTag active">
+            ${esc(t)}
+            ${shareViewMode ? '' : `<button class="diaryTagRemove" onclick="diaryRemoveTag('${d.key}',${i})" title="移除">×</button>`}
+          </span>`).join('')}
+        ${shareViewMode ? '' : planSuggestions.map(p => `
+          <button class="diaryPlanTag suggestion" onclick="diaryTogglePlanTag('${d.key}','${p.id}')">
+            ${activityIcon(p.type)} ${esc(p.name)} <span class="diaryTagPlus">＋</span>
+          </button>`).join('')}
+        ${shareViewMode ? '' : `
+          <input class="diaryTagInput" placeholder="＋ 自訂標籤"
+            onkeydown="if(event.key==='Enter'){diaryAddCustomTag('${d.key}',this);event.preventDefault()}">`}
+      </div>
 
       ${shareViewMode ? '' : storyPhotoUploadForm(d.key)}
     </div>`;
