@@ -58,6 +58,7 @@ function saveSpot() {
     }
   }
   save();
+  closeAddSheet();
 }
 
 function editSpot(id) {

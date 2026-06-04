@@ -21,6 +21,7 @@ function go(v) {
   if (v === 'planner' && !currentDay) currentDay = cur || data.days?.[0]?.key || '';
   renderNav();
   render();
+  updateFab();
   scrollTo(0, 0);
 }
 
@@ -55,6 +56,163 @@ function renderNav() {
     ).join('');
   }
   renderSetupStrip();
+}
+
+/* ══════════════════════════════════════════
+   FAB 浮動新增鈕
+   ══════════════════════════════════════════ */
+
+const _FAB_VIEWS = ['planner', 'spots', 'budget', 'packing'];
+
+function updateFab() {
+  const fab = $('fabAdd');
+  if (!fab) return;
+  const inEdit = (view === 'planner' && (editingPlanId || v16PendingSpotId))
+              || (view === 'spots'   && editingSpotId)
+              || (view === 'budget'  && editingExpenseId);
+  fab.hidden = !_FAB_VIEWS.includes(view) || shareViewMode || deviceReadOnly || inEdit;
+}
+
+function openAddSheet() {
+  if (view === 'planner' && (editingPlanId || v16PendingSpotId)) { toast('請先完成當前編輯'); return; }
+  if (view === 'spots'   && editingSpotId)    { toast('請先完成當前編輯'); return; }
+  if (view === 'budget'  && editingExpenseId) { toast('請先完成當前編輯'); return; }
+  const overlay = $('addSheetOverlay');
+  const body    = $('addSheetBody');
+  const titleEl = $('addSheetTitle');
+  if (!overlay || !body) return;
+  const titles = { planner: '新增行程', spots: '新增景點', budget: '新增費用', packing: '新增行李' };
+  if (titleEl) titleEl.textContent = titles[view] || '新增';
+  body.innerHTML = _addFormHtml(view);
+  overlay.hidden = false;
+  document.body.classList.add('sheetOpen');
+  if (view === 'planner' && $('pday')) $('pday').value = currentDay;
+}
+
+function closeAddSheet() {
+  const overlay = $('addSheetOverlay');
+  if (overlay) overlay.hidden = true;
+  document.body.classList.remove('sheetOpen');
+}
+
+function closeAddSheetOnBackdrop(e) {
+  if (e.target === $('addSheetOverlay')) closeAddSheet();
+}
+
+function _addFormHtml(v) {
+  const isKorea = data.trip.country === '韓國';
+  if (v === 'planner') {
+    return `
+      <div class="three compactMobile">
+        <div class="full"><label>日期</label>
+          <select id="pday">${optsDays(currentDay)}</select></div>
+        <div><label>開始</label>${timeSelHtml('ps', '10:00', 'planStartChange()')}</div>
+        <div><label>時長</label>
+          <select id="pdur" onchange="planDurationChange()">
+            <option value="">（選填）</option>
+            ${[30,60,90,120,150,180,210,240,270,300].map(m => {
+              const h = Math.floor(m/60), r = m%60;
+              const label = h && r ? `${h} 小時 ${r} 分` : h ? `${h} 小時` : `${r} 分`;
+              return `<option value="${m}">${label}</option>`;
+            }).join('')}
+          </select></div>
+        <div><label>結束 <span id="pdurDisplay" class="pdurDisplay"></span></label>
+          ${timeSelHtml('pe', '11:30', 'planEndChange()')}</div>
+      </div>
+      <div class="two">
+        <div><label>分類</label><select id="ptype">${optsPlanTypes()}</select></div>
+        <div></div>
+      </div>
+      <label>行程名稱</label>
+      <input id="pname">
+      <label>地址（選填）</label>
+      <input id="paddress" placeholder="未來地圖功能使用">
+      ${isKorea ? `
+      <div class="two">
+        <div><label>韓文名稱（選填）</label><input id="pkrName" placeholder="예: 감천문화마을"></div>
+        <div><label>韓文地址（選填）</label><input id="pkrAddr" placeholder="예: 부산광역시 사하구 감내2로 203"></div>
+      </div>` : ''}
+      <label>注意事項</label><textarea id="pnote"></textarea>
+      <div class="btns">
+        <button class="btn dark" onclick="savePlanForm()">加入行程</button>
+        <button class="btn soft" onclick="closeAddSheet()">取消</button>
+      </div>`;
+  }
+  if (v === 'spots') {
+    return `
+      <div class="three compactMobile">
+        <div class="full"><label>名稱</label><input id="sn"></div>
+        <div><label>分類</label>
+          <select id="st">
+            ${['景點','餐廳','咖啡廳','購物','雨天備案','其他'].map(t => `<option>${t}</option>`).join('')}
+          </select></div>
+        <div><label>候選日期</label>
+          <select id="sd"><option value="">未排</option>${optsDays('')}</select></div>
+      </div>
+      <label>地址 / 區域</label>
+      <div class="two">
+        <input id="sa">
+        <button class="btn blue compact" onclick="mapSpotDraft()">查地圖</button>
+      </div>
+      <label>注意事項</label><textarea id="sm"></textarea>
+      ${isKorea ? `
+      <div class="two">
+        <div><label>韓文名稱（選填）</label><input id="skrName" placeholder="예: 감천문화마을"></div>
+        <div><label>韓文地址（選填）</label><input id="skrAddr" placeholder="예: 부산광역시 사하구 감내2로 203"></div>
+      </div>` : ''}
+      <div class="three compactMobile">
+        <div class="full"><label>排入行程？</label>
+          <select id="sToPlan">
+            <option value="no">先放口袋</option>
+            <option value="yes">同步排入行程</option>
+          </select></div>
+        <div><label>預設開始</label>${timeSelHtml('sStart', '10:00')}</div>
+        <div><label>預設結束</label>${timeSelHtml('sEnd', '11:30')}</div>
+      </div>
+      <div class="btns">
+        <button class="btn dark" onclick="saveSpot()">加入景點</button>
+        <button class="btn soft" onclick="closeAddSheet()">取消</button>
+      </div>`;
+  }
+  if (v === 'budget') {
+    return `
+      <div class="three compactMobile">
+        <div><label>費用類型</label>
+          <select id="etype">
+            ${['機票','住宿','網路','旅平險','交通票券','景點票券','餐飲','購物','其他'].map(t => `<option>${t}</option>`).join('')}
+          </select></div>
+        <div><label>項目</label><input id="ename"></div>
+        <div><label>付款人</label><select id="epayer">${optsPayer('未定')}</select></div>
+      </div>
+      <div class="four compactMobile">
+        <div><label>${esc(data.trip.currency)} 金額</label>
+          <input id="eforeign" type="number" oninput="syncExpenseMoney('f')"></div>
+        <div><label>TWD</label>
+          <input id="etwd" type="number" oninput="syncExpenseMoney('t')"></div>
+        <div><label>付款方式</label>
+          <select id="epm">${optsPayMethod('未定')}</select></div>
+        <div><label>日期（選填）</label>
+          <input id="eday" type="date"></div>
+      </div>
+      <label>備註</label><input id="ememo">
+      <div class="btns">
+        <button class="btn dark" onclick="saveExpense()">新增費用</button>
+        <button class="btn blue compact" onclick="openRateSearch()">查匯率</button>
+        <button class="btn soft" onclick="closeAddSheet()">取消</button>
+      </div>`;
+  }
+  if (v === 'packing') {
+    return `
+      <div class="two">
+        <div><label>新增項目</label><input id="pkn"></div>
+        <div><label>備註</label><input id="pkm"></div>
+      </div>
+      <div class="btns">
+        <button class="btn dark" onclick="addPackItem()">新增到此清單</button>
+        <button class="btn soft" onclick="closeAddSheet()">取消</button>
+      </div>`;
+  }
+  return '';
 }
 
 function renderSetupStrip() {
@@ -313,7 +471,7 @@ function renderPlanner() {
       </div>
     </div>
 
-    <details class="card" ${editingPlanId || v16PendingSpotId ? 'open' : ''}>
+    <details class="card${editingPlanId || v16PendingSpotId ? '' : ' addInlineForm'}" ${editingPlanId || v16PendingSpotId ? 'open' : ''}>
       <summary>${editingPlanId ? '編輯行程' : '＋ 新增行程'}</summary>
       <div class="detailBody">
         <div class="three compactMobile">
@@ -408,7 +566,7 @@ function renderSpots() {
       </div>
     </div>
 
-    <details class="card" ${e ? 'open' : ''}>
+    <details class="card${e ? '' : ' addInlineForm'}" ${e ? 'open' : ''}>
       <summary>${e ? '編輯口袋景點' : '＋ 新增口袋景點'}</summary>
       <div class="detailBody">
         <div class="three compactMobile">
@@ -510,7 +668,7 @@ function renderBudget() {
       </div>
     </div>
     ${budgetSummaryHtml(items)}
-    <div class="card shareEditOnly">
+    <div class="card shareEditOnly${editingExpenseId ? '' : ' addInlineForm'}">
       <div class="three compactMobile">
         <div><label>費用類型</label>
           <select id="etype">
@@ -587,7 +745,7 @@ function renderPacking() {
         </div>
       </div>
     </div>
-    <div class="card shareEditOnly">
+    <div class="card shareEditOnly addInlineForm">
       <div class="two">
         <div><label>新增項目</label><input id="pkn"></div>
         <div><label>備註</label><input id="pkm"></div>
@@ -845,6 +1003,7 @@ function render() {
   renderPhotoBook();
   renderHelp();
   applyLockBanner();
+  updateFab();
 }
 
 /* ══════════════════════════════════════════

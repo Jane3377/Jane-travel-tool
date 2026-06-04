@@ -23,6 +23,7 @@ function saveExpense() {
     data.expenses.push({ id: uid(), ...item });
   }
   save();
+  closeAddSheet();
   toast('已記好這筆費用');
 }
 

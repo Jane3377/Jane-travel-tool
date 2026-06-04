@@ -12,6 +12,7 @@ function addPackItem() {
   if ($('pkn')) $('pkn').value = '';
   if ($('pkm')) $('pkm').value = '';
   save();
+  closeAddSheet();
 }
 
 function togglePackItem(id) {

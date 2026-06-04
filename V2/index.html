@@ -85,6 +85,19 @@
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
+<!-- FAB 浮動新增鈕 + 底部抽屜 -->
+<button id="fabAdd" class="fabBtn noPrint" onclick="openAddSheet()" hidden>＋</button>
+<div id="addSheetOverlay" class="addSheetOverlay" hidden onclick="closeAddSheetOnBackdrop(event)">
+  <div class="addSheet" id="addSheet">
+    <div class="addSheetHandle"></div>
+    <div class="addSheetHeader">
+      <span id="addSheetTitle">新增</span>
+      <button class="addSheetClose" onclick="closeAddSheet()">✕</button>
+    </div>
+    <div class="addSheetBody" id="addSheetBody"></div>
+  </div>
+</div>
+
 <!-- Modals（靜態部分） -->
 <div class="countryResetModal" id="countryResetModal">
   <div class="countryResetBox">

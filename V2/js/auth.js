@@ -123,10 +123,7 @@ async function selectTrip(id) {
     if (cloudReady) listenCloudChanges();
 
     showShell('app');
-    view = data.trip?.dest ? 'planner' : 'trip';
-    renderNav();
-    render();
-    scrollTo(0, 0);
+    go(data.trip?.dest ? 'planner' : 'trip');
 
     // 如果本機比雲端新，補同步
     if (cloudReady && local && localTime > cloudTime + 1000) {
@@ -195,10 +192,7 @@ async function createTrip() {
 
   if (cloudReady) listenCloudChanges();
   showShell('app');
-  view = 'trip';
-  renderNav();
-  render();
-  scrollTo(0, 0);
+  go('trip');
   toast('已建立旅程');
   await acquireEditLock({ takeover: true });
   applyLockBanner();

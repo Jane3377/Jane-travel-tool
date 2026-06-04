@@ -121,6 +121,7 @@ function savePlanForm() {
 
   currentDay = cur = day;
   save();
+  closeAddSheet();
   toast(editingPlanId ? '已更新行程' : '已新增行程');
 }
 

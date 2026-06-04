@@ -8115,3 +8115,56 @@ body.shareView .check input[type="checkbox"] { pointer-events: none; }
 .check { align-items:center; }
 .checkContent { flex:1; min-width:0; }
 .packDeleteBtn { margin-left:auto; flex-shrink:0; }
+/* ── FAB 浮動新增鈕 ── */
+.fabBtn {
+  display: none;
+  position: fixed;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  right: 20px;
+  width: 58px; height: 58px;
+  border-radius: 50%;
+  background: #4A5D4E;
+  color: #fffaf2;
+  font-size: 32px;
+  border: none;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.30);
+  cursor: pointer;
+  z-index: 500;
+  align-items: center; justify-content: center;
+  line-height: 1; padding: 0; font-weight: 300;
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+.fabBtn:active { transform: scale(0.93); }
+@media (max-width: 620px) { .fabBtn { display: flex; } }
+/* ── 底部抽屜 ── */
+.addSheetOverlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.42);
+  z-index: 1000; display: flex; align-items: flex-end;
+}
+.addSheetOverlay[hidden] { display: none !important; }
+.addSheet {
+  background: var(--bg, #f7f3ec);
+  border-radius: 22px 22px 0 0;
+  width: 100%; max-height: 88vh;
+  overflow-y: auto; -webkit-overflow-scrolling: touch;
+  padding-bottom: max(24px, env(safe-area-inset-bottom, 0px));
+}
+.addSheetHandle { width:36px; height:4px; background:#ccc; border-radius:2px; margin:12px auto 4px; }
+.addSheetHeader {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:8px 16px 10px; border-bottom:1px solid var(--line);
+  position:sticky; top:0; background:var(--bg, #f7f3ec); z-index:1;
+}
+.addSheetHeader span { font-weight:900; font-size:16px; }
+.addSheetClose {
+  background:#f3eee8; border:none; border-radius:50%;
+  width:32px; height:32px; font-size:15px; cursor:pointer;
+  display:grid; place-items:center; color:#5d554e;
+}
+.addSheetBody { padding: 4px 14px 8px; }
+body.sheetOpen { overflow: hidden; }
+/* ── 手機隱藏內嵌新增表單（改用 FAB）── */
+@media (max-width: 620px) {
+  .addInlineForm { display: none !important; }
+}
