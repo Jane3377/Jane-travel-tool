@@ -793,20 +793,11 @@ function renderPhotoBook() {
 
 function _diaryHtml() {
   return `
-    <div class="section noPrint">
-      <div>
-        <div class="hint">直接在預覽中上傳封面與每日照片，每天最多 10 張。</div>
-      </div>
-      <div class="noPrint">
-        <button class="btn soft" onclick="exportPhotoBookPDF()">匯出 PDF</button>
-      </div>
+    <div class="diaryActionBar noPrint">
+      <button class="btn dark compact" onclick="exportDiaryPDF()">匯出 PDF</button>
     </div>
-    <div class="storyBookPreview bookStyle-${data.meta.bookStyle||'fresh'}">
-      <div class="storyBook">
-        ${storyBookCoverHtml()}
-        ${data.days.map(storyBookDay).join('')}
-      </div>
-    </div>`;
+    ${diaryCoverHtml()}
+    ${data.days.map(d => diaryDayHtml(d)).join('')}`;
 }
 
 function renderHelp() {

@@ -431,3 +431,197 @@ function storyBookDay(d) {
 function exportPhotoBookPDF() {
   open('export.html', '_blank');
 }
+
+/* ════════════════════════════════════════
+   旅日記（全新排版）
+   ════════════════════════════════════════ */
+
+const DIARY_STYLES = {
+  fresh:    '🌿 清新',
+  journal:  '✎ 手帳',
+  magazine: '📰 雜誌',
+  film:     '🎞 底片',
+};
+
+const WEATHER_ICONS = ['☀️','🌤','⛅','🌧','🌪','❄️','🌈'];
+const MOOD_ICONS    = ['😊','🥰','😌','🤩','😴','😔','🫠'];
+
+function setDayMood(day, field, value) {
+  if (!data.dayMoods) data.dayMoods = {};
+  if (!data.dayMoods[day]) data.dayMoods[day] = {};
+  data.dayMoods[day][field] = data.dayMoods[day][field] === value ? '' : value;
+  save();
+  renderPhotoBook();
+}
+
+function saveDayText(day, text) {
+  if (!data.dayMoods) data.dayMoods = {};
+  if (!data.dayMoods[day]) data.dayMoods[day] = {};
+  data.dayMoods[day].text = text;
+  save();
+}
+
+function diaryPhotoGridHtml(photos) {
+  const shown = photos.slice(0, 6);
+  const count = shown.length;
+  if (!count) return '<div class="diaryNoPhotos">還沒有照片，點下方上傳</div>';
+  return `
+    <div class="diaryPhotoGrid count-${count}">
+      ${shown.map((p, i) => `
+        <div class="diaryPhotoItem${i === 0 ? ' featured' : ''}">
+          <img src="${p.src}" alt="${esc(p.title || '')}">
+          ${p.title ? `<div class="diaryPhotoCaption">${esc(p.title)}</div>` : ''}
+          <div class="diaryPhotoCtrl noPrint">
+            <button onclick="openPhotoEditModal('${p.id}')">✎</button>
+            <button onclick="deletePhoto('${p.id}')">×</button>
+          </div>
+        </div>`).join('')}
+    </div>
+    ${photos.length > 6 ? `<div class="diaryMorePhotos">還有 ${photos.length - 6} 張</div>` : ''}`;
+}
+
+function diaryDayHtml(d) {
+  const style  = data.meta.bookStyle || 'fresh';
+  const photos = photosForDay(d.key);
+  const mood   = (data.dayMoods || {})[d.key] || {};
+  const hotel  = hotelFor(d.key);
+  const plans  = sortedPlans(d.key);
+  const text   = mood.text || '';
+  const lineText = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+
+  return `
+    <div class="diaryDay diaryStyle-${style}">
+
+      <div class="diaryDayHeader">
+        <div class="diaryDayMeta">
+          <span class="diaryDayNum">${esc(d.title)}</span>
+          <span class="diaryDayDate">${shortWithDay(d.key)}</span>
+          ${hotel ? `<span class="diaryDayHotel">🏨 ${esc(hotel.name)}</span>` : ''}
+        </div>
+        ${mood.weather || mood.mood
+          ? `<div class="diaryMoodBadge">${mood.weather || ''}${mood.mood || ''}</div>` : ''}
+      </div>
+
+      ${shareViewMode ? '' : `
+        <div class="diaryMoodPicker noPrint">
+          <div class="diaryIconRow">
+            ${WEATHER_ICONS.map(w => `<button class="diaryIconBtn${mood.weather===w?' active':''}"
+              onclick="setDayMood('${d.key}','weather','${w}')">${w}</button>`).join('')}
+          </div>
+          <div class="diaryIconRow">
+            ${MOOD_ICONS.map(m => `<button class="diaryIconBtn${mood.mood===m?' active':''}"
+              onclick="setDayMood('${d.key}','mood','${m}')">${m}</button>`).join('')}
+          </div>
+        </div>`}
+
+      <div class="diaryPhotoSection">${diaryPhotoGridHtml(photos)}</div>
+
+      <div class="diaryTextSection">
+        ${shareViewMode
+          ? (text ? `<div class="diaryDayText">${lineText}</div>` : '')
+          : `<div class="diaryDayText" contenteditable="true"
+                  onblur="saveDayText('${d.key}', this.innerText)"
+                  data-placeholder="寫下今天的心情…">${lineText}</div>`}
+      </div>
+
+      ${plans.length ? `
+        <div class="diaryPlanSummary">
+          ${plans.map(p => `<span class="diaryPlanTag">${activityIcon(p.type)} ${esc(p.name)}</span>`).join('')}
+        </div>` : ''}
+
+      ${shareViewMode ? '' : storyPhotoUploadForm(d.key)}
+    </div>`;
+}
+
+function diaryCoverHtml() {
+  const cover = data.tripCover;
+  const style = data.meta.bookStyle || 'fresh';
+
+  return `
+    ${shareViewMode ? '' : `
+      <div class="diarySetup noPrint">
+        <div class="diarySetupLeft">
+          ${cover
+            ? `<div class="diarySetupCoverPreview">
+                 <img src="${cover}">
+                 <button class="diaryCoverRemoveBtn" onclick="removeTripCover()">× 移除</button>
+               </div>`
+            : `<label class="diarySetupCoverEmpty">
+                 <span>＋ 上傳封面照</span>
+                 <input type="file" accept="image/*" onchange="addTripCover(this.files[0])" style="display:none">
+               </label>`}
+          ${cover ? `<label class="btn soft compact diarySetupChangeBtn">
+            更換封面<input type="file" accept="image/*" onchange="addTripCover(this.files[0])" style="display:none">
+          </label>` : ''}
+          <div class="photoUploadStatus" id="coverUploadStatus"></div>
+        </div>
+        <div class="diarySetupRight">
+          <div class="diaryStyleLabel">書冊風格</div>
+          <div class="diaryStyleBtns">
+            ${Object.entries(DIARY_STYLES).map(([k, l]) => `
+              <button class="diaryStyleBtn${style===k?' active':''}"
+                      onclick="data.meta.bookStyle='${k}';save();renderPhotoBook()">
+                ${l}
+              </button>`).join('')}
+          </div>
+        </div>
+      </div>`}
+
+    <div class="diaryCoverPage diaryStyle-${style}">
+      ${cover ? `<img class="diaryCoverBg" src="${cover}">` : ''}
+      <div class="diaryCoverOv"></div>
+      <div class="diaryCoverContent">
+        <div class="diaryCoverEyebrow">TRAVEL DIARY</div>
+        <h1 class="diaryCoverTitle">${esc(data.meta.title || '我的旅程日記')}</h1>
+        <div class="diaryCoverDest">${esc(data.trip.dest || '')}</div>
+        <div class="diaryCoverDates">
+          ${data.trip.start ? `${short(data.trip.start)} — ${short(data.trip.end)}` : ''}
+        </div>
+      </div>
+    </div>`;
+}
+
+function exportDiaryPDF() {
+  const cssHref = document.querySelector('link[rel="stylesheet"]')?.href || '';
+  const cover   = data.tripCover;
+  const style   = data.meta.bookStyle || 'fresh';
+  const daysHtml = data.days.map(d => diaryDayHtml(d)).join('');
+
+  const win = window.open('', '_blank');
+  if (!win) { toast('請允許彈出視窗後再試'); return; }
+
+  win.document.write(`<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>${esc(data.meta.title || '旅日記')}</title>
+${cssHref ? `<link rel="stylesheet" href="${cssHref}">` : ''}
+<style>
+  body { margin:0; padding:0; background:#1a1a1a; font-family:-apple-system,'Noto Sans TC','PingFang TC',sans-serif; }
+  .diaryDay { max-width:none; page-break-after:always; }
+  .diaryCoverPage { page-break-after:always; }
+  .noPrint, .diaryMoodPicker, .diarySetup, .diaryPhotoCtrl,
+  .storyPhotoUploadCard { display:none!important; }
+  .diaryDayText { border:none!important; background:transparent!important; }
+  @media print { body { background:#fff; } }
+</style>
+</head>
+<body>
+${cover ? `
+  <div class="diaryCoverPage diaryStyle-${style}">
+    <img class="diaryCoverBg" src="${cover}">
+    <div class="diaryCoverOv"></div>
+    <div class="diaryCoverContent">
+      <div class="diaryCoverEyebrow">TRAVEL DIARY</div>
+      <h1 class="diaryCoverTitle">${esc(data.meta.title || '我的旅程日記')}</h1>
+      <div class="diaryCoverDest">${esc(data.trip.dest || '')}</div>
+      <div class="diaryCoverDates">${data.trip.start ? `${short(data.trip.start)} — ${short(data.trip.end)}` : ''}</div>
+    </div>
+  </div>` : ''}
+${daysHtml}
+<script>window.addEventListener('load',function(){setTimeout(function(){window.print();},600);});<\/script>
+</body>
+</html>`);
+  win.document.close();
+}

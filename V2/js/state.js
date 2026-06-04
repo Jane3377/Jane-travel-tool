@@ -39,6 +39,7 @@ function makeDefaultData() {
     dayCoverMeta: {},
     aiReviews:  {},
     tripCover:  null,
+    dayMoods:   {},
     handbook:   {}
   };
 }
