@@ -72,6 +72,7 @@ async function addTripCover(file) {
     save();
     setUploadStatus('coverUploadStatus', '');
     toast('封面已上傳');
+    _flushDiaryTexts();
     renderPhotoBook();
   } catch (err) {
     setUploadStatus('coverUploadStatus', '');
@@ -83,6 +84,7 @@ function removeTripCover() {
   if (!confirm('確定刪除封面照？')) return;
   data.tripCover     = null;
   data.tripCoverMeta = null;
+  _flushDiaryTexts();
   save();
   renderPhotoBook();
 }
@@ -205,6 +207,7 @@ async function addPhotoToDay(day) {
     });
 
     clearPendingPhoto(day);
+    _flushDiaryTexts();
     save();
     renderPhotoBook();
     setUploadStatus(statusId, '');
@@ -216,6 +219,7 @@ async function addPhotoToDay(day) {
 }
 
 function deletePhoto(id) {
+  _flushDiaryTexts();
   data.photos = data.photos.filter(p => p.id !== id);
   save();
   renderPhotoBook();
@@ -477,6 +481,13 @@ function _flushDiaryTexts() {
   });
 }
 
+function setDiaryStyle(style) {
+  _flushDiaryTexts();
+  data.meta.bookStyle = style;
+  save();
+  renderPhotoBook();
+}
+
 function diaryRemoveTag(day, idx) {
   _flushDiaryTexts();
   if (!data.dayMoods?.[day]?.tags) return;
@@ -643,7 +654,7 @@ function diaryCoverHtml() {
           <div class="diaryStyleBtns">
             ${Object.entries(DIARY_STYLES).map(([k, l]) => `
               <button class="diaryStyleBtn${style===k?' active':''}"
-                      onclick="data.meta.bookStyle='${k}';save();renderPhotoBook()">
+                      onclick="setDiaryStyle('${k}')">
                 ${l}
               </button>`).join('')}
           </div>
