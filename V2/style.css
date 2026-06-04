@@ -8771,7 +8771,23 @@ body.sheetOpen { overflow: hidden; }
   font-family: inherit;
   transition: border-color .15s;
 }
-.diaryTagInput:focus { border-color: #4A5D4E; color: #2e4a38; width: 130px; }
+.diaryTagInput:focus { border-color: #4A5D4E; color: #2e4a38; width: 100px; }
+.diaryTagInputWrap { display: inline-flex; align-items: center; gap: 3px; }
+.diaryTagAddBtn {
+  background: none;
+  border: 1.5px dashed #c0b8b0;
+  border-radius: 20px;
+  color: #7a6e64;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 2px 9px;
+  line-height: 1.2;
+  font-family: inherit;
+  transition: all .12s;
+  flex-shrink: 0;
+}
+.diaryTagAddBtn:hover { border-color: #4A5D4E; color: #4A5D4E; background: #f0f7f3; }
 
 /* ── 風格主題 ── */
 
@@ -8836,6 +8852,57 @@ body.sheetOpen { overflow: hidden; }
 .diaryDay.diaryStyle-film .diaryIconBtn.active { border-color: #f0c060; background: #3a3000; }
 .diaryDay.diaryStyle-film .diaryNoPhotos { border-color: #444; color: #666; }
 .diaryDay.diaryStyle-film .diaryPhotoItem { background: #333; }
+
+/* 🎞 底片風格強化 */
+.diaryStyle-film .diaryDayHeader {
+  border-bottom: 1px solid #3a3a3a;
+  padding-bottom: 12px;
+  margin-bottom: 14px;
+}
+.diaryStyle-film .diaryPhotoSection {
+  margin-left: -20px;
+  margin-right: -20px;
+  padding: 8px 20px;
+  background: #1a1a1a;
+  border-top: 8px solid #111;
+  border-bottom: 8px solid #111;
+  margin-bottom: 16px;
+}
+.diaryDay.diaryStyle-film .diaryPhotoItem {
+  outline: 2px solid #000;
+  outline-offset: -2px;
+}
+.diaryDay.diaryStyle-film .diaryPhotoCaption {
+  background: rgba(0,0,0,.75);
+  color: #f0e8d0;
+  font-family: 'Courier New', monospace;
+  font-size: .72rem;
+}
+.diaryStyle-film .diaryPhotoMemos {
+  border-top: 1px dashed #3a3a3a;
+  padding-top: 10px;
+}
+.diaryDay.diaryStyle-film .diaryPhotoMemoItem {
+  font-family: 'Courier New', monospace;
+  font-size: .78rem;
+  color: #b0a090;
+}
+.diaryDay.diaryStyle-film .diaryMemoLabel {
+  color: #f0c060;
+  background: rgba(240,192,96,.12);
+}
+.diaryDay.diaryStyle-film .diaryDayText {
+  border-left-color: #f0c060;
+}
+.diaryStyle-film .diaryTagsSection {
+  border-top: 1px solid #333;
+  padding-top: 10px;
+  margin-top: 14px;
+}
+.diaryDay.diaryStyle-film .diaryTagAddBtn { border-color: #555; color: #888; }
+.diaryDay.diaryStyle-film .diaryTagAddBtn:hover { border-color: #f0c060; color: #f0c060; background: #2a2000; }
+.diaryStyle-film .diaryMoodPicker { background: #2a2a2a; border-radius: 8px; padding: 6px 10px; margin-bottom: 10px; }
+.diaryStyle-film .diaryIconBtn { border-radius: 6px; font-size: 1.1rem; }
 
 /* ── 列印 ── */
 @media print {

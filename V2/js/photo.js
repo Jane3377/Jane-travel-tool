@@ -626,8 +626,11 @@ function diaryDayHtml(d) {
             ${activityIcon(p.type)} ${esc(p.name)} <span class="diaryTagPlus">＋</span>
           </button>`).join('')}
         ${shareViewMode ? '' : `
-          <input class="diaryTagInput" placeholder="＋ 自訂標籤"
-            onkeydown="if(event.key==='Enter'){diaryAddCustomTag('${d.key}',this);event.preventDefault()}">`}
+          <span class="diaryTagInputWrap">
+            <input class="diaryTagInput" id="dti-${d.key}" placeholder="自訂標籤"
+              onkeydown="if(event.key==='Enter'){diaryAddCustomTag('${d.key}',this);event.preventDefault()}">
+            <button class="diaryTagAddBtn" onclick="diaryAddCustomTag('${d.key}',document.getElementById('dti-${d.key}'))">＋</button>
+          </span>`}
       </div>
 
       ${shareViewMode ? '' : storyPhotoUploadForm(d.key)}
@@ -683,6 +686,7 @@ function diaryCoverHtml() {
 }
 
 function exportDiaryPDF() {
+  _flushDiaryTexts();
   const cssHref = document.querySelector('link[rel="stylesheet"]')?.href || '';
   const cover   = data.tripCover;
   const style   = data.meta.bookStyle || 'fresh';
@@ -703,7 +707,7 @@ ${cssHref ? `<link rel="stylesheet" href="${cssHref}">` : ''}
   .diaryDay { max-width:none; page-break-after:always; }
   .diaryCoverPage { page-break-after:always; }
   .noPrint, .diaryMoodPicker, .diarySetup, .diaryPhotoCtrl,
-  .storyPhotoUploadCard, .diaryTagRemove, .diaryTagInput,
+  .storyPhotoUploadCard, .diaryTagRemove, .diaryTagInputWrap,
   .diaryPlanTag.suggestion { display:none!important; }
   .diaryDayText { border:none!important; background:transparent!important; }
   @media print { body { background:#fff; } }
