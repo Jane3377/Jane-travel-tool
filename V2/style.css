@@ -8168,3 +8168,225 @@ body.sheetOpen { overflow: hidden; }
 @media (max-width: 620px) {
   .addInlineForm { display: none !important; }
 }
+
+/* ════════════════════════════════════════
+   旅遊書子頁切換
+   ════════════════════════════════════════ */
+.bookSubTabs {
+  display: flex;
+  gap: 8px;
+  padding: 0 0 18px;
+}
+.bookSubTab {
+  padding: 8px 22px;
+  border-radius: 999px;
+  border: 2px solid var(--line, #e8e2da);
+  background: transparent;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+  color: var(--muted, #9b8e85);
+  transition: background .15s, color .15s, border-color .15s;
+}
+.bookSubTab.active {
+  background: var(--dark, #4A5D4E);
+  border-color: var(--dark, #4A5D4E);
+  color: #fffaf2;
+}
+
+/* ════════════════════════════════════════
+   旅程手冊
+   ════════════════════════════════════════ */
+
+/* ── 操作列 ── */
+.hbActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-bottom: 16px;
+}
+.hbColorRow { display: flex; gap: 8px; align-items: center; }
+.hbColorDot {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  cursor: pointer;
+  outline: none;
+  transition: transform .12s, border-color .12s;
+}
+.hbColorDot.active { border-color: #333; transform: scale(1.18); }
+.hbColorDot:hover  { transform: scale(1.1); }
+.hbActionBtns { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ── 手冊容器 ── */
+.handbook {
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 28px rgba(0,0,0,0.10);
+  background: #fff;
+  margin-bottom: 24px;
+}
+
+/* ── 封面 ── */
+.hbCover {
+  padding: 52px 28px 44px;
+  min-height: 210px;
+  display: flex;
+  align-items: flex-end;
+}
+.hbColor-green .hbCover { background: linear-gradient(140deg,#3d5141 0%,#6B8C72 100%); }
+.hbColor-sage  .hbCover { background: linear-gradient(140deg,#565f56 0%,#8fa090 100%); }
+.hbColor-blush .hbCover { background: linear-gradient(140deg,#7a4e58 0%,#b07d88 100%); }
+.hbColor-navy  .hbCover { background: linear-gradient(140deg,#2e3f5c 0%,#5a6e92 100%); }
+.hbColor-sand  .hbCover { background: linear-gradient(140deg,#7a6040 0%,#a8916d 100%); }
+.hbCoverInner { color: #fff; }
+.hbEyebrow {
+  font-size: 10px;
+  letter-spacing: 3px;
+  font-weight: 700;
+  opacity: .65;
+  margin-bottom: 14px;
+  text-transform: uppercase;
+}
+.hbTitle {
+  font-size: clamp(22px, 5vw, 30px);
+  font-weight: 900;
+  margin: 0 0 10px;
+  line-height: 1.2;
+}
+.hbCoverDest   { font-size: 15px; opacity: .85; margin-bottom: 6px; }
+.hbCoverMeta   { font-size: 13px; opacity: .65; margin-bottom: 8px; }
+.hbCoverTravelers { font-size: 13px; opacity: .8; font-weight: 700; }
+
+/* ── 各區塊 ── */
+.hbSection {
+  padding: 24px 24px 20px;
+  border-bottom: 1px solid #f0ece6;
+}
+.hbSection:last-child { border-bottom: none; }
+.hbSectionLabel {
+  font-size: 10px;
+  letter-spacing: 2.5px;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--muted, #9b8e85);
+  margin-bottom: 14px;
+}
+
+/* ── 可編輯區 ── */
+.hbEditable {
+  font-size: 15px;
+  line-height: 1.8;
+  min-height: 56px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1.5px dashed transparent;
+  outline: none;
+  white-space: pre-wrap;
+  word-break: break-word;
+  transition: border-color .15s, background .15s;
+  cursor: text;
+}
+.hbEditable[contenteditable="true"]:hover { border-color: var(--line, #e8e2da); }
+.hbEditable[contenteditable="true"]:focus { border-color: var(--dark,#4A5D4E); background: #fdfaf6; }
+.hbEditable:empty::before {
+  content: attr(data-placeholder);
+  color: var(--muted, #9b8e85);
+  font-style: italic;
+  pointer-events: none;
+}
+.hbPractical { min-height: 80px; }
+
+/* ── 旅程總覽 ── */
+.hbOverviewGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 10px;
+}
+.hbOverviewItem {
+  background: var(--pale, #f7f3ec);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+.hbOverviewItem span { display: block; font-size: 11px; color: var(--muted,#9b8e85); margin-bottom: 3px; }
+.hbOverviewItem b    { font-size: 14px; font-weight: 900; }
+
+/* ── 每日行程 ── */
+.hbDay {
+  margin-bottom: 16px;
+  padding-left: 14px;
+  border-left: 3px solid var(--mint, #d9efe6);
+}
+.hbDay:last-child { margin-bottom: 0; }
+.hbDayHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.hbDayTitle { font-weight: 900; font-size: 14px; }
+.hbDayDate  { font-size: 12px; color: var(--muted,#9b8e85); }
+.hbDayHotel { font-size: 12px; color: var(--muted,#9b8e85); margin-left: auto; }
+.hbPlanList { display: flex; flex-direction: column; gap: 5px; }
+.hbPlanItem {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 13px;
+  flex-wrap: wrap;
+}
+.hbPlanTime { font-size: 12px; color: var(--muted,#9b8e85); flex: 0 0 40px; font-weight: 700; }
+.hbPlanName { flex: 1; font-weight: 700; min-width: 0; }
+.hbPlanAddr { font-size: 11px; color: var(--muted,#9b8e85); flex: 0 0 100%; padding-left: 48px; }
+.hbEmpty    { font-size: 13px; color: var(--muted,#9b8e85); font-style: italic; }
+
+/* ── 口袋景點 ── */
+.hbSpotsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
+  gap: 10px;
+}
+.hbSpotCard {
+  background: var(--pale, #f7f3ec);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+.hbSpotType { font-size: 11px; color: var(--muted,#9b8e85); margin-bottom: 4px; }
+.hbSpotName { font-weight: 900; font-size: 14px; margin-bottom: 4px; }
+.hbSpotAddr { font-size: 11px; color: var(--muted,#9b8e85); margin-bottom: 3px; }
+.hbSpotNote { font-size: 12px; color: var(--muted,#9b8e85); font-style: italic; }
+
+/* ── 住宿 ── */
+.hbHotelCard {
+  background: var(--pale, #f7f3ec);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+}
+.hbHotelCard:last-child { margin-bottom: 0; }
+.hbHotelName  { font-weight: 900; font-size: 15px; margin-bottom: 5px; }
+.hbHotelDates { font-size: 13px; color: var(--muted,#9b8e85); margin-bottom: 4px; }
+.hbHotelAddr  { font-size: 12px; color: var(--muted,#9b8e85); margin-bottom: 3px; }
+.hbHotelNote  { font-size: 12px; color: var(--muted,#9b8e85); }
+
+/* ── 實用資訊 ── */
+.hbRateChip {
+  display: inline-block;
+  background: var(--mint, #d9efe6);
+  border-radius: 999px;
+  padding: 5px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+/* ── 列印 ── */
+@media print {
+  .hbActions, .bookSubTabs { display: none !important; }
+  .handbook { box-shadow: none; border-radius: 0; }
+  .hbEditable { border: none !important; background: transparent !important; padding: 0; }
+  .hbCover { min-height: 180px; }
+}

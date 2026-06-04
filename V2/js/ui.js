@@ -777,9 +777,24 @@ function renderPacking() {
 function renderPhotoBook() {
   const el = $('photoBookView');
   if (!el) return;
+
   el.innerHTML = `
-    <div class="section">
-      <div><h2>📖 照片旅遊書</h2>
+    <div class="section noPrint">
+      <div><h2>📖 旅遊書</h2></div>
+    </div>
+    <div class="bookSubTabs noPrint">
+      <button class="bookSubTab ${photoBookTab === 'handbook' ? 'active' : ''}"
+              onclick="photoBookTab='handbook';renderPhotoBook()">旅程手冊</button>
+      <button class="bookSubTab ${photoBookTab === 'diary' ? 'active' : ''}"
+              onclick="photoBookTab='diary';renderPhotoBook()">旅日記</button>
+    </div>
+    ${photoBookTab === 'handbook' ? handbookHtml() : _diaryHtml()}`;
+}
+
+function _diaryHtml() {
+  return `
+    <div class="section noPrint">
+      <div>
         <div class="hint">直接在預覽中上傳封面與每日照片，每天最多 10 張。</div>
       </div>
       <div class="noPrint">

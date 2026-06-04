@@ -38,7 +38,8 @@ function makeDefaultData() {
     dayCovers:  {},
     dayCoverMeta: {},
     aiReviews:  {},
-    tripCover:  null
+    tripCover:  null,
+    handbook:   {}
   };
 }
 
@@ -77,6 +78,9 @@ let v21PendingHotelId       = null;
 
 /* ── 日期調整暫存 ── */
 let pendingDateAdjust = null;
+
+/* ── 旅遊書子頁 ── */
+let photoBookTab = 'handbook';
 
 /* ── 照片暫存 ── */
 let storyPendingPhotoFiles = {};
