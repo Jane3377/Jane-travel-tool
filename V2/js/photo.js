@@ -542,6 +542,7 @@ function diaryPhotoGridHtml(photos) {
   const shown = photos.slice(0, 6);
   const count = shown.length;
   if (!count) return '<div class="diaryNoPhotos">還沒有照片，點下方上傳</div>';
+  const withMemo = shown.filter(p => p.memo);
   return `
     <div class="diaryPhotoGrid count-${count}">
       ${shown.map((p, i) => `
@@ -554,7 +555,13 @@ function diaryPhotoGridHtml(photos) {
           </div>
         </div>`).join('')}
     </div>
-    ${photos.length > 6 ? `<div class="diaryMorePhotos">還有 ${photos.length - 6} 張</div>` : ''}`;
+    ${photos.length > 6 ? `<div class="diaryMorePhotos">還有 ${photos.length - 6} 張</div>` : ''}
+    ${withMemo.length ? `<div class="diaryPhotoMemos">
+      ${withMemo.map(p => `<div class="diaryPhotoMemoItem">
+        ${p.title ? `<span class="diaryMemoLabel">${esc(p.title)}</span>` : ''}
+        <span class="diaryMemoText">${esc(p.memo)}</span>
+      </div>`).join('')}
+    </div>` : ''}`;
 }
 
 function diaryDayHtml(d) {
