@@ -7399,6 +7399,22 @@ body.readonly .btn:not(.btn-allow) { opacity: .4; pointer-events: none; }
 }
 .itineraryNote     { font-size: 12px; color: #8b827a; margin-top: 6px; background: #f9f5ef; padding: 5px 10px; border-radius: 10px; }
 .itineraryActions  { flex-shrink: 0; display: flex; flex-direction: column; gap: 5px; }
+.planMoveRow { display: flex; gap: 3px; justify-content: center; }
+.planMoveBtn {
+  background: none;
+  border: 1px solid #e0d9d0;
+  border-radius: 6px;
+  color: #9b8e85;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 3px 6px;
+  line-height: 1;
+  transition: color .12s, border-color .12s;
+  -webkit-tap-highlight-color: transparent;
+}
+.planMoveBtn:hover:not(:disabled) { border-color: #4A5D4E; color: #4A5D4E; }
+.planMoveBtn:disabled { opacity: 0.2; cursor: default; pointer-events: none; }
 
 /* 分享預覽 */
 .sharePreview { white-space: pre-wrap; font-family: inherit; font-size: 13px; line-height: 1.7; background: #f7f3ec; padding: 14px; border-radius: 14px; max-height: 400px; overflow-y: auto; }

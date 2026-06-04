@@ -139,6 +139,29 @@ function deletePlan(id) {
   save();
 }
 
+function reorderPlan(planId, dir) {
+  const plans = sortedPlans(currentDay);
+  const idx   = plans.findIndex(p => p.id === planId);
+  const next  = idx + dir;
+  if (idx < 0 || next < 0 || next >= plans.length) return;
+
+  const a = plans[Math.min(idx, next)];   // earlier slot
+  const b = plans[Math.max(idx, next)];   // later slot
+  const durA = diffMinutes(a.start, a.end);
+  const durB = diffMinutes(b.start, b.end);
+
+  // b takes a's original start; a follows immediately after
+  b.start = a.start;
+  b.end   = addMinutes(a.start, durB);
+  a.start = b.end;
+  a.end   = addMinutes(b.end, durA);
+  a.adjusted = false;
+  b.adjusted = false;
+
+  save();
+  renderPlanner();
+}
+
 function clearPlanForm() {
   editingPlanId    = null;
   v16PendingSpotId = null;
@@ -385,7 +408,7 @@ function connHtml(a, b) {
    行程卡片
    ══════════════════════════════════════════ */
 
-function planCard(p, num, conflict = false) {
+function planCard(p, num, total, conflict = false) {
   const isAuto   = p.source === 'flight' || p.source === 'hotel';
   const isKorea  = data.trip.country === '韓國';
   const mapQuery = encodeURIComponent(
@@ -425,6 +448,11 @@ function planCard(p, num, conflict = false) {
             </details>` : ''}
           </div>
           <div class="itineraryActions">
+            ${shareViewMode ? '' : `
+              <div class="planMoveRow">
+                <button class="planMoveBtn" type="button" onclick="reorderPlan('${p.id}',-1)" title="上移" ${num===1?'disabled':''}>↑</button>
+                <button class="planMoveBtn" type="button" onclick="reorderPlan('${p.id}',1)" title="下移" ${num===total?'disabled':''}>↓</button>
+              </div>`}
             <button class="small" onclick="openMap('${mapQuery}')">地圖</button>
             <button class="small" onclick="editPlan('${p.id}')">編輯</button>
             <button class="small" onclick="deletePlan('${p.id}')">刪除</button>
@@ -453,7 +481,7 @@ function planCards(plans) {
   let html = '<div class="itineraryTimeline">';
   plans.forEach((p, i) => {
     if (i > 0) html += connHtml(plans[i-1], p);
-    html += planCard(p, i + 1, conflicts.has(p.id));
+    html += planCard(p, i + 1, plans.length, conflicts.has(p.id));
   });
   html += '</div>';
   return html;
