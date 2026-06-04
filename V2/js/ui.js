@@ -70,7 +70,8 @@ function updateFab() {
   const inEdit = (view === 'planner' && (editingPlanId || v16PendingSpotId))
               || (view === 'spots'   && editingSpotId)
               || (view === 'budget'  && editingExpenseId);
-  fab.hidden = !_FAB_VIEWS.includes(view) || shareViewMode || deviceReadOnly || inEdit;
+  const show = _FAB_VIEWS.includes(view) && !shareViewMode && !deviceReadOnly && !inEdit;
+  fab.classList.toggle('fabHidden', !show);
 }
 
 function openAddSheet() {

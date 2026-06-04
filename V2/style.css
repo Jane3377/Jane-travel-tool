@@ -8135,7 +8135,7 @@ body.shareView .check input[type="checkbox"] { pointer-events: none; }
   transition: transform 0.12s, box-shadow 0.12s;
 }
 .fabBtn:active { transform: scale(0.93); }
-@media (max-width: 620px) { .fabBtn { display: flex; } }
+@media (max-width: 620px) { .fabBtn:not(.fabHidden) { display: flex; } }
 /* ── 底部抽屜 ── */
 .addSheetOverlay {
   position: fixed; inset: 0;
