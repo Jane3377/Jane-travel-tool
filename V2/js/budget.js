@@ -3,18 +3,18 @@
    ================================================================ */
 
 function saveExpense() {
-  if (!$('ename')?.value) return toast('請輸入費用項目');
+  if (!$form('ename')?.value) return toast('請輸入費用項目');
   const item = {
     source:    '額外費用',
-    type:      $('etype')?.value    || '其他',
-    name:      $('ename').value,
-    payer:     $('epayer')?.value   || '未定',
-    payMethod: $('epm')?.value      || '未定',
-    day:       $('eday')?.value     || '',
+    type:      $form('etype')?.value    || '其他',
+    name:      $form('ename').value,
+    payer:     $form('epayer')?.value   || '未定',
+    payMethod: $form('epm')?.value      || '未定',
+    day:       $form('eday')?.value     || '',
     mode:      'foreign',
-    foreign:   Number($('eforeign')?.value || 0),
-    twd:       Number($('etwd')?.value     || 0),
-    memo:      $('ememo')?.value    || ''
+    foreign:   Number($form('eforeign')?.value || 0),
+    twd:       Number($form('etwd')?.value     || 0),
+    memo:      $form('ememo')?.value    || ''
   };
   if (editingExpenseId) {
     Object.assign(data.expenses.find(e => e.id === editingExpenseId), item);

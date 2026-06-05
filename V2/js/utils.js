@@ -7,6 +7,16 @@ function uid() {
   return crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 function $(id) { return document.getElementById(id); }
+function $form(id) {
+  // When the FAB add-sheet is open, scope to the sheet body first.
+  // This avoids getElementById returning the inline view's input (same ID, earlier in DOM).
+  const overlay = document.getElementById('addSheetOverlay');
+  if (overlay && !overlay.hidden) {
+    const el = document.getElementById('addSheetBody')?.querySelector('[id="' + id + '"]');
+    if (el) return el;
+  }
+  return document.getElementById(id);
+}
 function esc(s) {
   return String(s || '').replace(/[&<>"']/g, m =>
     ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;' }[m])
@@ -192,8 +202,8 @@ function timeSelHtml(id, val, onchange) {
   return `<div class="timeSelWrap"><select id="${id}H"${ev}>${hours}</select><span class="timeSep">:</span><select id="${id}M"${ev}>${mins}</select></div>`;
 }
 function getTimeVal(id) {
-  const h = document.getElementById(id + 'H');
-  const m = document.getElementById(id + 'M');
+  const h = $form(id + 'H');
+  const m = $form(id + 'M');
   if (!h || !m) return '';
   return `${h.value}:${m.value}`;
 }

@@ -6,19 +6,19 @@ let spotFilterType = '';
 let spotFilterDay  = '';
 
 function saveSpot() {
-  if (!$('sn')?.value) return toast('請輸入景點名稱');
+  if (!$form('sn')?.value) return toast('請輸入景點名稱');
 
   const item = {
-    name:      $('sn').value,
-    type:      $('st')?.value || '景點',
-    day:       $('sd')?.value || '',
-    addr:      $('sa')?.value || '',
-    note:      $('sm')?.value || '',
+    name:      $form('sn').value,
+    type:      $form('st')?.value || '景點',
+    day:       $form('sd')?.value || '',
+    addr:      $form('sa')?.value || '',
+    note:      $form('sm')?.value || '',
     memo:      editingSpotId ? (data.spots.find(s => s.id === editingSpotId)?.memo || '') : '',
     start:     getTimeVal('sStart'),
     end:       getTimeVal('sEnd'),
-    krName:    $('skrName')?.value || '',
-    krAddress: $('skrAddr')?.value || ''
+    krName:    $form('skrName')?.value || '',
+    krAddress: $form('skrAddr')?.value || ''
   };
 
   if (editingSpotId) {
@@ -29,7 +29,7 @@ function saveSpot() {
     data.spots.push(spot);
 
     // 同步排入行程
-    if ($('sToPlan')?.value === 'yes') {
+    if ($form('sToPlan')?.value === 'yes') {
       const planDay = item.day || currentDay;
       const plan = {
         id: uid(), source: 'spot', sourceType: 'spot', lockedName: true,

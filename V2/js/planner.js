@@ -53,20 +53,20 @@ function planSyncDurDisplay() {
 }
 
 function savePlanForm() {
-  const name = $('pname')?.value.trim();
+  const name = $form('pname')?.value.trim();
   if (!name) return toast('請輸入行程名稱');
 
-  const day   = $('pday')?.value || currentDay;
+  const day   = $form('pday')?.value || currentDay;
   const start = getTimeVal('ps');
   const end   = getTimeVal('pe');
-  const type  = normalizePlanType($('ptype')?.value);
+  const type  = normalizePlanType($form('ptype')?.value);
 
   const item = {
     day, start, end, type, name,
-    address:    $('paddress')?.value       || '',
-    krName:     $('pkrName')?.value.trim() || '',
-    krAddress:  $('pkrAddr')?.value.trim() || '',
-    note:       $('pnote')?.value          || '',
+    address:    $form('paddress')?.value       || '',
+    krName:     $form('pkrName')?.value.trim() || '',
+    krAddress:  $form('pkrAddr')?.value.trim() || '',
+    note:       $form('pnote')?.value          || '',
     memo:       editingPlanId
                   ? (data.plans.find(p => p.id === editingPlanId)?.memo || '')
                   : (v16PendingSpotId ? '由口袋景點帶入' : ''),

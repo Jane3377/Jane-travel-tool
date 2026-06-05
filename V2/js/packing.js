@@ -3,14 +3,16 @@
    ================================================================ */
 
 function addPackItem() {
-  const name = $('pkn')?.value.trim();
+  const pkn  = $form('pkn');
+  const pkm  = $form('pkm');
+  const name = pkn?.value.trim();
   if (!name) return;
   data.packing.push({
     id: uid(), type: data.packView || 'pre',
-    name, note: $('pkm')?.value || '', checked: false
+    name, note: pkm?.value || '', checked: false
   });
-  if ($('pkn')) $('pkn').value = '';
-  if ($('pkm')) $('pkm').value = '';
+  if (pkn) pkn.value = '';
+  if (pkm) pkm.value = '';
   save();
   closeAddSheet();
 }
