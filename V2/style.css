@@ -5260,6 +5260,28 @@ body[data-theme-mode] .btn.pink{
   color: #aaa;
   border-style: dashed;
 }
+.stripChip.countdown-pre {
+  background: #fff8ec;
+  border-color: #e8a830;
+  color: #a06a00;
+  font-weight: 800;
+}
+.stripChip.countdown-during {
+  background: #4A5D4E;
+  border-color: #4A5D4E;
+  color: #fff;
+  font-weight: 800;
+  animation: countdown-pulse 2.4s ease-in-out infinite;
+}
+.stripChip.countdown-post {
+  background: #f0ece6;
+  border-color: #c0b8b0;
+  color: #7a6e64;
+}
+@keyframes countdown-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: .75; }
+}
 .themeWidget{
   display:flex !important;
   justify-content:flex-end !important;

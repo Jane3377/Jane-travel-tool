@@ -73,6 +73,22 @@ function daysBetween(a, b) {
   return Math.round((parseLocalDate(b) - parseLocalDate(a)) / 86400000);
 }
 
+function tripCountdownState() {
+  const start = data.trip?.start;
+  const end   = data.trip?.end;
+  if (!start || !end) return null;
+  const today = formatLocalDate(new Date());
+  if (today < start) return { state: 'pre',    days:    daysBetween(today, start) };
+  if (today <= end)  return { state: 'during', dayKey:  today, dayNum: (data.days.findIndex(d => d.key === today) + 1) || 1 };
+  return               { state: 'post',   daysAgo: daysBetween(end, today) };
+}
+
+function todayPlanKey() {
+  const cs = tripCountdownState();
+  if (cs?.state !== 'during') return null;
+  return data.days.some(d => d.key === cs.dayKey) ? cs.dayKey : null;
+}
+
 /* ── 時間工具 ── */
 function addMinutes(t, min) {
   if (!t) return '';

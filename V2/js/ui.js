@@ -18,11 +18,16 @@ function go(v) {
     const el = $(key + 'View');
     if (el) el.classList.toggle('hidden', key !== v);
   });
-  if (v === 'planner' && !currentDay) currentDay = cur || data.days?.[0]?.key || '';
+  if (v === 'planner' && !currentDay) currentDay = cur = todayPlanKey() || data.days?.[0]?.key || '';
   renderNav();
   render();
   updateFab();
   scrollTo(0, 0);
+}
+
+function goToTodayPlan() {
+  currentDay = cur = todayPlanKey() || data.days?.[0]?.key || '';
+  go('planner');
 }
 
 function showShell(mode) {
@@ -227,8 +232,21 @@ function renderSetupStrip() {
   const dateStr = start ? `${start}–${end}` : '';
   const hasFlights = (data.flights?.out?.segments?.length > 0) || (data.flights?.back?.segments?.length > 0);
   const hotelCount = data.hotels?.length || 0;
+  const cs = tripCountdownState();
+  let countdownChip = '';
+  if (cs) {
+    if (cs.state === 'pre') {
+      countdownChip = `<button class="stripChip countdown-pre" onclick="go('planner')">📅 還有 ${cs.days} 天出發</button>`;
+    } else if (cs.state === 'during') {
+      countdownChip = `<button class="stripChip countdown-during" onclick="goToTodayPlan()">🗺️ Day ${cs.dayNum} 旅行中</button>`;
+    } else {
+      const ago = cs.daysAgo === 1 ? '昨天結束' : `${cs.daysAgo} 天前`;
+      countdownChip = `<button class="stripChip countdown-post" onclick="go('photoBook')">💭 旅遊回憶 · ${ago}</button>`;
+    }
+  }
   el.style.display = '';
   el.innerHTML = `
+    ${countdownChip}
     <button class="stripChip" onclick="go('trip')">📍 ${esc(dest)}${dateStr ? ' ' + dateStr : ''}</button>
     <button class="stripChip ${hasFlights ? 'done' : 'pending'}" onclick="go('stay')">✈️ ${hasFlights ? '航班已設定' : '航班未設定'}</button>
     <button class="stripChip ${hotelCount ? 'done' : 'pending'}" onclick="go('stay')">🏨 ${hotelCount ? hotelCount + ' 間住宿' : '住宿未設定'}</button>`;
@@ -461,7 +479,7 @@ function renderPlanner() {
   const el = $('plannerView');
   if (!el) return;
   normalizePlans();
-  if (!currentDay) currentDay = cur = data.days?.[0]?.key || '';
+  if (!currentDay) currentDay = cur = todayPlanKey() || data.days?.[0]?.key || '';
   normalizePlanTimes(currentDay);
   const plans = sortedPlans(currentDay);
 
