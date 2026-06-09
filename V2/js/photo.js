@@ -449,6 +449,8 @@ const DIARY_STYLES = {
   journal:  '✎ 手帳',
   magazine: '📰 雜誌',
   film:     '🎞 底片',
+  story:    '📖 故事',
+  sketch:   '✏️ 手繪',
 };
 
 const WEATHER_ICONS = ['☀️','🌤','⛅','🌧','🌪','❄️','🌈'];
@@ -564,6 +566,30 @@ function diaryPhotoGridHtml(photos) {
     </div>` : ''}`;
 }
 
+function diaryPhotoStoryHtml(photos) {
+  const shown = photos.slice(0, 6);
+  if (!shown.length) return '<div class="diaryNoPhotos">還沒有照片，點下方上傳</div>';
+  return `
+    <div class="diaryPhotoStoryList">
+      ${shown.map((p, i) => `
+        <div class="diaryPhotoStoryItem${i % 2 === 1 ? ' alt' : ''}">
+          <div class="diaryPhotoStoryImgWrap">
+            <img src="${p.src}" alt="${esc(p.title || '')}">
+            <div class="diaryPhotoCtrl noPrint">
+              <button onclick="openPhotoEditModal('${p.id}')">✎</button>
+              <button onclick="deletePhoto('${p.id}')">×</button>
+            </div>
+          </div>
+          ${p.title || p.memo ? `
+          <div class="diaryPhotoStoryText">
+            ${p.title ? `<div class="diaryPhotoStoryCaption">${esc(p.title)}</div>` : ''}
+            ${p.memo  ? `<div class="diaryPhotoStoryMemo">${esc(p.memo)}</div>`   : ''}
+          </div>` : ''}
+        </div>`).join('')}
+    </div>
+    ${photos.length > 6 ? `<div class="diaryMorePhotos">還有 ${photos.length - 6} 張</div>` : ''}`;
+}
+
 function diaryDayHtml(d) {
   const style     = data.meta.bookStyle || 'fresh';
   const photos    = photosForDay(d.key);
@@ -579,6 +605,13 @@ function diaryDayHtml(d) {
     const t = `${activityIcon(p.type)} ${p.name}`;
     return !savedTags.includes(t) && !dismissed.includes(t);
   });
+
+  const isStory = style === 'story' || style === 'sketch';
+  const textBlock = shareViewMode
+    ? (text ? `<div class="diaryDayText">${lineText}</div>` : '')
+    : `<div class="diaryDayText" contenteditable="true"
+            onblur="saveDayText('${d.key}', this.innerText)"
+            data-placeholder="寫下今天的心情…">${lineText}</div>`;
 
   return `
     <div class="diaryDay diaryStyle-${style}" data-day="${d.key}">
@@ -605,15 +638,13 @@ function diaryDayHtml(d) {
           </div>
         </div>`}
 
-      <div class="diaryPhotoSection">${diaryPhotoGridHtml(photos)}</div>
-
-      <div class="diaryTextSection">
-        ${shareViewMode
-          ? (text ? `<div class="diaryDayText">${lineText}</div>` : '')
-          : `<div class="diaryDayText" contenteditable="true"
-                  onblur="saveDayText('${d.key}', this.innerText)"
-                  data-placeholder="寫下今天的心情…">${lineText}</div>`}
-      </div>
+      ${isStory ? `
+        <div class="diaryTextSection">${textBlock}</div>
+        <div class="diaryPhotoSection">${diaryPhotoStoryHtml(photos)}</div>
+      ` : `
+        <div class="diaryPhotoSection">${diaryPhotoGridHtml(photos)}</div>
+        <div class="diaryTextSection">${textBlock}</div>
+      `}
 
       <div class="diaryTagsSection">
         ${savedTags.map((t, i) => `
@@ -701,6 +732,8 @@ function exportDiaryPDF() {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>${esc(data.meta.title || '旅日記')}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&display=swap">
 ${cssHref ? `<link rel="stylesheet" href="${cssHref}">` : ''}
 <style>
   body { margin:0; padding:0; background:#1a1a1a; font-family:-apple-system,'Noto Sans TC','PingFang TC',sans-serif; }
