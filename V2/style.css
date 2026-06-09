@@ -8438,6 +8438,32 @@ body.sheetOpen { overflow: hidden; }
 .hbHotelAddr  { font-size: 12px; color: var(--muted,#9b8e85); margin-bottom: 3px; }
 .hbHotelNote  { font-size: 12px; color: var(--muted,#9b8e85); }
 
+/* ── 航班資訊 ── */
+.hbFlightDir { margin-bottom: 14px; }
+.hbFlightDir:last-child { margin-bottom: 0; }
+.hbFlightDirLabel {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--muted, #9b8e85);
+  margin-bottom: 8px;
+}
+.hbFlightSeg {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  background: var(--pale, #f7f3ec);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 6px;
+}
+.hbFlightNo    { font-weight: 900; font-size: 14px; }
+.hbFlightRoute { font-size: 13px; font-weight: 700; flex: 1; min-width: 120px; }
+.hbFlightTime  { font-size: 12px; color: var(--muted, #9b8e85); white-space: nowrap; }
+.hbFlightNote  { font-size: 12px; color: var(--muted, #9b8e85); padding: 2px 4px; }
+
 /* ── 實用資訊 ── */
 .hbRateChip {
   display: inline-block;

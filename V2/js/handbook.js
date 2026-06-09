@@ -122,6 +122,58 @@ function _handbookDocHtml(opts = {}) {
         </div>
       </div>
 
+      <!-- 航班資訊 -->
+      ${(() => {
+        const out  = normalizeFlightObj(data.flights?.out  || {});
+        const back = normalizeFlightObj(data.flights?.back || {});
+        const hasOut  = out.segments?.some(s => s.no || s.from);
+        const hasBack = back.segments?.some(s => s.no || s.from);
+        if (!hasOut && !hasBack) return '';
+        const fmtDt = s => {
+          if (!s) return '';
+          const d = new Date(s);
+          if (isNaN(d)) return s;
+          return `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+        };
+        const segHtml = seg => seg.no ? `
+          <div class="hbFlightSeg">
+            <span class="hbFlightNo">✈️ ${esc(seg.no)}</span>
+            <span class="hbFlightRoute">${esc(seg.from||'')} → ${esc(seg.to||'')}</span>
+            ${seg.dep ? `<span class="hbFlightTime">起飛 ${fmtDt(seg.dep)}</span>` : ''}
+            ${seg.arr ? `<span class="hbFlightTime">抵達 ${fmtDt(seg.arr)}</span>` : ''}
+          </div>` : '';
+        const dirHtml = (f, label) => {
+          const segs = (f.segments||[]).filter(s => s.no || s.from);
+          if (!segs.length) return '';
+          return `
+            <div class="hbFlightDir">
+              <div class="hbFlightDirLabel">${label}</div>
+              ${segs.map(segHtml).join('')}
+              ${f.toAirport   ? `<div class="hbFlightNote">🚌 ${esc(f.toAirport)}</div>`   : ''}
+              ${f.fromAirport ? `<div class="hbFlightNote">🚌 ${esc(f.fromAirport)}</div>` : ''}
+            </div>`;
+        };
+        return `
+          <div class="hbSection">
+            <div class="hbSectionLabel">航班資訊</div>
+            ${dirHtml(out,  '去程')}
+            ${dirHtml(back, '回程')}
+          </div>`;
+      })()}
+
+      <!-- 住宿資訊 -->
+      ${data.hotels.length ? `
+        <div class="hbSection">
+          <div class="hbSectionLabel">住宿資訊</div>
+          ${data.hotels.map(h => `
+            <div class="hbHotelCard">
+              <div class="hbHotelName">🏨 ${esc(h.name)}</div>
+              <div class="hbHotelDates">${h.start ? `${short(h.start)} → ${short(h.end)}` : ''}</div>
+              ${h.addr ? `<div class="hbHotelAddr">📍 ${esc(h.addr)}</div>` : ''}
+              ${h.note ? `<div class="hbHotelNote">${esc(h.note)}</div>` : ''}
+            </div>`).join('')}
+        </div>` : ''}
+
       <!-- 每日行程 -->
       <div class="hbSection">
         <div class="hbSectionLabel">每日行程</div>
@@ -162,19 +214,6 @@ function _handbookDocHtml(opts = {}) {
                 ${s.note || s.memo ? `<div class="hbSpotNote">${esc(s.note || s.memo)}</div>` : ''}
               </div>`).join('')}
           </div>
-        </div>` : ''}
-
-      <!-- 住宿資訊 -->
-      ${data.hotels.length ? `
-        <div class="hbSection">
-          <div class="hbSectionLabel">住宿資訊</div>
-          ${data.hotels.map(h => `
-            <div class="hbHotelCard">
-              <div class="hbHotelName">🏨 ${esc(h.name)}</div>
-              <div class="hbHotelDates">${h.start ? `${short(h.start)} → ${short(h.end)}` : ''}</div>
-              ${h.addr ? `<div class="hbHotelAddr">📍 ${esc(h.addr)}</div>` : ''}
-              ${h.note ? `<div class="hbHotelNote">${esc(h.note)}</div>` : ''}
-            </div>`).join('')}
         </div>` : ''}
 
       <!-- 實用資訊 -->
