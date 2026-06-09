@@ -12,13 +12,17 @@ function _brandHtml() {
    頁面切換
    ══════════════════════════════════════════ */
 
-function go(v) {
+function go(v, opts = {}) {
   view = v;
   VIEWS.forEach(([key]) => {
     const el = $(key + 'View');
     if (el) el.classList.toggle('hidden', key !== v);
   });
-  if (v === 'planner' && !currentDay) currentDay = cur = todayPlanKey() || data.days?.[0]?.key || '';
+  if (v === 'planner' && !opts.keepDay) {
+    const today = todayPlanKey();
+    if (today) currentDay = cur = today;
+    else if (!currentDay) currentDay = cur = data.days?.[0]?.key || '';
+  }
   renderNav();
   render();
   updateFab();
@@ -316,7 +320,7 @@ function renderSide() {
     const count = sortedPlans(d.key).length;
     return `
       <div class="day ${d.key === currentDay ? 'active' : ''}"
-           onclick="currentDay='${d.key}';cur='${d.key}';go('planner')">
+           onclick="currentDay='${d.key}';cur='${d.key}';go('planner',{keepDay:true})">
         <b>${d.title}</b>
         <span class="dayDate">${shortWithDay(d.key)}</span>
         <span>${count} 行程｜住宿：${hotel ? esc(hotel.name) : '未設定'}</span>
