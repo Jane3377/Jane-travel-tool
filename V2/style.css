@@ -9275,8 +9275,32 @@ body.sheetOpen { overflow: hidden; }
 /* ── 列印 ── */
 @media print {
   .diaryActionBar, .diarySetup, .diaryMoodPicker,
-  .diaryPhotoCtrl, .storyPhotoUploadCard { display: none !important; }
+  .diaryPhotoCtrl, .storyPhotoUploadCard,
+  .diaryTagRemove, .diaryTagInputWrap,
+  .diaryPlanTag.suggestion { display: none !important; }
   .diaryDayText { border: none !important; background: transparent !important; }
-  .diaryCoverPage { page-break-after: always; min-height: 90vh; }
-  .diaryDay { page-break-after: always; }
+  .diaryCoverPage { page-break-after: always; break-after: page; min-height: 90vh; }
+  .diaryDay { page-break-after: always; break-after: page; }
+
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+  /* Film → 3欄接觸印相表 */
+  .diaryStyle-film .diaryPhotoSection .diaryPhotoGrid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    overflow: visible !important;
+  }
+  .diaryStyle-film .diaryPhotoSection .diaryPhotoGrid .diaryPhotoItem {
+    min-width: unset !important;
+    width: auto !important;
+  }
+
+  /* Story/Sketch：圖文卡片不跨頁 */
+  .diaryPhotoStoryItem { break-inside: avoid; page-break-inside: avoid; }
+
+  /* Sketch：格線紙確保印出 */
+  .diaryStyle-sketch .diaryDay {
+    background-image: linear-gradient(#e8d8b8 1px, transparent 1px) !important;
+    background-size: 100% 30px !important;
+  }
 }

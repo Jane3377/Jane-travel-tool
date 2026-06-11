@@ -736,17 +736,25 @@ function exportDiaryPDF() {
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&display=swap">
 ${cssHref ? `<link rel="stylesheet" href="${cssHref}">` : ''}
 <style>
-  body { margin:0; padding:0; background:#1a1a1a; font-family:-apple-system,'Noto Sans TC','PingFang TC',sans-serif; }
-  .diaryDay { max-width:none; page-break-after:always; }
-  .diaryCoverPage { page-break-after:always; }
+  * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+  @page { size:A4 portrait; margin:15mm 18mm; }
+  body { margin:0; padding:0; background:#f5f0e8; font-family:-apple-system,'Noto Sans TC','PingFang TC',sans-serif; }
+  .diaryDay { max-width:none; break-after:page; page-break-after:always; }
+  .diaryCoverPage { break-after:page; page-break-after:always; }
   .noPrint, .diaryMoodPicker, .diarySetup, .diaryPhotoCtrl,
   .storyPhotoUploadCard, .diaryTagRemove, .diaryTagInputWrap,
   .diaryPlanTag.suggestion { display:none!important; }
   .diaryDayText { border:none!important; background:transparent!important; }
-  /* 確保標籤即使外部 CSS 未載入也能顯示 */
   .diaryTagsSection { display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; padding-top:0; }
   .diaryPlanTag { display:inline-flex!important; align-items:center; gap:4px; background:#f0ece6; border-radius:20px; padding:4px 10px; font-size:11px; color:#7a6e64; }
   .diaryPlanTag.active { background:#d9efe6!important; color:#2e4a38!important; font-weight:600; }
+  /* Film → 接觸印相表 3 欄 */
+  .diaryStyle-film .diaryPhotoSection .diaryPhotoGrid { display:grid!important; grid-template-columns:repeat(3,1fr)!important; overflow:visible!important; }
+  .diaryStyle-film .diaryPhotoSection .diaryPhotoGrid .diaryPhotoItem { min-width:unset!important; width:auto!important; }
+  /* Story/Sketch：圖文卡片不跨頁 */
+  .diaryPhotoStoryItem { break-inside:avoid; page-break-inside:avoid; }
+  /* Sketch：格線紙背景確保印出 */
+  .diaryStyle-sketch .diaryDay { background-image:linear-gradient(#e8d8b8 1px,transparent 1px)!important; background-size:100% 30px!important; }
   @media print { body { background:#fff; } }
 </style>
 </head>
@@ -763,7 +771,7 @@ ${cover ? `
     </div>
   </div>` : ''}
 ${daysHtml}
-<script>window.addEventListener('load',function(){setTimeout(function(){window.print();},600);});<\/script>
+<script>window.addEventListener('load',function(){var t=[];if(document.fonts&&document.fonts.ready)t.push(document.fonts.ready);[].forEach.call(document.images,function(img){if(!img.complete)t.push(new Promise(function(r){img.onload=img.onerror=r;}));});Promise.all(t).then(function(){setTimeout(window.print.bind(window),200);});});<\/script>
 </body>
 </html>`);
   win.document.close();

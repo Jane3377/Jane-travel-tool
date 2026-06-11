@@ -234,7 +234,7 @@ function _openHandbookPreview(autoPrint) {
   const cssHref = document.querySelector('link[rel="stylesheet"]')?.href || '';
   const docHtml = _handbookDocHtml({ editable: false });
   const printBlock = autoPrint
-    ? `<script>window.addEventListener('load',function(){setTimeout(function(){window.print();},400);});<\/script>`
+    ? `<script>window.addEventListener('load',function(){var t=[];if(document.fonts&&document.fonts.ready)t.push(document.fonts.ready);[].forEach.call(document.images,function(img){if(!img.complete)t.push(new Promise(function(r){img.onload=img.onerror=r;}));});Promise.all(t).then(function(){setTimeout(window.print.bind(window),200);});});<\/script>`
     : '';
 
   const win = window.open('', '_blank');
@@ -248,10 +248,16 @@ function _openHandbookPreview(autoPrint) {
 <title>${esc(data.meta.title || '旅程手冊')}</title>
 ${cssHref ? `<link rel="stylesheet" href="${cssHref}">` : ''}
 <style>
+  * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+  @page { size:A4 portrait; margin:15mm 20mm; }
   body { margin:0; padding:20px 0; background:#f7f3ec;
          font-family:-apple-system,'Noto Sans TC','PingFang TC',sans-serif; }
   .handbook { max-width:680px; margin:0 auto; border-radius:0; box-shadow:0 4px 32px rgba(0,0,0,.12); }
   .hbEditable { border:none!important; background:transparent!important; padding:0; }
+  .hbCoverUpload { display:none!important; }
+  .hbSection { break-inside:avoid; page-break-inside:avoid; }
+  .hbDay { break-inside:avoid; page-break-inside:avoid; }
+  .hbHotelCard { break-inside:avoid; page-break-inside:avoid; }
   @media print {
     body { padding:0; background:#fff; }
     .handbook { max-width:none; box-shadow:none; }
