@@ -755,10 +755,80 @@ ${cssHref ? `<link rel="stylesheet" href="${cssHref}">` : ''}
   .diaryPhotoStoryItem { break-inside:avoid; page-break-inside:avoid; }
   /* Sketch：格線紙背景確保印出 */
   .diaryStyle-sketch .diaryDay { background-image:linear-gradient(#e8d8b8 1px,transparent 1px)!important; background-size:100% 30px!important; }
-  @media print { body { background:#fff; } }
+
+  /* ════════════════════════════════════════
+     各風格印刷版設計
+     ════════════════════════════════════════ */
+
+  /* 🌿 清新 — 薄荷頁首 */
+  .diaryStyle-fresh .diaryDayHeader {
+    background: linear-gradient(135deg, #d9efe6 0%, #c0e0d0 100%);
+    margin: -24px -20px 18px; padding: 12px 20px; border-radius: 0;
+  }
+  .diaryStyle-fresh .diaryDayNum  { color: #2e4a38 !important; }
+  .diaryStyle-fresh .diaryPhotoItem { border-radius: 10px !important; box-shadow: 0 2px 8px rgba(74,93,78,.18) !important; }
+
+  /* ✎ 手帳 — 舊書頁首 + 保留寶麗來傾斜 */
+  .diaryStyle-journal.diaryDay  { background: #fdf8f0 !important; }
+  .diaryStyle-journal .diaryDayHeader { border-bottom: 2px solid #a0896e; padding-bottom: 10px; margin-bottom: 18px; }
+  .diaryStyle-journal .diaryDayNum  { font-family: Georgia, serif !important; font-size: 1.35rem !important; color: #8b6d4e !important; }
+  .diaryStyle-journal .diaryDayDate { font-family: Georgia, serif !important; font-style: italic; color: #a0896e !important; }
+  .diaryStyle-journal .diaryPhotoGrid { overflow: visible !important; }
+
+  /* 📰 雜誌 — 深海藍編輯頁首 + 黑邊照片格 */
+  .diaryStyle-magazine.diaryDay { border: none; border-bottom: 1px solid #e0e0e8; }
+  .diaryStyle-magazine .diaryDayHeader {
+    background: #1a1a2e; margin: -24px -20px 18px; padding: 12px 20px;
+    display: flex; align-items: center; gap: 14px; border-radius: 0;
+  }
+  .diaryStyle-magazine .diaryDayNum  { color: #f0c060 !important; font-size: 0.78rem !important; text-transform: uppercase !important; letter-spacing: .14em; font-weight: 900; }
+  .diaryStyle-magazine .diaryDayDate { color: #ccc !important; font-size: 0.82rem; }
+  .diaryStyle-magazine .diaryDayHotel { background: rgba(255,255,255,.15) !important; color: #f0c060 !important; }
+  .diaryStyle-magazine .diaryMoodBadge { margin-left: auto; }
+  .diaryStyle-magazine .diaryDayText { color: #1a1a2e !important; font-size: 0.95rem; }
+  .diaryStyle-magazine .diaryPhotoGrid { gap: 2px !important; border: 2px solid #1a1a2e !important; border-radius: 0 !important; }
+  .diaryStyle-magazine .diaryPhotoItem { border-radius: 0 !important; }
+
+  /* 🎞 底片 — 黑底底片感 */
+  .diaryStyle-film.diaryDay  { background: #1c1c1c !important; color: #f0e8d0; }
+  .diaryStyle-film .diaryDayHeader {
+    background: #000; margin: -24px -20px 14px; padding: 8px 20px;
+    border-bottom: 3px solid #f0c060; display: flex; align-items: center; gap: 12px;
+  }
+  .diaryStyle-film .diaryDayNum  { color: #f0c060 !important; font-family: 'Courier New', monospace !important; font-size: 0.85rem !important; letter-spacing: .08em; }
+  .diaryStyle-film .diaryDayDate { color: #888 !important; font-family: 'Courier New', monospace !important; font-size: 0.78rem; }
+  .diaryStyle-film .diaryDayHotel { background: #333 !important; color: #aaa !important; }
+  .diaryStyle-film .diaryDayText { color: #f0e8d0 !important; font-family: 'Courier New', monospace !important; font-size: 0.9rem; }
+  .diaryStyle-film .diaryPhotoSection { background: #111; padding: 8px; }
+  .diaryStyle-film .diaryPhotoItem { outline: 3px solid #000 !important; border-radius: 0 !important; }
+  .diaryStyle-film .diaryPhotoCaption { font-family: 'Courier New', monospace !important; font-size: 9px; }
+  .diaryStyle-film .diaryTagsSection { border-top: 1px solid #333; padding-top: 10px; }
+  .diaryStyle-film .diaryPlanTag { background: #333 !important; color: #ccc !important; border-radius: 2px !important; font-family: 'Courier New', monospace !important; }
+  .diaryStyle-film .diaryPlanTag.active { background: #2a2000 !important; color: #f0c060 !important; }
+
+  /* 📖 故事 — 藍色扉頁感 */
+  .diaryStyle-story.diaryDay  { border-top: 4px solid #1e3a4f; }
+  .diaryStyle-story .diaryDayHeader { border-bottom: 1px solid #c8dde8; padding-bottom: 10px; margin-bottom: 16px; }
+  .diaryStyle-story .diaryDayNum  { color: #1e3a4f !important; font-size: 1.15rem !important; font-weight: 800; }
+  .diaryStyle-story .diaryDayDate { color: #4a8ab0 !important; }
+  .diaryStyle-story .diaryDayText { border-left: 3px solid #4a8ab0 !important; padding-left: 12px !important; color: #1e3a4f !important; }
+  .diaryStyle-story .diaryPhotoStoryImgWrap { border-radius: 8px !important; overflow: hidden !important; }
+
+  /* ✏️ 手繪 — 手繪邊框全保留 */
+  .diaryStyle-sketch.diaryDay { border: 2px solid #3d2b1a !important; box-shadow: 4px 4px 0 #3d2b1a !important; margin-bottom: 24px !important; }
+  .diaryStyle-sketch .diaryDayHeader { border-bottom: 2px dashed #8b6040; padding-bottom: 10px; margin-bottom: 14px; }
+  .diaryStyle-sketch .diaryPhotoStoryImgWrap { overflow: hidden !important; box-shadow: 4px 4px 0 #3d2b1a !important; }
+
+  /* 各風格 body 背景 */
+  body.pStyle-film     { background: #1c1c1c !important; }
+  body.pStyle-sketch   { background: #fef6e4 !important; }
+  body.pStyle-magazine { background: #e8e8ee !important; }
+  body.pStyle-journal  { background: #faf4e8 !important; }
+
+  @media print { body { background: #fff; } }
 </style>
 </head>
-<body>
+<body class="pStyle-${style}">
 ${cover ? `
   <div class="diaryCoverPage diaryStyle-${style}">
     <img class="diaryCoverBg" src="${cover}">
