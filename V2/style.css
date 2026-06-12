@@ -9272,13 +9272,147 @@ body.sheetOpen { overflow: hidden; }
 .diaryStyle-sketch .diaryNoPhotos { font-family: 'Caveat', cursive; border: 2px dashed #8b6040; color: #8b6040; font-size: 1.1rem; }
 .diaryStyle-sketch .diaryPhotoMemoItem { font-family: 'Caveat', cursive; font-size: 1.1rem; color: #6b4a2a; }
 
+/* ══════════════════════════════════════════
+   今日行程區塊
+   ══════════════════════════════════════════ */
+.diaryItinerarySection {
+  margin: 10px 0 4px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.diaryItineraryHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+.diaryItineraryLabel {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--muted);
+}
+.diaryItineraryReset {
+  font-size: 0.7rem;
+  color: var(--muted);
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 6px;
+  cursor: pointer;
+  line-height: 1.6;
+}
+.diaryItineraryReset:hover { background: var(--bg2); }
+.diaryItinerary {
+  font-size: 0.83rem;
+  line-height: 2;
+  color: var(--text);
+  min-height: 28px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: text;
+  white-space: pre-wrap;
+  outline: none;
+}
+.diaryItinerary.fromPlan { color: var(--muted); font-style: italic; }
+.diaryItinerary:hover, .diaryItinerary:focus { border-color: var(--border); background: var(--bg); }
+.diaryItinerary:empty::before {
+  content: attr(data-placeholder);
+  color: var(--muted);
+  pointer-events: none;
+}
+
+/* per-style itinerary */
+.diaryStyle-fresh .diaryItinerary {
+  border-left: 3px solid #a8d8c0;
+  padding-left: 10px;
+  color: #2e4a38;
+  background: rgba(209,239,230,.2);
+}
+.diaryStyle-journal .diaryItinerary {
+  font-family: Georgia, serif;
+  color: #7a6040;
+  border-left: 2px solid #c8a878;
+  padding-left: 10px;
+}
+.diaryStyle-magazine .diaryItinerary {
+  color: #e8e0d0;
+  border-left: 3px solid #f0c060;
+  padding-left: 10px;
+  background: rgba(255,255,255,.06);
+}
+.diaryStyle-magazine .diaryItineraryLabel { color: #f0c060; opacity: .8; }
+.diaryStyle-film .diaryItinerary {
+  font-family: 'Courier New', monospace;
+  color: #c8b88a;
+  border-left: 3px solid #f0c060;
+  padding-left: 10px;
+  background: rgba(240,200,96,.04);
+}
+.diaryStyle-film .diaryItineraryLabel { color: #f0c060; opacity: .7; }
+.diaryStyle-story .diaryItinerary {
+  color: #1e3a4f;
+  border-left: 3px solid #4a8ab0;
+  padding-left: 10px;
+  background: rgba(74,138,176,.06);
+}
+.diaryStyle-sketch .diaryItinerary {
+  font-family: 'Caveat', cursive;
+  font-size: 1.05rem;
+  color: #3d2b1a;
+  border-bottom: 1.5px solid #c8a878;
+  border-radius: 0;
+  background: transparent;
+  padding: 4px 0;
+}
+.diaryStyle-sketch .diaryItineraryLabel { font-family: 'Caveat', cursive; font-size: 0.95rem; letter-spacing: .05em; }
+
+/* ══════════════════════════════════════════
+   封面裝飾 deco layer
+   ══════════════════════════════════════════ */
+.diaryCoverDeco {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+.diaryCoverContent { position: relative; z-index: 2; }
+.diaryCoverOv      { position: absolute; inset: 0; z-index: 0; }
+
+.diaryStyle-fresh   .diaryCoverDeco {
+  background:
+    radial-gradient(ellipse at 90% 10%, rgba(180,230,200,.35) 0%, transparent 50%),
+    radial-gradient(ellipse at 10% 85%, rgba(140,200,170,.25) 0%, transparent 40%);
+}
+.diaryStyle-journal .diaryCoverDeco {
+  border: 3px double rgba(180,140,90,.45);
+  margin: 12px;
+}
+.diaryStyle-magazine .diaryCoverDeco {
+  background: linear-gradient(to right, rgba(26,26,46,.55) 0%, transparent 60%);
+}
+.diaryStyle-film .diaryCoverDeco {
+  background: linear-gradient(to bottom, transparent 55%, rgba(0,0,0,.72) 100%);
+}
+.diaryStyle-story .diaryCoverDeco {
+  background: linear-gradient(180deg, rgba(30,58,79,.38) 0%, rgba(74,138,176,.18) 55%, transparent 100%);
+}
+.diaryStyle-sketch .diaryCoverDeco {
+  outline: 2px dashed rgba(61,43,26,.4);
+  outline-offset: -14px;
+}
+
 /* ── 列印 ── */
 @media print {
   .diaryActionBar, .diarySetup, .diaryMoodPicker,
   .diaryPhotoCtrl, .storyPhotoUploadCard,
-  .diaryTagRemove, .diaryTagInputWrap,
+  .diaryTagRemove, .diaryTagInputWrap, .diaryItineraryReset,
   .diaryPlanTag.suggestion { display: none !important; }
   .diaryDayText { border: none !important; background: transparent !important; }
+  .diaryItinerary { border: none !important; background: transparent !important; cursor: default; }
   .diaryCoverPage { page-break-after: always; break-after: page; min-height: 90vh; }
   .diaryDay { page-break-after: always; break-after: page; }
 
@@ -9345,4 +9479,13 @@ body.sheetOpen { overflow: hidden; }
 
   .diaryStyle-sketch.diaryDay { border: 2px solid #3d2b1a !important; box-shadow: 4px 4px 0 #3d2b1a !important; margin-bottom: 24px !important; }
   .diaryStyle-sketch .diaryDayHeader { border-bottom: 2px dashed #8b6040; padding-bottom: 10px; }
+
+  /* 行程區塊列印 */
+  .diaryItinerarySection { break-inside: avoid; page-break-inside: avoid; }
+  .diaryStyle-fresh   .diaryItinerary { border-left: 3px solid #a8d8c0 !important; padding-left: 10px !important; color: #2e4a38 !important; background: rgba(209,239,230,.15) !important; }
+  .diaryStyle-journal .diaryItinerary { border-left: 2px solid #c8a878 !important; padding-left: 10px !important; color: #7a6040 !important; }
+  .diaryStyle-magazine .diaryItinerary { border-left: 3px solid #f0c060 !important; padding-left: 10px !important; color: #e8e0d0 !important; background: rgba(255,255,255,.06) !important; }
+  .diaryStyle-film .diaryItinerary { border-left: 3px solid #f0c060 !important; padding-left: 10px !important; color: #c8b88a !important; font-family: 'Courier New', monospace !important; }
+  .diaryStyle-story .diaryItinerary { border-left: 3px solid #4a8ab0 !important; padding-left: 10px !important; color: #1e3a4f !important; }
+  .diaryStyle-sketch .diaryItinerary { font-family: 'Caveat', cursive !important; color: #3d2b1a !important; border-bottom: 1.5px solid #c8a878 !important; }
 }

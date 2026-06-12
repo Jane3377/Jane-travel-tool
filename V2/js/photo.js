@@ -445,12 +445,12 @@ function exportPhotoBookPDF() {
    ════════════════════════════════════════ */
 
 const DIARY_STYLES = {
-  fresh:    '🌿 清新',
-  journal:  '✎ 手帳',
-  magazine: '📰 雜誌',
-  film:     '🎞 底片',
-  story:    '📖 故事',
-  sketch:   '✏️ 手繪',
+  fresh:    '🌿 自然植物',
+  journal:  '📔 復古手帳',
+  magazine: '🏙 城市雜誌',
+  film:     '🎞 底片風格',
+  story:    '🛍 購物旅遊',
+  sketch:   '✏️ 簡約線條',
 };
 
 const WEATHER_ICONS = ['☀️','🌤','⛅','🌧','🌪','❄️','🌈'];
@@ -475,12 +475,61 @@ function saveDayText(day, text) {
 function _flushDiaryTexts() {
   document.querySelectorAll('.diaryDay[data-day]').forEach(el => {
     const day = el.dataset.day;
-    const textEl = el.querySelector('.diaryDayText[contenteditable]');
-    if (!textEl || !day) return;
+    if (!day) return;
     if (!data.dayMoods) data.dayMoods = {};
     if (!data.dayMoods[day]) data.dayMoods[day] = {};
-    data.dayMoods[day].text = textEl.innerText;
+    const textEl = el.querySelector('.diaryDayText[contenteditable]');
+    if (textEl) data.dayMoods[day].text = textEl.innerText;
+    const itinEl = el.querySelector('.diaryItinerary[contenteditable]');
+    if (itinEl) data.dayMoods[day].itinerary = itinEl.innerText;
   });
+}
+
+function saveDayItinerary(day, text) {
+  if (!data.dayMoods) data.dayMoods = {};
+  if (!data.dayMoods[day]) data.dayMoods[day] = {};
+  data.dayMoods[day].itinerary = text;
+  save();
+}
+
+function resetDayItinerary(day) {
+  if (!data.dayMoods?.[day]) return;
+  delete data.dayMoods[day].itinerary;
+  save();
+  renderPhotoBook();
+}
+
+function diaryItineraryHtml(d) {
+  const mood     = (data.dayMoods || {})[d.key] || {};
+  const plans    = sortedPlans(d.key);
+  const hasCustom = mood.itinerary !== undefined;
+
+  let content = '';
+  if (hasCustom) {
+    content = mood.itinerary
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/\n/g,'<br>');
+  } else if (plans.length) {
+    content = plans.map(p =>
+      `${esc(p.start || '--:--')} ${activityIcon(p.type)} ${esc(p.name)}`
+    ).join('<br>');
+  }
+
+  if (!content && shareViewMode) return '';
+
+  const ce = !shareViewMode;
+  return `
+    <div class="diaryItinerarySection">
+      <div class="diaryItineraryHead">
+        <span class="diaryItineraryLabel">今日行程</span>
+        ${ce && hasCustom && plans.length ? `
+          <button class="diaryItineraryReset noPrint" type="button"
+                  onclick="resetDayItinerary('${d.key}')">↺ 重設</button>` : ''}
+      </div>
+      <div class="diaryItinerary${hasCustom ? '' : ' fromPlan'}"
+           ${ce ? `contenteditable="true" onblur="saveDayItinerary('${d.key}',this.innerText)"` : ''}
+           data-placeholder="記錄今天去了哪裡…">${content}</div>
+    </div>`;
 }
 
 function setDiaryStyle(style) {
@@ -638,6 +687,8 @@ function diaryDayHtml(d) {
           </div>
         </div>`}
 
+      ${diaryItineraryHtml(d)}
+
       ${isStory ? `
         <div class="diaryTextSection">${textBlock}</div>
         <div class="diaryPhotoSection">${diaryPhotoStoryHtml(photos)}</div>
@@ -705,6 +756,7 @@ function diaryCoverHtml() {
     <div class="diaryCoverPage diaryStyle-${style}">
       ${cover ? `<img class="diaryCoverBg" src="${cover}">` : ''}
       <div class="diaryCoverOv"></div>
+      <div class="diaryCoverDeco"></div>
       <div class="diaryCoverContent">
         <div class="diaryCoverEyebrow">TRAVEL DIARY</div>
         <h1 class="diaryCoverTitle">${esc(data.meta.title || '我的旅程日記')}</h1>
@@ -806,6 +858,30 @@ ${cssHref ? `<link rel="stylesheet" href="${cssHref}">` : ''}
   .diaryStyle-film .diaryPlanTag { background: #333 !important; color: #ccc !important; border-radius: 2px !important; font-family: 'Courier New', monospace !important; }
   .diaryStyle-film .diaryPlanTag.active { background: #2a2000 !important; color: #f0c060 !important; }
 
+  /* ════════════════════════════════════════
+     今日行程區塊
+     ════════════════════════════════════════ */
+  .diaryItinerarySection { margin: 12px 0 6px; }
+  .diaryItineraryHead { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .diaryItineraryLabel { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #888; }
+  .diaryItinerary { font-size: 0.85rem; line-height: 1.9; color: #555; white-space: pre-wrap; }
+  .diaryItinerary.fromPlan { color: #888; font-style: italic; }
+  /* 各風格行程色調 */
+  .diaryStyle-fresh  .diaryItinerary { color: #2e4a38; border-left: 3px solid #b0d9c4; padding-left: 10px; }
+  .diaryStyle-journal .diaryItinerary { font-family: Georgia, serif; color: #7a6040; border-left: 2px solid #c8a878; padding-left: 10px; }
+  .diaryStyle-magazine .diaryItinerary { color: #f0e8d8; border-left: 3px solid #f0c060; padding-left: 10px; background: rgba(255,255,255,.05); }
+  .diaryStyle-film .diaryItinerary { font-family: 'Courier New', monospace; color: #c8b88a; border-left: 3px solid #f0c060; padding-left: 10px; }
+  .diaryStyle-story .diaryItinerary { color: #1e3a4f; border-left: 3px solid #4a8ab0; padding-left: 10px; }
+  .diaryStyle-sketch .diaryItinerary { font-family: 'Caveat', cursive; color: #3d2b1a; font-size: 1rem; }
+  /* 封面裝飾元素 */
+  .diaryCoverDeco { position: absolute; inset: 0; pointer-events: none; }
+  .diaryStyle-fresh   .diaryCoverDeco { background: radial-gradient(ellipse at 90% 10%, rgba(180,230,200,.35) 0%, transparent 50%), radial-gradient(ellipse at 10% 85%, rgba(140,200,170,.25) 0%, transparent 40%); }
+  .diaryStyle-journal .diaryCoverDeco { background: radial-gradient(ellipse at center, rgba(255,245,220,.12) 0%, transparent 70%); border: 3px solid rgba(180,140,90,.4); }
+  .diaryStyle-magazine .diaryCoverDeco { background: linear-gradient(to right, rgba(26,26,46,.6) 0%, transparent 50%); }
+  .diaryStyle-film    .diaryCoverDeco { background: linear-gradient(to bottom, transparent 60%, rgba(0,0,0,.7) 100%); }
+  .diaryStyle-story   .diaryCoverDeco { background: linear-gradient(180deg, rgba(30,58,79,.4) 0%, rgba(74,138,176,.2) 50%, transparent 100%); }
+  .diaryStyle-sketch  .diaryCoverDeco { border: 4px solid rgba(61,43,26,.5); outline: 1px dashed rgba(61,43,26,.3); outline-offset: -12px; }
+
   /* 📖 故事 — 藍色扉頁感 */
   .diaryStyle-story.diaryDay  { border-top: 4px solid #1e3a4f; }
   .diaryStyle-story .diaryDayHeader { border-bottom: 1px solid #c8dde8; padding-bottom: 10px; margin-bottom: 16px; }
@@ -833,6 +909,7 @@ ${cover ? `
   <div class="diaryCoverPage diaryStyle-${style}">
     <img class="diaryCoverBg" src="${cover}">
     <div class="diaryCoverOv"></div>
+    <div class="diaryCoverDeco"></div>
     <div class="diaryCoverContent">
       <div class="diaryCoverEyebrow">TRAVEL DIARY</div>
       <h1 class="diaryCoverTitle">${esc(data.meta.title || '我的旅程日記')}</h1>
