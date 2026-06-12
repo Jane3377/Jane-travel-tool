@@ -807,6 +807,12 @@ ${cssHref ? `<link rel="stylesheet" href="${cssHref}">` : ''}
   .diaryPhotoStoryItem { break-inside:avoid; page-break-inside:avoid; }
   /* Sketch：格線紙背景確保印出 */
   .diaryStyle-sketch .diaryDay { background-image:linear-gradient(#e8d8b8 1px,transparent 1px)!important; background-size:100% 30px!important; }
+  /* PDF 照片高度限制：A4 寬度比手機大，aspect-ratio 不加限制會讓照片塞滿整頁 */
+  .diaryPhotoItem { max-height:200px !important; }
+  .diaryPhotoGrid.count-1 .diaryPhotoItem { max-height:260px !important; }
+  .diaryPhotoGrid.count-3 .diaryPhotoItem:first-child { max-height:280px !important; }
+  .diaryPhotoStoryImgWrap { max-height:220px !important; }
+  .diaryPhotoStoryImgWrap img { height:100% !important; max-height:220px !important; }
 
   /* ════════════════════════════════════════
      各風格印刷版設計
