@@ -1,94 +1,128 @@
 <!DOCTYPE html>
-<!-- 貞選旅管家現行功能基準：保留既有資料結構、同步、圖片與介面設定；後台建議獨立 admin.html / admin.js 擴充。 -->
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#d9efe6">
 <title>貞選旅管家</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&display=swap">
 <link rel="stylesheet" href="style.css">
 <link id="janeselectFavicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%234A5D4E'/%3E%3Ctext x='32' y='43' text-anchor='middle' font-family='Georgia,serif' font-size='34' font-weight='700' fill='%23fffaf2'%3EJ%3C/text%3E%3C/svg%3E">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-
-
 </head>
 <body>
-<div id="loginView" class="gateView noPrint hidden"></div>
+
+<!-- 登入 / 旅程清單 -->
+<div id="loginView"   class="gateView noPrint hidden"></div>
 <div id="tripListView" class="gateView noPrint hidden"></div>
-<div class="app" id="mainApp"><header><div class="badge">J 貞選旅管家</div><div class="titleRow"><h1 id="titleText">釜山小旅行手帳</h1><button class="iconBtn" onclick="editTitle()">✎</button></div><div class="subRow"><p class="sub" id="subtitleText">把想去的海邊、巷弄、咖啡香與晚餐清單都收進來，慢慢排成一趟期待出發的旅行。</p><button class="iconBtn" onclick="editSubtitle()">✎</button></div><div class="heroStats"><div><span>目的地</span><strong id="sDest">韓國釜山</strong></div>
-<div class="syncBar noPrint">
-  <div class="syncStatus" id="syncStatus"><span class="syncDot off"></span><b>尚未登入</b><br>登入 Google 後可跨裝置同步。</div>
-  <button class="btn dark compact" id="loginBtn" onclick="firebaseSignIn()">Google 登入</button>
-  <button class="btn soft compact hidden" id="logoutBtn" onclick="firebaseSignOut()">登出</button>
-  <button class="btn blue compact hidden" id="cloudLoadBtn" onclick="loadFromCloud()">載入雲端</button>
-  <button class="btn pink compact hidden" id="cloudSaveBtn" onclick="saveToCloudNow()">立即同步</button>
+
+<!-- 主 App -->
+<div class="app hidden" id="mainApp">
+  <header id="header">
+    <div class="badge">J 貞選旅管家</div>
+    <div class="titleRow">
+      <h1 id="titleText">貞選旅管家</h1>
+      <button class="iconBtn" onclick="editTitle()">✎</button>
+    </div>
+    <div class="subRow">
+      <p class="sub" id="subtitleText"></p>
+      <button class="iconBtn" onclick="editSubtitle()">✎</button>
+    </div>
+  </header>
+
+  <div class="tabs" id="tabs"></div>
+  <div class="mobileTopNav" id="mobileTopNav"></div>
+  <div id="setupStrip"></div>
+
+  <div class="layout">
+    <aside class="panel">
+      <div class="section"><h3>旅行日曆</h3></div>
+      <div class="hint">先看每天的安排，再進入當日行程調整。</div>
+      <div id="days" style="margin-top:10px"></div>
+      <div class="btns">
+        <button class="btn danger" onclick="clearAllPlans()">清除行程</button>
+      </div>
+    </aside>
+    <main class="main">
+      <section id="tripView"></section>
+      <section id="stayView"     class="hidden"></section>
+      <section id="plannerView"  class="hidden"></section>
+      <section id="spotsView"    class="hidden"></section>
+      <section id="budgetView"   class="hidden"></section>
+      <section id="packingView"  class="hidden"></section>
+      <section id="photoBookView" class="hidden"></section>
+      <section id="helpView"     class="hidden"></section>
+    </main>
+  </div>
+
+  <footer>
+    貞選旅管家 Janeselect Travel Manager<br>
+    <strong id="footerVersion">版本：v67.0</strong>
+  </footer>
 </div>
-<div><span>日期</span><strong id="sDate">6/4-6/10</strong></div></div></header><div class="tabs" id="tabs"></div><div class="mobileTopNav" id="mobileTopNav"></div><div class="layout"><aside class="panel"><div class="section"><h3>旅行日曆</h3></div><div class="hint">先看每天的安排，再進入當日行程調整。</div><div id="days" style="margin-top:10px"></div><div class="btns"><button class="btn pink" onclick="sample()">放入範例</button><button class="btn danger" onclick="resetAll()">清除資料</button></div></aside><main class="main"><section id="tripView"></section><section id="stayView" class="hidden"></section><section id="plannerView" class="hidden"></section><section id="spotsView" class="hidden"></section><section id="budgetView" class="hidden"></section><section id="packingView" class="hidden"></section><section id="photoBookView" class="hidden"></section><section id="helpView" class="hidden"></section></main></div><footer>貞選旅管家 Janeselect Travel Manager｜LocalStorage + Firebase + Cloudinary<br><strong>版本：v66.0｜2026-05-31｜現行功能基準整理版</strong></footer></div><nav class="mobile" id="mobile"></nav><div class="toast" id="toast"></div>
 
-<!-- Firebase SDK for cross-device sync -->
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-
-
-<div class="aiPromptModal" id="aiPromptModal">
-  <div class="aiPromptBox">
-    <div class="section">
-      <h3>AI 口袋景點提示詞</h3>
-      <button class="iconBtn" onclick="closeAIPrompt()">×</button>
+<!-- 帳號 Widget -->
+<div class="accountWidget noPrint" id="accountWidget">
+  <button class="accountBtn" id="accountBtn" onclick="toggleAccountMenu()" title="帳號與同步">
+    <span class="accountAvatar" id="accountAvatar">登入</span>
+    <span class="accountLabel"  id="accountLabel">Google 登入</span>
+  </button>
+  <div class="accountMenu" id="accountMenu">
+    <div class="who">
+      <b id="accountName">尚未登入</b>
+      <span id="accountEmail">登入後可跨裝置同步</span>
     </div>
-    <textarea id="aiPromptText"></textarea>
-    <div class="btns">
-      <button class="btn dark" onclick="copyAIPrompt()">複製提示詞</button>
-      <button class="btn soft" onclick="closeAIPrompt()">關閉</button>
+    <button id="menuLogin"  onclick="firebaseSignIn(); closeAccountMenu()">Google 登入</button>
+    <button id="menuLoad"   onclick="loadFromCloud({force:true}); closeAccountMenu()" style="display:none">載入雲端</button>
+    <button id="menuSave"   onclick="saveToCloudNow(); closeAccountMenu()" style="display:none">立即同步</button>
+    <button id="menuLogout" onclick="firebaseSignOut(); closeAccountMenu()" style="display:none">登出</button>
+  </div>
+</div>
+<div class="syncMini noPrint" id="syncMini">已同步</div>
+
+<!-- 行動 nav -->
+<nav class="mobile" id="mobile"></nav>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- FAB 浮動新增鈕 + 底部抽屜 -->
+<button id="fabAdd" class="fabBtn fabHidden noPrint" onclick="openAddSheet()">＋</button>
+<div id="addSheetOverlay" class="addSheetOverlay" hidden onclick="closeAddSheetOnBackdrop(event)">
+  <div class="addSheet" id="addSheet">
+    <div class="addSheetHandle"></div>
+    <div class="addSheetHeader">
+      <span id="addSheetTitle">新增</span>
+      <button class="addSheetClose" onclick="closeAddSheet()">✕</button>
     </div>
+    <div class="addSheetBody" id="addSheetBody"></div>
   </div>
 </div>
 
-
+<!-- Modals（靜態部分） -->
 <div class="countryResetModal" id="countryResetModal">
   <div class="countryResetBox">
-    <h3>⚠️ 修改旅遊國家會重置資料</h3>
-    <div class="box pink">
-      旅遊國家會影響幣別、機場、城市、行程與預算邏輯。若確認修改國家，系統會清空目前行程、口袋景點、住宿、預算、照片書與行李勾選，並回復成新旅程預設資料。
-    </div>
-    <div class="box mint" style="margin-top:10px">
-      建議你先匯出備份，再繼續修改國家。
-    </div>
+    <h3>⚠️ 修改旅遊國家</h3>
+    <div class="box pink">切換國家會清空航班、住宿、行程等資料，建議先匯出備份。</div>
     <div class="btns">
-      <button class="btn dark" onclick="exportBackup()">先匯出備份</button>
-      <button class="btn danger" onclick="confirmCountryReset()">我已了解，清空並修改國家</button>
-      <button class="btn soft" onclick="cancelCountryReset()">取消</button>
+      <button class="btn dark"   onclick="exportBackup()">先匯出備份</button>
+      <button class="btn danger" onclick="confirmCountryReset()">確認清空並切換</button>
+      <button class="btn soft"   onclick="cancelCountryReset()">取消</button>
     </div>
   </div>
 </div>
-
-
-<div class="resetModal" id="dateResetModal">
-  <div class="resetBox">
-    <h3>⚠️ 修改旅行日期會重置資料</h3>
-    <div class="resetWarn">
-      <p><span class="mark">❗</span>出發日或回程日會影響旅行天數、住宿日期、每日行程與照片書頁面。</p>
-      <p class="dangerText">若確認修改日期，系統會清空目前行程、口袋景點、住宿、預算、照片書與行李勾選，並依新日期重新建立旅程。</p>
-      <p>建議你先匯出備份，再繼續修改日期。</p>
-    </div>
-    <div class="btns">
-      <button class="btn dark" onclick="exportBackup()">先匯出備份</button>
-      <button class="btn danger" onclick="confirmDateReset()">我已了解，清空並修改日期</button>
-      <button class="btn soft" onclick="cancelDateReset()">取消</button>
-    </div>
-  </div>
-</div>
-
 
 <div class="optionModal" id="flightOptionModal">
   <div class="optionBox">
     <h3>✈️ 航班已儲存</h3>
-    <div class="optionIntro">是否要把航班與機場接送加入首尾行程？若已經帶入過，系統不會重複新增。</div>
+    <div class="optionIntro">是否要把航班加入首尾行程？</div>
     <div class="toggleRow">
-      <div><b>加入首尾行程</b><span>前往機場、搭乘航班、抵達後前往飯店／市區、回程與回家節點。</span></div>
-      <label class="switch"><input id="flightOptionAddPlans" type="checkbox" checked><span class="slider"></span></label>
+      <div><b>加入首尾行程</b><span>前往機場、搭乘航班、抵達後前往飯店等節點。</span></div>
+      <label class="switch">
+        <input id="flightOptionAddPlans" type="checkbox" checked>
+        <span class="slider"></span>
+      </label>
     </div>
     <div class="btns">
       <button class="btn dark" onclick="confirmFlightOptions()">確認</button>
@@ -100,14 +134,20 @@
 <div class="optionModal" id="hotelOptionModal">
   <div class="optionBox">
     <h3>🏨 住宿已新增</h3>
-    <div class="optionIntro">你可以選擇要不要把這間住宿同步帶入行程與預算。之後也可以在住宿卡片中再調整。</div>
+    <div class="optionIntro">是否同步帶入行程與預算？</div>
     <div class="toggleRow">
-      <div><b>帶入行程</b><span>加入入住、早上從飯店出發、晚上回到飯店等住宿節點。</span></div>
-      <label class="switch"><input id="hotelOptionAddPlans" type="checkbox" checked><span class="slider"></span></label>
+      <div><b>帶入行程</b><span>加入入住、出發、回飯店節點。</span></div>
+      <label class="switch">
+        <input id="hotelOptionAddPlans" type="checkbox" checked>
+        <span class="slider"></span>
+      </label>
     </div>
     <div class="toggleRow">
-      <div><b>帶入預算</b><span>新增一筆住宿預算，可稍後補金額與付款方式。</span></div>
-      <label class="switch"><input id="hotelOptionAddBudget" type="checkbox" checked><span class="slider"></span></label>
+      <div><b>帶入預算</b><span>新增一筆住宿費用。</span></div>
+      <label class="switch">
+        <input id="hotelOptionAddBudget" type="checkbox" checked>
+        <span class="slider"></span>
+      </label>
     </div>
     <div class="btns">
       <button class="btn dark" onclick="confirmHotelOptions()">確認</button>
@@ -116,22 +156,28 @@
   </div>
 </div>
 
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 
-<div class="accountWidget noPrint" id="accountWidget">
-  <button class="accountBtn" id="accountBtn" onclick="toggleAccountMenu()" title="帳號與同步">
-    <span class="accountAvatar" id="accountAvatar">登入</span>
-    <span class="accountLabel" id="accountLabel">Google 登入</span>
-  </button>
-  <div class="accountMenu" id="accountMenu">
-    <div class="who"><b id="accountName">尚未登入</b><span id="accountEmail">登入後可跨裝置同步</span></div>
-    <button id="menuLogin" onclick="firebaseSignIn(); closeAccountMenu()">Google 登入</button>
-    <button id="menuLoad" onclick="loadFromCloud(); closeAccountMenu()" style="display:none">載入雲端</button>
-    <button id="menuSave" onclick="saveToCloudNow(); closeAccountMenu()" style="display:none">立即同步</button>
-    <button id="menuLogout" onclick="firebaseSignOut(); closeAccountMenu()" style="display:none">登出</button>
-  </div>
-</div>
-<div class="syncMini noPrint" id="syncMini">已同步</div>
+<!-- JS 模組（依賴順序）-->
+<script src="js/config.js"></script>
+<script src="js/state.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/db.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/sync.js"></script>
+<script src="js/stay.js"></script>
+<script src="js/planner.js"></script>
+<script src="js/spots.js"></script>
+<script src="js/budget.js"></script>
+<script src="js/packing.js"></script>
+<script src="js/photo.js"></script>
+<script src="js/handbook.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
 
-
-<script src="script.js"></script>
-</body></html>
+</body>
+</html>
