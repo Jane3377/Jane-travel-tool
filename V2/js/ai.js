@@ -664,7 +664,7 @@ async function generateShareLink() {
   localSaveTrip();
   const ok = await saveToCloudNow();
   if (ok) {
-    openShareModal();
+    if (typeof renderPhotoBook === 'function') renderPhotoBook();
     toast('分享連結已產生');
   } else {
     delete data.meta.shareToken;
@@ -700,7 +700,7 @@ async function revokeShareLink() {
   }
   delete data.meta.shareToken;
   await saveToCloudNow();
-  openShareModal();
+  if (typeof renderPhotoBook === 'function') renderPhotoBook();
   toast('分享連結已停用');
 }
 

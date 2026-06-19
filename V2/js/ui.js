@@ -860,10 +860,6 @@ function renderHelp() {
       </div>
     </div>
 
-    <div class="card"><h3>📤 分享行程</h3>
-      <div class="btns"><button class="btn dark" onclick="openShareModal()">分享行程</button></div>
-    </div>
-
     <div class="card"><h3>💾 備份資料</h3>
       <div class="btns">
         <button class="btn dark" onclick="exportBackup()">匯出備份</button>

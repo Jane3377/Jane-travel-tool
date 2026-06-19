@@ -420,8 +420,33 @@ function shareHandbookLine() {
 
 /* ── 主頁面 handbookHtml（含操作列） ── */
 function handbookHtml() {
-  const hb       = _hbData();
-  const colorKey = hb.coverColor || 'green';
+  const hb         = _hbData();
+  const colorKey   = hb.coverColor || 'green';
+  const shareToken = data.meta?.shareToken;
+  const shareUrl   = shareToken
+    ? `${window.location.origin}${window.location.pathname}?share=${shareToken}`
+    : '';
+
+  const shareBlock = shareViewMode ? '' : `
+    <div class="hbShareCard noPrint">
+      <div class="hbShareTitle">🔗 旅伴分享連結</div>
+      ${shareUrl ? `
+        <div class="hbShareDesc">旅伴可透過此連結即時查看所有行程、住宿、預算（唯讀）。</div>
+        <div class="hbShareUrlRow">
+          <input class="hbShareUrlInput" readonly value="${esc(shareUrl)}">
+          <button class="btn dark compact" onclick="copyShareLink()">複製</button>
+        </div>
+        <div class="hbShareBtns">
+          <button class="btn blue compact" onclick="shareToLine()">LINE 分享</button>
+          <button class="hbShareRevoke" onclick="revokeShareLink()">停用連結</button>
+        </div>
+      ` : `
+        <div class="hbShareDesc">產生連結後，旅伴可即時查看所有行程規劃，無需登入。</div>
+        ${typeof canUseCloud === 'function' && canUseCloud()
+          ? `<button class="btn dark compact" onclick="generateShareLink()">🔗 產生分享連結</button>`
+          : `<p class="hbShareMuted">請先 Google 登入才能產生分享連結</p>`}
+      `}
+    </div>`;
 
   return `
     <div class="hbActions noPrint">
@@ -436,5 +461,6 @@ function handbookHtml() {
         <button class="btn blue compact" onclick="shareHandbookLine()">LINE 分享</button>
       </div>
     </div>
+    ${shareBlock}
     ${_handbookDocHtml({ editable: true })}`;
 }

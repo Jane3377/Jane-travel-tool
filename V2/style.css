@@ -9816,3 +9816,388 @@ body.sheetOpen { overflow: hidden; }
   .diaryStyle-story .diaryItinerary { border-left: 3px solid #4a8ab0 !important; padding-left: 10px !important; color: #1e3a4f !important; }
   .diaryStyle-sketch .diaryItinerary { font-family: 'Caveat', cursive !important; color: #3d2b1a !important; border-bottom: 1.5px solid #c8a878 !important; }
 }
+
+/* ══════════════════════════════════════════
+   旅遊書 - 分享連結卡片
+   ══════════════════════════════════════════ */
+
+.hbShareCard {
+  background: #f0f7ff;
+  border: 1.5px solid #c8dff5;
+  border-radius: 18px;
+  padding: 16px;
+  margin: 0 0 14px;
+}
+.hbShareTitle {
+  font-weight: 900;
+  font-size: 15px;
+  color: #3a6ea5;
+  margin-bottom: 6px;
+}
+.hbShareDesc {
+  font-size: 13px;
+  color: #6b7a8d;
+  margin-bottom: 12px;
+  line-height: 1.55;
+}
+.hbShareUrlRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.hbShareUrlInput {
+  flex: 1;
+  font-size: 12px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: 1px solid #c8dff5;
+  background: #fff;
+  color: #3a6ea5;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hbShareBtns {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.hbShareRevoke {
+  border: 0;
+  background: transparent;
+  color: #a85252;
+  font-size: 12px;
+  font-weight: 900;
+  padding: 4px 0;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.hbShareMuted {
+  font-size: 12px;
+  color: #8b827a;
+  margin: 4px 0 0;
+}
+
+/* ══════════════════════════════════════════
+   分享頁面（旅伴唯讀頁面）
+   ══════════════════════════════════════════ */
+
+.spPage {
+  min-height: 100vh;
+  background: #f7f3ec;
+  font-family: -apple-system, BlinkMacSystemFont, "Noto Sans TC", "PingFang TC", sans-serif;
+}
+
+/* ── Hero ── */
+.spHero {
+  position: relative;
+  min-height: 260px;
+  background: linear-gradient(135deg, #3d5141 0%, #2a3f30 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 0;
+  overflow: hidden;
+}
+.spHeroOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,.62) 0%, rgba(0,0,0,.12) 55%, transparent 100%);
+  z-index: 1;
+}
+.spHeroContent {
+  position: relative;
+  z-index: 2;
+  padding: 28px 20px 20px;
+  color: #fff;
+}
+.spBrand {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(255,255,255,.18);
+  border: 1px solid rgba(255,255,255,.28);
+  border-radius: 999px;
+  padding: 5px 11px;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .5px;
+  margin-bottom: 12px;
+  color: rgba(255,255,255,.9);
+  backdrop-filter: blur(8px);
+}
+.spTitle {
+  font-size: clamp(24px, 6vw, 36px);
+  font-weight: 900;
+  line-height: 1.15;
+  margin: 0 0 8px;
+  color: #fff;
+}
+.spMeta {
+  font-size: 13px;
+  color: rgba(255,255,255,.78);
+  margin-bottom: 6px;
+}
+.spTravelers {
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(255,255,255,.85);
+  padding-top: 10px;
+  margin-top: 6px;
+  border-top: 1px solid rgba(255,255,255,.2);
+}
+.spSyncBadge {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 3;
+  background: rgba(0,0,0,.32);
+  color: rgba(255,255,255,.88);
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 5px 10px;
+  backdrop-filter: blur(6px);
+}
+
+/* ── Body ── */
+.spBody {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 14px 14px calc(40px + env(safe-area-inset-bottom, 0px));
+}
+
+/* ── Accordion ── */
+.spAccordion {
+  background: #fff;
+  border: 1px solid #e8e0d4;
+  border-radius: 18px;
+  margin-bottom: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(88,72,55,.06);
+}
+.spAccordionHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 16px;
+  cursor: pointer;
+  list-style: none;
+  font-weight: 900;
+  font-size: 15px;
+  color: #3f3a35;
+  position: relative;
+}
+.spAccordionHead::-webkit-details-marker { display: none; }
+.spAccordionHead::after {
+  content: "⌄";
+  margin-left: auto;
+  font-size: 17px;
+  color: #8b827a;
+  transition: transform .18s;
+  flex-shrink: 0;
+}
+.spAccordion[open] .spAccordionHead::after { transform: rotate(180deg); }
+
+/* Day accordions have left color bar */
+.spAccordionHead:not(.spAccordionHeadFlat) {
+  border-left: 4px solid var(--sp-color, #4A7C59);
+  padding-left: 12px;
+}
+.spDayLabel {
+  font-weight: 900;
+  font-size: 14px;
+}
+.spDayDate {
+  font-size: 12px;
+  color: #8b827a;
+  font-weight: 700;
+}
+.spDayCnt {
+  background: #f3eee8;
+  color: #6f6257;
+  font-size: 11px;
+  font-weight: 900;
+  border-radius: 999px;
+  padding: 3px 8px;
+  margin-left: auto;
+  margin-right: 4px;
+}
+.spAccordionBody {
+  padding: 4px 16px 16px;
+  border-top: 1px solid #f0ebe2;
+}
+
+/* ── Plan rows ── */
+.spPlanRow {
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f5f0ea;
+  align-items: start;
+}
+.spPlanRow:last-child { border-bottom: 0; }
+.spPlanTime {
+  font-size: 11px;
+  font-weight: 900;
+  color: #4A7C59;
+  padding-top: 2px;
+  text-align: right;
+}
+.spPlanName {
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.4;
+  color: #3f3a35;
+}
+.spPlanAddr {
+  font-size: 12px;
+  color: #8b827a;
+  margin-top: 3px;
+}
+.spPlanNote {
+  font-size: 12px;
+  color: #7a6040;
+  margin-top: 3px;
+  background: #fff8ea;
+  border-radius: 8px;
+  padding: 4px 7px;
+}
+.spHotelChip {
+  background: #edf8f3;
+  color: #3a6b58;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 5px 10px;
+  display: inline-flex;
+  margin-bottom: 10px;
+}
+.spEmpty {
+  color: #8b827a;
+  font-size: 13px;
+  padding: 12px 0 4px;
+}
+
+/* ── Flight ── */
+.spFlightDir { margin-bottom: 14px; }
+.spFlightDirLabel {
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: #8b827a;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.spFlightSeg {
+  background: #f5f0ea;
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-bottom: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.spFlightNo {
+  font-weight: 900;
+  font-size: 14px;
+}
+.spFlightRoute {
+  font-size: 13px;
+  color: #3f3a35;
+}
+.spFlightTime {
+  font-size: 12px;
+  color: #6f6257;
+  background: #fff;
+  border-radius: 999px;
+  padding: 3px 8px;
+}
+.spFlightNote {
+  font-size: 12px;
+  color: #8b827a;
+  margin-top: 4px;
+}
+
+/* ── Hotel ── */
+.spHotelItem {
+  border: 1px solid #e8e0d4;
+  border-radius: 14px;
+  padding: 12px;
+  margin-bottom: 8px;
+}
+.spHotelName { font-weight: 900; font-size: 14px; margin-bottom: 4px; }
+.spHotelDates { font-size: 12px; color: #6f6257; margin-bottom: 4px; }
+.spHotelAddr  { font-size: 12px; color: #8b827a; }
+.spHotelNote  { font-size: 12px; color: #8b827a; margin-top: 4px; }
+
+/* ── Spots ── */
+.spSpotsGrid { display: flex; flex-direction: column; gap: 8px; padding-top: 4px; }
+.spSpotCard {
+  display: flex;
+  gap: 10px;
+  background: #faf7f2;
+  border: 1px solid #e8e0d4;
+  border-radius: 14px;
+  overflow: hidden;
+}
+.spSpotThumb {
+  width: 70px;
+  height: 70px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.spSpotInner { padding: 10px 10px 10px 0; flex: 1; min-width: 0; }
+.spSpotName  { font-weight: 900; font-size: 13px; margin-bottom: 3px; }
+.spSpotAddr  { font-size: 12px; color: #8b827a; }
+.spSpotNote  { font-size: 12px; color: #7a6040; margin-top: 3px; }
+
+/* ── Budget ── */
+.spBudgetTotal {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #3f3a35;
+  color: #fff;
+  border-radius: 14px;
+  padding: 12px 16px;
+  margin-bottom: 10px;
+}
+.spBudgetTotal span  { font-size: 13px; opacity: .78; }
+.spBudgetTotal strong { font-size: 20px; font-weight: 900; }
+.spBudgetMeta {
+  font-size: 12px;
+  color: #8b827a;
+  margin-bottom: 10px;
+}
+.spBudgetRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 9px 0;
+  border-bottom: 1px solid #f0ebe2;
+  font-size: 13px;
+}
+.spBudgetRow:last-child { border-bottom: 0; }
+.spBudgetType { color: #3f3a35; font-weight: 700; }
+.spBudgetAmt  { color: #4A7C59; font-weight: 900; }
+
+/* ── Footer ── */
+.spFooter {
+  text-align: center;
+  color: #8b827a;
+  font-size: 12px;
+  line-height: 1.7;
+  padding: 20px 16px 40px;
+  background: #f7f3ec;
+}
+
+/* Break .spPage out of gateView padding so hero is full-width */
+.gateView:has(.spPage) {
+  padding: 0;
+  background: #f7f3ec;
+}
