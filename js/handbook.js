@@ -458,7 +458,6 @@ function handbookHtml() {
       </div>
       <div class="hbActionBtns">
         <button class="btn dark compact" onclick="exportHandbookPDF()">匯出 PDF</button>
-        <button class="btn blue compact" onclick="shareHandbookLine()">LINE 分享</button>
       </div>
     </div>
     ${shareBlock}
