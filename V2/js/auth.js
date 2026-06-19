@@ -516,13 +516,13 @@ function _renderSharePage() {
           ${plans.length ? plans.map(p => {
             const time = p.start || '';
             return `
-              <div class="spPlanRow">
+              <div class="spPlanRow spPlanRowTap" onclick="openSharePlanDetail('${p.id}')">
                 <span class="spPlanTime">${esc(time)}</span>
                 <div class="spPlanInfo">
                   <div class="spPlanName">${activityIcon(p.type)} ${esc(p.name || '未命名')}</div>
                   ${p.address ? `<div class="spPlanAddr">📍 ${esc(p.address)}</div>` : ''}
-                  ${p.note    ? `<div class="spPlanNote">${esc(p.note)}</div>`       : ''}
                 </div>
+                <span class="spPlanChevron">›</span>
               </div>`;
           }).join('') : `<div class="spEmpty">這天尚未安排行程</div>`}
         </div>
@@ -545,6 +545,9 @@ function _renderSharePage() {
 
   // ── 預算總覽 ──
   const budgetHtml = _buildShareBudgetHtml();
+
+  // ── 行李清單 ──
+  const packingHtml = _buildSharePackingHtml();
 
   el.innerHTML = `
     <div class="spPage">
@@ -584,6 +587,12 @@ function _renderSharePage() {
           <div class="spAccordionBody spSpotsGrid">${spotsHtml}</div>
         </details>` : ''}
 
+        <!-- 行李清單 -->
+        <details class="spAccordion">
+          <summary class="spAccordionHead spAccordionHeadFlat">🧳 行李清單</summary>
+          <div class="spAccordionBody">${packingHtml}</div>
+        </details>
+
         <!-- 預算 -->
         <details class="spAccordion">
           <summary class="spAccordionHead spAccordionHeadFlat">💰 預算總覽</summary>
@@ -592,7 +601,10 @@ function _renderSharePage() {
       </div>
 
       <div class="spFooter">貞選旅管家 Janeselect Travel Manager<br>此頁面由旅行主辦人即時同步</div>
-    </div>`;
+    </div>
+
+    <!-- 行程詳細資訊彈窗 -->
+    <div class="spDetailModal" id="spDetailModal" onclick="if(event.target===this)closeSharePlanDetail()"></div>`;
 
   showShell('login');
 }
@@ -666,6 +678,99 @@ function _buildShareBudgetHtml() {
     </div>
     <div class="spBudgetMeta">匯率：1 ${esc(curr)} = ${rate} TWD</div>
     ${typeRows}`;
+}
+
+function _buildSharePackingHtml() {
+  const items = data.packing || [];
+  if (!items.length) return `<div class="spEmpty">尚無行李清單</div>`;
+
+  const lists = data.packLists?.length
+    ? data.packLists
+    : [{ id: 'pre', name: '出國前' }, { id: 'out', name: '離開飯店' }];
+
+  return lists.map(list => {
+    const listItems = items.filter(x => x.type === list.id);
+    if (!listItems.length) return '';
+    return `
+      <div class="spPackGroup">
+        <div class="spPackGroupLabel">${esc(list.name)}</div>
+        ${listItems.map(x => `
+          <div class="spPackItem ${x.checked ? 'spPackChecked' : ''}">
+            <span class="spPackCheck">${x.checked ? '✓' : '○'}</span>
+            <span class="spPackName">${esc(x.name)}</span>
+            ${x.note ? `<span class="spPackNote">${esc(x.note)}</span>` : ''}
+          </div>`).join('')}
+      </div>`;
+  }).join('');
+}
+
+function openSharePlanDetail(planId) {
+  const p = (data.plans || []).find(x => x.id === planId);
+  if (!p) return;
+
+  // 嘗試找對應的口袋景點（名稱或地址匹配）
+  const spot = (data.spots || []).find(s =>
+    s.name === p.name ||
+    (p.address && s.addr && (s.addr.includes(p.address) || p.address.includes(s.addr)))
+  );
+
+  const isKorea = data.trip?.country === '韓國';
+  const mapQ    = encodeURIComponent(p.krName || p.address || p.name);
+  const mapBtn  = p.address || p.name
+    ? `<a class="spDetailMapBtn" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.address || p.name)}" target="_blank">Google Maps</a>
+       ${isKorea ? `<a class="spDetailMapBtn spDetailMapBtnKakao" href="https://map.kakao.com/?q=${mapQ}" target="_blank">카카오맵</a>` : ''}`
+    : '';
+
+  const modal = document.getElementById('spDetailModal');
+  if (!modal) return;
+
+  modal.innerHTML = `
+    <div class="spDetailBox">
+      <div class="spDetailHandle"></div>
+      <div class="spDetailHead">
+        <div class="spDetailIcon">${activityIcon(p.type)}</div>
+        <div class="spDetailTitleWrap">
+          <div class="spDetailTitle">${esc(p.name || '未命名')}</div>
+          ${p.start ? `<div class="spDetailTime">${esc(p.start)}${p.end ? ' — ' + esc(p.end) : ''}</div>` : ''}
+        </div>
+        <button class="spDetailClose" onclick="closeSharePlanDetail()">✕</button>
+      </div>
+
+      ${spot?.photo ? `<img class="spDetailPhoto" src="${esc(spot.photo)}" loading="lazy">` : ''}
+
+      <div class="spDetailBody">
+        ${p.address ? `
+          <div class="spDetailSection">
+            <div class="spDetailLabel">地址</div>
+            <div class="spDetailVal">${esc(p.address)}</div>
+            ${mapBtn ? `<div class="spDetailMapBtns">${mapBtn}</div>` : ''}
+          </div>` : (mapBtn ? `<div class="spDetailMapBtns" style="margin-bottom:12px">${mapBtn}</div>` : '')}
+
+        ${p.krName || p.krAddress ? `
+          <div class="spDetailSection spDetailKr">
+            ${p.krName    ? `<div class="spDetailVal">🇰🇷 ${esc(p.krName)}</div>`    : ''}
+            ${p.krAddress ? `<div class="spDetailVal" style="font-size:12px;color:#8b827a">${esc(p.krAddress)}</div>` : ''}
+          </div>` : ''}
+
+        ${p.note ? `
+          <div class="spDetailSection">
+            <div class="spDetailLabel">備註</div>
+            <div class="spDetailVal spDetailNote">${esc(p.note)}</div>
+          </div>` : ''}
+
+        ${spot?.memo || spot?.note ? `
+          <div class="spDetailSection">
+            <div class="spDetailLabel">景點筆記</div>
+            <div class="spDetailVal spDetailNote">${esc(spot.memo || spot.note)}</div>
+          </div>` : ''}
+      </div>
+    </div>`;
+
+  modal.classList.add('show');
+}
+
+function closeSharePlanDetail() {
+  document.getElementById('spDetailModal')?.classList.remove('show');
 }
 
 function printSharePage() {
