@@ -488,8 +488,27 @@ function planCard(p, num, total, conflict = false) {
         </details>` : ''}
         ${(() => {
           const nearbyItems = (p.nearby || []).map(id => data.spots.find(s => s.id === id)).filter(Boolean);
-          const pickable    = data.spots.filter(s => !p.nearby?.includes(s.id) && (!s.day || s.day === p.day));
           if (!nearbyItems.length && shareViewMode) return '';
+
+          // 地址篩選：優先同地區，其次同日，最後提示沒有地址
+          const planArea = (p.address || '').trim();
+          const addrMatch = (a, b) => {
+            if (!a || !b) return false;
+            a = a.trim(); b = b.trim();
+            return a === b || a.includes(b) || b.includes(a);
+          };
+          const alreadyNearby = new Set(p.nearby || []);
+          const sameArea = data.spots.filter(s =>
+            !alreadyNearby.has(s.id) &&
+            (addrMatch(planArea, s.addr) || addrMatch(planArea, s.krAddress))
+          );
+          const sameDay  = planArea ? [] : data.spots.filter(s =>
+            !alreadyNearby.has(s.id) && (!s.day || s.day === p.day)
+          );
+          const pickable   = sameArea.length ? sameArea : sameDay;
+          const noAddrHint = !planArea && !sameDay.length;
+          const noMatchHint = planArea && !sameArea.length;
+
           return `<div class="nearbySection">
             <div class="nearbyHeader">
               <span class="nearbyLabel">🗺 附近走逛</span>
@@ -501,9 +520,12 @@ function planCard(p, num, total, conflict = false) {
                 ${shareViewMode ? '' : `<button class="nearbyRemoveBtn" onclick="removeNearbyFromPlan('${p.id}','${s.id}')">×</button>`}
               </div>`).join('')}
             ${shareViewMode ? '' : `<div class="nearbyPicker" id="nearbyPicker-${p.id}" style="display:none">
+              ${sameArea.length ? `<div class="nearbyPickerArea">📍 ${esc(planArea)} 附近</div>` : ''}
               ${pickable.length
                 ? pickable.map(s => `<button class="nearbyPickItem" onclick="addNearbyToPlan('${p.id}','${s.id}');toggleNearbyPicker('${p.id}')">${activityIcon(s.type)} ${esc(s.name)}</button>`).join('')
-                : '<span class="nearbyEmpty">口袋景點是空的</span>'}
+                : noMatchHint
+                  ? `<span class="nearbyEmpty">口袋裡沒有「${esc(planArea)}」附近的景點</span>`
+                  : '<span class="nearbyEmpty">口袋景點是空的</span>'}
             </div>`}
           </div>`;
         })()}
