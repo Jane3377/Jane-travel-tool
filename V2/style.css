@@ -8061,34 +8061,145 @@ body[data-theme-mode="dark"] .day.active span:not(.dayDate) {
 }
 
 /* ── 交通折疊列 ── */
-.connRow {
-  border: none;
-  background: transparent;
-  margin: 2px 0;
-}
+/* ══════════════════════════════════════════
+   交通連接器（connRow）重設計
+   ══════════════════════════════════════════ */
+.connRow { border: none; background: transparent; margin: 0; }
 .connSummary {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 5px 12px;
-  font-size: 13px;
-  color: #8b827a;
+  gap: 6px;
+  padding: 4px 2px;
   cursor: pointer;
   list-style: none;
-  flex-wrap: wrap;
 }
-.connSummary::-webkit-details-marker { display: none; }
-.connSummary::marker { display: none; }
-.connSummary::before { content: none; }
-.connSummary::after { content: '⌄'; color: #c8c0b8; font-size: 15px; margin-left: auto; transition: transform .2s; flex-shrink: 0; }
-.connRow[open] .connSummary::after { transform: rotate(180deg); }
+.connSummary::-webkit-details-marker, .connSummary::marker { display: none; }
+.connSummary::before, .connSummary::after { content: none; }
+.connSummaryLine {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, transparent, #d8d0c8 40%, #d8d0c8 60%, transparent);
+  min-width: 12px;
+}
+.connSummaryPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #f5f0ea;
+  border: 1px solid #e0d8ce;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 12px;
+  color: #7a7068;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background .15s, border-color .15s;
+}
+.connRow[open] .connSummaryPill,
+.connSummaryPill:hover { background: #ede8e0; border-color: #c8bfb5; }
+.connModeIcon { font-size: 15px; line-height: 1; }
+.connModeLabel { font-weight: 700; color: #5c554e; }
+.connTimeLabel { color: #a0988e; }
+.connArrival   { color: #a0988e; }
+
+/* 步行 ≤ 15 分：縮小弱化 */
+.connRow--walk .connSummaryPill {
+  background: transparent;
+  border-color: transparent;
+  color: #b8b0a8;
+  font-size: 11px;
+  padding: 2px 8px;
+}
+.connRow--walk .connSummaryLine {
+  background: linear-gradient(to right, transparent, #ece6de 40%, #ece6de 60%, transparent);
+}
+.connRow--walk:not([open]) .connSummaryPill:hover { background: #f5f0ea; border-color: #ddd6cc; }
+.connRow--walk .connModeLabel { font-weight: 400; }
+
 .connDetail {
   border: 1px dashed #e0d8cf;
   border-radius: 14px;
   padding: 12px;
-  margin: 4px 12px 8px;
+  margin: 4px 8px 8px;
   background: #faf8f5;
 }
+
+/* ══════════════════════════════════════════
+   附近走逛子清單
+   ══════════════════════════════════════════ */
+.nearbySection {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed #e8e0d4;
+}
+.nearbyHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.nearbyLabel {
+  font-size: 11px;
+  font-weight: 700;
+  color: #8b827a;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.nearbyAddBtn {
+  font-size: 12px;
+  font-weight: 900;
+  color: #628f80;
+  background: #d9efe6;
+  border: none;
+  border-radius: 999px;
+  width: 22px; height: 22px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  line-height: 1;
+}
+.nearbyAddBtn:hover { background: #b8ddd0; }
+.nearbyItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: 8px;
+  font-size: 13px;
+  background: #f7f4ef;
+  margin-bottom: 4px;
+}
+.nearbyRemoveBtn {
+  background: none;
+  border: none;
+  color: #c8bfb8;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0 2px;
+  flex-shrink: 0;
+}
+.nearbyRemoveBtn:hover { color: #a85252; }
+.nearbyPicker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px;
+  background: #ede8e0;
+  border-radius: 10px;
+  margin-top: 6px;
+}
+.nearbyPickItem {
+  background: #fff;
+  border: 1px solid #ddd5c8;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.nearbyPickItem:hover { background: #e8f4ee; border-color: #90c8b0; color: #2e6b48; }
+.nearbyEmpty { font-size: 12px; color: #a0988e; padding: 2px 4px; }
 
 /* ── 手機版行程卡片：按鈕移底部橫排，標題/注意全寬 ── */
 @media (max-width: 620px) {

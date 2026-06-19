@@ -288,23 +288,54 @@ function updateConn(id, key, val) {
   _refreshConnSummary(conn);
 }
 
+function connModeIcon(mode) {
+  const m = { '走路':'🚶','開車/計程車':'🚗','大眾運輸':'🚌','航班':'✈️','自訂':'🚖' };
+  return m[mode] || '🚌';
+}
+
 function _refreshConnSummary(conn) {
   const el = document.querySelector(`details.connRow[data-conn-id="${conn.id}"]`);
   if (!el) return;
   const summary = el.querySelector('.connSummary');
   if (!summary) return;
-  const totalH   = Number(conn.h || 0);
-  const totalM   = Number(conn.m || 0);
+  const totalH    = Number(conn.h || 0);
+  const totalM    = Number(conn.m || 0);
   const modeLabel = conn.mode === '自訂' ? (conn.customMode || '自訂') : (conn.mode || '大眾運輸');
   const timeLabel = totalH > 0 && totalM > 0 ? `${totalH}時${totalM}分`
                   : totalH > 0 ? `${totalH}時`
-                  : totalM > 0 ? `${totalM}分` : '0分';
-  const planA  = data.plans.find(p => p.id === conn.a);
+                  : totalM > 0 ? `${totalM}分` : '';
+  const planA   = data.plans.find(p => p.id === conn.a);
   const arrival = planA ? addMinutes(planA.end, totalH * 60 + totalM) : '';
-  const spans  = summary.querySelectorAll(':scope > span');
-  if (spans[0]) spans[0].textContent = modeLabel;
-  if (spans[1]) spans[1].textContent = timeLabel;
-  if (spans[2] && arrival) spans[2].textContent = `→ 預計抵達 ${arrival}`;
+  const iconEl    = summary.querySelector('.connModeIcon');
+  const modeEl    = summary.querySelector('.connModeLabel');
+  const timeEl    = summary.querySelector('.connTimeLabel');
+  const arrivalEl = summary.querySelector('.connArrival');
+  if (iconEl)    iconEl.textContent    = connModeIcon(conn.mode);
+  if (modeEl)    modeEl.textContent    = modeLabel;
+  if (timeEl)  { timeEl.textContent    = timeLabel ? `· ${timeLabel}` : ''; }
+  if (arrivalEl) { arrivalEl.textContent = arrival ? `→ ${arrival}` : ''; }
+  const isWalk = conn.mode === '走路' && (totalH * 60 + totalM) <= 15;
+  el.classList.toggle('connRow--walk', isWalk);
+}
+
+function toggleNearbyPicker(planId) {
+  const el = document.getElementById('nearbyPicker-' + planId);
+  if (el) el.style.display = el.style.display === 'none' ? 'flex' : 'none';
+}
+
+function addNearbyToPlan(planId, spotId) {
+  const p = data.plans.find(x => x.id === planId);
+  if (!p) return;
+  if (!p.nearby) p.nearby = [];
+  if (!p.nearby.includes(spotId)) { p.nearby.push(spotId); save(); renderPlanner(); }
+}
+
+function removeNearbyFromPlan(planId, spotId) {
+  const p = data.plans.find(x => x.id === planId);
+  if (!p?.nearby) return;
+  p.nearby = p.nearby.filter(id => id !== spotId);
+  save();
+  renderPlanner();
 }
 
 function changeConnMode(id, val) {
@@ -363,14 +394,21 @@ function connHtml(a, b) {
     </div>` : '';
 
   const modeLabel = conn.mode === '自訂' ? (conn.customMode || '自訂') : (conn.mode || '大眾運輸');
+  const modeIcon  = connModeIcon(conn.mode);
+  const isWalk    = conn.mode === '走路' && (totalH * 60 + totalM) <= 15;
 
   return `
-    <details class="connRow" data-conn-id="${conn.id}">
+    <details class="connRow${isWalk ? ' connRow--walk' : ''}" data-conn-id="${conn.id}">
       <summary class="connSummary">
-        <span>${esc(modeLabel)}</span>
-        <span>${timeLabel}</span>
-        ${arrival ? `<span>→ 預計抵達 ${esc(arrival)}</span>` : ''}
-        ${summaryRouteBtns}
+        <span class="connSummaryLine"></span>
+        <span class="connSummaryPill">
+          <span class="connModeIcon">${modeIcon}</span>
+          <span class="connModeLabel">${esc(modeLabel)}</span>
+          ${timeLabel ? `<span class="connTimeLabel">· ${timeLabel}</span>` : ''}
+          ${arrival  ? `<span class="connArrival">→ ${esc(arrival)}</span>` : ''}
+          ${summaryRouteBtns}
+        </span>
+        <span class="connSummaryLine"></span>
       </summary>
       <div class="connDetail">
         <div class="three">
@@ -448,6 +486,27 @@ function planCard(p, num, total, conflict = false) {
           ${p.krName    ? `<div class="planKrRow"><span>韓文名稱</span><b>${esc(p.krName)}</b><button class="planKrCopy" onclick="event.stopPropagation();copyText('${esc(p.krName)}')">複製</button></div>` : ''}
           ${p.krAddress ? `<div class="planKrRow"><span>韓文地址</span><b>${esc(p.krAddress)}</b><button class="planKrCopy" onclick="event.stopPropagation();copyText('${esc(p.krAddress)}')">複製</button></div>` : ''}
         </details>` : ''}
+        ${(() => {
+          const nearbyItems = (p.nearby || []).map(id => data.spots.find(s => s.id === id)).filter(Boolean);
+          const pickable    = data.spots.filter(s => !p.nearby?.includes(s.id) && (!s.day || s.day === p.day));
+          if (!nearbyItems.length && shareViewMode) return '';
+          return `<div class="nearbySection">
+            <div class="nearbyHeader">
+              <span class="nearbyLabel">🗺 附近走逛</span>
+              ${shareViewMode ? '' : `<button class="nearbyAddBtn" onclick="toggleNearbyPicker('${p.id}')">＋</button>`}
+            </div>
+            ${nearbyItems.map(s => `
+              <div class="nearbyItem">
+                <span>${activityIcon(s.type)} ${esc(s.name)}</span>
+                ${shareViewMode ? '' : `<button class="nearbyRemoveBtn" onclick="removeNearbyFromPlan('${p.id}','${s.id}')">×</button>`}
+              </div>`).join('')}
+            ${shareViewMode ? '' : `<div class="nearbyPicker" id="nearbyPicker-${p.id}" style="display:none">
+              ${pickable.length
+                ? pickable.map(s => `<button class="nearbyPickItem" onclick="addNearbyToPlan('${p.id}','${s.id}');toggleNearbyPicker('${p.id}')">${activityIcon(s.type)} ${esc(s.name)}</button>`).join('')
+                : '<span class="nearbyEmpty">口袋景點是空的</span>'}
+            </div>`}
+          </div>`;
+        })()}
       </div>
       <div class="itineraryActions">
         ${shareViewMode ? '' : `
