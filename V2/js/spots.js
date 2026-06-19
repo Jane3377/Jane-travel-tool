@@ -301,6 +301,25 @@ function copyKoreanText(id) {
   toast('已複製，可貼到 NAVER 記事');
 }
 
+function uploadSpotPhoto(spotId, file) {
+  if (!file) return;
+  const s = data.spots.find(x => x.id === spotId);
+  if (!s) return;
+  toast('上傳縮圖中…');
+  compressImage(file, 800, 0.82)
+    .then(blob => uploadToCloudinary(blob, file.name))
+    .then(r => { s.photo = r.src; save(); renderSpots(); toast('縮圖已上傳'); })
+    .catch(err => toast('上傳失敗：' + err.message));
+}
+
+function removeSpotPhoto(spotId) {
+  const s = data.spots.find(x => x.id === spotId);
+  if (!s) return;
+  delete s.photo;
+  save();
+  renderSpots();
+}
+
 function importSpotFile(file) {
   if (!file) return;
   const reader = new FileReader();

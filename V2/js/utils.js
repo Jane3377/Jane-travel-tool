@@ -140,7 +140,7 @@ function sortedPlans(day) {
     .sort((a, b) => String(a.start).localeCompare(String(b.start)) || String(a.end).localeCompare(String(b.end)));
 }
 function activityIcon(type) {
-  const icons = { '餐廳':'🍜','咖啡廳':'☕','購物':'🛍️','交通':'🚌','航班':'✈️','住宿':'🏨','雨天備案':'☔','其他':'✨' };
+  const icons = { '餐廳':'🍴','咖啡廳':'☕','購物':'🛍️','交通':'🚗','航班':'✈️','住宿':'🏨','雨天備案':'☔','其他':'✨' };
   return icons[type] || '📍';
 }
 function normalizePlanType(type) {

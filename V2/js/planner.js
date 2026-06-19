@@ -409,55 +409,77 @@ function connHtml(a, b) {
    ══════════════════════════════════════════ */
 
 function planCard(p, num, total, conflict = false) {
-  const isAuto   = p.source === 'flight' || p.source === 'hotel';
-  const isKorea  = data.trip.country === '韓國';
-  const mapQuery = encodeURIComponent(
+  const isAuto      = p.source === 'flight' || p.source === 'hotel';
+  const isKorea     = data.trip.country === '韓國';
+  const isTransport = p.type === '交通';
+  const mapQuery    = encodeURIComponent(
     isKorea && (p.krAddress || p.krName)
       ? [(p.krAddress||''), (p.krName||p.name)].filter(Boolean).join(' ')
       : [(p.address||''), p.name, data.trip.dest].filter(Boolean).join(' ')
   );
   const hasKr = isKorea && (p.krName || p.krAddress);
+
+  const mapBtn    = `<button class="small" onclick="openMap('${mapQuery}')">Google Maps</button>`;
+  const kakaoBtn  = isKorea
+    ? `<button class="small" onclick="window.open('https://map.kakao.com/?q=${encodeURIComponent(p.krName||p.name)}','_blank')">Kakao</button>`
+    : '';
+
+  const cardContent = `
+    <div class="itineraryTop">
+      <div class="itineraryTimeBlock">
+        <span class="itineraryTime">${esc(p.start||'--:--')}</span>
+        ${p.end ? `<span class="itineraryEndTime">至 ${esc(p.end)}</span>` : ''}
+      </div>
+      <div class="itineraryTitleBlock">
+        <h3 class="itineraryTitle">${activityIcon(p.type)} ${esc(p.name)}</h3>
+        <div class="itineraryMeta">
+          <span class="itineraryTypePill">${esc(p.type||'其他')}</span>
+          ${p.source==='flight' ? '<span class="itinerarySourcePill">航班帶入</span>' : ''}
+          ${p.source==='hotel'  ? '<span class="itinerarySourcePill">住宿帶入</span>' : ''}
+          ${p.adjusted ? '<span class="itineraryTypePill">已自動調整</span>' : ''}
+          ${conflict ? '<span class="conflictBadge">⚠ 時間重疊</span>' : ''}
+          ${moneyTwd(p) ? `<span class="itinerarySourcePill">TWD ${fmt(moneyTwd(p))}</span>` : ''}
+        </div>
+        ${p.note ? `<div class="itineraryNote"><b>注意：</b>${esc(p.note)}</div>` : ''}
+        ${p.memo ? `<div class="itineraryNote"><b>備註：</b>${esc(p.memo)}</div>` : ''}
+        ${hasKr ? `
+        <details class="planKrDetails">
+          <summary>韓文資訊</summary>
+          ${p.krName    ? `<div class="planKrRow"><span>韓文名稱</span><b>${esc(p.krName)}</b><button class="planKrCopy" onclick="event.stopPropagation();copyText('${esc(p.krName)}')">複製</button></div>` : ''}
+          ${p.krAddress ? `<div class="planKrRow"><span>韓文地址</span><b>${esc(p.krAddress)}</b><button class="planKrCopy" onclick="event.stopPropagation();copyText('${esc(p.krAddress)}')">複製</button></div>` : ''}
+        </details>` : ''}
+      </div>
+      <div class="itineraryActions">
+        ${shareViewMode ? '' : `
+          <div class="planMoveRow">
+            <button class="planMoveBtn" type="button" onclick="reorderPlan('${p.id}',-1)" title="上移" ${num===1?'disabled':''}>↑</button>
+            <button class="planMoveBtn" type="button" onclick="reorderPlan('${p.id}',1)" title="下移" ${num===total?'disabled':''}>↓</button>
+          </div>`}
+        ${isKorea ? kakaoBtn : mapBtn}
+        ${isKorea ? mapBtn : ''}
+        <button class="small" onclick="editPlan('${p.id}')">編輯</button>
+        <button class="small" onclick="deletePlan('${p.id}')">刪除</button>
+      </div>
+    </div>`;
+
   return `
     <div class="itineraryItem">
       <div class="itineraryDotWrap">
         <span class="planIndex${conflict ? ' planIndex--conflict' : ''}">${num}</span>
       </div>
-      <article class="itineraryCard${isAuto ? ' planCard--auto' : ''}${conflict ? ' planCard--conflict' : ''}">
-        <div class="itineraryTop">
-          <div class="itineraryTimeBlock">
-            <span class="itineraryTime">${esc(p.start||'--:--')}</span>
-            ${p.end ? `<span class="itineraryEndTime">至 ${esc(p.end)}</span>` : ''}
-          </div>
-          <div class="itineraryTitleBlock">
-            <h3 class="itineraryTitle">${activityIcon(p.type)} ${esc(p.name)}</h3>
-            <div class="itineraryMeta">
-              <span class="itineraryTypePill">${esc(p.type||'其他')}</span>
-              ${p.source==='flight' ? '<span class="itinerarySourcePill">航班帶入</span>' : ''}
-              ${p.source==='hotel'  ? '<span class="itinerarySourcePill">住宿帶入</span>' : ''}
-              ${p.adjusted ? '<span class="itineraryTypePill">已自動調整</span>' : ''}
-              ${conflict ? '<span class="conflictBadge">⚠ 時間重疊</span>' : ''}
-              ${moneyTwd(p) ? `<span class="itinerarySourcePill">TWD ${fmt(moneyTwd(p))}</span>` : ''}
-            </div>
-            ${p.note ? `<div class="itineraryNote"><b>注意：</b>${esc(p.note)}</div>` : ''}
-            ${p.memo ? `<div class="itineraryNote"><b>備註：</b>${esc(p.memo)}</div>` : ''}
-            ${hasKr ? `
-            <details class="planKrDetails">
-              <summary>韓文資訊</summary>
-              ${p.krName    ? `<div class="planKrRow"><span>韓文名稱</span><b>${esc(p.krName)}</b><button class="planKrCopy" onclick="event.stopPropagation();copyText('${esc(p.krName)}')">複製</button></div>` : ''}
-              ${p.krAddress ? `<div class="planKrRow"><span>韓文地址</span><b>${esc(p.krAddress)}</b><button class="planKrCopy" onclick="event.stopPropagation();copyText('${esc(p.krAddress)}')">複製</button></div>` : ''}
-            </details>` : ''}
-          </div>
-          <div class="itineraryActions">
-            ${shareViewMode ? '' : `
-              <div class="planMoveRow">
-                <button class="planMoveBtn" type="button" onclick="reorderPlan('${p.id}',-1)" title="上移" ${num===1?'disabled':''}>↑</button>
-                <button class="planMoveBtn" type="button" onclick="reorderPlan('${p.id}',1)" title="下移" ${num===total?'disabled':''}>↓</button>
-              </div>`}
-            <button class="small" onclick="openMap('${mapQuery}')">地圖</button>
-            <button class="small" onclick="editPlan('${p.id}')">編輯</button>
-            <button class="small" onclick="deletePlan('${p.id}')">刪除</button>
-          </div>
-        </div>
+      <article class="itineraryCard${isAuto ? ' planCard--auto' : ''}${conflict ? ' planCard--conflict' : ''}${isTransport ? ' itineraryCard--transport' : ''}">
+        ${isTransport ? `
+          <details class="transportDetails">
+            <summary class="transportSummary">
+              <span class="transportSummaryInfo">
+                🚗 <span class="transportSummaryName">${esc(p.name)}</span>
+                ${p.start ? `<span class="transportSummaryTime">${esc(p.start)}</span>` : ''}
+              </span>
+              <span class="transportSummaryArrow">▸</span>
+            </summary>
+            <div class="transportExpanded">${cardContent}</div>
+          </details>`
+          : cardContent}
       </article>
     </div>`;
 }

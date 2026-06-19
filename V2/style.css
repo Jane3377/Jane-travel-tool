@@ -7459,8 +7459,153 @@ body.readonly .btn:not(.btn-allow) { opacity: .4; pointer-events: none; }
 .budgetMetaGrid span { font-size: 11px; color: #8b827a; }
 .budgetMetaGrid b    { font-size: 13px; font-weight: 900; }
 
-/* 口袋景點已使用 */
+/* ══════════════════════════════════════════
+   口袋景點卡片升級
+   ══════════════════════════════════════════ */
 .card.spotUsed { opacity: .7; background: #f7f3ec; }
+
+/* 縮圖 */
+.spotCard { padding: 0; overflow: hidden; }
+.spotCardThumb {
+  position: relative;
+  width: 100%;
+  height: 140px;
+  overflow: hidden;
+}
+.spotCardThumb img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform .25s;
+}
+.spotCard:hover .spotCardThumb img { transform: scale(1.04); }
+.spotThumbRemove {
+  position: absolute;
+  top: 6px; right: 6px;
+  background: rgba(0,0,0,.55);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 24px; height: 24px;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.spotCardInner { padding: 12px 14px 14px; }
+
+/* 類別色塊 tag */
+.spotTypePill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.spotType-spot    { background: #e6f4ec; color: #2e6b42; }
+.spotType-food    { background: #fdf0e8; color: #a0451a; }
+.spotType-cafe    { background: #f5ede0; color: #7a5020; }
+.spotType-shop    { background: #f3e8f8; color: #7030a0; }
+.spotType-rain    { background: #e8f0f8; color: #2050a0; }
+.spotType-transit { background: #f0f0f0; color: #505050; }
+.spotType-flight  { background: #e8eef8; color: #1a3a7a; }
+.spotType-hotel   { background: #f8f0e8; color: #804020; }
+.spotType-other   { background: #f2f2f2; color: #606060; }
+
+/* 未排 muted tag */
+.tag.muted { color: var(--muted); background: var(--bg); border-color: var(--border); }
+
+/* ══════════════════════════════════════════
+   Day 色彩系統
+   ══════════════════════════════════════════ */
+.day { border-left: 3px solid var(--day-color, var(--theme-primary, #628f80)); }
+.day b { color: var(--day-color, var(--theme-primary, #628f80)); }
+.day.active { border-color: var(--day-color, var(--theme-primary, #628f80)) !important; }
+.dayCnt {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px; height: 18px;
+  border-radius: 999px;
+  background: var(--day-color, #628f80);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 900;
+  padding: 0 4px;
+  vertical-align: middle;
+}
+.day .dayMeta { display: flex !important; align-items: center; gap: 4px; font-size: 12px; }
+
+/* 行程頁 Day 標題色彩 */
+.plannerDaySection h2 { border-left: 4px solid var(--day-color, #628f80); padding-left: 10px; }
+.plannerDayCnt {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px; height: 22px;
+  border-radius: 999px;
+  background: var(--day-color, #628f80);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 900;
+  padding: 0 5px;
+  vertical-align: middle;
+  margin-left: 8px;
+}
+
+/* ══════════════════════════════════════════
+   交通段落收合
+   ══════════════════════════════════════════ */
+.itineraryCard--transport {
+  background: #f7f5f2;
+  border-color: #ddd6cc;
+}
+.transportDetails { list-style: none; }
+.transportDetails > summary { list-style: none; }
+.transportDetails > summary::-webkit-details-marker { display: none; }
+.transportSummary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 2px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.transportSummaryInfo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  font-size: 14px;
+  font-weight: 700;
+  color: #555;
+  min-width: 0;
+}
+.transportSummaryName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.transportSummaryTime {
+  font-size: 12px;
+  color: #888;
+  font-weight: 400;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.transportSummaryArrow {
+  font-size: 11px;
+  color: #aaa;
+  flex-shrink: 0;
+  transition: transform .18s;
+}
+.transportDetails[open] .transportSummaryArrow { transform: rotate(90deg); }
+.transportExpanded { padding-top: 10px; border-top: 1px solid #e8e0d4; margin-top: 8px; }
 
 /* lockedInput */
 .lockedInput { background: #f3eee8 !important; cursor: not-allowed; }

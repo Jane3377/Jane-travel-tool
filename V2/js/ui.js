@@ -2,6 +2,13 @@
    ui.js — render 函式、頁面切換、導覽列
    ================================================================ */
 
+const DAY_PALETTE = ['#4A7C59','#3A6EA5','#B85C5C','#7A5EA7','#C17E3C','#2A8090','#8A6040','#5B7EA8'];
+
+function spotTypeSlug(type) {
+  const m = {'景點':'spot','餐廳':'food','咖啡廳':'cafe','購物':'shop','雨天備案':'rain','交通':'transit','航班':'flight','住宿':'hotel'};
+  return m[type] || 'other';
+}
+
 /* ── 品牌 Logo HTML ── */
 function _brandHtml() {
   const svg = `<svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="18" fill="#4A5D4E"/><rect x="10" y="13" width="40" height="43" rx="10" fill="#FFFAF2"/><path d="M22 13c1.7-5.4 13.9-5.4 15.6 0" fill="none" stroke="#FFFAF2" stroke-width="4" stroke-linecap="round"/><path d="M21 28h18M21 38h14" stroke="#4A5D4E" stroke-width="4" stroke-linecap="round"/><circle cx="45" cy="18" r="6" fill="#E5ECE9"/><path d="M45 14v4l3 2" stroke="#4A5D4E" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>`;
@@ -315,15 +322,17 @@ function renderSide() {
   }
 
   if (!daysEl) return;
-  daysEl.innerHTML = data.days.map(d => {
+  daysEl.innerHTML = data.days.map((d, i) => {
     const hotel = hotelFor(d.key);
     const count = sortedPlans(d.key).length;
+    const color = DAY_PALETTE[i % DAY_PALETTE.length];
     return `
       <div class="day ${d.key === currentDay ? 'active' : ''}"
+           style="--day-color:${color}"
            onclick="currentDay='${d.key}';cur='${d.key}';go('planner',{keepDay:true})">
         <b>${d.title}</b>
         <span class="dayDate">${shortWithDay(d.key)}</span>
-        <span>${count} 行程｜住宿：${hotel ? esc(hotel.name) : '未設定'}</span>
+        <span class="dayMeta"><span class="dayCnt">${count}</span> 項${hotel ? `｜${esc(hotel.name)}` : ''}</span>
       </div>`;
   }).join('');
 }
@@ -486,10 +495,13 @@ function renderPlanner() {
   if (!currentDay) currentDay = cur = todayPlanKey() || data.days?.[0]?.key || '';
   normalizePlanTimes(currentDay);
   const plans = sortedPlans(currentDay);
+  const _dayIdx   = data.days.findIndex(d => d.key === currentDay);
+  const _dayColor = DAY_PALETTE[_dayIdx >= 0 ? _dayIdx % DAY_PALETTE.length : 0];
 
   el.innerHTML = `
-    <div class="section">
-      <div><h2>${dayTitle(currentDay)}</h2>
+    <div class="section plannerDaySection" style="--day-color:${_dayColor}">
+      <div>
+        <h2>${dayTitle(currentDay)} <span class="plannerDayCnt">${plans.length} 項</span></h2>
         <div class="hint">住宿：${hotelFor(currentDay)?.name || '未設定'}</div>
       </div>
     </div>
@@ -653,26 +665,38 @@ function renderSpots() {
         return true;
       }).map(s => {
         const hasP = spotPlanExists(s);
+        const slug = spotTypeSlug(s.type);
         return `
-          <div class="card ${hasP?'spotUsed':''}">
-            <div class="time">${s.day ? dayTitle(s.day) : '未排'}${s.start?' '+esc(s.start):''}</div>
-            <div class="place">${activityIcon(s.type)} ${esc(s.name)}</div>
-            <div class="tags">
-              <span class="tag">${esc(s.type)}</span>
-              ${s.addr ? `<span class="tag blue">${esc(s.addr)}</span>` : ''}
-              ${s.source==='AI匯入' ? '<span class="tag green">AI 匯入</span>' : ''}
-            </div>
-            ${s.memo ? `<div class="box pink">${esc(s.memo)}</div>` : ''}
-            <div class="btns">
-              ${shareViewMode ? '' : (hasP
-                ? `<button class="btn soft compact" onclick="returnSpotToPocket('${s.id}')">放回口袋</button>`
-                : `<button class="btn soft compact" onclick="useSpot('${s.id}')">排入行程</button>`)}
-              <button class="btn blue compact" onclick="openExploreModal('${s.id}')">探索</button>
-              <button class="btn soft compact" onclick="openMap('${encodeURIComponent(s.name+' '+(s.addr||data.trip.dest))}')">地圖</button>
-              ${isKorea ? `<button class="btn soft compact" onclick="naverMapSpot('${s.id}')">NAVER 地圖</button>` : ''}
-              ${isKorea && s.krName ? `<button class="btn soft compact" onclick="copyKoreanText('${s.id}')">複製韓文</button>` : ''}
-              <button class="small" onclick="editSpot('${s.id}')">編輯</button>
-              <button class="small" onclick="deleteSpot('${s.id}')">刪除</button>
+          <div class="card spotCard ${hasP ? 'spotUsed' : ''}">
+            ${s.photo ? `
+              <div class="spotCardThumb">
+                <img src="${s.photo}" alt="${esc(s.name)}">
+                ${shareViewMode ? '' : `<button class="spotThumbRemove" onclick="removeSpotPhoto('${s.id}')" title="移除圖">×</button>`}
+              </div>` : ''}
+            <div class="spotCardInner">
+              <div class="place">${activityIcon(s.type)} ${esc(s.name)}</div>
+              <div class="tags">
+                <span class="spotTypePill spotType-${slug}">${activityIcon(s.type)} ${esc(s.type)}</span>
+                ${s.day ? `<span class="tag">${dayTitle(s.day)}${s.start ? ' · ' + esc(s.start) : ''}</span>` : '<span class="tag muted">未排</span>'}
+                ${s.addr ? `<span class="tag blue">${esc(s.addr)}</span>` : ''}
+                ${s.source==='AI匯入' ? '<span class="tag green">AI</span>' : ''}
+              </div>
+              ${s.memo ? `<div class="box pink">${esc(s.memo)}</div>` : ''}
+              <div class="btns">
+                ${shareViewMode ? '' : (hasP
+                  ? `<button class="btn soft compact" onclick="returnSpotToPocket('${s.id}')">放回口袋</button>`
+                  : `<button class="btn soft compact" onclick="useSpot('${s.id}')">排入行程</button>`)}
+                <button class="btn blue compact" onclick="openExploreModal('${s.id}')">探索</button>
+                <button class="btn soft compact" onclick="openMap('${encodeURIComponent(s.name+' '+(s.addr||data.trip.dest))}')">地圖</button>
+                ${isKorea ? `<button class="btn soft compact" onclick="naverMapSpot('${s.id}')">NAVER</button>` : ''}
+                ${isKorea && s.krName ? `<button class="btn soft compact" onclick="copyKoreanText('${s.id}')">韓文</button>` : ''}
+                ${shareViewMode ? '' : `<label class="btn soft compact" title="上傳縮圖" style="cursor:pointer">
+                  ${s.photo ? '🔄' : '📷'}
+                  <input type="file" accept="image/*" onchange="uploadSpotPhoto('${s.id}',this.files[0])" style="display:none">
+                </label>`}
+                <button class="small" onclick="editSpot('${s.id}')">編輯</button>
+                <button class="small" onclick="deleteSpot('${s.id}')">刪除</button>
+              </div>
             </div>
           </div>`;
       }).join('') || '<div class="empty">沒有符合條件的景點</div>'}
