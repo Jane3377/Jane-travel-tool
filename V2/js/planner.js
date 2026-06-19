@@ -516,7 +516,7 @@ function planCard(p, num, total, conflict = false) {
             </div>
             ${nearbyItems.map(s => `
               <div class="nearbyItem">
-                <span>${activityIcon(s.type)} ${esc(s.name)}</span>
+                <button class="nearbyItemBtn" onclick="openNearbySpotDetail('${s.id}')">${activityIcon(s.type)} ${esc(s.name)}</button>
                 ${shareViewMode ? '' : `<button class="nearbyRemoveBtn" onclick="removeNearbyFromPlan('${p.id}','${s.id}')">×</button>`}
               </div>`).join('')}
             ${shareViewMode ? '' : `<div class="nearbyPicker" id="nearbyPicker-${p.id}" style="display:none">

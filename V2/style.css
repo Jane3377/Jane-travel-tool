@@ -8199,6 +8199,76 @@ body[data-theme-mode="dark"] .day.active span:not(.dayDate) {
   white-space: nowrap;
 }
 .nearbyPickItem:hover { background: #e8f4ee; border-color: #90c8b0; color: #2e6b48; }
+/* 附近景點名稱可點擊 */
+.nearbyItemBtn {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  flex: 1;
+  min-width: 0;
+}
+.nearbyItemBtn:hover { color: #628f80; }
+
+/* 景點詳情底抽屜 */
+.nearbyDetailModal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.38);
+  z-index: 500;
+  display: flex;
+  align-items: flex-end;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .22s;
+}
+.nearbyDetailModal.show { opacity: 1; pointer-events: auto; }
+.nearbyDetailBox {
+  background: #fffdf8;
+  border-radius: 22px 22px 0 0;
+  padding: 8px 20px 32px;
+  width: 100%;
+  max-height: 75vh;
+  overflow-y: auto;
+  transform: translateY(100%);
+  transition: transform .25s cubic-bezier(.4,0,.2,1);
+}
+.nearbyDetailModal.show .nearbyDetailBox { transform: translateY(0); }
+.nearbyDetailHandle {
+  width: 36px; height: 4px;
+  background: #d8d0c8; border-radius: 2px;
+  margin: 0 auto 14px;
+}
+.nearbyDetailHead {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.nearbyDetailTitle { font-size: 18px; font-weight: 950; margin-bottom: 5px; }
+.nearbyDetailSub { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.nearbyDetailClose {
+  border: 0; background: #f0ece6; border-radius: 50%;
+  width: 28px; height: 28px; flex-shrink: 0;
+  font-size: 16px; font-weight: 700; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.nearbyDetailClose:hover { background: #e0dbd4; }
+.nearbyDetailPhoto {
+  width: 100%; max-height: 200px; object-fit: cover;
+  border-radius: 14px; margin-bottom: 12px; display: block;
+}
+.nearbyDetailKr {
+  background: #f5f0e8;
+  border-radius: 10px;
+  padding: 8px 10px;
+  margin: 10px 0;
+}
+
 .nearbyPickerArea { width: 100%; font-size: 11px; font-weight: 700; color: #628f80; padding: 2px 4px 4px; letter-spacing: .04em; }
 .nearbyEmpty { font-size: 12px; color: #a0988e; padding: 2px 4px; }
 

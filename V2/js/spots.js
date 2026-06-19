@@ -186,6 +186,64 @@ function closeExploreModal() {
   $('exploreModal')?.classList.remove('show');
 }
 
+/* ── 附近走逛景點詳情底抽屜 ── */
+function openNearbySpotDetail(spotId) {
+  const s = data.spots.find(x => x.id === spotId);
+  if (!s) return;
+  const isKorea  = data.trip.country === '韓國';
+  const mapQuery = encodeURIComponent(
+    isKorea && (s.krAddress || s.krName)
+      ? `${s.krAddress || ''} ${s.krName || s.name}`.trim()
+      : `${s.name} ${s.addr || data.trip.dest || ''}`.trim()
+  );
+  const slug = (t => {
+    const m = {'景點':'spot','餐廳':'food','咖啡廳':'cafe','購物':'shop','雨天備案':'rain','交通':'transit','航班':'flight','住宿':'hotel'};
+    return m[t] || 'other';
+  })(s.type);
+
+  let el = document.getElementById('nearbyDetailModal');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'nearbyDetailModal';
+    el.className = 'nearbyDetailModal';
+    el.addEventListener('click', e => { if (e.target === el) closeNearbySpotDetail(); });
+    document.body.appendChild(el);
+  }
+  el.innerHTML = `
+    <div class="nearbyDetailBox">
+      <div class="nearbyDetailHandle"></div>
+      <div class="nearbyDetailHead">
+        <div style="flex:1;min-width:0">
+          <div class="nearbyDetailTitle">${activityIcon(s.type)} ${esc(s.name)}</div>
+          <div class="nearbyDetailSub">
+            <span class="spotTypePill spotType-${slug}">${activityIcon(s.type)} ${esc(s.type)}</span>
+            ${s.addr ? `<span class="tag blue" style="font-size:11px">${esc(s.addr)}</span>` : ''}
+          </div>
+        </div>
+        <button class="nearbyDetailClose" onclick="closeNearbySpotDetail()">×</button>
+      </div>
+      ${s.photo ? `<img class="nearbyDetailPhoto" src="${s.photo}" alt="${esc(s.name)}">` : ''}
+      ${s.memo ? `<div class="box pink" style="margin:10px 0">${esc(s.memo)}</div>` : ''}
+      ${s.note ? `<div class="box" style="margin:10px 0"><b>注意：</b>${esc(s.note)}</div>` : ''}
+      ${isKorea && (s.krName || s.krAddress) ? `
+        <div class="nearbyDetailKr">
+          ${s.krName    ? `<div class="planKrRow"><span>韓文名稱</span><b>${esc(s.krName)}</b><button class="planKrCopy" onclick="copyText('${esc(s.krName)}')">複製</button></div>` : ''}
+          ${s.krAddress ? `<div class="planKrRow"><span>韓文地址</span><b>${esc(s.krAddress)}</b><button class="planKrCopy" onclick="copyText('${esc(s.krAddress)}')">複製</button></div>` : ''}
+        </div>` : ''}
+      <div class="btns" style="margin-top:14px;flex-wrap:wrap">
+        <button class="btn soft compact" onclick="openMap('${mapQuery}')">Google Maps</button>
+        ${isKorea ? `<button class="btn soft compact" onclick="naverMapSpot('${s.id}')">NAVER</button>` : ''}
+        ${isKorea ? `<button class="btn soft compact" onclick="window.open('https://map.kakao.com/?q=${encodeURIComponent(s.krName||s.name)}','_blank')">Kakao</button>` : ''}
+        <button class="btn blue compact" onclick="openExploreModal('${s.id}')">探索遊記</button>
+      </div>
+    </div>`;
+  el.classList.add('show');
+}
+
+function closeNearbySpotDetail() {
+  document.getElementById('nearbyDetailModal')?.classList.remove('show');
+}
+
 function runExplore(type) {
   const kw  = encodeURIComponent($('exploreKeyword')?.value || (_exploreSpot?.name || ''));
   const kwRaw = $('exploreKeyword')?.value || (_exploreSpot?.name || '');
