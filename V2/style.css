@@ -10348,3 +10348,43 @@ body.sheetOpen { overflow: hidden; }
   background: #03c75a;
   color: #fff;
 }
+
+/* ── 已排入行程景點區 ── */
+.scheduledSpotsWrap {
+  margin-top: 14px;
+  border: 1px solid #d0e8d8;
+  border-radius: 18px;
+  background: #f4fbf7;
+  overflow: hidden;
+}
+.scheduledSpotsHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  cursor: pointer;
+  list-style: none;
+  font-weight: 900;
+  font-size: 14px;
+  color: #3a6b58;
+}
+.scheduledSpotsHead::-webkit-details-marker { display: none; }
+.scheduledSpotsHead::after {
+  content: "⌄";
+  margin-left: auto;
+  font-size: 16px;
+  color: #628f80;
+  transition: transform .18s;
+}
+.scheduledSpotsWrap[open] .scheduledSpotsHead::after { transform: rotate(180deg); }
+.scheduledSpotsCnt {
+  background: #b9dccc;
+  color: #2a5040;
+  font-size: 11px;
+  font-weight: 900;
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+.scheduledSpotsGrid {
+  padding: 0 10px 12px;
+}

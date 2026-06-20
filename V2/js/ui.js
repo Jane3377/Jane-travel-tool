@@ -657,17 +657,22 @@ function renderSpots() {
       </select>
     </div>
 
-    <div class="grid2">
-      ${data.spots.filter(s => {
+    ${(() => {
+      const filtered = data.spots.filter(s => {
         if (spotFilterType && s.type !== spotFilterType) return false;
-        if (spotFilterDay === 'none' && s.day) return false;
+        if (spotFilterDay === 'none' && spotPlanExists(s)) return false;
         if (spotFilterDay && spotFilterDay !== 'none' && s.day !== spotFilterDay) return false;
         return true;
-      }).map(s => {
+      });
+      const pocket    = filtered.filter(s => !spotPlanExists(s));
+      const scheduled = filtered.filter(s =>  spotPlanExists(s));
+
+      const spotCardHtml = s => {
         const hasP = spotPlanExists(s);
         const slug = spotTypeSlug(s.type);
+        const linkedPlan = hasP ? data.plans.find(p => p.id === s.planId) : null;
         return `
-          <div class="card spotCard ${hasP ? 'spotUsed' : ''}">
+          <div class="card spotCard">
             ${s.photo ? `
               <div class="spotCardThumb">
                 <img src="${s.photo}" alt="${esc(s.name)}">
@@ -677,7 +682,7 @@ function renderSpots() {
               <div class="place">${activityIcon(s.type)} ${esc(s.name)}</div>
               <div class="tags">
                 <span class="spotTypePill spotType-${slug}">${activityIcon(s.type)} ${esc(s.type)}</span>
-                ${s.day ? `<span class="tag">${dayTitle(s.day)}${s.start ? ' · ' + esc(s.start) : ''}</span>` : '<span class="tag muted">未排</span>'}
+                ${linkedPlan ? `<span class="tag green">📅 ${dayTitle(linkedPlan.day)}${linkedPlan.start ? ' · ' + esc(linkedPlan.start) : ''}</span>` : (s.day ? `<span class="tag">${dayTitle(s.day)}</span>` : '<span class="tag muted">未排</span>')}
                 ${s.addr ? `<span class="tag blue">${esc(s.addr)}</span>` : ''}
                 ${s.source==='AI匯入' ? '<span class="tag green">AI</span>' : ''}
               </div>
@@ -699,8 +704,23 @@ function renderSpots() {
               </div>
             </div>
           </div>`;
-      }).join('') || '<div class="empty">沒有符合條件的景點</div>'}
-    </div>`;
+      };
+
+      return `
+        <div class="grid2">
+          ${pocket.map(spotCardHtml).join('') || '<div class="empty">沒有口袋景點，可以新增或用 AI 匯入</div>'}
+        </div>
+        ${scheduled.length ? `
+          <details class="scheduledSpotsWrap" ${scheduled.length < 4 ? 'open' : ''}>
+            <summary class="scheduledSpotsHead">
+              ✅ 已排入行程的景點
+              <span class="scheduledSpotsCnt">${scheduled.length}</span>
+            </summary>
+            <div class="grid2 scheduledSpotsGrid">
+              ${scheduled.map(spotCardHtml).join('')}
+            </div>
+          </details>` : ''}`;
+    })()}`;
 }
 
 function renderBudget() {

@@ -22,7 +22,20 @@ function saveSpot() {
   };
 
   if (editingSpotId) {
-    Object.assign(data.spots.find(s => s.id === editingSpotId), item);
+    const spot = data.spots.find(s => s.id === editingSpotId);
+    Object.assign(spot, item);
+    // 同步到對應行程
+    if (spot.planId) {
+      const plan = data.plans.find(p => p.id === spot.planId);
+      if (plan) {
+        plan.name      = item.name;
+        plan.type      = normalizePlanType(item.type);
+        plan.address   = item.addr        || '';
+        plan.krName    = item.krName      || '';
+        plan.krAddress = item.krAddress   || '';
+        plan.note      = item.note        || '';
+      }
+    }
     editingSpotId = null;
   } else {
     const spot = { id: uid(), ...item, source: '手動' };

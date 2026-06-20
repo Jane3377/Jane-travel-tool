@@ -82,14 +82,21 @@ function savePlanForm() {
   if (editingPlanId) {
     const existing = data.plans.find(p => p.id === editingPlanId);
     if (existing) {
-      // 保留鎖定欄位
-      if (existing.lockedName) {
-        item.name       = existing.name;
-        item.source     = existing.source;
-        item.lockedName = true;
-        if (existing.hotelId) item.hotelId = existing.hotelId;
-      }
+      // 保留內部欄位
+      item.source = existing.source;
+      if (existing.hotelId) item.hotelId = existing.hotelId;
       Object.assign(existing, item);
+      // 同步到對應景點
+      const spot = data.spots.find(s => s.planId === existing.id);
+      if (spot) {
+        spot.name      = item.name;
+        spot.type      = item.type;
+        spot.addr      = item.address   || '';
+        spot.krName    = item.krName    || '';
+        spot.krAddress = item.krAddress || '';
+        spot.note      = item.note      || '';
+        spot.day       = item.day       || spot.day;
+      }
     }
     editingPlanId = null;
   } else {
