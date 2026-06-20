@@ -746,9 +746,22 @@ function renderSpots() {
           </div>`;
       };
 
+      const scheduled   = filtered.filter(s =>  spotPlanExists(s));
+      const unscheduled = filtered.filter(s => !spotPlanExists(s));
+
       return `
+        ${scheduled.length ? `
+          <details class="scheduledSpotsWrap">
+            <summary class="scheduledSpotsHead">
+              ✅ 已排入行程
+              <span class="scheduledSpotsCnt">${scheduled.length}</span>
+            </summary>
+            <div class="grid2 scheduledSpotsGrid">
+              ${scheduled.map(spotCardHtml).join('')}
+            </div>
+          </details>` : ''}
         <div class="grid2">
-          ${filtered.map(spotCardHtml).join('') || '<div class="empty">沒有符合條件的景點</div>'}
+          ${unscheduled.map(spotCardHtml).join('') || '<div class="empty">沒有符合條件的景點</div>'}
         </div>`;
     })()}`;
 }
