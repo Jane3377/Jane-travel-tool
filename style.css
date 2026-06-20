@@ -10465,6 +10465,4 @@ body.sheetOpen { overflow: hidden; }
 .itineraryItem.sortable-ghost { opacity: 0.35; }
 .itineraryItem.sortable-chosen { box-shadow: 0 4px 20px rgba(0,0,0,.12); }
 
-/* ── 拖曳區域（左欄） ── */
-.itineraryDotWrap { cursor: grab; touch-action: none; }
-.itineraryDotWrap:active { cursor: grabbing; }
+
