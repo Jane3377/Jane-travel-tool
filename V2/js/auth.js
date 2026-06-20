@@ -426,6 +426,11 @@ async function bootFirebase() {
 
   fbAuth = firebase.auth();
   fbDb   = firebase.firestore();
+  fbDb.enablePersistence({ synchronizeTabs: true }).catch(err => {
+    if (err.code !== 'failed-precondition' && err.code !== 'unimplemented') {
+      console.warn('Firestore persistence error:', err);
+    }
+  });
 
   // 檢查是否為分享連結（?share=TOKEN）
   const urlToken = new URLSearchParams(window.location.search).get('share');
