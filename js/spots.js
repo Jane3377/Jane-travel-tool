@@ -9,9 +9,19 @@ let spotSortMode   = 'default'; // 'default' | 'day' | 'stars'
 function setSpotStars(id, stars) {
   const s = data.spots.find(x => x.id === id);
   if (!s) return;
-  s.stars = (s.stars === stars) ? 0 : stars; // 再點同一個取消
+  s.stars = (s.stars === stars) ? 0 : stars;
   save();
-  renderSpots();
+  // 排序模式為最愛時需完整 re-render（順序會變）；否則只更新星星避免跳頁
+  if (spotSortMode === 'stars') {
+    renderSpots();
+  } else {
+    const n = s.stars;
+    document.querySelectorAll(`.spotStar[data-sid="${id}"]`).forEach(btn => {
+      const i = Number(btn.dataset.idx);
+      btn.classList.toggle('on', i <= n);
+      btn.textContent = i <= n ? '❤' : '♡';
+    });
+  }
 }
 
 function saveSpot() {

@@ -697,7 +697,7 @@ function renderSpots() {
         const n = s.stars || 0;
         return `<div class="spotStars">
           ${[1,2,3].map(i =>
-            `<button class="spotStar ${i<=n?'on':''}" onclick="setSpotStars('${s.id}',${i})" title="${i}顆愛心">❤</button>`
+            `<button class="spotStar ${i<=n?'on':''}" data-sid="${s.id}" data-idx="${i}" onclick="setSpotStars('${s.id}',${i})">${i<=n?'❤':'♡'}</button>`
           ).join('')}
         </div>`;
       };
