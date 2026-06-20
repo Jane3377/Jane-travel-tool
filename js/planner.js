@@ -608,15 +608,24 @@ function openDayMap() {
     p.krAddress || p.krName || p.address || p.name
   );
   if (!plans.length) return toast('今日沒有行程');
-  const queries = plans.map(p => {
-    const q = isKorea
+
+  const queries = plans.map(p =>
+    isKorea
       ? (p.krAddress || p.krName || p.address || p.name)
-      : (p.address || p.name);
-    return encodeURIComponent(q);
-  });
-  const url = queries.length === 1
-    ? `https://www.google.com/maps/search/?api=1&query=${queries[0]}`
-    : `https://www.google.com/maps/dir/${queries.join('/')}`;
+      : (p.address || p.name)
+  );
+
+  let url;
+  if (queries.length === 1) {
+    url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(queries[0])}`;
+  } else {
+    const origin      = encodeURIComponent(queries[0]);
+    const destination = encodeURIComponent(queries[queries.length - 1]);
+    const waypoints   = queries.slice(1, -1).map(encodeURIComponent).join('|');
+    const travelmode  = isKorea ? 'transit' : 'driving';
+    url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}${waypoints ? `&waypoints=${waypoints}` : ''}&travelmode=${travelmode}`;
+  }
+
   window.open(url, '_blank');
   toast(`已開啟今日 ${queries.length} 個地點`);
 }

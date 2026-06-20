@@ -21,15 +21,23 @@ function openSpotsMap() {
     return true;
   });
   if (!spots.length) return toast('目前篩選範圍內沒有景點');
-  const queries = spots.map(s => {
-    const q = isKorea
+  const queries = spots.map(s =>
+    isKorea
       ? (s.krAddress || s.krName || s.addr || s.name)
-      : (s.addr || s.name);
-    return encodeURIComponent(q);
-  });
-  const url = queries.length === 1
-    ? `https://www.google.com/maps/search/?api=1&query=${queries[0]}`
-    : `https://www.google.com/maps/dir/${queries.join('/')}`;
+      : (s.addr || s.name)
+  );
+
+  let url;
+  if (queries.length === 1) {
+    url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(queries[0])}`;
+  } else {
+    const origin      = encodeURIComponent(queries[0]);
+    const destination = encodeURIComponent(queries[queries.length - 1]);
+    const waypoints   = queries.slice(1, -1).map(encodeURIComponent).join('|');
+    const travelmode  = isKorea ? 'transit' : 'driving';
+    url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}${waypoints ? `&waypoints=${waypoints}` : ''}&travelmode=${travelmode}`;
+  }
+
   window.open(url, '_blank');
   toast(`已開啟 ${queries.length} 個景點`);
 }
