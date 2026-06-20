@@ -10388,3 +10388,62 @@ body.sheetOpen { overflow: hidden; }
 .scheduledSpotsGrid {
   padding: 0 10px 12px;
 }
+
+/* ── 景點篩選列第二行 ── */
+.spotFilterRow2 {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+.spotSortSelect {
+  flex: 1;
+  font-size: 13px;
+  padding: 7px 10px;
+  border-radius: 12px;
+}
+.spotDaySelect {
+  flex: 1;
+  font-size: 13px;
+  padding: 7px 10px;
+  border-radius: 12px;
+}
+
+/* ── 景點卡標題列（名稱 + 愛心） ── */
+.spotCardTitleRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.spotCardTitleRow .place { flex: 1; min-width: 0; }
+
+/* ── 愛心評分 ── */
+.spotStars {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.spotStar {
+  border: 0;
+  background: transparent;
+  font-size: 16px;
+  padding: 0;
+  cursor: pointer;
+  color: #ddd;
+  line-height: 1;
+  transition: color .12s, transform .1s;
+}
+.spotStar.on  { color: #e05a7a; }
+.spotStar:active { transform: scale(1.25); }
+
+/* ── 已排入 badge ── */
+.spotScheduledTag {
+  background: #d9f0e4 !important;
+  color: #2a6b4a !important;
+  font-weight: 900;
+}
+.spotScheduled {
+  border-color: #b9dccc !important;
+}

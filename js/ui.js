@@ -648,41 +648,81 @@ function renderSpots() {
             onclick="spotFilterType='${t==='全部'?'':t}';renderSpots()">${t}</button>`
         ).join('')}
       </div>
-      <select class="spotDaySelect" onchange="spotFilterDay=this.value;renderSpots()">
-        <option value="">全部日期</option>
-        <option value="none" ${spotFilterDay==='none'?'selected':''}>未排</option>
-        ${data.days.map(d =>
-          `<option value="${d.key}" ${spotFilterDay===d.key?'selected':''}>${d.title}（${d.label}）</option>`
-        ).join('')}
-      </select>
+      <div class="spotFilterRow2">
+        <select class="spotDaySelect" onchange="spotFilterDay=this.value;renderSpots()">
+          <option value="">全部日期</option>
+          <option value="none" ${spotFilterDay==='none'?'selected':''}>未排入行程</option>
+          ${data.days.map(d =>
+            `<option value="${d.key}" ${spotFilterDay===d.key?'selected':''}>${d.title}（${d.label}）</option>`
+          ).join('')}
+        </select>
+        <select class="spotSortSelect" onchange="spotSortMode=this.value;renderSpots()">
+          <option value="default" ${spotSortMode==='default'?'selected':''}>加入順序</option>
+          <option value="stars"   ${spotSortMode==='stars'  ?'selected':''}>最愛優先 ❤️</option>
+          <option value="day"     ${spotSortMode==='day'    ?'selected':''}>依日期</option>
+        </select>
+      </div>
     </div>
 
     ${(() => {
-      const filtered = data.spots.filter(s => {
+      // 篩選
+      let filtered = data.spots.filter(s => {
         if (spotFilterType && s.type !== spotFilterType) return false;
-        if (spotFilterDay === 'none' && spotPlanExists(s)) return false;
-        if (spotFilterDay && spotFilterDay !== 'none' && s.day !== spotFilterDay) return false;
+        if (spotFilterDay === 'none') {
+          const plan = s.planId ? data.plans.find(p => p.id === s.planId) : null;
+          if (plan) return false;
+        }
+        if (spotFilterDay && spotFilterDay !== 'none') {
+          const plan = s.planId ? data.plans.find(p => p.id === s.planId) : null;
+          const effectiveDay = plan?.day || s.day || '';
+          if (effectiveDay !== spotFilterDay) return false;
+        }
         return true;
       });
-      const pocket    = filtered.filter(s => !spotPlanExists(s));
-      const scheduled = filtered.filter(s =>  spotPlanExists(s));
+
+      // 排序
+      if (spotSortMode === 'stars') {
+        filtered = [...filtered].sort((a, b) => (b.stars || 0) - (a.stars || 0));
+      } else if (spotSortMode === 'day') {
+        filtered = [...filtered].sort((a, b) => {
+          const pa = a.planId ? data.plans.find(p => p.id === a.planId) : null;
+          const pb = b.planId ? data.plans.find(p => p.id === b.planId) : null;
+          const da = pa?.day || a.day || 'zzzz';
+          const db = pb?.day || b.day || 'zzzz';
+          return da.localeCompare(db);
+        });
+      }
+
+      const starsHtml = (s) => {
+        const n = s.stars || 0;
+        return `<div class="spotStars">
+          ${[1,2,3].map(i =>
+            `<button class="spotStar ${i<=n?'on':''}" onclick="setSpotStars('${s.id}',${i})" title="${i}顆愛心">❤</button>`
+          ).join('')}
+        </div>`;
+      };
 
       const spotCardHtml = s => {
         const hasP = spotPlanExists(s);
         const slug = spotTypeSlug(s.type);
         const linkedPlan = hasP ? data.plans.find(p => p.id === s.planId) : null;
         return `
-          <div class="card spotCard">
+          <div class="card spotCard${hasP ? ' spotScheduled' : ''}">
             ${s.photo ? `
               <div class="spotCardThumb">
                 <img src="${s.photo}" alt="${esc(s.name)}">
                 ${shareViewMode ? '' : `<button class="spotThumbRemove" onclick="removeSpotPhoto('${s.id}')" title="移除圖">×</button>`}
               </div>` : ''}
             <div class="spotCardInner">
-              <div class="place">${activityIcon(s.type)} ${esc(s.name)}</div>
+              <div class="spotCardTitleRow">
+                <div class="place">${activityIcon(s.type)} ${esc(s.name)}</div>
+                ${shareViewMode ? '' : starsHtml(s)}
+              </div>
               <div class="tags">
                 <span class="spotTypePill spotType-${slug}">${activityIcon(s.type)} ${esc(s.type)}</span>
-                ${linkedPlan ? `<span class="tag green">📅 ${dayTitle(linkedPlan.day)}${linkedPlan.start ? ' · ' + esc(linkedPlan.start) : ''}</span>` : (s.day ? `<span class="tag">${dayTitle(s.day)}</span>` : '<span class="tag muted">未排</span>')}
+                ${hasP
+                  ? `<span class="tag spotScheduledTag">✅ ${linkedPlan ? dayTitle(linkedPlan.day) + (linkedPlan.start ? ' · ' + esc(linkedPlan.start) : '') : '已排入'}</span>`
+                  : '<span class="tag muted">未排</span>'}
                 ${s.addr ? `<span class="tag blue">${esc(s.addr)}</span>` : ''}
                 ${s.source==='AI匯入' ? '<span class="tag green">AI</span>' : ''}
               </div>
@@ -708,18 +748,8 @@ function renderSpots() {
 
       return `
         <div class="grid2">
-          ${pocket.map(spotCardHtml).join('') || '<div class="empty">沒有口袋景點，可以新增或用 AI 匯入</div>'}
-        </div>
-        ${scheduled.length ? `
-          <details class="scheduledSpotsWrap" ${scheduled.length < 4 ? 'open' : ''}>
-            <summary class="scheduledSpotsHead">
-              ✅ 已排入行程的景點
-              <span class="scheduledSpotsCnt">${scheduled.length}</span>
-            </summary>
-            <div class="grid2 scheduledSpotsGrid">
-              ${scheduled.map(spotCardHtml).join('')}
-            </div>
-          </details>` : ''}`;
+          ${filtered.map(spotCardHtml).join('') || '<div class="empty">沒有符合條件的景點</div>'}
+        </div>`;
     })()}`;
 }
 

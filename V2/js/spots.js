@@ -4,6 +4,15 @@
 
 let spotFilterType = '';
 let spotFilterDay  = '';
+let spotSortMode   = 'default'; // 'default' | 'day' | 'stars'
+
+function setSpotStars(id, stars) {
+  const s = data.spots.find(x => x.id === id);
+  if (!s) return;
+  s.stars = (s.stars === stars) ? 0 : stars; // 再點同一個取消
+  save();
+  renderSpots();
+}
 
 function saveSpot() {
   if (!$form('sn')?.value) return toast('請輸入景點名稱');
