@@ -28,9 +28,7 @@ function saveExpense() {
 }
 
 function editExpense(id) {
-  editingExpenseId = id;
-  renderBudget();
-  scrollTo(0, 0);
+  openEditSheet('expense', id);
 }
 
 function deleteExpense(id) {
@@ -41,9 +39,7 @@ function deleteExpense(id) {
 }
 
 function clearExpenseForm() {
-  editingExpenseId = null;
-  renderBudget();
-  scrollTo(0, 0);
+  closeAddSheet();
 }
 
 function fillExpenseForm(id) {

@@ -107,23 +107,57 @@ function openAddSheet() {
 }
 
 function closeAddSheet() {
+  editingPlanId    = null;
+  editingSpotId    = null;
+  editingExpenseId = null;
   const overlay = $('addSheetOverlay');
   if (overlay) overlay.hidden = true;
   document.body.classList.remove('sheetOpen');
+  updateFab();
 }
 
 function closeAddSheetOnBackdrop(e) {
   if (e.target === $('addSheetOverlay')) closeAddSheet();
 }
 
-function _addFormHtml(v) {
+function openEditSheet(type, id) {
+  const overlay = $('addSheetOverlay');
+  const body    = $('addSheetBody');
+  const titleEl = $('addSheetTitle');
+  if (!overlay || !body) return;
+
+  const titles = { plan: '編輯行程', spot: '編輯景點', expense: '編輯費用' };
+  if (titleEl) titleEl.textContent = titles[type] || '編輯';
+
+  if (type === 'plan') {
+    editingPlanId = id;
+    const e = data.plans.find(p => p.id === id);
+    body.innerHTML = _addFormHtml('planner', e);
+    setTimeout(() => planSyncDurDisplay(), 0);
+  } else if (type === 'spot') {
+    editingSpotId = id;
+    const e = data.spots.find(s => s.id === id);
+    body.innerHTML = _addFormHtml('spots', e);
+  } else if (type === 'expense') {
+    editingExpenseId = id;
+    const e = data.expenses.find(x => x.id === id);
+    body.innerHTML = _addFormHtml('budget', e);
+  }
+
+  overlay.hidden = false;
+  document.body.classList.add('sheetOpen');
+  updateFab();
+}
+
+function _addFormHtml(v, e = null) {
   const isKorea = data.trip.country === '韓國';
+  const isEdit  = !!e;
   if (v === 'planner') {
     return `
       <div class="three compactMobile">
         <div class="full"><label>日期</label>
-          <select id="pday">${optsDays(currentDay)}</select></div>
-        <div><label>開始</label>${timeSelHtml('ps', '10:00', 'planStartChange()')}</div>
+          <select id="pday">${optsDays(e?.day || currentDay)}</select></div>
+        <div><label>開始</label>${timeSelHtml('ps', e?.start || '10:00', 'planStartChange()')}</div>
         <div><label>時長</label>
           <select id="pdur" onchange="planDurationChange()">
             <option value="">（選填）</option>
@@ -134,49 +168,51 @@ function _addFormHtml(v) {
             }).join('')}
           </select></div>
         <div><label>結束 <span id="pdurDisplay" class="pdurDisplay"></span></label>
-          ${timeSelHtml('pe', '11:30', 'planEndChange()')}</div>
+          ${timeSelHtml('pe', e?.end || '11:30', 'planEndChange()')}</div>
       </div>
       <div class="two">
-        <div><label>分類</label><select id="ptype">${optsPlanTypes()}</select></div>
+        <div><label>分類</label><select id="ptype">${optsPlanTypes(e?.type||'景點')}</select></div>
         <div></div>
       </div>
       <label>行程名稱</label>
-      <input id="pname">
+      <input id="pname" value="${esc(e?.name||'')}">
       <label>地址（選填）</label>
-      <input id="paddress" placeholder="未來地圖功能使用">
+      <input id="paddress" placeholder="未來地圖功能使用" value="${esc(e?.address||'')}">
       ${isKorea ? `
       <div class="two">
-        <div><label>韓文名稱（選填）</label><input id="pkrName" placeholder="예: 감천문화마을"></div>
-        <div><label>韓文地址（選填）</label><input id="pkrAddr" placeholder="예: 부산광역시 사하구 감내2로 203"></div>
+        <div><label>韓文名稱（選填）</label><input id="pkrName" placeholder="예: 감천문화마을" value="${esc(e?.krName||'')}"></div>
+        <div><label>韓文地址（選填）</label><input id="pkrAddr" placeholder="예: 부산광역시 사하구 감내2로 203" value="${esc(e?.krAddress||'')}"></div>
       </div>` : ''}
-      <label>注意事項</label><textarea id="pnote"></textarea>
+      <label>注意事項</label><textarea id="pnote">${esc(e?.note||'')}</textarea>
       <div class="btns">
-        <button class="btn dark" onclick="savePlanForm()">加入行程</button>
+        <button class="btn dark" onclick="savePlanForm()">${isEdit ? '儲存修改' : '加入行程'}</button>
         <button class="btn soft" onclick="closeAddSheet()">取消</button>
       </div>`;
   }
   if (v === 'spots') {
     return `
       <div class="three compactMobile">
-        <div class="full"><label>名稱</label><input id="sn"></div>
+        <div class="full"><label>名稱</label><input id="sn" value="${esc(e?.name||'')}"></div>
         <div><label>分類</label>
           <select id="st">
-            ${['景點','餐廳','咖啡廳','購物','雨天備案','其他'].map(t => `<option>${t}</option>`).join('')}
+            ${['景點','餐廳','咖啡廳','購物','雨天備案','其他'].map(t =>
+              `<option ${t===(e?.type||'')?'selected':''}>${t}</option>`).join('')}
           </select></div>
         <div><label>候選日期</label>
-          <select id="sd"><option value="">未排</option>${optsDays('')}</select></div>
+          <select id="sd"><option value="">未排</option>${optsDays(e?.day||'')}</select></div>
       </div>
       <label>地址 / 區域</label>
       <div class="two">
-        <input id="sa">
+        <input id="sa" value="${esc(e?.addr||'')}">
         <button class="btn blue compact" onclick="mapSpotDraft()">查地圖</button>
       </div>
-      <label>注意事項</label><textarea id="sm"></textarea>
+      <label>注意事項</label><textarea id="sm">${esc(e?.note||'')}</textarea>
       ${isKorea ? `
       <div class="two">
-        <div><label>韓文名稱（選填）</label><input id="skrName" placeholder="예: 감천문화마을"></div>
-        <div><label>韓文地址（選填）</label><input id="skrAddr" placeholder="예: 부산광역시 사하구 감내2로 203"></div>
+        <div><label>韓文名稱（選填）</label><input id="skrName" placeholder="예: 감천문화마을" value="${esc(e?.krName||'')}"></div>
+        <div><label>韓文地址（選填）</label><input id="skrAddr" placeholder="예: 부산광역시 사하구 감내2로 203" value="${esc(e?.krAddress||'')}"></div>
       </div>` : ''}
+      ${!isEdit ? `
       <div class="three compactMobile">
         <div class="full"><label>排入行程？</label>
           <select id="sToPlan">
@@ -185,9 +221,9 @@ function _addFormHtml(v) {
           </select></div>
         <div><label>預設開始</label>${timeSelHtml('sStart', '10:00')}</div>
         <div><label>預設結束</label>${timeSelHtml('sEnd', '11:30')}</div>
-      </div>
+      </div>` : ''}
       <div class="btns">
-        <button class="btn dark" onclick="saveSpot()">加入景點</button>
+        <button class="btn dark" onclick="saveSpot()">${isEdit ? '儲存修改' : '加入景點'}</button>
         <button class="btn soft" onclick="closeAddSheet()">取消</button>
       </div>`;
   }
@@ -196,24 +232,25 @@ function _addFormHtml(v) {
       <div class="three compactMobile">
         <div><label>費用類型</label>
           <select id="etype">
-            ${['機票','住宿','網路','旅平險','交通票券','景點票券','餐飲','購物','其他'].map(t => `<option>${t}</option>`).join('')}
+            ${['機票','住宿','網路','旅平險','交通票券','景點票券','餐飲','購物','其他'].map(t =>
+              `<option ${t===(e?.type||'')?'selected':''}>${t}</option>`).join('')}
           </select></div>
-        <div><label>項目</label><input id="ename"></div>
-        <div><label>付款人</label><select id="epayer">${optsPayer('未定')}</select></div>
+        <div><label>項目</label><input id="ename" value="${esc(e?.name||'')}"></div>
+        <div><label>付款人</label><select id="epayer">${optsPayer(e?.payer||'未定')}</select></div>
       </div>
       <div class="four compactMobile">
         <div><label>${esc(data.trip.currency)} 金額</label>
-          <input id="eforeign" type="number" oninput="syncExpenseMoney('f')"></div>
+          <input id="eforeign" type="number" value="${e?.foreign||''}" oninput="syncExpenseMoney('f')"></div>
         <div><label>TWD</label>
-          <input id="etwd" type="number" oninput="syncExpenseMoney('t')"></div>
+          <input id="etwd" type="number" value="${e?.twd||''}" oninput="syncExpenseMoney('t')"></div>
         <div><label>付款方式</label>
-          <select id="epm">${optsPayMethod('未定')}</select></div>
+          <select id="epm">${optsPayMethod(e?.payMethod||'未定')}</select></div>
         <div><label>日期（選填）</label>
-          <input id="eday" type="date"></div>
+          <input id="eday" type="date" value="${e?.day||''}"></div>
       </div>
-      <label>備註</label><input id="ememo">
+      <label>備註</label><input id="ememo" value="${esc(e?.memo||'')}">
       <div class="btns">
-        <button class="btn dark" onclick="saveExpense()">新增費用</button>
+        <button class="btn dark" onclick="saveExpense()">${isEdit ? '儲存修改' : '新增費用'}</button>
         <button class="btn blue compact" onclick="openRateSearch()">查匯率</button>
         <button class="btn soft" onclick="closeAddSheet()">取消</button>
       </div>`;

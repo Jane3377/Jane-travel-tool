@@ -56,6 +56,7 @@ function savePlanForm() {
   const name = $form('pname')?.value.trim();
   if (!name) return toast('請輸入行程名稱');
 
+  const wasEditing = !!editingPlanId;
   const day   = $form('pday')?.value || currentDay;
   const start = getTimeVal('ps');
   const end   = getTimeVal('pe');
@@ -129,12 +130,11 @@ function savePlanForm() {
   currentDay = cur = day;
   save();
   closeAddSheet();
-  toast(editingPlanId ? '已更新行程' : '已新增行程');
+  toast(wasEditing ? '已更新行程' : '已新增行程');
 }
 
 function editPlan(id) {
-  editingPlanId = id;
-  go('planner');
+  openEditSheet('plan', id);
 }
 
 function deletePlan(id) {

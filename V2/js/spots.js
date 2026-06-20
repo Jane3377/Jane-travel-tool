@@ -94,9 +94,7 @@ function saveSpot() {
 }
 
 function editSpot(id) {
-  editingSpotId = id;
-  renderSpots();
-  scrollTo(0, 0);
+  openEditSheet('spot', id);
 }
 
 function deleteSpot(id) {
@@ -107,8 +105,7 @@ function deleteSpot(id) {
 }
 
 function clearSpotForm() {
-  editingSpotId = null;
-  renderSpots();
+  closeAddSheet();
 }
 
 function mapSpotDraft() {
