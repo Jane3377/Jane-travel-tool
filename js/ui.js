@@ -541,6 +541,7 @@ function renderPlanner() {
         <h2>${dayTitle(currentDay)} <span class="plannerDayCnt">${plans.length} 項</span></h2>
         <div class="hint">住宿：${hotelFor(currentDay)?.name || '未設定'}</div>
       </div>
+      <button class="btn soft compact" onclick="openDayMap()" title="在 Google Maps 查看今日行程路線">🗺 地圖</button>
     </div>
 
     <details class="card${editingPlanId || v16PendingSpotId ? '' : ' addInlineForm'}" ${editingPlanId || v16PendingSpotId ? 'open' : ''}>
@@ -698,6 +699,7 @@ function renderSpots() {
           <option value="stars"   ${spotSortMode==='stars'  ?'selected':''}>最愛優先 ❤️</option>
           <option value="day"     ${spotSortMode==='day'    ?'selected':''}>依日期</option>
         </select>
+        <button class="btn soft compact" onclick="openSpotsMap()" title="在 Google Maps 查看景點位置">🗺 地圖</button>
       </div>
     </div>
 

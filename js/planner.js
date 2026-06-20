@@ -601,6 +601,17 @@ function planCards(plans) {
    行程 v28 normalize（相容舊資料）
    ══════════════════════════════════════════ */
 
+/* ── 地圖總覽 ── */
+function openDayMap() {
+  const plans = sortedPlans(currentDay).filter(p => p.address);
+  if (!plans.length) return toast('今日行程沒有地址資訊');
+  const addrs = plans.map(p => encodeURIComponent(p.address));
+  const url = addrs.length === 1
+    ? `https://www.google.com/maps/search/?api=1&query=${addrs[0]}`
+    : `https://www.google.com/maps/dir/${addrs.join('/')}`;
+  window.open(url, '_blank');
+}
+
 function normalizePlans() {
   const seen = new Set();
   data.plans.forEach(p => {

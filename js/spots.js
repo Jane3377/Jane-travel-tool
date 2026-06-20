@@ -6,6 +6,28 @@ let spotFilterType = '';
 let spotFilterDay  = '';
 let spotSortMode   = 'default'; // 'default' | 'day' | 'stars'
 
+function openSpotsMap() {
+  let spots = data.spots.filter(s => {
+    if (!s.addr && !s.name) return false;
+    if (spotFilterType && s.type !== spotFilterType) return false;
+    if (spotFilterDay === 'none') {
+      const plan = s.planId ? data.plans.find(p => p.id === s.planId) : null;
+      if (plan) return false;
+    } else if (spotFilterDay) {
+      const plan = s.planId ? data.plans.find(p => p.id === s.planId) : null;
+      const effectiveDay = plan?.day || s.day || '';
+      if (effectiveDay !== spotFilterDay) return false;
+    }
+    return true;
+  });
+  if (!spots.length) return toast('目前篩選範圍內沒有地址資訊');
+  const addrs = spots.map(s => encodeURIComponent(s.addr || s.name));
+  const url = addrs.length === 1
+    ? `https://www.google.com/maps/search/?api=1&query=${addrs[0]}`
+    : `https://www.google.com/maps/dir/${addrs.join('/')}`;
+  window.open(url, '_blank');
+}
+
 function setSpotStars(id, stars) {
   const s = data.spots.find(x => x.id === id);
   if (!s) return;
