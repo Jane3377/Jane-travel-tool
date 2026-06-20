@@ -615,6 +615,7 @@ function renderPlanner() {
         ${aiReviewHtml()}
       </div>`);
   }
+  initPlannerSortable();
 }
 
 function renderSpots() {

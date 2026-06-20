@@ -135,9 +135,17 @@ function travelerName(v) {
   return data.trip.travelers[Number(v)] || v || '未定';
 }
 function sortedPlans(day) {
-  return data.plans
-    .filter(p => p.day === day)
-    .sort((a, b) => String(a.start).localeCompare(String(b.start)) || String(a.end).localeCompare(String(b.end)));
+  const plans = data.plans.filter(p => p.day === day);
+  if (plans.some(p => p.sortOrder != null)) {
+    return plans.sort((a, b) =>
+      (a.sortOrder ?? 9999) - (b.sortOrder ?? 9999) ||
+      String(a.start).localeCompare(String(b.start))
+    );
+  }
+  return plans.sort((a, b) =>
+    String(a.start).localeCompare(String(b.start)) ||
+    String(a.end).localeCompare(String(b.end))
+  );
 }
 function activityIcon(type) {
   const icons = { '餐廳':'🍴','咖啡廳':'☕','購物':'🛍️','交通':'🚗','航班':'✈️','住宿':'🏨','雨天備案':'☔','其他':'✨' };

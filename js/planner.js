@@ -551,8 +551,9 @@ function planCard(p, num, total, conflict = false) {
     </div>`;
 
   return `
-    <div class="itineraryItem">
+    <div class="itineraryItem" data-id="${p.id}">
       <div class="itineraryDotWrap">
+        ${shareViewMode ? '' : '<span class="dragHandle" title="拖曳排序">⠿</span>'}
         <span class="planIndex${conflict ? ' planIndex--conflict' : ''}">${num}</span>
       </div>
       <article class="itineraryCard${isAuto ? ' planCard--auto' : ''}${conflict ? ' planCard--conflict' : ''}${isTransport ? ' itineraryCard--transport' : ''}">
@@ -600,6 +601,25 @@ function planCards(plans) {
 /* ══════════════════════════════════════════
    行程 v28 normalize（相容舊資料）
    ══════════════════════════════════════════ */
+
+/* ── 拖曳排序 ── */
+function initPlannerSortable() {
+  const timeline = document.querySelector('#pcards .itineraryTimeline');
+  if (!timeline || typeof Sortable === 'undefined') return;
+  new Sortable(timeline, {
+    animation: 150,
+    draggable: '.itineraryItem',
+    handle: '.dragHandle',
+    onEnd() {
+      const items = timeline.querySelectorAll('.itineraryItem[data-id]');
+      items.forEach((el, i) => {
+        const plan = data.plans.find(p => p.id === el.dataset.id);
+        if (plan) plan.sortOrder = i;
+      });
+      save();
+    }
+  });
+}
 
 /* ── 地圖總覽 ── */
 function openDayMap() {
