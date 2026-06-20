@@ -603,13 +603,22 @@ function planCards(plans) {
 
 /* ── 地圖總覽 ── */
 function openDayMap() {
-  const plans = sortedPlans(currentDay).filter(p => p.address);
-  if (!plans.length) return toast('今日行程沒有地址資訊');
-  const addrs = plans.map(p => encodeURIComponent(p.address));
-  const url = addrs.length === 1
-    ? `https://www.google.com/maps/search/?api=1&query=${addrs[0]}`
-    : `https://www.google.com/maps/dir/${addrs.join('/')}`;
+  const isKorea = data.trip.country === '韓國';
+  const plans = sortedPlans(currentDay).filter(p =>
+    p.krAddress || p.krName || p.address || p.name
+  );
+  if (!plans.length) return toast('今日沒有行程');
+  const queries = plans.map(p => {
+    const q = isKorea
+      ? (p.krAddress || p.krName || p.address || p.name)
+      : (p.address || p.name);
+    return encodeURIComponent(q);
+  });
+  const url = queries.length === 1
+    ? `https://www.google.com/maps/search/?api=1&query=${queries[0]}`
+    : `https://www.google.com/maps/dir/${queries.join('/')}`;
   window.open(url, '_blank');
+  toast(`已開啟今日 ${queries.length} 個地點`);
 }
 
 function normalizePlans() {

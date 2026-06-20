@@ -7,8 +7,8 @@ let spotFilterDay  = '';
 let spotSortMode   = 'default'; // 'default' | 'day' | 'stars'
 
 function openSpotsMap() {
+  const isKorea = data.trip.country === '韓國';
   let spots = data.spots.filter(s => {
-    if (!s.addr && !s.name) return false;
     if (spotFilterType && s.type !== spotFilterType) return false;
     if (spotFilterDay === 'none') {
       const plan = s.planId ? data.plans.find(p => p.id === s.planId) : null;
@@ -20,12 +20,18 @@ function openSpotsMap() {
     }
     return true;
   });
-  if (!spots.length) return toast('目前篩選範圍內沒有地址資訊');
-  const addrs = spots.map(s => encodeURIComponent(s.addr || s.name));
-  const url = addrs.length === 1
-    ? `https://www.google.com/maps/search/?api=1&query=${addrs[0]}`
-    : `https://www.google.com/maps/dir/${addrs.join('/')}`;
+  if (!spots.length) return toast('目前篩選範圍內沒有景點');
+  const queries = spots.map(s => {
+    const q = isKorea
+      ? (s.krAddress || s.krName || s.addr || s.name)
+      : (s.addr || s.name);
+    return encodeURIComponent(q);
+  });
+  const url = queries.length === 1
+    ? `https://www.google.com/maps/search/?api=1&query=${queries[0]}`
+    : `https://www.google.com/maps/dir/${queries.join('/')}`;
   window.open(url, '_blank');
+  toast(`已開啟 ${queries.length} 個景點`);
 }
 
 function setSpotStars(id, stars) {
