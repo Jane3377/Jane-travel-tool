@@ -458,8 +458,8 @@ function planCard(p, num, total, conflict = false) {
   const hasKr = isKorea && (p.krName || p.krAddress);
 
   const mapBtn    = `<button class="small" onclick="openMap('${mapQuery}')">Google Maps</button>`;
-  const kakaoBtn  = isKorea
-    ? `<button class="small" onclick="window.open('https://map.kakao.com/?q=${encodeURIComponent(p.krName||p.name)}','_blank')">Kakao</button>`
+  const naverBtn  = isKorea
+    ? `<button class="small" onclick="window.open('https://map.naver.com/v5/search/${encodeURIComponent(p.krName||p.name)}','_blank')">Naver Map</button>`
     : '';
 
   const cardContent = `
@@ -536,7 +536,7 @@ function planCard(p, num, total, conflict = false) {
             <button class="planMoveBtn" type="button" onclick="reorderPlan('${p.id}',-1)" title="上移" ${num===1?'disabled':''}>↑</button>
             <button class="planMoveBtn" type="button" onclick="reorderPlan('${p.id}',1)" title="下移" ${num===total?'disabled':''}>↓</button>
           </div>`}
-        ${isKorea ? kakaoBtn : mapBtn}
+        ${isKorea ? naverBtn : mapBtn}
         ${isKorea ? mapBtn : ''}
         <button class="small" onclick="editPlan('${p.id}')">編輯</button>
         <button class="small" onclick="deletePlan('${p.id}')">刪除</button>

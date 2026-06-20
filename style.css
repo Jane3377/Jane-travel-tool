@@ -10344,7 +10344,7 @@ body.sheetOpen { overflow: hidden; }
   font-weight: 900;
   text-decoration: none;
 }
-.spDetailMapBtnKakao {
-  background: #fee500;
-  color: #3c1e1e;
+.spDetailMapBtnNaver {
+  background: #03c75a;
+  color: #fff;
 }

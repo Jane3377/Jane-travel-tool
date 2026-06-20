@@ -233,7 +233,6 @@ function openNearbySpotDetail(spotId) {
       <div class="btns" style="margin-top:14px;flex-wrap:wrap">
         <button class="btn soft compact" onclick="openMap('${mapQuery}')">Google Maps</button>
         ${isKorea ? `<button class="btn soft compact" onclick="naverMapSpot('${s.id}')">NAVER</button>` : ''}
-        ${isKorea ? `<button class="btn soft compact" onclick="window.open('https://map.kakao.com/?q=${encodeURIComponent(s.krName||s.name)}','_blank')">Kakao</button>` : ''}
         <button class="btn blue compact" onclick="openExploreModal('${s.id}')">探索遊記</button>
       </div>
     </div>`;

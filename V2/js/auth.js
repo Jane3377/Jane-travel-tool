@@ -718,7 +718,7 @@ function openSharePlanDetail(planId) {
   const mapQ    = encodeURIComponent(p.krName || p.address || p.name);
   const mapBtn  = p.address || p.name
     ? `<a class="spDetailMapBtn" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.address || p.name)}" target="_blank">Google Maps</a>
-       ${isKorea ? `<a class="spDetailMapBtn spDetailMapBtnKakao" href="https://map.kakao.com/?q=${mapQ}" target="_blank">카카오맵</a>` : ''}`
+       ${isKorea ? `<a class="spDetailMapBtn spDetailMapBtnNaver" href="https://map.naver.com/v5/search/${mapQ}" target="_blank">Naver Map</a>` : ''}`
     : '';
 
   const modal = document.getElementById('spDetailModal');
