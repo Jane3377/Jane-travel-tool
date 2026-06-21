@@ -609,9 +609,11 @@ function initPlannerSortable() {
   new Sortable(timeline, {
     animation: 150,
     draggable: '.itineraryItem',
-    delay: 300,
+    delay: 400,
     delayOnTouchOnly: true,
-    touchStartThreshold: 5,
+    touchStartThreshold: 8,
+    forceFallback: true,
+    fallbackTolerance: 5,
     onEnd() {
       const items = timeline.querySelectorAll('.itineraryItem[data-id]');
       items.forEach((el, i) => {
