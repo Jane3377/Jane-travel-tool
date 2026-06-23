@@ -10466,3 +10466,52 @@ body.sheetOpen { overflow: hidden; }
 .itineraryItem.sortable-chosen { box-shadow: 0 4px 20px rgba(0,0,0,.12); }
 
 
+
+/* ── 旅日記字型 ── */
+.diaryFont-caveat { font-family: 'Caveat', cursive; font-size: 1.08em; }
+.diaryFont-nunito { font-family: 'Nunito', sans-serif; }
+.diaryFont-noto   { font-family: 'Noto Sans TC', 'PingFang TC', sans-serif; }
+
+/* ── 字型選擇鈕 ── */
+.diaryFontRow { display: flex; gap: 6px; margin-bottom: 10px; }
+.diaryFontBtn {
+  padding: 6px 14px; border-radius: 999px; border: 1.5px solid var(--line);
+  background: var(--card); cursor: pointer; font-size: 13px; font-weight: 600;
+  transition: all .15s;
+}
+.diaryFontBtn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.diaryFontBtn-caveat { font-family: 'Caveat', cursive; font-size: 15px; }
+.diaryFontBtn-nunito { font-family: 'Nunito', sans-serif; }
+
+/* ── 發布列 ── */
+.diaryActionBar { padding: 12px 0 4px; display: flex; flex-direction: column; gap: 8px; }
+.diaryPublishRow { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ── 文字樣式工具列 ── */
+.diaryTextStyleBar {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 8px 12px; background: #faf7f2; border-radius: 12px;
+  margin-bottom: 8px;
+}
+.diaryStyleBarLabel { font-size: 11px; color: var(--muted); font-weight: 700; white-space: nowrap; }
+.diaryColorPalette { display: flex; gap: 5px; align-items: center; }
+.diaryColorSwatch {
+  width: 22px; height: 22px; border-radius: 50%; border: 2px solid #ddd;
+  cursor: pointer; transition: transform .1s;
+}
+.diaryColorSwatch.active { border-color: var(--primary); transform: scale(1.2); }
+.diaryColorReset { background: #f0ece8 !important; font-size: 10px; display: flex; align-items: center; justify-content: center; color: #888; }
+.diaryStyleToggle {
+  padding: 3px 10px; border-radius: 999px; border: 1.5px solid var(--line);
+  background: var(--card); cursor: pointer; font-size: 12px; font-weight: 600;
+  transition: all .15s;
+}
+.diaryStyleToggle.active { background: #2c2416; color: #fff; border-color: #2c2416; }
+
+/* ── 遊記瀏覽頁 ── */
+.diaryViewPage { min-height: 100vh; background: #f7f3ec; }
+.diaryViewWrap { max-width: 680px; margin: 0 auto; padding: 0 0 40px; }
+.diaryViewFooter { text-align: center; color: #8b827a; font-size: 12px; padding: 20px; }
+
+/* ── diaryWrap (editor) ── */
+.diaryWrap { margin-top: 8px; }

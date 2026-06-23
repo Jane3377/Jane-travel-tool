@@ -463,3 +463,83 @@ function handbookHtml() {
     ${shareBlock}
     ${_handbookDocHtml({ editable: true })}`;
 }
+
+/* ── 遊記字型 ── */
+function setDiaryFont(font) {
+  _flushDiaryTexts();
+  if (!data.diaryShare) data.diaryShare = {};
+  data.diaryShare.font = font;
+  save();
+  renderPhotoBook();
+}
+
+/* ── 每日文字樣式 ── */
+function setDayTextColor(day, color) {
+  _flushDiaryTexts();
+  if (!data.dayMoods) data.dayMoods = {};
+  if (!data.dayMoods[day]) data.dayMoods[day] = {};
+  data.dayMoods[day].textColor = color;
+  save();
+  renderPhotoBook();
+}
+function toggleDayTextStroke(day) {
+  _flushDiaryTexts();
+  if (!data.dayMoods) data.dayMoods = {};
+  if (!data.dayMoods[day]) data.dayMoods[day] = {};
+  data.dayMoods[day].textStroke = !data.dayMoods[day].textStroke;
+  save();
+  renderPhotoBook();
+}
+function toggleDayTextBold(day) {
+  _flushDiaryTexts();
+  if (!data.dayMoods) data.dayMoods = {};
+  if (!data.dayMoods[day]) data.dayMoods[day] = {};
+  data.dayMoods[day].textBold = !data.dayMoods[day].textBold;
+  save();
+  renderPhotoBook();
+}
+
+/* ── 發布遊記 ── */
+async function publishDiary() {
+  if (!fbUser || !fbDb) return toast('請先登入');
+  _flushDiaryTexts();
+  if (!data.diaryShare) data.diaryShare = {};
+  if (!data.diaryShare.token) data.diaryShare.token = uid() + uid();
+  data.diaryShare.published = true;
+  data.diaryShare.publishedAt = Date.now();
+  try {
+    toast('發布中...');
+    await fbDb.collection('publicDiaries').doc(data.diaryShare.token).set({
+      data: JSON.parse(JSON.stringify(data)),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      ownerEmail: fbUser.email || '',
+      tripMeta: { title: data.meta?.title || '', dest: data.trip?.dest || '' }
+    });
+    save();
+    const url = `${location.origin}${location.pathname}?diary=${data.diaryShare.token}`;
+    try { await navigator.clipboard.writeText(url); toast('遊記已發布！連結已複製'); }
+    catch { toast('遊記已發布！連結：' + url); }
+    renderPhotoBook();
+  } catch (e) {
+    toast('發布失敗：' + e.message);
+  }
+}
+
+async function unpublishDiary() {
+  if (!confirm('確定取消發布？連結將失效。')) return;
+  if (!data.diaryShare?.token || !fbDb) return;
+  try {
+    await fbDb.collection('publicDiaries').doc(data.diaryShare.token).delete();
+  } catch (e) { /* ignore */ }
+  data.diaryShare.published = false;
+  save();
+  renderPhotoBook();
+  toast('已取消發布');
+}
+
+async function copyDiaryLink() {
+  if (!data.diaryShare?.token || !data.diaryShare?.published) return toast('請先發布遊記');
+  const url = `${location.origin}${location.pathname}?diary=${data.diaryShare.token}`;
+  try { await navigator.clipboard.writeText(url); toast('連結已複製'); }
+  catch { toast(url); }
+}

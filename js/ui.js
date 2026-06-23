@@ -941,12 +941,27 @@ function renderPhotoBook() {
 }
 
 function _diaryHtml() {
+  const ds = data.diaryShare || {};
+  const font = ds.font || 'noto';
+  const fontLabel = { caveat: '手寫 Aa', nunito: '圓體 Aa', noto: '一般 Aa' };
   return `
     <div class="diaryActionBar noPrint">
-      <button class="btn dark compact" onclick="exportDiaryPDF()">匯出 PDF</button>
+      <div class="diaryFontRow">
+        ${['caveat','nunito','noto'].map(f => `
+          <button class="diaryFontBtn diaryFontBtn-${f} ${font===f?'active':''}"
+                  onclick="setDiaryFont('${f}')">${fontLabel[f]}</button>`).join('')}
+      </div>
+      <div class="diaryPublishRow">
+        ${ds.published
+          ? `<button class="btn soft compact" onclick="copyDiaryLink()">📋 複製連結</button>
+             <button class="btn danger compact" onclick="unpublishDiary()">取消發布</button>`
+          : `<button class="btn dark compact" onclick="publishDiary()">🌐 發布遊記</button>`}
+      </div>
     </div>
-    ${diaryCoverHtml()}
-    ${data.days.map(d => diaryDayHtml(d)).join('')}`;
+    <div class="diaryWrap diaryFont-${font}">
+      ${diaryCoverHtml()}
+      ${data.days.map(d => diaryDayHtml(d)).join('')}
+    </div>`;
 }
 
 function renderHelp() {

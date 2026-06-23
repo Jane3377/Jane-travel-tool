@@ -104,6 +104,7 @@ function normalizeData(raw) {
   if (!d.aiReviews)    d.aiReviews    = {};
   if (!d.packing?.length)   d.packing   = makePacking();
   if (!d.packLists?.length) d.packLists = [{ id: 'pre', name: '出國前' }, { id: 'out', name: '離開飯店' }];
+  if (!d.diaryShare) d.diaryShare = { token: '', published: false, font: 'noto', publishedAt: null };
 
   // 重建 days
   if (!d.days?.length && d.trip.start && d.trip.end) {

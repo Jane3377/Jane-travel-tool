@@ -649,6 +649,15 @@ function diaryDayHtml(d) {
   const savedTags = mood.tags || [];
   const lineText  = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
 
+  const textColor  = mood.textColor  || '';
+  const textStroke = mood.textStroke || false;
+  const textBold   = mood.textBold   || false;
+  const textStyleAttr = [
+    textColor  ? `color:${textColor}` : '',
+    textBold   ? 'font-weight:900' : '',
+    textStroke ? 'text-shadow:-1px -1px 0 #fff,1px -1px 0 #fff,-1px 1px 0 #fff,1px 1px 0 #fff' : ''
+  ].filter(Boolean).join(';');
+
   const dismissed = mood.dismissed || [];
   const planSuggestions = plans.filter(p => {
     const t = `${activityIcon(p.type)} ${p.name}`;
@@ -657,10 +666,35 @@ function diaryDayHtml(d) {
 
   const isStory = style === 'story' || style === 'sketch';
   const textBlock = shareViewMode
-    ? (text ? `<div class="diaryDayText">${lineText}</div>` : '')
+    ? (text ? `<div class="diaryDayText" ${textStyleAttr?`style="${textStyleAttr}"`:''}>${lineText}</div>` : '')
     : `<div class="diaryDayText" contenteditable="true"
+            ${textStyleAttr ? `style="${textStyleAttr}"` : ''}
             onblur="saveDayText('${d.key}', this.innerText)"
             data-placeholder="寫下今天的心情…">${lineText}</div>`;
+
+  const TEXT_COLORS = [
+    { val:'#2c2416', label:'深褐' },
+    { val:'#ffffff', label:'白色' },
+    { val:'#f5f0e8', label:'奶白' },
+    { val:'#2e4a38', label:'森林綠' },
+    { val:'#1a1a2e', label:'深藍' },
+    { val:'#c45555', label:'珊瑚紅' },
+  ];
+  const styleToolbar = shareViewMode ? '' : `
+    <div class="diaryTextStyleBar noPrint">
+      <span class="diaryStyleBarLabel">文字</span>
+      <div class="diaryColorPalette">
+        ${TEXT_COLORS.map(c => `
+          <button class="diaryColorSwatch ${textColor===c.val?'active':''}"
+                  style="background:${c.val}"
+                  title="${c.label}"
+                  onclick="setDayTextColor('${d.key}','${c.val}')"></button>`).join('')}
+        <button class="diaryColorSwatch diaryColorReset ${!textColor?'active':''}"
+                title="預設" onclick="setDayTextColor('${d.key}','')">✕</button>
+      </div>
+      <button class="diaryStyleToggle ${textStroke?'active':''}" onclick="toggleDayTextStroke('${d.key}')">描邊</button>
+      <button class="diaryStyleToggle ${textBold?'active':''}" onclick="toggleDayTextBold('${d.key}')">粗體</button>
+    </div>`;
 
   return `
     <div class="diaryDay diaryStyle-${style}" data-day="${d.key}">
@@ -688,6 +722,8 @@ function diaryDayHtml(d) {
         </div>`}
 
       ${diaryItineraryHtml(d)}
+
+      ${styleToolbar}
 
       ${isStory ? `
         <div class="diaryTextSection">${textBlock}</div>

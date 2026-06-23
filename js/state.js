@@ -8,7 +8,8 @@ function makeDefaultData() {
     meta: {
       title: '我的旅程手帳',
       subtitle: '把想去的地方都收進來，慢慢排成一趟期待出發的旅行。',
-      bookStyle: 'fresh'
+      bookStyle: 'fresh',
+      diaryFont: 'noto'
     },
     trip: {
       dest: '',
@@ -40,7 +41,13 @@ function makeDefaultData() {
     aiReviews:  {},
     tripCover:  null,
     dayMoods:   {},
-    handbook:   {}
+    handbook:   {},
+    diaryShare: {
+      token: '',
+      published: false,
+      font: 'noto',
+      publishedAt: null
+    }
   };
 }
 

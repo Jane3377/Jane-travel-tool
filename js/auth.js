@@ -439,6 +439,12 @@ async function bootFirebase() {
     return;
   }
 
+  const diaryToken = new URLSearchParams(window.location.search).get('diary');
+  if (diaryToken) {
+    await loadSharedDiary(diaryToken);
+    return;
+  }
+
   // 載入白名單後再掛 auth 監聽
   await loadWhitelist();
   fbAuth.onAuthStateChanged(handleAuth);
@@ -873,5 +879,48 @@ function _renderShareError(msg) {
         <a class="btn dark" href="${window.location.pathname}">返回首頁</a>
       </div>`;
   }
+  showShell('login');
+}
+
+async function loadSharedDiary(token) {
+  shareViewMode = true;
+  const loginEl = $('loginView');
+  if (loginEl) loginEl.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:center;height:80vh;flex-direction:column;gap:12px;color:#8b827a">
+      ${_brandHtml()}
+      <p>載入旅遊日記中…</p>
+    </div>`;
+  showShell('login');
+  try {
+    const snap = await fbDb.collection('publicDiaries').doc(token).get();
+    if (!snap.exists || !snap.data()?.data) {
+      if (loginEl) loginEl.innerHTML = `<div class="gateCard" style="max-width:460px;margin:60px auto;text-align:center">${_brandHtml()}<h2>找不到此遊記</h2><p style="color:#8b827a">連結可能已失效或被取消發布</p></div>`;
+      return;
+    }
+    data = normalizeData(snap.data().data);
+    _renderDiaryViewPage(token);
+    fbDb.collection('publicDiaries').doc(token).onSnapshot(snap2 => {
+      if (!snap2.exists || !snap2.data()?.data) return;
+      data = normalizeData(snap2.data().data);
+      _renderDiaryViewPage(token);
+    }, err => console.warn('diary listener error', err));
+  } catch (e) {
+    if (loginEl) loginEl.innerHTML = `<div class="gateCard" style="max-width:460px;margin:60px auto;text-align:center">${_brandHtml()}<h2>載入失敗</h2><p style="color:#8b827a">${esc(e.message)}</p></div>`;
+  }
+}
+
+function _renderDiaryViewPage(token) {
+  const ds = data.diaryShare || {};
+  const font = ds.font || 'noto';
+  const el = $('loginView');
+  if (!el) return;
+  el.innerHTML = `
+    <div class="diaryViewPage">
+      <div class="diaryViewWrap diaryFont-${font}">
+        ${diaryCoverHtml()}
+        ${data.days.map(d => diaryDayHtml(d)).join('')}
+      </div>
+      <div class="diaryViewFooter">貞選旅管家 Janeselect Travel Manager<br>此遊記由旅行主辦人分享</div>
+    </div>`;
   showShell('login');
 }
