@@ -22,6 +22,11 @@ function esc(s) {
     ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;' }[m])
   );
 }
+function jsStr(s) {
+  // Safe embedding of user text in a single-quoted JS string inside an HTML onclick attribute.
+  // Escapes backslashes and single quotes so the string literal can't be broken or injected.
+  return String(s || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+}
 function fmt(n) { return Number(n || 0).toLocaleString('zh-TW'); }
 function toast(msg) {
   const el = $('toast');

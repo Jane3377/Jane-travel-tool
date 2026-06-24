@@ -373,8 +373,8 @@ function connHtml(a, b) {
   // Summary route buttons — Korea: Naver Map + Google Maps; others: Google Maps only
   const aName = isKorea ? (a.krName || a.name) : a.name;
   const bName = isKorea ? (b.krName || b.name) : b.name;
-  const googleMapsBtn = (compact) => `<button class="btn blue ${compact?'compact':''}" onclick="${compact?'event.stopPropagation();':''}openRoute('${encodeURIComponent(a.name+' '+data.trip.dest)}','${encodeURIComponent(b.name+' '+data.trip.dest)}','${conn.mode}')">Google Maps${compact?'':' 查路線'}</button>`;
-  const naverMapBtn   = (compact) => `<button class="btn soft ${compact?'compact':''}" onclick="${compact?'event.stopPropagation();':''}window.open('https://map.naver.com/p/search/${encodeURIComponent(bName)}','_blank')">NAVER Map${compact?'':' 搜尋'}</button>`;
+  const googleMapsBtn = (compact) => `<button class="btn blue ${compact?'compact':''}" onclick="${compact?'event.stopPropagation();':''}openRoute('${jsStr(encodeURIComponent(a.name+' '+data.trip.dest))}','${jsStr(encodeURIComponent(b.name+' '+data.trip.dest))}','${jsStr(conn.mode)}')">Google Maps${compact?'':' 查路線'}</button>`;
+  const naverMapBtn   = (compact) => `<button class="btn soft ${compact?'compact':''}" onclick="${compact?'event.stopPropagation();':''}window.open('https://map.naver.com/p/search/${jsStr(encodeURIComponent(bName))}','_blank')">NAVER Map${compact?'':' 搜尋'}</button>`;
 
   const summaryRouteBtns = isKorea
     ? naverMapBtn(true) + googleMapsBtn(true)

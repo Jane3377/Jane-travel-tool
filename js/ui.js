@@ -772,7 +772,7 @@ function renderSpots() {
                   ? `<button class="btn soft compact" onclick="returnSpotToPocket('${s.id}')">放回口袋</button>`
                   : `<button class="btn soft compact" onclick="useSpot('${s.id}')">排入行程</button>`)}
                 <button class="btn blue compact" onclick="openExploreModal('${s.id}')">探索</button>
-                <button class="btn soft compact" onclick="openMap('${encodeURIComponent(s.name+' '+(s.addr||data.trip.dest))}')">地圖</button>
+                <button class="btn soft compact" onclick="openMap('${jsStr(encodeURIComponent(s.name+' '+(s.addr||data.trip.dest)))}')">地圖</button>
                 ${isKorea ? `<button class="btn soft compact" onclick="naverMapSpot('${s.id}')">NAVER</button>` : ''}
                 ${isKorea && s.krName ? `<button class="btn soft compact" onclick="copyKoreanText('${s.id}')">韓文</button>` : ''}
                 ${shareViewMode ? '' : `<label class="btn soft compact" title="上傳縮圖" style="cursor:pointer">
@@ -1161,14 +1161,14 @@ function render() {
   normalizePlans();
   renderHead();
   renderSide();
-  renderTrip();
-  renderStay();
-  renderPlanner();
-  renderSpots();
-  renderBudget();
-  renderPacking();
-  renderPhotoBook();
-  renderHelp();
+  if (view === 'trip')      renderTrip();
+  if (view === 'stay')      renderStay();
+  if (view === 'planner')   renderPlanner();
+  if (view === 'spots')     renderSpots();
+  if (view === 'budget')    renderBudget();
+  if (view === 'packing')   renderPacking();
+  if (view === 'photoBook') renderPhotoBook();
+  if (view === 'help')      renderHelp();
   applyLockBanner();
   updateFab();
 }

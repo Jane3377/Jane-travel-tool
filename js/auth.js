@@ -563,7 +563,7 @@ function _renderSharePage() {
   el.innerHTML = `
     <div class="spPage">
       <!-- Hero -->
-      <div class="spHero" ${coverImg ? `style="background-image:url('${coverImg}');background-size:cover;background-position:center"` : ''}>
+      <div class="spHero" ${coverImg ? `style="background-image:url('${esc(coverImg)}');background-size:cover;background-position:center"` : ''}>
         ${coverImg ? '<div class="spHeroOverlay"></div>' : ''}
         <div class="spHeroContent">
           <div class="spBrand">貞選旅管家</div>
@@ -911,7 +911,7 @@ async function loadSharedDiary(token) {
 
 function _renderDiaryViewPage(token) {
   const ds = data.diaryShare || {};
-  const font = ds.font || 'noto';
+  const font = ['noto', 'serif', 'wenkai'].includes(ds.font) ? ds.font : 'noto';
   const el = $('loginView');
   if (!el) return;
   el.innerHTML = `

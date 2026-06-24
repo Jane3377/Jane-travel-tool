@@ -8817,10 +8817,9 @@ body.sheetOpen { overflow: hidden; }
 /* ── 操作列 ── */
 .diaryActionBar {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 20px;
-  background: #f7f3ec;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 0 4px;
 }
 
 /* ── 設定面板（封面 + 風格選擇） ── */
@@ -10484,7 +10483,6 @@ body.sheetOpen { overflow: hidden; }
 .diaryFontBtn-nunito { font-family: 'Nunito', sans-serif; }
 
 /* ── 發布列 ── */
-.diaryActionBar { padding: 12px 0 4px; display: flex; flex-direction: column; gap: 8px; }
 .diaryPublishRow { display: flex; gap: 8px; flex-wrap: wrap; }
 
 /* ── 文字樣式工具列 ── */

@@ -96,7 +96,7 @@ function normalizeData(raw) {
   }
 
   // 確保各陣列存在
-  ['hotels','expenses','spots','plans','conns','photos'].forEach(k => {
+  ['hotels','expenses','spots','plans','conns','photos','days'].forEach(k => {
     if (!Array.isArray(d[k])) d[k] = [];
   });
   if (!d.dayCovers)    d.dayCovers    = {};
