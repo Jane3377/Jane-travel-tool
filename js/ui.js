@@ -947,12 +947,12 @@ function renderPhotoBook() {
 
 function _diaryHtml() {
   const ds = data.diaryShare || {};
-  const font = ['noto','serif','wenkai'].includes(ds.font) ? ds.font : 'noto';
-  const fontLabel = { noto: '黑體 Aa', serif: '明體 Aa', wenkai: '楷書 Aa' };
+  const font = ['noto','serif','wenkai','cubic','klee','maru'].includes(ds.font) ? ds.font : 'noto';
+  const fontLabel = { noto: '黑體 Aa', serif: '明體 Aa', wenkai: '楷書 Aa', cubic: '像素 Aa', klee: '手寫 Aa', maru: '圓體 Aa' };
   return `
     <div class="diaryActionBar noPrint">
       <div class="diaryFontRow">
-        ${['noto','serif','wenkai'].map(f => `
+        ${['noto','serif','wenkai','cubic','klee','maru'].map(f => `
           <button class="diaryFontBtn diaryFontBtn-${f} ${font===f?'active':''}"
                   onclick="setDiaryFont('${f}')">${fontLabel[f]}</button>`).join('')}
       </div>
