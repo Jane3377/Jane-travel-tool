@@ -923,11 +923,13 @@ function renderPacking() {
     </div>`;
 }
 
+let _photoBookHtmlCache = '';
+
 function renderPhotoBook() {
   const el = $('photoBookView');
   if (!el) return;
 
-  el.innerHTML = `
+  const newHtml = `
     <div class="section noPrint">
       <div><h2>📖 旅遊書</h2></div>
     </div>
@@ -938,16 +940,19 @@ function renderPhotoBook() {
               onclick="photoBookTab='diary';renderPhotoBook()">旅日記</button>
     </div>
     ${photoBookTab === 'handbook' ? handbookHtml() : _diaryHtml()}`;
+  if (newHtml === _photoBookHtmlCache) return;
+  _photoBookHtmlCache = newHtml;
+  el.innerHTML = newHtml;
 }
 
 function _diaryHtml() {
   const ds = data.diaryShare || {};
-  const font = ds.font || 'noto';
-  const fontLabel = { caveat: '手寫 Aa', nunito: '圓體 Aa', noto: '一般 Aa' };
+  const font = ['noto','serif','wenkai'].includes(ds.font) ? ds.font : 'noto';
+  const fontLabel = { noto: '黑體 Aa', serif: '明體 Aa', wenkai: '楷書 Aa' };
   return `
     <div class="diaryActionBar noPrint">
       <div class="diaryFontRow">
-        ${['caveat','nunito','noto'].map(f => `
+        ${['noto','serif','wenkai'].map(f => `
           <button class="diaryFontBtn diaryFontBtn-${f} ${font===f?'active':''}"
                   onclick="setDiaryFont('${f}')">${fontLabel[f]}</button>`).join('')}
       </div>

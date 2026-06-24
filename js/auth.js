@@ -401,7 +401,6 @@ async function takeOverEdit() {
   if (!fbUser || !currentTripId) return toast('請先登入並選擇旅程');
   if (!confirm('要改由此裝置接手編輯嗎？系統會先載入最新資料再取得編輯權。')) return;
   try {
-    setReadOnly(false, null);
     await loadFromCloud({ force: true, silent: true });
     await acquireEditLock({ takeover: true });
     render();
