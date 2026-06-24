@@ -482,6 +482,8 @@ function _flushDiaryTexts() {
     if (textEl) data.dayMoods[day].text = textEl.innerText;
     const itinEl = el.querySelector('.diaryItinerary[contenteditable]');
     if (itinEl) data.dayMoods[day].itinerary = itinEl.innerText;
+    const photoTextEl = el.querySelector('.diaryPhotoText[contenteditable]');
+    if (photoTextEl) data.dayMoods[day].diaryText = photoTextEl.innerText;
   });
 }
 
@@ -499,7 +501,7 @@ function resetDayItinerary(day) {
   renderPhotoBook();
 }
 
-function diaryItineraryHtml(d) {
+function diaryItineraryHtml(d, itinColor = '') {
   const mood     = (data.dayMoods || {})[d.key] || {};
   const plans    = sortedPlans(d.key);
   const hasCustom = mood.itinerary !== undefined;
@@ -527,6 +529,7 @@ function diaryItineraryHtml(d) {
                   onclick="resetDayItinerary('${d.key}')">↺ 重設</button>` : ''}
       </div>
       <div class="diaryItinerary${hasCustom ? '' : ' fromPlan'}"
+           ${itinColor ? `style="color:${itinColor}"` : ''}
            ${ce ? `contenteditable="true" onblur="saveDayItinerary('${d.key}',this.innerText)"` : ''}
            data-placeholder="記錄今天去了哪裡…">${content}</div>
     </div>`;
@@ -645,32 +648,41 @@ function diaryDayHtml(d) {
   const mood      = (data.dayMoods || {})[d.key] || {};
   const hotel     = hotelFor(d.key);
   const plans     = sortedPlans(d.key);
-  const text      = mood.text || '';
-  const savedTags = mood.tags || [];
-  const lineText  = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
 
+  // 今日心情 text
+  const text      = mood.text || '';
+  const lineText  = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
   const textColor  = mood.textColor  || '';
   const textStroke = mood.textStroke || false;
   const textBold   = mood.textBold   || false;
-  const textStyleAttr = [
+  const moodStyleAttr = [
     textColor  ? `color:${textColor}` : '',
     textBold   ? 'font-weight:900' : '',
     textStroke ? 'text-shadow:-1px -1px 0 #fff,1px -1px 0 #fff,-1px 1px 0 #fff,1px 1px 0 #fff' : ''
   ].filter(Boolean).join(';');
 
+  // 照片日記 text (new, below photos)
+  const diaryText  = mood.diaryText || '';
+  const diaryLine  = diaryText.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+  const diaryColor  = mood.textColorDiary  || '';
+  const diaryStroke = mood.textStrokeDiary || false;
+  const diaryBold   = mood.textBoldDiary   || false;
+  const diaryStyleAttr = [
+    diaryColor  ? `color:${diaryColor}` : '',
+    diaryBold   ? 'font-weight:900' : '',
+    diaryStroke ? 'text-shadow:-1px -1px 0 #fff,1px -1px 0 #fff,-1px 1px 0 #fff,1px 1px 0 #fff' : ''
+  ].filter(Boolean).join(';');
+
+  // 今日行程 color
+  const itinColor = mood.textColorItinerary || '';
+
+  // Tags: hide plan suggestions if plans already exist
+  const savedTags = mood.tags || [];
   const dismissed = mood.dismissed || [];
-  const planSuggestions = plans.filter(p => {
+  const planSuggestions = plans.length > 0 ? [] : plans.filter(p => {
     const t = `${activityIcon(p.type)} ${p.name}`;
     return !savedTags.includes(t) && !dismissed.includes(t);
   });
-
-  const isStory = style === 'story' || style === 'sketch';
-  const textBlock = shareViewMode
-    ? (text ? `<div class="diaryDayText" ${textStyleAttr?`style="${textStyleAttr}"`:''}>${lineText}</div>` : '')
-    : `<div class="diaryDayText" contenteditable="true"
-            ${textStyleAttr ? `style="${textStyleAttr}"` : ''}
-            onblur="saveDayText('${d.key}', this.innerText)"
-            data-placeholder="寫下今天的心情…">${lineText}</div>`;
 
   const TEXT_COLORS = [
     { val:'#2c2416', label:'深褐' },
@@ -680,21 +692,56 @@ function diaryDayHtml(d) {
     { val:'#1a1a2e', label:'深藍' },
     { val:'#c45555', label:'珊瑚紅' },
   ];
-  const styleToolbar = shareViewMode ? '' : `
-    <div class="diaryTextStyleBar noPrint">
-      <span class="diaryStyleBarLabel">文字</span>
-      <div class="diaryColorPalette">
-        ${TEXT_COLORS.map(c => `
-          <button class="diaryColorSwatch ${textColor===c.val?'active':''}"
-                  style="background:${c.val}"
-                  title="${c.label}"
-                  onclick="setDayTextColor('${d.key}','${c.val}')"></button>`).join('')}
-        <button class="diaryColorSwatch diaryColorReset ${!textColor?'active':''}"
-                title="預設" onclick="setDayTextColor('${d.key}','')">✕</button>
-      </div>
-      <button class="diaryStyleToggle ${textStroke?'active':''}" onclick="toggleDayTextStroke('${d.key}')">描邊</button>
-      <button class="diaryStyleToggle ${textBold?'active':''}" onclick="toggleDayTextBold('${d.key}')">粗體</button>
+
+  function colorSwatches(day, field, currentColor) {
+    return TEXT_COLORS.map(c => `
+      <button class="diaryColorSwatch ${currentColor===c.val?'active':''}"
+              style="background:${c.val}" title="${c.label}"
+              onclick="setDayMoodField('${day}','${field}','${c.val}')"></button>`).join('') +
+      `<button class="diaryColorSwatch diaryColorReset ${!currentColor?'active':''}"
+              title="預設" onclick="setDayMoodField('${day}','${field}','')">✕</button>`;
+  }
+
+  // 今日行程 color bar (color only)
+  const itinColorBar = shareViewMode ? '' : `
+    <div class="diaryTextStyleBar diaryTextStyleBarInline noPrint">
+      <span class="diaryStyleBarLabel">行程顏色</span>
+      <div class="diaryColorPalette">${colorSwatches(d.key, 'textColorItinerary', itinColor)}</div>
     </div>`;
+
+  // 今日心情 style toolbar
+  const moodToolbar = shareViewMode ? '' : `
+    <div class="diaryTextStyleBar noPrint">
+      <span class="diaryStyleBarLabel">今日心情</span>
+      <div class="diaryColorPalette">${colorSwatches(d.key, 'textColor', textColor)}</div>
+      <button class="diaryStyleToggle ${textStroke?'active':''}" onclick="setDayMoodField('${d.key}','toggle:textStroke',null)">描邊</button>
+      <button class="diaryStyleToggle ${textBold?'active':''}" onclick="setDayMoodField('${d.key}','toggle:textBold',null)">粗體</button>
+    </div>`;
+
+  // 照片日記 style toolbar
+  const diaryToolbar = shareViewMode ? '' : `
+    <div class="diaryTextStyleBar noPrint">
+      <span class="diaryStyleBarLabel">照片日記</span>
+      <div class="diaryColorPalette">${colorSwatches(d.key, 'textColorDiary', diaryColor)}</div>
+      <button class="diaryStyleToggle ${diaryStroke?'active':''}" onclick="setDayMoodField('${d.key}','toggle:textStrokeDiary',null)">描邊</button>
+      <button class="diaryStyleToggle ${diaryBold?'active':''}" onclick="setDayMoodField('${d.key}','toggle:textBoldDiary',null)">粗體</button>
+    </div>`;
+
+  // 今日心情 text block (above photos)
+  const moodBlock = shareViewMode
+    ? (text ? `<div class="diaryDayText"${moodStyleAttr?` style="${moodStyleAttr}"`:''}>${lineText}</div>` : '')
+    : `<div class="diaryDayText" contenteditable="true"
+            ${moodStyleAttr ? `style="${moodStyleAttr}"` : ''}
+            onblur="saveDayText('${d.key}', this.innerText)"
+            data-placeholder="寫下今天的心情…">${lineText}</div>`;
+
+  // 照片日記 text block (below photos)
+  const diaryBlock = shareViewMode
+    ? (diaryText ? `<div class="diaryPhotoText"${diaryStyleAttr?` style="${diaryStyleAttr}"`:''}>${diaryLine}</div>` : '')
+    : `<div class="diaryPhotoText" contenteditable="true"
+            ${diaryStyleAttr ? `style="${diaryStyleAttr}"` : ''}
+            onblur="if(!data.dayMoods)data.dayMoods={};if(!data.dayMoods['${d.key}'])data.dayMoods['${d.key}']={};data.dayMoods['${d.key}'].diaryText=this.innerText;save()"
+            data-placeholder="記下照片背後的故事…">${diaryLine}</div>`;
 
   return `
     <div class="diaryDay diaryStyle-${style}" data-day="${d.key}">
@@ -721,17 +768,16 @@ function diaryDayHtml(d) {
           </div>
         </div>`}
 
-      ${diaryItineraryHtml(d)}
+      ${diaryItineraryHtml(d, itinColor)}
+      ${itinColorBar}
 
-      ${styleToolbar}
+      ${moodToolbar}
+      <div class="diaryTextSection">${moodBlock}</div>
 
-      ${isStory ? `
-        <div class="diaryTextSection">${textBlock}</div>
-        <div class="diaryPhotoSection">${diaryPhotoStoryHtml(photos)}</div>
-      ` : `
-        <div class="diaryPhotoSection">${diaryPhotoGridHtml(photos)}</div>
-        <div class="diaryTextSection">${textBlock}</div>
-      `}
+      <div class="diaryPhotoSection">${diaryPhotoGridHtml(photos)}</div>
+
+      ${diaryToolbar}
+      <div class="diaryPhotoTextSection">${diaryBlock}</div>
 
       <div class="diaryTagsSection">
         ${savedTags.map((t, i) => `
