@@ -473,31 +473,26 @@ function setDiaryFont(font) {
   renderPhotoBook();
 }
 
-/* ── 每日文字樣式 ── */
-function setDayTextColor(day, color) {
+/* ── 每日文字樣式 ──
+   通用設定函式：可設定任一欄位，field 以 'toggle:' 開頭則切換布林值。
+   三個區塊（今日行程 itin*、今日心情 text*、照片日記 cap*）都共用這個函式。 */
+function setDayMoodField(day, field, value) {
   _flushDiaryTexts();
   if (!data.dayMoods) data.dayMoods = {};
   if (!data.dayMoods[day]) data.dayMoods[day] = {};
-  data.dayMoods[day].textColor = color;
+  if (field.startsWith('toggle:')) {
+    const f = field.slice(7);
+    data.dayMoods[day][f] = !data.dayMoods[day][f];
+  } else {
+    data.dayMoods[day][field] = value;
+  }
   save();
   renderPhotoBook();
 }
-function toggleDayTextStroke(day) {
-  _flushDiaryTexts();
-  if (!data.dayMoods) data.dayMoods = {};
-  if (!data.dayMoods[day]) data.dayMoods[day] = {};
-  data.dayMoods[day].textStroke = !data.dayMoods[day].textStroke;
-  save();
-  renderPhotoBook();
-}
-function toggleDayTextBold(day) {
-  _flushDiaryTexts();
-  if (!data.dayMoods) data.dayMoods = {};
-  if (!data.dayMoods[day]) data.dayMoods[day] = {};
-  data.dayMoods[day].textBold = !data.dayMoods[day].textBold;
-  save();
-  renderPhotoBook();
-}
+/* 相容舊呼叫 */
+function setDayTextColor(day, color) { setDayMoodField(day, 'textColor', color); }
+function toggleDayTextStroke(day)    { setDayMoodField(day, 'toggle:textStroke'); }
+function toggleDayTextBold(day)      { setDayMoodField(day, 'toggle:textBold'); }
 
 /* ── 發布遊記 ── */
 async function publishDiary() {

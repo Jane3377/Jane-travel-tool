@@ -9630,6 +9630,20 @@ body.sheetOpen { overflow: hidden; }
   line-height: 1.6;
 }
 .diaryItineraryReset:hover { background: var(--bg2); }
+.diaryItineraryHide {
+  font-size: 0.7rem;
+  color: var(--muted);
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 6px;
+  cursor: pointer;
+  line-height: 1.6;
+  margin-left: auto;
+}
+.diaryItineraryHide:hover { background: var(--bg2); }
+.diaryItineraryHide.isHidden { color: #c45555; border-color: #e3b0b0; background: #fbeeee; }
+.diaryDimmed { opacity: .45; }
 .diaryItinerary {
   font-size: 0.83rem;
   line-height: 2;

@@ -499,8 +499,51 @@ function resetDayItinerary(day) {
   renderPhotoBook();
 }
 
+/* 旅日記三個區塊共用的文字色票 */
+const DIARY_TEXT_COLORS = [
+  { val:'#2c2416', label:'深褐' },
+  { val:'#ffffff', label:'白色' },
+  { val:'#f5f0e8', label:'奶白' },
+  { val:'#2e4a38', label:'森林綠' },
+  { val:'#1a1a2e', label:'深藍' },
+  { val:'#c45555', label:'珊瑚紅' },
+];
+
+/* 由顏色／描邊／粗體組出 inline style 字串 */
+function _diaryTextStyle(color, stroke, bold) {
+  return [
+    color  ? `color:${color}` : '',
+    bold   ? 'font-weight:900' : '',
+    stroke ? 'text-shadow:-1px -1px 0 #fff,1px -1px 0 #fff,-1px 1px 0 #fff,1px 1px 0 #fff' : ''
+  ].filter(Boolean).join(';');
+}
+
+/* 產生一組顏色工具列；fields 指定要寫入 dayMood 的欄位名稱
+   fields = { color:'textColor', stroke:'textStroke', bold:'textBold' } */
+function _diaryColorBar(day, label, fields, cur) {
+  if (shareViewMode) return '';
+  return `
+    <div class="diaryTextStyleBar noPrint">
+      <span class="diaryStyleBarLabel">${label}</span>
+      <div class="diaryColorPalette">
+        ${DIARY_TEXT_COLORS.map(c => `
+          <button class="diaryColorSwatch ${cur.color===c.val?'active':''}"
+                  style="background:${c.val}" title="${c.label}"
+                  onclick="setDayMoodField('${day}','${fields.color}','${c.val}')"></button>`).join('')}
+        <button class="diaryColorSwatch diaryColorReset ${!cur.color?'active':''}"
+                title="預設" onclick="setDayMoodField('${day}','${fields.color}','')">✕</button>
+      </div>
+      <button class="diaryStyleToggle ${cur.stroke?'active':''}" onclick="setDayMoodField('${day}','toggle:${fields.stroke}')">描邊</button>
+      <button class="diaryStyleToggle ${cur.bold?'active':''}" onclick="setDayMoodField('${day}','toggle:${fields.bold}')">粗體</button>
+    </div>`;
+}
+
 function diaryItineraryHtml(d) {
   const mood     = (data.dayMoods || {})[d.key] || {};
+
+  // 分享檢視時，使用者選擇隱藏的行程不顯示
+  if (shareViewMode && mood.hideItinerary) return '';
+
   const plans    = sortedPlans(d.key);
   const hasCustom = mood.itinerary !== undefined;
 
@@ -518,15 +561,27 @@ function diaryItineraryHtml(d) {
   if (!content && shareViewMode) return '';
 
   const ce = !shareViewMode;
+  const styleAttr = _diaryTextStyle(mood.itinColor, mood.itinStroke, mood.itinBold);
+  const colorBar = _diaryColorBar(d.key, '行程',
+    { color:'itinColor', stroke:'itinStroke', bold:'itinBold' },
+    { color:mood.itinColor, stroke:mood.itinStroke, bold:mood.itinBold });
+
   return `
     <div class="diaryItinerarySection">
       <div class="diaryItineraryHead">
         <span class="diaryItineraryLabel">今日行程</span>
+        ${ce ? `
+          <button class="diaryItineraryHide noPrint ${mood.hideItinerary?'isHidden':''}" type="button"
+                  onclick="setDayMoodField('${d.key}','toggle:hideItinerary')"
+                  title="控制這天的行程是否出現在分享連結">
+            ${mood.hideItinerary ? '🙈 分享時隱藏' : '👁 分享時顯示'}</button>` : ''}
         ${ce && hasCustom && plans.length ? `
           <button class="diaryItineraryReset noPrint" type="button"
                   onclick="resetDayItinerary('${d.key}')">↺ 重設</button>` : ''}
       </div>
-      <div class="diaryItinerary${hasCustom ? '' : ' fromPlan'}"
+      ${colorBar}
+      <div class="diaryItinerary${hasCustom ? '' : ' fromPlan'}${ce && mood.hideItinerary ? ' diaryDimmed' : ''}"
+           ${styleAttr ? `style="${styleAttr}"` : ''}
            ${ce ? `contenteditable="true" onblur="saveDayItinerary('${d.key}',this.innerText)"` : ''}
            data-placeholder="記錄今天去了哪裡…">${content}</div>
     </div>`;
@@ -589,17 +644,18 @@ function diaryAddCustomTag(day, inputEl) {
   renderPhotoBook();
 }
 
-function diaryPhotoGridHtml(photos) {
+function diaryPhotoGridHtml(photos, capStyle = '') {
   const shown = photos.slice(0, 6);
   const count = shown.length;
   if (!count) return '<div class="diaryNoPhotos">還沒有照片，點下方上傳</div>';
   const withMemo = shown.filter(p => p.memo);
+  const cap = capStyle ? ` style="${capStyle}"` : '';
   return `
     <div class="diaryPhotoGrid count-${count}">
       ${shown.map((p, i) => `
         <div class="diaryPhotoItem${i === 0 ? ' featured' : ''}">
           <img src="${p.src}" alt="${esc(p.title || '')}">
-          ${p.title ? `<div class="diaryPhotoCaption">${esc(p.title)}</div>` : ''}
+          ${p.title ? `<div class="diaryPhotoCaption"${cap}>${esc(p.title)}</div>` : ''}
           <div class="diaryPhotoCtrl noPrint">
             <button onclick="openPhotoEditModal('${p.id}')">✎</button>
             <button onclick="deletePhoto('${p.id}')">×</button>
@@ -608,16 +664,17 @@ function diaryPhotoGridHtml(photos) {
     </div>
     ${photos.length > 6 ? `<div class="diaryMorePhotos">還有 ${photos.length - 6} 張</div>` : ''}
     ${withMemo.length ? `<div class="diaryPhotoMemos">
-      ${withMemo.map(p => `<div class="diaryPhotoMemoItem">
+      ${withMemo.map(p => `<div class="diaryPhotoMemoItem"${cap}>
         ${p.title ? `<span class="diaryMemoLabel">${esc(p.title)}</span>` : ''}
         <span class="diaryMemoText">${esc(p.memo)}</span>
       </div>`).join('')}
     </div>` : ''}`;
 }
 
-function diaryPhotoStoryHtml(photos) {
+function diaryPhotoStoryHtml(photos, capStyle = '') {
   const shown = photos.slice(0, 6);
   if (!shown.length) return '<div class="diaryNoPhotos">還沒有照片，點下方上傳</div>';
+  const cap = capStyle ? ` style="${capStyle}"` : '';
   return `
     <div class="diaryPhotoStoryList">
       ${shown.map((p, i) => `
@@ -630,7 +687,7 @@ function diaryPhotoStoryHtml(photos) {
             </div>
           </div>
           ${p.title || p.memo ? `
-          <div class="diaryPhotoStoryText">
+          <div class="diaryPhotoStoryText"${cap}>
             ${p.title ? `<div class="diaryPhotoStoryCaption">${esc(p.title)}</div>` : ''}
             ${p.memo  ? `<div class="diaryPhotoStoryMemo">${esc(p.memo)}</div>`   : ''}
           </div>` : ''}
@@ -672,29 +729,16 @@ function diaryDayHtml(d) {
             onblur="saveDayText('${d.key}', this.innerText)"
             data-placeholder="寫下今天的心情…">${lineText}</div>`;
 
-  const TEXT_COLORS = [
-    { val:'#2c2416', label:'深褐' },
-    { val:'#ffffff', label:'白色' },
-    { val:'#f5f0e8', label:'奶白' },
-    { val:'#2e4a38', label:'森林綠' },
-    { val:'#1a1a2e', label:'深藍' },
-    { val:'#c45555', label:'珊瑚紅' },
-  ];
-  const styleToolbar = shareViewMode ? '' : `
-    <div class="diaryTextStyleBar noPrint">
-      <span class="diaryStyleBarLabel">文字</span>
-      <div class="diaryColorPalette">
-        ${TEXT_COLORS.map(c => `
-          <button class="diaryColorSwatch ${textColor===c.val?'active':''}"
-                  style="background:${c.val}"
-                  title="${c.label}"
-                  onclick="setDayTextColor('${d.key}','${c.val}')"></button>`).join('')}
-        <button class="diaryColorSwatch diaryColorReset ${!textColor?'active':''}"
-                title="預設" onclick="setDayTextColor('${d.key}','')">✕</button>
-      </div>
-      <button class="diaryStyleToggle ${textStroke?'active':''}" onclick="toggleDayTextStroke('${d.key}')">描邊</button>
-      <button class="diaryStyleToggle ${textBold?'active':''}" onclick="toggleDayTextBold('${d.key}')">粗體</button>
-    </div>`;
+  // 今日心情顏色工具列
+  const moodColorBar = _diaryColorBar(d.key, '心情',
+    { color:'textColor', stroke:'textStroke', bold:'textBold' },
+    { color:textColor, stroke:textStroke, bold:textBold });
+
+  // 照片日記（圖說）顏色工具列 + 圖說 inline style
+  const capStyle = _diaryTextStyle(mood.capColor, mood.capStroke, mood.capBold);
+  const photoColorBar = _diaryColorBar(d.key, '照片',
+    { color:'capColor', stroke:'capStroke', bold:'capBold' },
+    { color:mood.capColor, stroke:mood.capStroke, bold:mood.capBold });
 
   return `
     <div class="diaryDay diaryStyle-${style}" data-day="${d.key}">
@@ -723,15 +767,11 @@ function diaryDayHtml(d) {
 
       ${diaryItineraryHtml(d)}
 
-      ${styleToolbar}
+      ${moodColorBar}
+      <div class="diaryTextSection">${textBlock}</div>
 
-      ${isStory ? `
-        <div class="diaryTextSection">${textBlock}</div>
-        <div class="diaryPhotoSection">${diaryPhotoStoryHtml(photos)}</div>
-      ` : `
-        <div class="diaryPhotoSection">${diaryPhotoGridHtml(photos)}</div>
-        <div class="diaryTextSection">${textBlock}</div>
-      `}
+      ${photoColorBar}
+      <div class="diaryPhotoSection">${isStory ? diaryPhotoStoryHtml(photos, capStyle) : diaryPhotoGridHtml(photos, capStyle)}</div>
 
       <div class="diaryTagsSection">
         ${savedTags.map((t, i) => `
