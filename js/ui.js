@@ -779,8 +779,8 @@ function renderSpots() {
                   ${s.photo ? '🔄' : '📷'}
                   <input type="file" accept="image/*" onchange="uploadSpotPhoto('${s.id}',this.files[0])" style="display:none">
                 </label>`}
-                <button class="small" onclick="editSpot('${s.id}')">編輯</button>
-                <button class="small" onclick="deleteSpot('${s.id}')">刪除</button>
+                ${shareViewMode ? '' : `<button class="small" onclick="editSpot('${s.id}')">編輯</button>
+                <button class="small" onclick="deleteSpot('${s.id}')">刪除</button>`}
               </div>
             </div>
           </div>`;
