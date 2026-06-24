@@ -658,10 +658,10 @@ function diaryPhotoGridHtml(photos, capStyle = '') {
         <div class="diaryPhotoItem${i === 0 ? ' featured' : ''}">
           <img src="${p.src}" alt="${esc(p.title || '')}">
           ${p.title ? `<div class="diaryPhotoCaption"${cap}>${esc(p.title)}</div>` : ''}
-          <div class="diaryPhotoCtrl noPrint">
+          ${shareViewMode ? '' : `<div class="diaryPhotoCtrl noPrint">
             <button onclick="openPhotoEditModal('${p.id}')">✎</button>
             <button onclick="deletePhoto('${p.id}')">×</button>
-          </div>
+          </div>`}
         </div>`).join('')}
     </div>
     ${photos.length > 6 ? `<div class="diaryMorePhotos">還有 ${photos.length - 6} 張</div>` : ''}
@@ -683,10 +683,10 @@ function diaryPhotoStoryHtml(photos, capStyle = '') {
         <div class="diaryPhotoStoryItem${i % 2 === 1 ? ' alt' : ''}">
           <div class="diaryPhotoStoryImgWrap">
             <img src="${p.src}" alt="${esc(p.title || '')}">
-            <div class="diaryPhotoCtrl noPrint">
+            ${shareViewMode ? '' : `<div class="diaryPhotoCtrl noPrint">
               <button onclick="openPhotoEditModal('${p.id}')">✎</button>
               <button onclick="deletePhoto('${p.id}')">×</button>
-            </div>
+            </div>`}
           </div>
           ${p.title || p.memo ? `
           <div class="diaryPhotoStoryText"${cap}>
