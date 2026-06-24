@@ -10471,16 +10471,23 @@ body.sheetOpen { overflow: hidden; }
 .diaryFont-serif  { font-family: 'Noto Serif TC', serif; }
 .diaryFont-wenkai { font-family: 'LXGW WenKai TC', cursive; }
 
-/* 確保字型選擇覆蓋各日記風格的預設字型（今日行程、今日心情、照片日記文字） */
+/* 確保字型選擇覆蓋各日記風格的預設字型（今日行程、今日心情、照片日記文字）
+   selector 加上 .diaryDay 把優先度提升到 (0,3,0)，勝過 .diaryDay.diaryStyle-film .diaryDayText 等風格規則 */
 .diaryFont-noto   .diaryDay,
-.diaryFont-noto   .diaryDayText,
-.diaryFont-noto   .diaryItinerary  { font-family: 'Noto Sans TC', 'PingFang TC', sans-serif; }
+.diaryFont-noto   .diaryDay .diaryDayText,
+.diaryFont-noto   .diaryDay .diaryItinerary,
+.diaryFont-noto   .diaryDay .diaryPhotoCaption,
+.diaryFont-noto   .diaryDay .diaryMemoText  { font-family: 'Noto Sans TC', 'PingFang TC', sans-serif; }
 .diaryFont-serif  .diaryDay,
-.diaryFont-serif  .diaryDayText,
-.diaryFont-serif  .diaryItinerary  { font-family: 'Noto Serif TC', serif; }
+.diaryFont-serif  .diaryDay .diaryDayText,
+.diaryFont-serif  .diaryDay .diaryItinerary,
+.diaryFont-serif  .diaryDay .diaryPhotoCaption,
+.diaryFont-serif  .diaryDay .diaryMemoText  { font-family: 'Noto Serif TC', serif; }
 .diaryFont-wenkai .diaryDay,
-.diaryFont-wenkai .diaryDayText,
-.diaryFont-wenkai .diaryItinerary  { font-family: 'LXGW WenKai TC', cursive; }
+.diaryFont-wenkai .diaryDay .diaryDayText,
+.diaryFont-wenkai .diaryDay .diaryItinerary,
+.diaryFont-wenkai .diaryDay .diaryPhotoCaption,
+.diaryFont-wenkai .diaryDay .diaryMemoText  { font-family: 'LXGW WenKai TC', cursive; }
 
 /* ── 字型選擇鈕 ── */
 .diaryFontRow { display: flex; gap: 6px; margin-bottom: 10px; }
