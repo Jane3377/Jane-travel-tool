@@ -10467,9 +10467,20 @@ body.sheetOpen { overflow: hidden; }
 
 
 /* ── 旅日記字型 ── */
-.diaryFont-caveat { font-family: 'Caveat', cursive; font-size: 1.08em; }
-.diaryFont-nunito { font-family: 'Nunito', sans-serif; }
 .diaryFont-noto   { font-family: 'Noto Sans TC', 'PingFang TC', sans-serif; }
+.diaryFont-serif  { font-family: 'Noto Serif TC', serif; }
+.diaryFont-wenkai { font-family: 'LXGW WenKai TC', cursive; }
+
+/* 確保字型選擇覆蓋各日記風格的預設字型（今日行程、今日心情、照片日記文字） */
+.diaryFont-noto   .diaryDay,
+.diaryFont-noto   .diaryDayText,
+.diaryFont-noto   .diaryItinerary  { font-family: 'Noto Sans TC', 'PingFang TC', sans-serif; }
+.diaryFont-serif  .diaryDay,
+.diaryFont-serif  .diaryDayText,
+.diaryFont-serif  .diaryItinerary  { font-family: 'Noto Serif TC', serif; }
+.diaryFont-wenkai .diaryDay,
+.diaryFont-wenkai .diaryDayText,
+.diaryFont-wenkai .diaryItinerary  { font-family: 'LXGW WenKai TC', cursive; }
 
 /* ── 字型選擇鈕 ── */
 .diaryFontRow { display: flex; gap: 6px; margin-bottom: 10px; }
@@ -10479,8 +10490,9 @@ body.sheetOpen { overflow: hidden; }
   transition: all .15s;
 }
 .diaryFontBtn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
-.diaryFontBtn-caveat { font-family: 'Caveat', cursive; font-size: 15px; }
-.diaryFontBtn-nunito { font-family: 'Nunito', sans-serif; }
+.diaryFontBtn-noto   { font-family: 'Noto Sans TC', 'PingFang TC', sans-serif; }
+.diaryFontBtn-serif  { font-family: 'Noto Serif TC', serif; }
+.diaryFontBtn-wenkai { font-family: 'LXGW WenKai TC', cursive; font-size: 15px; }
 
 /* ── 發布列 ── */
 .diaryPublishRow { display: flex; gap: 8px; flex-wrap: wrap; }
