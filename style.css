@@ -8892,6 +8892,17 @@ body.sheetOpen { overflow: hidden; }
   color: #fff;
 }
 
+/* ── 封面文字顏色色票 ── */
+.diaryCoverColorRow { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.diaryCoverColorSwatch {
+  width: 24px; height: 24px; border-radius: 50%;
+  border: 2px solid transparent; cursor: pointer;
+  outline: 2px solid #ccc; outline-offset: 1px;
+  transition: outline-color .15s;
+}
+.diaryCoverColorSwatch.active { outline-color: #4A5D4E; outline-width: 2.5px; }
+.diaryCoverColorSwatch:hover  { outline-color: #888; }
+
 /* ── 封面頁 ── */
 .diaryCoverPage {
   position: relative;

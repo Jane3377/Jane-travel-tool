@@ -596,6 +596,13 @@ function setDiaryStyle(style) {
   renderPhotoBook();
 }
 
+function setCoverTextColor(color) {
+  _flushDiaryTexts();
+  data.meta.coverTextColor = color;
+  save();
+  renderPhotoBook();
+}
+
 function diaryRemoveTag(day, idx) {
   _flushDiaryTexts();
   if (!data.dayMoods?.[day]?.tags) return;
@@ -828,6 +835,23 @@ function diaryCoverHtml() {
                 ${l}
               </button>`).join('')}
           </div>
+          <div class="diaryStyleLabel" style="margin-top:10px">封面文字顏色</div>
+          <div class="diaryCoverColorRow">
+            ${[
+              { val:'', label:'風格預設' },
+              { val:'#ffffff', label:'白色' },
+              { val:'#f5f0e8', label:'奶白' },
+              { val:'#f0c060', label:'金黃' },
+              { val:'#1a1a1a', label:'黑色' },
+              { val:'#2e4a38', label:'深綠' },
+              { val:'#1e3a4f', label:'深藍' },
+              { val:'#4a3728', label:'深褐' },
+            ].map(c => `
+              <button class="diaryCoverColorSwatch ${(data.meta.coverTextColor||'')===c.val?'active':''}"
+                      title="${c.label}"
+                      style="${c.val ? `background:${c.val};` : 'background: linear-gradient(135deg,#eee 50%,#999 50%);'}"
+                      onclick="setCoverTextColor('${c.val}')"></button>`).join('')}
+          </div>
         </div>
       </div>`}
 
@@ -835,7 +859,7 @@ function diaryCoverHtml() {
       ${cover ? `<img class="diaryCoverBg" src="${cover}">` : ''}
       <div class="diaryCoverOv"></div>
       <div class="diaryCoverDeco"></div>
-      <div class="diaryCoverContent">
+      <div class="diaryCoverContent" ${data.meta.coverTextColor ? `style="color:${data.meta.coverTextColor}"` : ''}>
         <div class="diaryCoverEyebrow">TRAVEL DIARY</div>
         <h1 class="diaryCoverTitle">${esc(data.meta.title || '我的旅程日記')}</h1>
         <div class="diaryCoverDest">${esc(data.trip.dest || '')}</div>
