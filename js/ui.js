@@ -958,7 +958,8 @@ function _diaryHtml() {
       </div>
       <div class="diaryPublishRow">
         ${ds.published
-          ? `<button class="btn soft compact" onclick="copyDiaryLink()">📋 複製連結</button>
+          ? `<button class="btn dark compact" onclick="publishDiary()">🔄 更新遊記</button>
+             <button class="btn soft compact" onclick="copyDiaryLink()">📋 複製連結</button>
              <button class="btn danger compact" onclick="unpublishDiary()">取消發布</button>`
           : `<button class="btn dark compact" onclick="publishDiary()">🌐 發布遊記</button>`}
       </div>
