@@ -1,4 +1,4 @@
-const CACHE = 'janeselect-v67';
+const CACHE = 'janeselect-v68';
 
 const APP_SHELL = [
   './',
