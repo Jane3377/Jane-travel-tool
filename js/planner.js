@@ -54,7 +54,7 @@ function planSyncDurDisplay() {
 
 function savePlanForm() {
   const name = $form('pname')?.value.trim();
-  if (!name) return toast('請輸入行程名稱');
+  if (!name) return toast('請輸入地點');
 
   const wasEditing = !!editingPlanId;
   const day   = $form('pday')?.value || currentDay;
