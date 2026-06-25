@@ -1170,34 +1170,21 @@ textarea{min-height:58px}
   font-weight: 700;
   white-space: nowrap;
 }
-.payModeToggle {
-  display: inline-flex;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  overflow: hidden;
+.payModeRadio {
+  display: flex;
+  align-items: center;
+  gap: 5px;
   font-size: 13px;
   font-weight: 700;
-}
-.payModeOpt {
-  padding: 5px 16px;
   cursor: pointer;
-  background: var(--card);
-  color: var(--muted);
+  color: var(--text);
   user-select: none;
-  transition: background 0.15s, color 0.15s;
 }
-.payModeOpt + .payModeOpt {
-  border-left: 1px solid var(--line);
-}
-.payModeOpt:has(input:checked) {
-  background: var(--primary);
-  color: #fff;
-}
-.payModeOpt:has(input:checked)::before {
-  content: '✓ ';
-}
-.payModeOpt input[type="radio"] {
-  display: none;
+.payModeRadio input[type="radio"] {
+  accent-color: var(--primary);
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
 }
 
 /* ── 費用篩選列 ── */

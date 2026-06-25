@@ -244,9 +244,8 @@ function _addFormHtml(v, e = null) {
       </div>
       <div class="payModeRow">
         <span class="payModeLabel">付款幣別</span>
-        <div class="payModeToggle">
-          <label class="payModeOpt"><input type="radio" name="epaymode" value="foreign" onchange="updatePayMode()" ${defMode!=='TWD'?'checked':''}> 外幣</label><label class="payModeOpt"><input type="radio" name="epaymode" value="TWD" onchange="updatePayMode()" ${defMode==='TWD'?'checked':''}> 台幣</label>
-        </div>
+        <label class="payModeRadio"><input type="radio" name="epaymode" value="foreign" onchange="updatePayMode()" ${defMode!=='TWD'?'checked':''}> 外幣</label>
+        <label class="payModeRadio"><input type="radio" name="epaymode" value="TWD" onchange="updatePayMode()" ${defMode==='TWD'?'checked':''}> 台幣</label>
       </div>
       <div id="foreignWrap" ${defMode==='TWD'?'hidden':''}>
         <div class="two compactMobile" style="margin-bottom:8px">
