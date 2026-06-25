@@ -10495,6 +10495,9 @@ body.sheetOpen { overflow: hidden; }
 .diaryFont-noto   { font-family: 'Noto Sans TC', 'PingFang TC', sans-serif; }
 .diaryFont-serif  { font-family: 'Noto Serif TC', serif; }
 .diaryFont-wenkai { font-family: 'LXGW WenKai TC', cursive; }
+.diaryFont-cubic  { font-family: 'Cubic 11', 'Noto Sans TC', monospace; }
+.diaryFont-klee   { font-family: 'Klee One', 'LXGW WenKai TC', cursive; }
+.diaryFont-maru   { font-family: 'Zen Maru Gothic', 'Noto Sans TC', sans-serif; }
 
 /* 確保字型選擇覆蓋各日記風格的預設字型（今日行程、今日心情、照片日記文字）
    selector 加上 .diaryDay 把優先度提升到 (0,3,0)，勝過 .diaryDay.diaryStyle-film .diaryDayText 等風格規則 */
@@ -10513,6 +10516,21 @@ body.sheetOpen { overflow: hidden; }
 .diaryFont-wenkai .diaryDay .diaryItinerary,
 .diaryFont-wenkai .diaryDay .diaryPhotoCaption,
 .diaryFont-wenkai .diaryDay .diaryMemoText  { font-family: 'LXGW WenKai TC', cursive; }
+.diaryFont-cubic  .diaryDay,
+.diaryFont-cubic  .diaryDay .diaryDayText,
+.diaryFont-cubic  .diaryDay .diaryItinerary,
+.diaryFont-cubic  .diaryDay .diaryPhotoCaption,
+.diaryFont-cubic  .diaryDay .diaryMemoText  { font-family: 'Cubic 11', 'Noto Sans TC', monospace; }
+.diaryFont-klee   .diaryDay,
+.diaryFont-klee   .diaryDay .diaryDayText,
+.diaryFont-klee   .diaryDay .diaryItinerary,
+.diaryFont-klee   .diaryDay .diaryPhotoCaption,
+.diaryFont-klee   .diaryDay .diaryMemoText  { font-family: 'Klee One', 'LXGW WenKai TC', cursive; }
+.diaryFont-maru   .diaryDay,
+.diaryFont-maru   .diaryDay .diaryDayText,
+.diaryFont-maru   .diaryDay .diaryItinerary,
+.diaryFont-maru   .diaryDay .diaryPhotoCaption,
+.diaryFont-maru   .diaryDay .diaryMemoText  { font-family: 'Zen Maru Gothic', 'Noto Sans TC', sans-serif; }
 
 /* ── 字型選擇鈕 ── */
 .diaryFontRow { display: flex; gap: 6px; margin-bottom: 10px; }
@@ -10525,6 +10543,9 @@ body.sheetOpen { overflow: hidden; }
 .diaryFontBtn-noto   { font-family: 'Noto Sans TC', 'PingFang TC', sans-serif; }
 .diaryFontBtn-serif  { font-family: 'Noto Serif TC', serif; }
 .diaryFontBtn-wenkai { font-family: 'LXGW WenKai TC', cursive; font-size: 15px; }
+.diaryFontBtn-cubic  { font-family: 'Cubic 11', monospace; }
+.diaryFontBtn-klee   { font-family: 'Klee One', cursive; }
+.diaryFontBtn-maru   { font-family: 'Zen Maru Gothic', sans-serif; }
 
 /* ── 發布列 ── */
 .diaryPublishRow { display: flex; gap: 8px; flex-wrap: wrap; }

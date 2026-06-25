@@ -535,8 +535,6 @@ function _diaryColorBar(day, label, fields, cur) {
         <button class="diaryColorSwatch diaryColorReset ${!cur.color?'active':''}"
                 title="預設" onclick="setDayMoodField('${day}','${fields.color}','')">✕</button>
       </div>
-      <button class="diaryStyleToggle ${cur.stroke?'active':''}" onclick="setDayMoodField('${day}','toggle:${fields.stroke}')">描邊</button>
-      <button class="diaryStyleToggle ${cur.bold?'active':''}" onclick="setDayMoodField('${day}','toggle:${fields.bold}')">粗體</button>
     </div>`;
 }
 

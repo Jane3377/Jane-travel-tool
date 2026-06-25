@@ -910,7 +910,7 @@ async function loadSharedDiary(token) {
 
 function _renderDiaryViewPage(token) {
   const ds = data.diaryShare || {};
-  const font = ['noto', 'serif', 'wenkai'].includes(ds.font) ? ds.font : 'noto';
+  const font = ['noto', 'serif', 'wenkai', 'cubic', 'klee', 'maru'].includes(ds.font) ? ds.font : 'noto';
   const el = $('loginView');
   if (!el) return;
   el.innerHTML = `
