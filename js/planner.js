@@ -86,6 +86,8 @@ function savePlanForm() {
       // 保留內部欄位
       item.source = existing.source;
       if (existing.hotelId) item.hotelId = existing.hotelId;
+      // 手動設定時間時鎖定，防止 normalizePlanTimes 覆蓋
+      if (start) item.pinnedTime = true;
       Object.assign(existing, item);
       // 同步到對應景點
       const spot = data.spots.find(s => s.planId === existing.id);
@@ -252,6 +254,7 @@ function normalizePlanTimes(day) {
     const conn = data.conns.find(c => c.a === prev.id && c.b === cur.id);
     if (!conn) continue;
 
+    if (cur.pinnedTime) continue;
     const arrival = addMinutes(prev.end, Number(conn.h || 0) * 60 + Number(conn.m || 0));
     if (arrival && timeToMin(arrival) > timeToMin(cur.start)) {
       const dur   = diffMinutes(cur.start, cur.end);

@@ -237,8 +237,8 @@ function getTimeVal(id) {
   return `${h.value}:${m.value}`;
 }
 function setTimeVal(id, val) {
-  const h = document.getElementById(id + 'H');
-  const m = document.getElementById(id + 'M');
+  const h = $form(id + 'H');
+  const m = $form(id + 'M');
   if (!h || !m || !val) return;
   const [hh = '10', mm = '00'] = val.split(':');
   h.value = hh;
