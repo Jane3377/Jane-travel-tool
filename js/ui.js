@@ -1163,13 +1163,25 @@ function tripCard(t) {
         ).join('')}
       </div>
       <div class="btns">
-        <button class="btn dark compact"  onclick="selectTrip('${t.id}')">繼續編輯</button>
+        <button class="btn dark compact" onclick="startSelectTrip('${t.id}', this)">繼續編輯</button>
         ${t.archived
           ? `<button class="btn blue compact" onclick="restoreTrip('${t.id}')">還原</button>`
           : `<button class="btn soft compact" onclick="archiveTrip('${t.id}')">封存</button>`}
         <button class="btn danger compact" onclick="deleteTrip('${t.id}')">刪除</button>
       </div>
     </div>`;
+}
+
+function startSelectTrip(id, btn) {
+  if (selectingTrip) return;
+  btn.disabled    = true;
+  btn.textContent = '開啟中…';
+  selectTrip(id).catch(e => {
+    btn.disabled    = false;
+    btn.textContent = '繼續編輯';
+    toast('開啟旅程失敗，請重試');
+    console.error('selectTrip failed', e);
+  });
 }
 
 function setTripColor(id, key) {
