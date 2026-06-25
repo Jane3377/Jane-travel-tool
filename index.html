@@ -81,6 +81,7 @@
     <button id="menuLogout" onclick="firebaseSignOut(); closeAccountMenu()" style="display:none">登出</button>
   </div>
 </div>
+<input type="file" id="backupFileInput" accept=".json" style="display:none" onchange="handleBackupFile(this)">
 <div class="syncMini noPrint" id="syncMini">已同步</div>
 
 <!-- 行動 nav -->

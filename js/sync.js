@@ -168,12 +168,14 @@ function renderAccountWidget(user) {
   if (loginBtn) loginBtn.style.display = user ? 'none' : '';
 
   ensureThemeMenuButton();
+  ensureBackupMenuButtons();
   updateSyncLine();
 }
 
 function toggleAccountMenu() {
   $('accountMenu')?.classList.toggle('show');
   ensureThemeMenuButton();
+  ensureBackupMenuButtons();
 }
 
 function closeAccountMenu() {
@@ -205,6 +207,32 @@ function ensureThemeMenuButton() {
   const logout  = $('menuLogout');
   if (logout) menu.insertBefore(btn, logout);
   else menu.appendChild(btn);
+}
+
+function ensureBackupMenuButtons() {
+  const menu = $('accountMenu');
+  if (!menu || $('menuExport')) return;
+  const logout = $('menuLogout');
+
+  const btnExport = document.createElement('button');
+  btnExport.id          = 'menuExport';
+  btnExport.type        = 'button';
+  btnExport.textContent = '匯出備份';
+  btnExport.onclick     = () => { closeAccountMenu(); exportTripBackup(); };
+
+  const btnImport = document.createElement('button');
+  btnImport.id          = 'menuImport';
+  btnImport.type        = 'button';
+  btnImport.textContent = '匯入備份';
+  btnImport.onclick     = () => { closeAccountMenu(); $('backupFileInput')?.click(); };
+
+  if (logout) {
+    menu.insertBefore(btnExport, logout);
+    menu.insertBefore(btnImport, logout);
+  } else {
+    menu.appendChild(btnExport);
+    menu.appendChild(btnImport);
+  }
 }
 
 // 點外面關閉帳號選單
@@ -314,3 +342,103 @@ function ensureThemePanel() {
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') closeThemePanel();
 });
+
+/* ══════════════════════════════════════════
+   資料備份
+   ══════════════════════════════════════════ */
+
+function exportTripBackup() {
+  if (!data) return toast('目前沒有旅程資料');
+  const dest    = data.trip?.dest || '未命名旅程';
+  const today   = new Date().toISOString().slice(0, 10);
+  const payload = {
+    _backupVersion: 1,
+    _appVersion:    APP_VERSION,
+    _exportedAt:    new Date().toISOString(),
+    _tripName:      dest,
+    data
+  };
+  const blob     = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url      = URL.createObjectURL(blob);
+  const a        = document.createElement('a');
+  a.href         = url;
+  a.download     = `旅管家備份_${dest}_${today}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('備份已下載');
+}
+
+function handleBackupFile(input) {
+  const file = input.files?.[0];
+  if (!file) return;
+  input.value = '';
+  const reader = new FileReader();
+  reader.onload = e => {
+    let payload;
+    try { payload = JSON.parse(e.target.result); }
+    catch { return toast('檔案格式錯誤，請選擇正確的備份 JSON'); }
+    if (!payload?.data?.trip) return toast('備份內容無效，找不到旅程資料');
+    const tripData = payload.data;
+    const tripName = payload._tripName || tripData.trip?.dest || '匯入的旅程';
+    const start    = tripData.trip?.start || '';
+    const end      = tripData.trip?.end   || '';
+    const dateStr  = start ? `${short(start)}–${short(end)}` : '日期未設定';
+    showBackupImportConfirm(tripName, dateStr, tripData);
+  };
+  reader.readAsText(file);
+}
+
+function showBackupImportConfirm(tripName, dateStr, tripData) {
+  const existing = document.getElementById('backupImportModal');
+  if (existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.id        = 'backupImportModal';
+  modal.className = 'modalOverlay';
+  modal.innerHTML = `
+    <div class="modalBox" style="max-width:360px">
+      <h3 style="margin:0 0 12px">匯入備份</h3>
+      <div class="box" style="margin-bottom:14px">
+        <b>${esc(tripName)}</b><br>
+        <span style="color:var(--muted);font-size:13px">${esc(dateStr)}</span>
+      </div>
+      <p style="font-size:14px;margin:0 0 16px">將新建一趟旅程匯入，不影響目前資料。</p>
+      <div class="btns">
+        <button class="btn dark" onclick="confirmBackupImport()">新建並匯入</button>
+        <button class="btn soft" onclick="document.getElementById('backupImportModal').remove()">取消</button>
+      </div>
+    </div>`;
+  modal.addEventListener('click', ev => { if (ev.target === modal) modal.remove(); });
+  document.body.appendChild(modal);
+  window._pendingBackupData = tripData;
+}
+
+async function confirmBackupImport() {
+  const tripData = window._pendingBackupData;
+  if (!tripData) return;
+  delete window._pendingBackupData;
+  document.getElementById('backupImportModal')?.remove();
+
+  const newId       = `trip_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+  const prevTripId  = currentTripId;
+  const prevData    = data;
+
+  currentTripId = newId;
+  localStorage.setItem(CURRENT_TRIP_KEY, newId);
+  data = normalizeData(tripData);
+
+  tripList.unshift({ ...currentTripMeta(), cardColor: 'cream' });
+  localSaveTrip();
+
+  try {
+    await saveTripListCloud();
+    await saveToCloudNow();
+    toast('匯入成功，正在開啟新旅程…');
+    await selectTrip(newId);
+  } catch (e) {
+    currentTripId = prevTripId;
+    data          = prevData;
+    console.error('backup import failed', e);
+    toast('匯入失敗，請重試');
+  }
+}
