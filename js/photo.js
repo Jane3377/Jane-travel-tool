@@ -651,6 +651,21 @@ function diaryAddCustomTag(day, inputEl) {
   renderPhotoBook();
 }
 
+function reorderDiaryPhoto(photoId, dir) {
+  const photo = data.photos.find(p => p.id === photoId);
+  if (!photo) return;
+  const dayPhotos = data.photos.filter(p => p.day === photo.day);
+  const idx = dayPhotos.findIndex(p => p.id === photoId);
+  const newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= dayPhotos.length) return;
+  const swapId = dayPhotos[newIdx].id;
+  const gi  = data.photos.findIndex(p => p.id === photoId);
+  const gj  = data.photos.findIndex(p => p.id === swapId);
+  [data.photos[gi], data.photos[gj]] = [data.photos[gj], data.photos[gi]];
+  save();
+  renderPhotoBook();
+}
+
 function diaryPhotoGridHtml(photos, capStyle = '') {
   const shown = photos.slice(0, 6);
   const count = shown.length;
@@ -664,6 +679,8 @@ function diaryPhotoGridHtml(photos, capStyle = '') {
           <img src="${p.src}" alt="${esc(p.title || '')}">
           ${p.title ? `<div class="diaryPhotoCaption"${cap}>${esc(p.title)}</div>` : ''}
           ${shareViewMode ? '' : `<div class="diaryPhotoCtrl noPrint">
+            <button onclick="reorderDiaryPhoto('${p.id}',-1)" ${i===0?'disabled':''} title="往前">↑</button>
+            <button onclick="reorderDiaryPhoto('${p.id}',1)"  ${i===shown.length-1?'disabled':''} title="往後">↓</button>
             <button onclick="openPhotoEditModal('${p.id}')">✎</button>
             <button onclick="deletePhoto('${p.id}')">×</button>
           </div>`}
@@ -689,6 +706,8 @@ function diaryPhotoStoryHtml(photos, capStyle = '') {
           <div class="diaryPhotoStoryImgWrap">
             <img src="${p.src}" alt="${esc(p.title || '')}">
             ${shareViewMode ? '' : `<div class="diaryPhotoCtrl noPrint">
+              <button onclick="reorderDiaryPhoto('${p.id}',-1)" ${i===0?'disabled':''} title="往前">↑</button>
+              <button onclick="reorderDiaryPhoto('${p.id}',1)"  ${i===shown.length-1?'disabled':''} title="往後">↓</button>
               <button onclick="openPhotoEditModal('${p.id}')">✎</button>
               <button onclick="deletePhoto('${p.id}')">×</button>
             </div>`}
