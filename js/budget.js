@@ -130,9 +130,11 @@ function allBudgetItems() {
 function budgetSummaryHtml(items) {
   const total = items.reduce((s, x) => s + (x.twd || 0), 0);
   const byType = {};
+  const byDay  = {};
   items.forEach(x => {
     if ((x.twd || 0) <= 0) return;
     byType[x.type] = (byType[x.type] || 0) + x.twd;
+    if (x.day) byDay[x.day] = (byDay[x.day] || 0) + x.twd;
   });
   const typeCards = Object.entries(byType)
     .sort((a, b) => b[1] - a[1])
@@ -141,6 +143,13 @@ function budgetSummaryHtml(items) {
         <b>${esc(type)}</b>
         <strong>TWD ${fmt(amt)}</strong>
       </div>`).join('');
+  const dayRows = Object.entries(byDay)
+    .sort((a, b) => a[0] < b[0] ? -1 : 1)
+    .map(([day, amt]) => `
+      <div class="budgetDayRow">
+        <span class="budgetDayLabel">${esc(day)}</span>
+        <span class="budgetDayAmt">TWD ${fmt(amt)}</span>
+      </div>`).join('');
   return `
     <div class="budgetSummaryGrid">
       <div class="budgetSummaryCard total">
@@ -148,7 +157,11 @@ function budgetSummaryHtml(items) {
         <strong>TWD ${fmt(total)}</strong>
       </div>
       ${typeCards || '<div class="budgetSummaryCard"><b>尚未有費用</b><strong>TWD 0</strong></div>'}
-    </div>`;
+    </div>
+    ${dayRows ? `<div class="budgetDayBreakdown">
+      <div class="budgetDayTitle">依日期</div>
+      ${dayRows}
+    </div>` : ''}`;
 }
 
 /* ── 篩選排序列 ── */

@@ -7516,6 +7516,31 @@ body.readonly .btn:not(.btn-allow) { opacity: .4; pointer-events: none; }
 .budgetSummaryCard b      { display: block; font-size: 13px; color: #8b827a; margin-bottom: 4px; }
 .budgetSummaryCard strong { display: block; font-size: 16px; font-weight: 900; }
 .budgetSummaryCard.total  { background: #edf8f3; border-color: #82c9a8; }
+.budgetDayBreakdown {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.budgetDayTitle {
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--muted);
+  padding: 8px 14px 6px;
+  border-bottom: 1px solid var(--line);
+  background: #faf7f2;
+}
+.budgetDayRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 14px;
+  font-size: 13px;
+  border-bottom: 1px solid #f3ede4;
+}
+.budgetDayRow:last-child { border-bottom: none; }
+.budgetDayLabel { color: var(--muted); }
+.budgetDayAmt   { font-weight: 900; color: #365f54; font-variant-numeric: tabular-nums; }
 .budgetList  { display: flex; flex-direction: column; gap: 8px; }
 .budgetItem  { border: 1px solid #eadfd4; border-radius: 16px; overflow: hidden; }
 .budgetItem summary { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; cursor: pointer; }

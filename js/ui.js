@@ -20,6 +20,11 @@ function _brandHtml() {
    ══════════════════════════════════════════ */
 
 function go(v, opts = {}) {
+  if (v === 'budget' && view !== 'budget') {
+    _budgetSort = 'date';
+    _budgetFilterType = '';
+    _budgetFilterDay = '';
+  }
   view = v;
   VIEWS.forEach(([key]) => {
     const el = $(key + 'View');
