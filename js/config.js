@@ -3,7 +3,7 @@
    ================================================================ */
 
 /* ── App 版本 ── */
-const APP_VERSION = 'v74';
+const APP_VERSION = 'v75';
 
 /* ── Firebase 設定 ── */
 const FIREBASE_CONFIG = {
@@ -102,7 +102,7 @@ const PACK_DEFAULTS = [
 const VIEWS = [
   ['planner',   '行程'],
   ['spots',     '口袋景點'],
-  ['budget',    '預算'],
+  ['budget',    '費用'],
   ['packing',   '行李'],
   ['photoBook', '旅遊書'],
   ['trip',      '旅遊地'],

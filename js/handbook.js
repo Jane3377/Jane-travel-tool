@@ -376,7 +376,7 @@ function handbookHtml() {
     <div class="hbShareCard noPrint">
       <div class="hbShareTitle">🔗 旅伴分享連結</div>
       ${shareUrl ? `
-        <div class="hbShareDesc">旅伴可透過此連結即時查看所有行程、住宿、預算（唯讀）。</div>
+        <div class="hbShareDesc">旅伴可透過此連結即時查看所有行程、住宿、費用（唯讀）。</div>
         <div class="hbShareUrlRow">
           <input class="hbShareUrlInput" readonly value="${esc(shareUrl)}">
           <button class="btn dark compact" onclick="copyShareLink()">複製</button>

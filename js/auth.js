@@ -605,7 +605,7 @@ function _renderSharePage() {
 
         <!-- 預算 -->
         <details class="spAccordion">
-          <summary class="spAccordionHead spAccordionHeadFlat">💰 預算總覽</summary>
+          <summary class="spAccordionHead spAccordionHeadFlat">💰 費用總覽</summary>
           <div class="spAccordionBody">${budgetHtml}</div>
         </details>
       </div>

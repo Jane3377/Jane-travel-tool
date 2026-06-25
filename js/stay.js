@@ -259,7 +259,7 @@ function removeFlightPlans() {
 }
 
 function addFlightBudget() {
-  if (data.expenses.some(e => e.source === '航班')) return toast('航班預算已記過');
+  if (data.expenses.some(e => e.source === '航班')) return toast('航班費用已記過');
   const out  = normalizeFlightObj(data.flights.out);
   const back = normalizeFlightObj(data.flights.back);
   const outNo  = out.segments.map(s => s.no).filter(Boolean).join('+');
@@ -278,7 +278,7 @@ function addFlightBudget() {
 function removeFlightBudget() {
   data.expenses = data.expenses.filter(e => e.source !== '航班');
   save();
-  toast('已移除航班預算');
+  toast('已移除航班費用');
 }
 
 /* ══════════════════════════════════════════
@@ -302,7 +302,7 @@ function hotelCard(h) {
       <div class="box mint">${esc(h.addr || '尚未填地址')}<br>${esc(h.note || '')}</div>
       <div class="hotelTags">
         ${hasP ? '<span class="tag">已帶入行程</span>' : '<span class="tag muted">未帶入行程</span>'}
-        ${hasB ? '<span class="tag">已帶入預算</span>' : '<span class="tag muted">未帶入預算</span>'}
+        ${hasB ? '<span class="tag">已帶入費用</span>' : '<span class="tag muted">未帶入費用</span>'}
       </div>
       <div class="btns">
         <button class="small" onclick="editHotel('${h.id}')">編輯</button>
@@ -311,8 +311,8 @@ function hotelCard(h) {
           ? `<button class="small" onclick="removeHotelPlans('${h.id}')">移除行程</button>`
           : `<button class="small" onclick="addHotelPlans('${h.id}')">帶入行程</button>`}
         ${hasB
-          ? `<button class="small" onclick="removeHotelBudget('${h.id}')">移除預算</button>`
-          : `<button class="small" onclick="addHotelBudget('${h.id}')">帶入預算</button>`}
+          ? `<button class="small" onclick="removeHotelBudget('${h.id}')">移除費用</button>`
+          : `<button class="small" onclick="addHotelBudget('${h.id}')">帶入費用</button>`}
         <button class="small danger" onclick="deleteHotel('${h.id}')">刪除</button>
       </div>
     </div>`;
@@ -421,7 +421,7 @@ function removeHotelPlans(id) {
 }
 
 function addHotelBudget(id) {
-  if (hotelHasBudget(id)) return toast('住宿預算已記過');
+  if (hotelHasBudget(id)) return toast('住宿費用已記過');
   const h = data.hotels.find(x => x.id === id);
   if (!h) return;
   data.expenses.push({
@@ -431,13 +431,13 @@ function addHotelBudget(id) {
     mode: 'TWD', foreign: 0, twd: 0, memo: '由住宿資料帶入'
   });
   save();
-  toast('已帶入住宿預算');
+  toast('已帶入住宿費用');
 }
 
 function removeHotelBudget(id) {
   data.expenses = data.expenses.filter(e => e.hotelId !== id);
   save();
-  toast('已移除住宿預算');
+  toast('已移除住宿費用');
 }
 
 /* ══════════════════════════════════════════

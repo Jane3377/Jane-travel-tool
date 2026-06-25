@@ -119,7 +119,7 @@ function budgetSummaryHtml(items) {
 }
 
 function budgetListHtml(items) {
-  if (!items.length) return '<div class="empty">尚未新增預算</div>';
+  if (!items.length) return '<div class="empty">尚未新增費用</div>';
   const cur = esc(data.trip.currency || 'KRW');
   const rows = items.map(x => `
     <tr class="budgetRow">

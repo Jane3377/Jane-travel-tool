@@ -272,7 +272,7 @@ function _showPromptModal(type) {
                : buildItineraryPrompt();
   const title  = type === 'spots'   ? 'AI 找景點'
                : type === 'packing' ? 'AI 行李清單'
-               : type === 'budget'  ? 'AI 預算'
+               : type === 'budget'  ? 'AI 費用'
                : 'AI 行程健檢';
 
   let modal = $('aiPromptModal');
@@ -402,10 +402,10 @@ ${hotels}
 目前行程：
 ${allPlans || '尚未安排行程'}
 
-目前預算 / 額外費用：
+目前費用：
 ${expenses}
 
-請幫我檢查這趟旅程可能漏掉哪些預算項目，例如網卡、機場交通、市區交通、票券、保險、咖啡甜點、伴手禮、行李加購等。金額不要亂估，請預設 TWD 0，讓我匯入後自行調整。
+請幫我檢查這趟旅程可能漏掉哪些費用項目，例如網卡、機場交通、市區交通、票券、保險、咖啡甜點、伴手禮、行李加購等。金額不要亂估，請預設 TWD 0，讓我匯入後自行調整。
 
 請只輸出純 JSON，不要 Markdown，不要解釋文字。格式如下：
 {
@@ -413,7 +413,7 @@ ${expenses}
   "items": [
     {
       "type": "交通票券/景點票券/餐飲/購物/網路/旅平險/其他",
-      "name": "建議補充的預算項目",
+      "name": "建議補充的費用項目",
       "mode": "TWD",
       "twd": 0,
       "memo": "為什麼建議補這筆"
@@ -552,7 +552,7 @@ function importAiJson() {
         });
       });
       save();
-      toast(`已匯入 ${budgetItems.length} 筆預算項目`);
+      toast(`已匯入 ${budgetItems.length} 筆費用項目`);
       closeImportModal();
       return;
     }

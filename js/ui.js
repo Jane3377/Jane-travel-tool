@@ -66,7 +66,7 @@ function renderNav() {
   }
   if (mobile) {
     // 手機底部只顯示主要幾個
-    const mobileViews = [['planner','行程'],['spots','景點'],['budget','預算'],['packing','行李'],['photoBook','旅遊書'],['trip','旅遊地'],['stay','機酒']];
+    const mobileViews = [['planner','行程'],['spots','景點'],['budget','費用'],['packing','行李'],['photoBook','旅遊書'],['trip','旅遊地'],['stay','機酒']];
     mobile.innerHTML = mobileViews.map(([k, l]) =>
       `<button class="nav ${k===view?'active':''}" onclick="go('${k}')">${l}</button>`
     ).join('');
@@ -392,7 +392,7 @@ function renderTrip() {
   el.innerHTML = `
     <div class="card">
       <h2 style="margin:0 0 4px">🌏 旅遊地設定</h2>
-      <div class="hint" style="margin-bottom:14px">先設定旅遊地、日期、幣別與旅伴。完成後才會開啟航班住宿、行程、口袋景點、預算、行李與旅遊書。</div>
+      <div class="hint" style="margin-bottom:14px">先設定旅遊地、日期、幣別與旅伴。完成後才會開啟航班住宿、行程、口袋景點、費用、行李與旅遊書。</div>
       <div class="three compactMobile">
         <div><label>國家 / 區域</label>
           <select id="country" onchange="countryChanged()">
@@ -515,7 +515,7 @@ function flightStatusHtml() {
         ? `<button class="btn soft compact" ${disAttr} onclick="removeFlightPlans()">移除航班行程</button>`
         : `<button class="btn blue compact" ${disAttr} onclick="addFlightToPlans()">帶入行程</button>`}
       ${hasBudget
-        ? `<button class="btn soft compact" ${disAttr} onclick="removeFlightBudget()">移除機票預算</button>`
+        ? `<button class="btn soft compact" ${disAttr} onclick="removeFlightBudget()">移除機票費用</button>`
         : `<button class="btn pink compact" ${disAttr} onclick="addFlightBudget()">記一筆來回機票</button>`}
     </div>`;
 }
@@ -813,7 +813,7 @@ function renderBudget() {
 
   el.innerHTML = `
     <div class="section">
-      <div><h2>💰 預算總覽</h2>
+      <div><h2>💰 費用總覽</h2>
         <div class="hint">新增行程時會自動建立一筆花費，可在這裡補金額。</div>
       </div>
     </div>
@@ -840,7 +840,7 @@ function renderBudget() {
       </div>
       <label>備註</label><input id="ememo">
       <div class="btns">
-        <button class="btn dark" onclick="saveExpense()">${editingExpenseId ? '儲存預算' : '新增費用'}</button>
+        <button class="btn dark" onclick="saveExpense()">${editingExpenseId ? '儲存費用' : '新增費用'}</button>
         ${editingExpenseId
           ? '<button class="btn soft" onclick="clearExpenseForm()">取消</button>' : ''}
         <button class="btn blue compact" onclick="openRateSearch()">查匯率</button>
@@ -848,9 +848,9 @@ function renderBudget() {
     </div>
     <div class="card shareEditOnly">
       <div class="aiBarLabel">AI 輔助</div>
-      <div class="hint" style="margin-bottom:10px">檢查可能漏掉的預算項目，匯入後金額預設 0 讓你自行調整。</div>
+      <div class="hint" style="margin-bottom:10px">檢查可能漏掉的費用項目，匯入後金額預設 0 讓你自行調整。</div>
       <div class="btns">
-        <button class="btn dark compact" onclick="showBudgetPrompt()">AI 預算</button>
+        <button class="btn dark compact" onclick="showBudgetPrompt()">AI 費用</button>
         <button class="btn blue compact" onclick="openImportModal()">AI 匯入</button>
       </div>
     </div>
