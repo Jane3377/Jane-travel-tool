@@ -9,14 +9,14 @@
 /* ── 時長連動 ── */
 function planStartChange() {
   // 如果有選時長，重算結束時間
-  const dur = Number($('pdur')?.value || 0);
+  const dur = Number($form('pdur')?.value || 0);
   if (dur > 0 && getTimeVal('ps')) planDurationChange();
   else planEndChange();
 }
 
 function planDurationChange() {
   const s   = getTimeVal('ps');
-  const dur = Number($('pdur')?.value || 0);
+  const dur = Number($form('pdur')?.value || 0);
   if (!s || !dur) return;
   setTimeVal('pe', addMinutes(s, dur));
   planEndChange();
@@ -25,7 +25,7 @@ function planDurationChange() {
 function planEndChange() {
   const s = getTimeVal('ps');
   const e = getTimeVal('pe');
-  const el = $('pdurDisplay');
+  const el = $form('pdurDisplay') || $('pdurDisplay');
   if (!el) return;
   if (s && e) {
     const mins = timeToMin(e) - timeToMin(s);
@@ -34,7 +34,8 @@ function planEndChange() {
       el.textContent = h && m ? `${h} 小時 ${m} 分` : h ? `${h} 小時` : `${m} 分`;
       el.style.display = 'inline';
       // 若符合整 30 分，同步更新時長下拉
-      if (mins % 30 === 0 && mins <= 300 && $('pdur')) $('pdur').value = String(mins);
+      const durEl = $form('pdur');
+      if (mins % 30 === 0 && mins <= 300 && durEl) durEl.value = String(mins);
       return;
     }
   }
@@ -47,7 +48,8 @@ function planSyncDurDisplay() {
   const e = getTimeVal('pe');
   if (s && e) {
     const mins = timeToMin(e) - timeToMin(s);
-    if (mins > 0 && mins % 30 === 0 && mins <= 300 && $('pdur')) $('pdur').value = String(mins);
+    const durEl = $form('pdur');
+    if (mins > 0 && mins % 30 === 0 && mins <= 300 && durEl) durEl.value = String(mins);
   }
   planEndChange();
 }
@@ -89,6 +91,10 @@ function savePlanForm() {
       // 手動設定時間時鎖定，防止 normalizePlanTimes 覆蓋
       if (start) item.pinnedTime = true;
       Object.assign(existing, item);
+      // 手動改時間後，清除所有當天 sortOrder，改為依時間排序
+      if (start) {
+        data.plans.filter(p => p.day === day).forEach(p => { delete p.sortOrder; });
+      }
       // 同步到對應景點
       const spot = data.spots.find(s => s.planId === existing.id);
       if (spot) {
@@ -167,6 +173,12 @@ function reorderPlan(planId, dir) {
   a.adjusted = false;
   b.adjusted = false;
 
+  // 清除當天所有 sortOrder，改為依時間排序，防止舊 sortOrder 凍結順序
+  data.plans.filter(p => p.day === currentDay).forEach(p => { delete p.sortOrder; });
+  // 鎖定時間，防止 normalizePlanTimes 覆蓋
+  a.pinnedTime = true;
+  b.pinnedTime = true;
+
   save();
   renderPlanner();
 }
@@ -226,10 +238,10 @@ function applyLockedTimeState() {
   const p = editingPlanId ? data.plans.find(x => x.id === editingPlanId) : null;
   const locked = !!p?.lockedTime;
   ['psH','psM','peH','peM','pdur'].forEach(id => {
-    const el = $(id);
+    const el = $form(id);
     if (el) el.disabled = locked;
   });
-  const hint = $('lockedTimeHint');
+  const hint = $form('lockedTimeHint') || $('lockedTimeHint');
   if (hint) hint.style.display = locked ? '' : 'none';
 }
 
