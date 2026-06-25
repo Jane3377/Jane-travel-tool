@@ -581,16 +581,38 @@ function plansOverlap(a, b) {
 
 function planCards(plans) {
   if (!plans.length) return '<div class="empty">這天還沒有行程</div>';
-  const conflicts = new Set();
+
+  const conflicts  = new Set();
+  const pairs      = [];
   for (let i = 0; i < plans.length; i++) {
     for (let j = i + 1; j < plans.length; j++) {
       if (plansOverlap(plans[i], plans[j])) {
         conflicts.add(plans[i].id);
         conflicts.add(plans[j].id);
+        pairs.push([plans[i], plans[j]]);
       }
     }
   }
-  let html = '<div class="itineraryTimeline">';
+
+  let banner = '';
+  if (pairs.length) {
+    const rows = pairs.map(([a, b]) =>
+      `<div class="conflictPairRow">
+        <span class="conflictPairTime">${esc(a.start)}–${esc(a.end)}</span>
+        <span class="conflictPairName">${esc(a.name)}</span>
+        <span class="conflictPairSep">⟷</span>
+        <span class="conflictPairTime">${esc(b.start)}–${esc(b.end)}</span>
+        <span class="conflictPairName">${esc(b.name)}</span>
+      </div>`
+    ).join('');
+    banner = `
+      <div class="conflictBanner">
+        <div class="conflictBannerTitle">⚠ 本日有 ${pairs.length} 組行程時間重疊</div>
+        ${rows}
+      </div>`;
+  }
+
+  let html = banner + '<div class="itineraryTimeline">';
   plans.forEach((p, i) => {
     if (i > 0) html += connHtml(plans[i-1], p);
     html += planCard(p, i + 1, plans.length, conflicts.has(p.id));
