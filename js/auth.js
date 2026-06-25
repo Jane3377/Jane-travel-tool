@@ -525,12 +525,14 @@ function _renderSharePage() {
           ${hotel ? `<div class="spHotelChip">🏨 ${esc(hotel.name)}</div>` : ''}
           ${plans.length ? plans.map(p => {
             const time = p.start || '';
+            const nearbyItems = (p.nearby || []).map(id => (data.spots || []).find(s => s.id === id)).filter(Boolean);
             return `
               <div class="spPlanRow spPlanRowTap" onclick="openSharePlanDetail('${p.id}')">
                 <span class="spPlanTime">${esc(time)}</span>
                 <div class="spPlanInfo">
                   <div class="spPlanName">${activityIcon(p.type)} ${esc(p.name || '未命名')}</div>
                   ${p.address ? `<div class="spPlanAddr">📍 ${esc(p.address)}</div>` : ''}
+                  ${nearbyItems.length ? `<div class="spPlanNearby">${nearbyItems.map(s => `<span class="spNearbyTag">${activityIcon(s.type)} ${esc(s.name)}</span>`).join('')}</div>` : ''}
                 </div>
                 <span class="spPlanChevron">›</span>
               </div>`;
@@ -773,6 +775,15 @@ function openSharePlanDetail(planId) {
             <div class="spDetailLabel">景點筆記</div>
             <div class="spDetailVal spDetailNote">${esc(spot.memo || spot.note)}</div>
           </div>` : ''}
+
+        ${(() => {
+          const nearbyItems = (p.nearby || []).map(id => (data.spots || []).find(s => s.id === id)).filter(Boolean);
+          return nearbyItems.length ? `
+          <div class="spDetailSection">
+            <div class="spDetailLabel">附近逛逛</div>
+            <div class="spDetailNearby">${nearbyItems.map(s => `<span class="spNearbyTag">${activityIcon(s.type)} ${esc(s.name)}</span>`).join('')}</div>
+          </div>` : '';
+        })()}
       </div>
     </div>`;
 

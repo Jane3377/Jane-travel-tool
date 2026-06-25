@@ -10266,6 +10266,26 @@ body.sheetOpen { overflow: hidden; }
   color: #8b827a;
   margin-top: 3px;
 }
+.spPlanNearby {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 5px;
+}
+.spNearbyTag {
+  font-size: 11px;
+  background: #eef8f3;
+  color: #527b70;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-weight: 700;
+}
+.spDetailNearby {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 4px;
+}
 .spPlanNote {
   font-size: 12px;
   color: #7a6040;
