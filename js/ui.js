@@ -129,6 +129,7 @@ function switchToFullExpenseForm() {
 
 function _quickExpenseFormHtml() {
   const defDay = currentDay || '';
+  const cur    = esc(data.trip.currency || 'KRW');
   const chips = QUICK_TYPES.map(t =>
     `<button class="quickTypeChip${t === _quickExpenseType ? ' active' : ''}" data-type="${esc(t)}" onclick="selectQuickType('${esc(t)}')">${esc(t)}</button>`
   ).join('');
@@ -137,11 +138,12 @@ function _quickExpenseFormHtml() {
     <div style="margin:12px 0 8px"><label>項目</label>
       <input id="qname" placeholder="例：午餐、地鐵票…" autocomplete="off"></div>
     <div class="quickAmtWrap">
-      <label>金額（TWD）</label>
-      <input id="qtwd" class="quickAmtInput" type="number" inputmode="numeric" placeholder="0">
+      <label>${cur} 金額</label>
+      <input id="qforeign" class="quickAmtInput" type="number" inputmode="numeric" placeholder="0" oninput="updateQuickTwdPreview()">
+      <div id="qtwdPreview" class="quickTwdPreview"></div>
     </div>
-    <div style="margin:12px 0 16px"><label>日期（選填）</label>
-      <input id="qday" type="date" value="${defDay}"></div>
+    <div style="margin:12px 0 16px"><label>日期</label>
+      <input id="qday" type="date" value="${defDay}" required></div>
     <div class="btns">
       <button class="btn dark" onclick="saveQuickExpense()">記帳</button>
       <button class="btn soft" onclick="closeAddSheet()">取消</button>
@@ -878,7 +880,7 @@ function renderBudget() {
       </div>
     </div>
     ${budgetSummaryHtml(items)}
-    <details class="card shareEditOnly">
+    <details class="card shareEditOnly aiSection">
       <summary class="addFormSummary">🤖 AI 輔助</summary>
       <div class="detailBody">
         <div class="hint" style="margin-bottom:10px">檢查可能漏掉的費用項目，匯入後金額預設 0 讓你自行調整。</div>

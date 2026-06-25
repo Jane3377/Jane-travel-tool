@@ -1357,6 +1357,17 @@ textarea{min-height:58px}
 .quickSwitchLink:hover {
   color: var(--primary);
 }
+.quickTwdPreview {
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
+  margin-top: 4px;
+  min-height: 18px;
+}
+.aiSection summary {
+  font-size: 14px !important;
+  font-weight: 700 !important;
+}
 
 /* 航班區：密度與手機體驗 */
 .flightDense .box{

@@ -262,11 +262,23 @@ function selectQuickType(type) {
   });
 }
 
+function updateQuickTwdPreview() {
+  const foreign = Number(document.getElementById('qforeign')?.value || 0);
+  const rate    = Number(data.trip.rate || 0);
+  const el      = document.getElementById('qtwdPreview');
+  if (!el) return;
+  if (!rate) { el.textContent = '（請先在旅遊地設定匯率）'; return; }
+  el.textContent = foreign ? `≈ TWD ${fmt(Math.round(foreign * rate))}` : '';
+}
+
 function saveQuickExpense() {
-  const name = document.getElementById('qname')?.value?.trim();
+  const name    = document.getElementById('qname')?.value?.trim();
   if (!name) return toast('請輸入費用項目');
-  const twd = Number(document.getElementById('qtwd')?.value || 0);
-  const day = document.getElementById('qday')?.value || '';
+  const day     = document.getElementById('qday')?.value || '';
+  if (!day) return toast('請選擇日期');
+  const foreign = Number(document.getElementById('qforeign')?.value || 0);
+  const rate    = Number(data.trip.rate || 0);
+  const twd     = Math.round(foreign * rate);
   data.expenses.push({
     id: uid(),
     source: '自訂',
@@ -275,10 +287,10 @@ function saveQuickExpense() {
     payer: '未定',
     payMethod: '未定',
     day,
-    mode: 'TWD',
-    foreign: 0,
+    mode: 'foreign',
+    foreign,
     twd,
-    expRate: 0,
+    expRate: rate,
     memo: ''
   });
   save();
