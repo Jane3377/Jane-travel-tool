@@ -398,7 +398,7 @@ function addHotelPlans(id) {
   const make = (day, start, end, name) => ({
     id: `hotel-${id}-${day}-${name.slice(0,4)}`, source: 'hotel', sourceType: 'hotel',
     hotelId: id, lockedName: true, day, start, end,
-    type: '住宿', name, note: h.addr || '', memo: '由住宿資料帶入',
+    type: '住宿', name, address: h.addr || '', note: h.addr || '', memo: '由住宿資料帶入',
     mode: 'foreign', foreign: 0, twd: 0, payer: '未定', payMethod: '未定'
   });
 

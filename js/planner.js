@@ -464,8 +464,9 @@ function planCard(p, num, total, conflict = false) {
   );
   const hasKr = isKorea && (p.krName || p.krAddress);
 
-  const mapBtn    = `<button class="small" onclick="openMap('${mapQuery}')">Google Maps</button>`;
-  const naverBtn  = isKorea
+  const showMap   = !(p.sourceType === 'flight' && p.type === '航班');
+  const mapBtn    = showMap ? `<button class="small" onclick="openMap('${mapQuery}')">Google Maps</button>` : '';
+  const naverBtn  = showMap && isKorea
     ? `<button class="small" onclick="window.open('https://map.naver.com/v5/search/${encodeURIComponent(p.krName||p.name)}','_blank')">Naver Map</button>`
     : '';
 
