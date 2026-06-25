@@ -8,6 +8,7 @@ let _budgetFilterDay  = '';
 
 function saveExpense() {
   if (!$form('ename')?.value) return toast('請輸入費用項目');
+  const payMode = document.querySelector('input[name="epaymode"]:checked')?.value || 'foreign';
   const item = {
     source:    '自訂',
     type:      $form('etype')?.value    || '其他',
@@ -15,8 +16,8 @@ function saveExpense() {
     payer:     $form('epayer')?.value   || '未定',
     payMethod: $form('epm')?.value      || '未定',
     day:       $form('eday')?.value     || '',
-    mode:      'foreign',
-    foreign:   Number($form('eforeign')?.value || 0),
+    mode:      payMode,
+    foreign:   payMode === 'TWD' ? 0 : Number($form('eforeign')?.value || 0),
     twd:       Number($form('etwd')?.value     || 0),
     memo:      $form('ememo')?.value    || ''
   };
@@ -59,9 +60,25 @@ function fillExpenseForm(id) {
   if ($('epm'))      $('epm').value      = e.payMethod  || '未定';
   if ($('eday'))     $('eday').value     = e.day        || '';
   if ($('ememo'))    $('ememo').value    = e.memo       || '';
+  const mode = e.mode || (Number(e.foreign) > 0 ? 'foreign' : 'TWD');
+  document.querySelectorAll('input[name="epaymode"]').forEach(r => { r.checked = (r.value === mode); });
+  updatePayMode();
+}
+
+function updatePayMode() {
+  const mode = document.querySelector('input[name="epaymode"]:checked')?.value || 'foreign';
+  const fw = document.getElementById('foreignWrap');
+  if (!fw) return;
+  fw.hidden = (mode === 'TWD');
+  if (mode === 'TWD') {
+    const ef = document.getElementById('eforeign');
+    if (ef) ef.value = '';
+  }
 }
 
 function syncExpenseMoney(src) {
+  const mode = document.querySelector('input[name="epaymode"]:checked')?.value || 'foreign';
+  if (mode === 'TWD') return;
   const rate = Number(data.trip.rate || 1);
   if (src === 'f') {
     if ($('etwd')) $('etwd').value = Math.round(Number($('eforeign')?.value || 0) * rate);

@@ -1157,6 +1157,35 @@ textarea{min-height:58px}
   font-size:13px;
 }
 
+/* ── 付款幣別切換 ── */
+.payModeToggle {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 10px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.payModeOpt {
+  padding: 5px 16px;
+  cursor: pointer;
+  background: var(--card);
+  color: var(--muted);
+  user-select: none;
+  transition: background 0.15s, color 0.15s;
+}
+.payModeOpt + .payModeOpt {
+  border-left: 1px solid var(--line);
+}
+.payModeOpt:has(input:checked) {
+  background: var(--primary);
+  color: #fff;
+}
+.payModeOpt input[type="radio"] {
+  display: none;
+}
+
 /* ── 費用篩選列 ── */
 .budgetFilterBar {
   display: flex;

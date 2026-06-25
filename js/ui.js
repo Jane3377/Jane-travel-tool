@@ -229,6 +229,7 @@ function _addFormHtml(v, e = null) {
   }
   if (v === 'budget') {
     const defType = e?.type || '餐飲';
+    const defMode = e?.mode || 'foreign';
     return `
       <div class="three compactMobile">
         <div><label>費用類型</label>
@@ -240,9 +241,14 @@ function _addFormHtml(v, e = null) {
         <div><label>日期</label>
           <input id="eday" type="date" value="${e?.day||''}"></div>
       </div>
+      <div class="payModeToggle">
+        <label class="payModeOpt"><input type="radio" name="epaymode" value="foreign" onchange="updatePayMode()" ${defMode!=='TWD'?'checked':''}> 付外幣</label><label class="payModeOpt"><input type="radio" name="epaymode" value="TWD" onchange="updatePayMode()" ${defMode==='TWD'?'checked':''}> 付台幣</label>
+      </div>
       <div class="two compactMobile">
-        <div><label>${esc(data.trip.currency)} 金額</label>
-          <input id="eforeign" type="number" value="${e?.foreign||''}" oninput="syncExpenseMoney('f')"></div>
+        <div id="foreignWrap" ${defMode==='TWD'?'hidden':''}>
+          <label>${esc(data.trip.currency)} 金額</label>
+          <input id="eforeign" type="number" value="${e?.foreign||''}" oninput="syncExpenseMoney('f')">
+        </div>
         <div><label>TWD</label>
           <input id="etwd" type="number" value="${e?.twd||''}" oninput="syncExpenseMoney('t')"></div>
       </div>
