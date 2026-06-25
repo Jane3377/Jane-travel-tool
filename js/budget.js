@@ -162,14 +162,31 @@ function budgetListHtml(items) {
   if (!list.length) return '<div class="empty">尚未新增費用</div>';
   const cur = esc(data.trip.currency || 'KRW');
   const cards = list.map(x => {
+    // 日期語意標籤
+    let dayLabel = '';
+    if (x.day) {
+      if (x.source === '住宿')    dayLabel = `付款日 ${x.day}`;
+      else if (x.source === '行程') dayLabel = `行程日 ${x.day}`;
+      else                          dayLabel = x.day;
+    }
     const metaParts = [];
-    if (x.day) metaParts.push(x.day);
+    if (dayLabel) metaParts.push(dayLabel);
     const pn = travelerName(x.payer);
     if (pn && pn !== '未定') metaParts.push(pn);
     const pm = payMethodLabel(x.payMethod);
     if (pm && pm !== '未定') metaParts.push(pm);
-    const srcBadge = (x.source && x.source !== '自訂')
-      ? `<span class="budgetSrcTag">${esc(x.source)}</span>` : '';
+
+    // 來源標籤：自訂→自建（藍色），其他來源照顯示
+    const srcLabel = x.source === '自訂' ? '自建' : (x.source || '');
+    const srcBadge = srcLabel ? `<span class="budgetSrcTag">${esc(srcLabel)}</span>` : '';
+
+    // 金額：行程自動建立且尚未填金額 → 待填金額
+    const isUnfilled = x.source === '行程' && !x.twd && !x.foreign;
+    const amtHtml = isUnfilled
+      ? `<div class="budgetCardPending">待填金額</div>`
+      : `<div class="budgetCardTwd">TWD ${fmt(x.twd)}</div>
+         ${x.foreign ? `<div class="budgetCardForeign">${cur} ${fmt(x.foreign)}</div>` : ''}`;
+
     return `
       <div class="budgetCard">
         <div class="budgetCardMain">
@@ -179,8 +196,7 @@ function budgetListHtml(items) {
             ${x.memo ? `<div class="budgetCardMemo">${esc(x.memo)}</div>` : ''}
           </div>
           <div class="budgetCardAmts">
-            <div class="budgetCardTwd">TWD ${fmt(x.twd)}</div>
-            ${x.foreign ? `<div class="budgetCardForeign">${cur} ${fmt(x.foreign)}</div>` : ''}
+            ${amtHtml}
           </div>
         </div>
         ${metaParts.length ? `<div class="budgetCardMeta">${esc(metaParts.join(' · '))}</div>` : ''}

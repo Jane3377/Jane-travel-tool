@@ -1245,6 +1245,16 @@ textarea{min-height:58px}
   color: #365f54;
   font-variant-numeric: tabular-nums;
 }
+.budgetCardPending {
+  font-size: 12px;
+  font-weight: 700;
+  color: #b07030;
+  background: #fff7ec;
+  border: 1px solid #f0d8b0;
+  border-radius: 8px;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
 .budgetCardForeign {
   font-size: 11px;
   color: var(--muted);
