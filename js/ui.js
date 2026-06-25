@@ -71,7 +71,7 @@ function renderNav() {
   }
   if (mobile) {
     // 手機底部只顯示主要幾個
-    const mobileViews = [['planner','行程'],['spots','景點'],['budget','費用'],['packing','行李'],['photoBook','旅遊書'],['trip','旅遊地'],['stay','機酒']];
+    const mobileViews = [['planner','行程'],['spots','景點'],['budget','費用'],['packing','清單'],['photoBook','旅遊書'],['trip','旅遊地'],['stay','機酒']];
     mobile.innerHTML = mobileViews.map(([k, l]) =>
       `<button class="nav ${k===view?'active':''}" onclick="go('${k}')">${l}</button>`
     ).join('');
@@ -111,7 +111,7 @@ function openAddSheet() {
     setTimeout(() => document.getElementById('qname')?.focus(), 100);
     return;
   }
-  const titles = { planner: '新增行程', spots: '新增景點', packing: '新增行李' };
+  const titles = { planner: '新增行程', spots: '新增景點', packing: '新增清單項目' };
   if (titleEl) titleEl.textContent = titles[view] || '新增';
   body.innerHTML = _addFormHtml(view);
   overlay.hidden = false;
@@ -454,7 +454,7 @@ function renderTrip() {
   el.innerHTML = `
     <div class="card">
       <h2 style="margin:0 0 4px">🌏 旅遊地設定</h2>
-      <div class="hint" style="margin-bottom:14px">先設定旅遊地、日期、幣別與旅伴。完成後才會開啟航班住宿、行程、口袋景點、費用、行李與旅遊書。</div>
+      <div class="hint" style="margin-bottom:14px">先設定旅遊地、日期、幣別與旅伴。完成後才會開啟航班住宿、行程、口袋景點、費用、清單與旅遊書。</div>
       <div class="three compactMobile">
         <div><label>國家 / 區域</label>
           <select id="country" onchange="countryChanged()">
