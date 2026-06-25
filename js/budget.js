@@ -5,6 +5,7 @@
 let _budgetSort       = 'date';
 let _budgetFilterType = '';
 let _budgetFilterDay  = '';
+let _quickExpenseType = '餐飲';
 
 function saveExpense() {
   if (!$form('ename')?.value) return toast('請輸入費用項目');
@@ -249,4 +250,39 @@ function budgetListHtml(items) {
       </div>`;
   }).join('');
   return `<div class="budgetCardList">${cards}</div>`;
+}
+
+/* ── 快速記帳 ── */
+const QUICK_TYPES = ['餐飲', '交通', '景點', '購物', '住宿', '其他'];
+
+function selectQuickType(type) {
+  _quickExpenseType = type;
+  document.querySelectorAll('.quickTypeChip').forEach(el => {
+    el.classList.toggle('active', el.dataset.type === type);
+  });
+}
+
+function saveQuickExpense() {
+  const name = document.getElementById('qname')?.value?.trim();
+  if (!name) return toast('請輸入費用項目');
+  const twd = Number(document.getElementById('qtwd')?.value || 0);
+  const day = document.getElementById('qday')?.value || '';
+  data.expenses.push({
+    id: uid(),
+    source: '自訂',
+    type: _quickExpenseType,
+    name,
+    payer: '未定',
+    payMethod: '未定',
+    day,
+    mode: 'TWD',
+    foreign: 0,
+    twd,
+    expRate: 0,
+    memo: ''
+  });
+  save();
+  closeAddSheet();
+  renderBudget();
+  toast('已記帳 ✓');
 }

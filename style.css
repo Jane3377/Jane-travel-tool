@@ -1308,6 +1308,56 @@ textarea{min-height:58px}
   border-radius: 8px;
 }
 
+/* ── 快速記帳表單 ── */
+.quickTypeChips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+.quickTypeChip {
+  padding: 7px 14px;
+  border-radius: 20px;
+  border: 1.5px solid var(--line);
+  background: var(--card);
+  color: var(--fg);
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+.quickTypeChip.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+.quickAmtWrap {
+  margin: 4px 0;
+}
+.quickAmtInput {
+  font-size: 28px !important;
+  font-weight: 600;
+  text-align: center;
+  padding: 10px 16px !important;
+  letter-spacing: 1px;
+}
+.quickSwitchRow {
+  text-align: center;
+  margin-top: 12px;
+}
+.quickSwitchLink {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 13px;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
+.quickSwitchLink:hover {
+  color: var(--primary);
+}
+
 /* 航班區：密度與手機體驗 */
 .flightDense .box{
   padding:10px;

@@ -103,12 +103,52 @@ function openAddSheet() {
   const body    = $('addSheetBody');
   const titleEl = $('addSheetTitle');
   if (!overlay || !body) return;
-  const titles = { planner: '新增行程', spots: '新增景點', budget: '新增費用', packing: '新增行李' };
+  if (view === 'budget') {
+    if (titleEl) titleEl.textContent = '快速記帳';
+    body.innerHTML = _quickExpenseFormHtml();
+    overlay.hidden = false;
+    document.body.classList.add('sheetOpen');
+    setTimeout(() => document.getElementById('qname')?.focus(), 100);
+    return;
+  }
+  const titles = { planner: '新增行程', spots: '新增景點', packing: '新增行李' };
   if (titleEl) titleEl.textContent = titles[view] || '新增';
   body.innerHTML = _addFormHtml(view);
   overlay.hidden = false;
   document.body.classList.add('sheetOpen');
   if (view === 'planner' && $('pday')) $('pday').value = currentDay;
+}
+
+function switchToFullExpenseForm() {
+  const body    = $('addSheetBody');
+  const titleEl = $('addSheetTitle');
+  if (!body) return;
+  if (titleEl) titleEl.textContent = '新增費用';
+  body.innerHTML = _addFormHtml('budget');
+}
+
+function _quickExpenseFormHtml() {
+  const defDay = currentDay || '';
+  const chips = QUICK_TYPES.map(t =>
+    `<button class="quickTypeChip${t === _quickExpenseType ? ' active' : ''}" data-type="${esc(t)}" onclick="selectQuickType('${esc(t)}')">${esc(t)}</button>`
+  ).join('');
+  return `
+    <div class="quickTypeChips">${chips}</div>
+    <div style="margin:12px 0 8px"><label>項目</label>
+      <input id="qname" placeholder="例：午餐、地鐵票…" autocomplete="off"></div>
+    <div class="quickAmtWrap">
+      <label>金額（TWD）</label>
+      <input id="qtwd" class="quickAmtInput" type="number" inputmode="numeric" placeholder="0">
+    </div>
+    <div style="margin:12px 0 16px"><label>日期（選填）</label>
+      <input id="qday" type="date" value="${defDay}"></div>
+    <div class="btns">
+      <button class="btn dark" onclick="saveQuickExpense()">記帳</button>
+      <button class="btn soft" onclick="closeAddSheet()">取消</button>
+    </div>
+    <div class="quickSwitchRow">
+      <button class="quickSwitchLink" onclick="switchToFullExpenseForm()">填完整表單（幣別 / 付款方式…）</button>
+    </div>`;
 }
 
 function closeAddSheet() {
@@ -838,18 +878,16 @@ function renderBudget() {
       </div>
     </div>
     ${budgetSummaryHtml(items)}
-    <details class="card shareEditOnly addInlineForm">
-      <summary class="addFormSummary">＋ 新增費用</summary>
-      <div class="detailBody">${_addFormHtml('budget')}</div>
-    </details>
-    <div class="card shareEditOnly">
-      <div class="aiBarLabel">AI 輔助</div>
-      <div class="hint" style="margin-bottom:10px">檢查可能漏掉的費用項目，匯入後金額預設 0 讓你自行調整。</div>
-      <div class="btns">
-        <button class="btn dark compact" onclick="showBudgetPrompt()">AI 費用</button>
-        <button class="btn blue compact" onclick="openImportModal()">AI 匯入</button>
+    <details class="card shareEditOnly">
+      <summary class="addFormSummary">🤖 AI 輔助</summary>
+      <div class="detailBody">
+        <div class="hint" style="margin-bottom:10px">檢查可能漏掉的費用項目，匯入後金額預設 0 讓你自行調整。</div>
+        <div class="btns">
+          <button class="btn dark compact" onclick="showBudgetPrompt()">AI 費用</button>
+          <button class="btn blue compact" onclick="openImportModal()">AI 匯入</button>
+        </div>
       </div>
-    </div>
+    </details>
     ${budgetFilterBarHtml(items)}
     ${budgetListHtml(items)}`;
 }
