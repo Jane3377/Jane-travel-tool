@@ -9610,6 +9610,113 @@ body.sheetOpen { overflow: hidden; }
 .diaryStyle-sketch .diaryPhotoMemoItem { font-family: 'Caveat', cursive; font-size: 1.1rem; color: #6b4a2a; }
 
 /* ══════════════════════════════════════════
+   📷 立可拍風格
+   雙層細線框 + Polaroid 白框照片
+   ══════════════════════════════════════════ */
+.diaryStyle-polar .diaryCoverPage {
+  background: linear-gradient(135deg, #f5eae8 0%, #ecddd8 50%, #f0e4e0 100%);
+  min-height: 380px;
+}
+.diaryStyle-polar .diaryCoverOv   { background: rgba(255,255,255,.18); }
+.diaryStyle-polar .diaryCoverContent { color: #7a3a3a; }
+.diaryStyle-polar .diaryCoverEyebrow { letter-spacing: .3em; color: #b06060; }
+.diaryStyle-polar .diaryCoverTitle { font-size: 2.2rem; font-weight: 700; letter-spacing: .02em; }
+
+/* Day 容器：雙層細線框（外框 1px → 4px 白間距 → 內框 1px） */
+.diaryStyle-polar .diaryDay {
+  background: #fff;
+  border: 1px solid #e0c8c4;
+  border-radius: 6px;
+  box-shadow: 0 0 0 4px #fefcfa, 0 0 0 5px #e0c8c4, 0 2px 8px rgba(176,96,96,.06);
+  margin-bottom: 28px;
+}
+.diaryStyle-polar .diaryDayHeader {
+  border-bottom: 1px solid #f0dcd8;
+  padding-bottom: 10px;
+  margin-bottom: 14px;
+}
+.diaryStyle-polar .diaryDayNum  { color: #b06060; font-size: 1.1rem; font-weight: 700; }
+.diaryStyle-polar .diaryDayDate { color: #c8a0a0; }
+.diaryStyle-polar .diaryDayHotel { background: #fdf0ee; color: #a06060; }
+.diaryStyle-polar .diaryDayText {
+  border-left: 1.5px solid #e8c0b8;
+  color: #5a3030;
+  font-size: 0.95rem;
+  line-height: 1.9;
+  background: transparent;
+}
+.diaryStyle-polar .diaryDayText:focus { border-left-color: #b06060; }
+.diaryStyle-polar .diaryDayText:empty::before { color: #d4a8a0; }
+.diaryStyle-polar .diaryPhotoMemoItem { color: #b07070; }
+
+/* Mood/weather icon buttons */
+.diaryStyle-polar .diaryIconBtn { border: 1px solid #e0c8c4; border-radius: 20px; background: #fff; }
+.diaryStyle-polar .diaryIconBtn.active { background: #fdf0ee; border-color: #b06060; }
+
+/* Polaroid 照片框：白底 + 留白 + 底部厚邊（說明文字區） */
+.diaryStyle-polar .diaryPhotoStoryList { gap: 22px; }
+.diaryStyle-polar .diaryPhotoStoryItem { position: relative; }
+.diaryStyle-polar .diaryPhotoStoryImgWrap {
+  background: #fff;
+  padding: 7px 7px 28px;
+  box-shadow: 0 3px 12px rgba(0,0,0,.14), 0 1px 4px rgba(0,0,0,.08);
+  border-radius: 2px;
+  overflow: visible;
+  transform: rotate(-1.2deg);
+  transition: transform .2s, box-shadow .2s;
+}
+.diaryStyle-polar .diaryPhotoStoryItem.alt .diaryPhotoStoryImgWrap {
+  transform: rotate(1deg);
+}
+.diaryStyle-polar .diaryPhotoStoryImgWrap:hover {
+  transform: rotate(0deg) scale(1.02);
+  box-shadow: 0 8px 24px rgba(0,0,0,.18);
+}
+.diaryStyle-polar .diaryPhotoStoryImgWrap img {
+  border-radius: 0;
+  display: block;
+}
+.diaryStyle-polar .diaryPhotoStoryCaption {
+  font-size: 0.82rem;
+  color: #8a5050;
+  font-style: italic;
+}
+.diaryStyle-polar .diaryPhotoStoryMemo {
+  font-size: 0.8rem;
+  color: #b08080;
+  line-height: 1.6;
+}
+
+/* Tags */
+.diaryStyle-polar .diaryPlanTag {
+  border: 1px solid #e0c0c0;
+  border-radius: 20px;
+  background: #fdf5f4;
+  color: #8a5050;
+  font-size: 0.78rem;
+}
+.diaryStyle-polar .diaryPlanTag.active {
+  background: #fde8e8;
+  border-color: #c07070;
+  color: #7a3030;
+}
+.diaryStyle-polar .diaryPlanTag.suggestion { border-style: dashed; color: #b08080; }
+.diaryStyle-polar .diaryPlanTag.suggestion:hover { border-color: #b06060; background: #fdf0ee; }
+.diaryStyle-polar .diaryTagRemove { color: #c0a0a0; }
+.diaryStyle-polar .diaryTagInput {
+  border-width: 0 0 1px 0;
+  border-color: #e0c0c0;
+  border-radius: 0;
+  background: transparent;
+  color: #5a3030;
+}
+.diaryStyle-polar .diaryTagInput:focus { border-color: #b06060; outline: none; }
+.diaryStyle-polar .diaryTagAddBtn { border: 1px solid #e0c0c0; border-radius: 20px; color: #b08080; background: transparent; }
+.diaryStyle-polar .diaryTagAddBtn:hover { border-color: #b06060; background: #fdf0ee; }
+.diaryStyle-polar .diaryNoPhotos { border: 1px dashed #e0c0c0; color: #c0a0a0; }
+.diaryStyle-polar .diaryMoodBadge { font-size: 1.2rem; }
+
+/* ══════════════════════════════════════════
    今日行程區塊
    ══════════════════════════════════════════ */
 .diaryItinerarySection {
@@ -9720,6 +9827,8 @@ body.sheetOpen { overflow: hidden; }
   padding: 4px 0;
 }
 .diaryStyle-sketch .diaryItineraryLabel { font-family: 'Caveat', cursive; font-size: 0.95rem; letter-spacing: .05em; }
+.diaryStyle-polar .diaryItinerary { color: #8a5050; border-left: 1.5px solid #e8c0b8; padding-left: 10px; background: transparent; }
+.diaryStyle-polar .diaryItineraryLabel { color: #c0a0a0; }
 
 /* ══════════════════════════════════════════
    封面裝飾 deco layer
@@ -9754,6 +9863,10 @@ body.sheetOpen { overflow: hidden; }
 .diaryStyle-sketch .diaryCoverDeco {
   outline: 2px dashed rgba(61,43,26,.4);
   outline-offset: -14px;
+}
+.diaryStyle-polar .diaryCoverDeco {
+  border: 1px solid rgba(224,200,196,.65);
+  box-shadow: inset 0 0 0 6px rgba(255,255,255,.28), inset 0 0 0 7px rgba(224,200,196,.4);
 }
 
 /* ── 列印 ── */
