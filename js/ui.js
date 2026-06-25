@@ -818,34 +818,10 @@ function renderBudget() {
       </div>
     </div>
     ${budgetSummaryHtml(items)}
-    <div class="card shareEditOnly${editingExpenseId ? '' : ' addInlineForm'}">
-      <div class="three compactMobile">
-        <div><label>費用類型</label>
-          <select id="etype">
-            ${['機票','住宿','網路','旅平險','交通票券','景點票券','餐飲','購物','其他']
-              .map(t=>`<option>${t}</option>`).join('')}
-          </select></div>
-        <div><label>項目</label><input id="ename"></div>
-        <div><label>付款人</label><select id="epayer">${optsPayer('未定')}</select></div>
-      </div>
-      <div class="four compactMobile">
-        <div><label>${esc(data.trip.currency)} 金額</label>
-          <input id="eforeign" type="number" oninput="syncExpenseMoney('f')"></div>
-        <div><label>TWD</label>
-          <input id="etwd" type="number" oninput="syncExpenseMoney('t')"></div>
-        <div><label>付款方式</label>
-          <select id="epm">${optsPayMethod('未定')}</select></div>
-        <div><label>日期（選填）</label>
-          <input id="eday" type="date"></div>
-      </div>
-      <label>備註</label><input id="ememo">
-      <div class="btns">
-        <button class="btn dark" onclick="saveExpense()">${editingExpenseId ? '儲存費用' : '新增費用'}</button>
-        ${editingExpenseId
-          ? '<button class="btn soft" onclick="clearExpenseForm()">取消</button>' : ''}
-        <button class="btn blue compact" onclick="openRateSearch()">查匯率</button>
-      </div>
-    </div>
+    <details class="card shareEditOnly addInlineForm">
+      <summary class="addFormSummary">＋ 新增費用</summary>
+      <div class="detailBody">${_addFormHtml('budget')}</div>
+    </details>
     <div class="card shareEditOnly">
       <div class="aiBarLabel">AI 輔助</div>
       <div class="hint" style="margin-bottom:10px">檢查可能漏掉的費用項目，匯入後金額預設 0 讓你自行調整。</div>
@@ -854,9 +830,8 @@ function renderBudget() {
         <button class="btn blue compact" onclick="openImportModal()">AI 匯入</button>
       </div>
     </div>
+    ${budgetFilterBarHtml(items)}
     ${budgetListHtml(items)}`;
-
-  if (editingExpenseId) fillExpenseForm(editingExpenseId);
 }
 
 function renderPacking() {
