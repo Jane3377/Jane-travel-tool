@@ -451,6 +451,7 @@ const DIARY_STYLES = {
   film:     '🎞 底片風格',
   story:    '🛍 購物旅遊',
   sketch:   '✏️ 簡約線條',
+  polar:    '📷 立可拍',
 };
 
 const WEATHER_ICONS = ['☀️','🌤','⛅','🌧','🌪','❄️','🌈'];
@@ -744,7 +745,7 @@ function diaryDayHtml(d) {
     return !savedTags.includes(t) && !dismissed.includes(t);
   });
 
-  const isStory = style === 'story' || style === 'sketch';
+  const isStory = style === 'story' || style === 'sketch' || style === 'polar';
 
   // 今日心情顏色工具列
   const moodColorBar = _diaryColorBar(d.key, '心情',
@@ -998,6 +999,7 @@ ${cssHref ? `<link rel="stylesheet" href="${cssHref}">` : ''}
   .diaryStyle-film .diaryItinerary { font-family: 'Courier New', monospace; color: #c8b88a; border-left: 3px solid #f0c060; padding-left: 10px; }
   .diaryStyle-story .diaryItinerary { color: #1e3a4f; border-left: 3px solid #4a8ab0; padding-left: 10px; }
   .diaryStyle-sketch .diaryItinerary { font-family: 'Caveat', cursive; color: #3d2b1a; font-size: 1rem; }
+  .diaryStyle-polar  .diaryItinerary { color: #b06060; border-left: 1px solid #e8c0b8; padding-left: 10px; }
   /* 封面裝飾元素 */
   .diaryCoverDeco { position: absolute; inset: 0; pointer-events: none; }
   .diaryStyle-fresh   .diaryCoverDeco { background: radial-gradient(ellipse at 90% 10%, rgba(180,230,200,.35) 0%, transparent 50%), radial-gradient(ellipse at 10% 85%, rgba(140,200,170,.25) 0%, transparent 40%); }
@@ -1006,6 +1008,7 @@ ${cssHref ? `<link rel="stylesheet" href="${cssHref}">` : ''}
   .diaryStyle-film    .diaryCoverDeco { background: linear-gradient(to bottom, transparent 60%, rgba(0,0,0,.7) 100%); }
   .diaryStyle-story   .diaryCoverDeco { background: linear-gradient(180deg, rgba(30,58,79,.4) 0%, rgba(74,138,176,.2) 50%, transparent 100%); }
   .diaryStyle-sketch  .diaryCoverDeco { border: 4px solid rgba(61,43,26,.5); outline: 1px dashed rgba(61,43,26,.3); outline-offset: -12px; }
+  .diaryStyle-polar   .diaryCoverDeco { border: 1px solid rgba(224,200,196,.7); box-shadow: inset 0 0 0 5px rgba(255,255,255,.3), inset 0 0 0 6px rgba(224,200,196,.4); }
 
   /* 📖 故事 — 藍色扉頁感 */
   .diaryStyle-story.diaryDay  { border-top: 4px solid #1e3a4f; }
@@ -1020,11 +1023,19 @@ ${cssHref ? `<link rel="stylesheet" href="${cssHref}">` : ''}
   .diaryStyle-sketch .diaryDayHeader { border-bottom: 2px dashed #8b6040; padding-bottom: 10px; margin-bottom: 14px; }
   .diaryStyle-sketch .diaryPhotoStoryImgWrap { overflow: hidden !important; box-shadow: 4px 4px 0 #3d2b1a !important; }
 
+  /* 📷 立可拍 — 雙層細線框 + 白框照片 */
+  .diaryStyle-polar.diaryDay { border: 1px solid #e0c8c4 !important; box-shadow: 0 0 0 4px #fefcfa, 0 0 0 5px #e0c8c4 !important; border-radius: 6px !important; margin-bottom: 28px !important; background: #fff !important; }
+  .diaryStyle-polar .diaryDayHeader { border-bottom: 1px solid #f0dcd8; padding-bottom: 10px; margin-bottom: 14px; }
+  .diaryStyle-polar .diaryDayNum  { color: #b06060 !important; }
+  .diaryStyle-polar .diaryPhotoStoryImgWrap { background: #fff !important; padding: 7px 7px 26px !important; box-shadow: 0 3px 10px rgba(0,0,0,.15) !important; border-radius: 2px !important; overflow: visible !important; }
+  .diaryStyle-polar .diaryPhotoStoryImgWrap img { border-radius: 0 !important; }
+
   /* 各風格 body 背景 */
   body.pStyle-film     { background: #1c1c1c !important; }
   body.pStyle-sketch   { background: #fef6e4 !important; }
   body.pStyle-magazine { background: #e8e8ee !important; }
   body.pStyle-journal  { background: #faf4e8 !important; }
+  body.pStyle-polar    { background: #f5eeec !important; }
 
   @media print { body { background: #fff; } }
 </style>
