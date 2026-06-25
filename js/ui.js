@@ -206,7 +206,7 @@ function _addFormHtml(v, e = null) {
         <input id="sa" value="${esc(e?.addr||'')}">
         <button class="btn blue compact" onclick="mapSpotDraft()">查地圖</button>
       </div>
-      <label>注意事項</label><textarea id="sm">${esc(e?.note||'')}</textarea>
+      <label>說明</label><textarea id="sm">${esc(e?.note||'')}</textarea>
       ${isKorea ? `
       <div class="two">
         <div><label>韓文名稱（選填）</label><input id="skrName" placeholder="예: 감천문화마을" value="${esc(e?.krName||'')}"></div>
@@ -658,7 +658,7 @@ function renderSpots() {
           <input id="sa" value="${esc(e?.addr||'')}">
           <button class="btn blue compact" onclick="mapSpotDraft()">查地圖</button>
         </div>
-        <label>注意事項</label><textarea id="sm">${esc(e?.note || e?.memo || '')}</textarea>
+        <label>說明</label><textarea id="sm">${esc(e?.note || e?.memo || '')}</textarea>
         ${isKorea ? `
         <div class="two">
           <div><label>韓文名稱（選填）</label><input id="skrName" value="${esc(e?.krName||'')}" placeholder="예: 감천문화마을"></div>
