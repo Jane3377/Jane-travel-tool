@@ -853,12 +853,12 @@ function renderPacking() {
   const el      = $('packingView');
   if (!el) return;
   const current = data.packView || 'pre';
-  const lists   = data.packLists || [{ id: 'pre', name: '出國前' }, { id: 'out', name: '離開飯店' }];
+  const lists   = data.packLists || [{ id: 'todo', name: '行前待辦' }, { id: 'carry', name: '手提行李' }, { id: 'check', name: '托運行李' }, { id: 'out', name: '離開飯店檢查' }];
   const list    = data.packing.filter(x => x.type === current);
-  const builtIn = new Set(['pre', 'out']);
+  const builtIn = new Set(['todo', 'carry', 'check', 'out']);
 
   el.innerHTML = `
-    <div class="section"><div><h2>🧳 行李清單</h2></div></div>
+    <div class="section"><div><h2>📋 清單</h2></div></div>
     <div class="card">
       <label>清單情境</label>
       <div class="packListRow">

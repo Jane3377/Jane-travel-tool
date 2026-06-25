@@ -58,6 +58,6 @@ function deletePackList(id) {
   if (!confirm('刪除此清單也會刪除其中所有項目，確定嗎？')) return;
   data.packLists = (data.packLists || []).filter(x => x.id !== id);
   data.packing   = data.packing.filter(x => x.type !== id);
-  if (data.packView === id) data.packView = data.packLists[0]?.id || 'pre';
+  if (data.packView === id) data.packView = data.packLists[0]?.id || 'todo';
   save();
 }

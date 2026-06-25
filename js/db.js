@@ -103,7 +103,7 @@ function normalizeData(raw) {
   if (!d.dayCoverMeta) d.dayCoverMeta = {};
   if (!d.aiReviews)    d.aiReviews    = {};
   if (!d.packing?.length)   d.packing   = makePacking();
-  if (!d.packLists?.length) d.packLists = [{ id: 'pre', name: '出國前' }, { id: 'out', name: '離開飯店' }];
+  if (!d.packLists?.length) d.packLists = [{ id: 'todo', name: '行前待辦' }, { id: 'carry', name: '手提行李' }, { id: 'check', name: '托運行李' }, { id: 'out', name: '離開飯店檢查' }];
   if (!d.diaryShare) d.diaryShare = { token: '', published: false, font: 'noto', publishedAt: null };
 
   // 重建 days

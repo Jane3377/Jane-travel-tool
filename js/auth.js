@@ -597,9 +597,9 @@ function _renderSharePage() {
           <div class="spAccordionBody spSpotsGrid">${spotsHtml}</div>
         </details>` : ''}
 
-        <!-- 行李清單 -->
+        <!-- 清單 -->
         <details class="spAccordion">
-          <summary class="spAccordionHead spAccordionHeadFlat">🧳 行李清單</summary>
+          <summary class="spAccordionHead spAccordionHeadFlat">📋 清單</summary>
           <div class="spAccordionBody">${packingHtml}</div>
         </details>
 
@@ -692,7 +692,7 @@ function _buildShareBudgetHtml() {
 
 function _buildSharePackingHtml() {
   const items = data.packing || [];
-  if (!items.length) return `<div class="spEmpty">尚無行李清單</div>`;
+  if (!items.length) return `<div class="spEmpty">尚無清單項目</div>`;
 
   const lists = data.packLists?.length
     ? data.packLists
