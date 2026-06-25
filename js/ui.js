@@ -228,27 +228,32 @@ function _addFormHtml(v, e = null) {
       </div>`;
   }
   if (v === 'budget') {
+    const defType = e?.type || '餐飲';
     return `
       <div class="three compactMobile">
         <div><label>費用類型</label>
           <select id="etype">
-            ${['機票','住宿','網路','旅平險','交通票券','景點票券','餐飲','購物','其他'].map(t =>
-              `<option ${t===(e?.type||'')?'selected':''}>${t}</option>`).join('')}
+            ${['餐飲','機票','住宿','網路','旅平險','交通票券','景點票券','購物','其他'].map(t =>
+              `<option ${t===defType?'selected':''}>${t}</option>`).join('')}
           </select></div>
         <div><label>項目</label><input id="ename" value="${esc(e?.name||'')}"></div>
-        <div><label>付款人</label><select id="epayer">${optsPayer(e?.payer||'未定')}</select></div>
+        <div><label>日期</label>
+          <input id="eday" type="date" value="${e?.day||''}"></div>
       </div>
-      <div class="four compactMobile">
+      <div class="two compactMobile">
         <div><label>${esc(data.trip.currency)} 金額</label>
           <input id="eforeign" type="number" value="${e?.foreign||''}" oninput="syncExpenseMoney('f')"></div>
         <div><label>TWD</label>
           <input id="etwd" type="number" value="${e?.twd||''}" oninput="syncExpenseMoney('t')"></div>
-        <div><label>付款方式</label>
-          <select id="epm">${optsPayMethod(e?.payMethod||'未定')}</select></div>
-        <div><label>日期（選填）</label>
-          <input id="eday" type="date" value="${e?.day||''}"></div>
       </div>
-      <label>備註</label><input id="ememo" value="${esc(e?.memo||'')}">
+      <div class="three compactMobile">
+        <div><label>付款方式（選填）</label>
+          <select id="epm">${optsPayMethod(e?.payMethod||'未定')}</select></div>
+        <div><label>付款人（選填）</label>
+          <select id="epayer">${optsPayer(e?.payer||'未定')}</select></div>
+        <div><label>備註（選填）</label>
+          <input id="ememo" value="${esc(e?.memo||'')}"></div>
+      </div>
       <div class="btns">
         <button class="btn dark" onclick="saveExpense()">${isEdit ? '儲存修改' : '新增費用'}</button>
         <button class="btn blue compact" onclick="openRateSearch()">查匯率</button>
