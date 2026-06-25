@@ -221,7 +221,7 @@ function _addFormHtml(v, e = null) {
         <div><label>分類</label><select id="ptype">${optsPlanTypes(e?.type||'景點')}</select></div>
         <div></div>
       </div>
-      <label>地點</label>
+      <label>名稱</label>
       <input id="pname" value="${esc(e?.name||'')}">
       <label>地址</label>
       <input id="paddress" value="${esc(e?.address||'')}">
