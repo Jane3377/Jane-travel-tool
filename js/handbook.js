@@ -189,12 +189,16 @@ function _handbookDocHtml(opts = {}) {
               </div>
               ${plans.length
                 ? `<div class="hbPlanList">
-                    ${plans.map(p => `
+                    ${plans.map(p => {
+                      const nearbyItems = (p.nearby || []).map(id => data.spots.find(s => s.id === id)).filter(Boolean);
+                      return `
                       <div class="hbPlanItem">
                         <span class="hbPlanTime">${esc(p.start || '--:--')}</span>
                         <span class="hbPlanName">${activityIcon(p.type)} ${esc(p.name)}</span>
                         ${p.address ? `<span class="hbPlanAddr">${esc(p.address)}</span>` : ''}
-                      </div>`).join('')}
+                        ${nearbyItems.length ? `<div class="hbPlanNearby">${nearbyItems.map(s => `<span class="hbNearbyTag">${activityIcon(s.type)} ${esc(s.name)}</span>`).join('')}</div>` : ''}
+                      </div>`;
+                    }).join('')}
                   </div>`
                 : `<div class="hbEmpty">這天尚未安排行程</div>`}
             </div>`;
