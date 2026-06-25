@@ -19,6 +19,7 @@ function saveExpense() {
     mode:      payMode,
     foreign:   payMode === 'TWD' ? 0 : Number($form('eforeign')?.value || 0),
     twd:       Number($form('etwd')?.value     || 0),
+    expRate:   payMode === 'TWD' ? 0 : Number(document.getElementById('eexprate')?.value || data.trip.rate || 0),
     memo:      $form('ememo')?.value    || ''
   };
   if (editingExpenseId) {
@@ -60,6 +61,7 @@ function fillExpenseForm(id) {
   if ($('epm'))      $('epm').value      = e.payMethod  || '未定';
   if ($('eday'))     $('eday').value     = e.day        || '';
   if ($('ememo'))    $('ememo').value    = e.memo       || '';
+  if ($('eexprate')) $('eexprate').value = e.expRate != null ? e.expRate : (data.trip.rate || '');
   const mode = e.mode || (Number(e.foreign) > 0 ? 'foreign' : 'TWD');
   document.querySelectorAll('input[name="epaymode"]').forEach(r => { r.checked = (r.value === mode); });
   updatePayMode();
@@ -79,12 +81,20 @@ function updatePayMode() {
 function syncExpenseMoney(src) {
   const mode = document.querySelector('input[name="epaymode"]:checked')?.value || 'foreign';
   if (mode === 'TWD') return;
-  const rate = Number(data.trip.rate || 1);
+  const rate = Number(document.getElementById('eexprate')?.value || data.trip.rate || 1);
+  const f    = Number($('eforeign')?.value || 0);
+  const t    = Number($('etwd')?.value    || 0);
   if (src === 'f') {
-    if ($('etwd')) $('etwd').value = Math.round(Number($('eforeign')?.value || 0) * rate);
+    if ($('etwd')) $('etwd').value = Math.round(f * rate);
   } else {
-    if ($('eforeign')) $('eforeign').value = Math.round(Number($('etwd')?.value || 0) / rate);
+    if (f > 0 && t > 0 && $('eexprate')) $('eexprate').value = (t / f).toFixed(4);
   }
+}
+
+function syncExpenseRate() {
+  const rate = Number(document.getElementById('eexprate')?.value || 0);
+  const f    = Number($('eforeign')?.value || 0);
+  if (rate && f && $('etwd')) $('etwd').value = Math.round(f * rate);
 }
 
 function syncPlanMoney(src) {

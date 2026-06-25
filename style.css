@@ -1158,12 +1158,23 @@ textarea{min-height:58px}
 }
 
 /* ── 付款幣別切換 ── */
+.payModeRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.payModeLabel {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 700;
+  white-space: nowrap;
+}
 .payModeToggle {
   display: inline-flex;
   border: 1px solid var(--line);
   border-radius: 10px;
   overflow: hidden;
-  margin-bottom: 10px;
   font-size: 13px;
   font-weight: 700;
 }
@@ -1181,6 +1192,9 @@ textarea{min-height:58px}
 .payModeOpt:has(input:checked) {
   background: var(--primary);
   color: #fff;
+}
+.payModeOpt:has(input:checked)::before {
+  content: '✓ ';
 }
 .payModeOpt input[type="radio"] {
   display: none;

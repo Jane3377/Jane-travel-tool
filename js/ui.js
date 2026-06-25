@@ -230,6 +230,7 @@ function _addFormHtml(v, e = null) {
   if (v === 'budget') {
     const defType = e?.type || '餐飲';
     const defMode = e?.mode || 'foreign';
+    const defRate = e?.expRate != null ? e.expRate : (data.trip.rate || '');
     return `
       <div class="three compactMobile">
         <div><label>費用類型</label>
@@ -241,17 +242,22 @@ function _addFormHtml(v, e = null) {
         <div><label>日期</label>
           <input id="eday" type="date" value="${e?.day||''}"></div>
       </div>
-      <div class="payModeToggle">
-        <label class="payModeOpt"><input type="radio" name="epaymode" value="foreign" onchange="updatePayMode()" ${defMode!=='TWD'?'checked':''}> 付外幣</label><label class="payModeOpt"><input type="radio" name="epaymode" value="TWD" onchange="updatePayMode()" ${defMode==='TWD'?'checked':''}> 付台幣</label>
-      </div>
-      <div class="two compactMobile">
-        <div id="foreignWrap" ${defMode==='TWD'?'hidden':''}>
-          <label>${esc(data.trip.currency)} 金額</label>
-          <input id="eforeign" type="number" value="${e?.foreign||''}" oninput="syncExpenseMoney('f')">
+      <div class="payModeRow">
+        <span class="payModeLabel">付款幣別</span>
+        <div class="payModeToggle">
+          <label class="payModeOpt"><input type="radio" name="epaymode" value="foreign" onchange="updatePayMode()" ${defMode!=='TWD'?'checked':''}> 外幣</label><label class="payModeOpt"><input type="radio" name="epaymode" value="TWD" onchange="updatePayMode()" ${defMode==='TWD'?'checked':''}> 台幣</label>
         </div>
-        <div><label>TWD</label>
-          <input id="etwd" type="number" value="${e?.twd||''}" oninput="syncExpenseMoney('t')"></div>
       </div>
+      <div id="foreignWrap" ${defMode==='TWD'?'hidden':''}>
+        <div class="two compactMobile" style="margin-bottom:8px">
+          <div><label>${esc(data.trip.currency)} 金額</label>
+            <input id="eforeign" type="number" value="${e?.foreign||''}" oninput="syncExpenseMoney('f')"></div>
+          <div><label>匯率</label>
+            <input id="eexprate" type="number" step="0.001" value="${defRate}" oninput="syncExpenseRate()"></div>
+        </div>
+      </div>
+      <div><label>TWD</label>
+        <input id="etwd" type="number" value="${e?.twd||''}" oninput="syncExpenseMoney('t')"></div>
       <div class="three compactMobile">
         <div><label>付款方式（選填）</label>
           <select id="epm">${optsPayMethod(e?.payMethod||'未定')}</select></div>
@@ -262,7 +268,6 @@ function _addFormHtml(v, e = null) {
       </div>
       <div class="btns">
         <button class="btn dark" onclick="saveExpense()">${isEdit ? '儲存修改' : '新增費用'}</button>
-        <button class="btn blue compact" onclick="openRateSearch()">查匯率</button>
         <button class="btn soft" onclick="closeAddSheet()">取消</button>
       </div>`;
   }
