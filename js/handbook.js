@@ -248,154 +248,20 @@ function _openHandbookPreview(autoPrint) {
 <title>${esc(data.meta.title || '旅程手冊')}</title>
 ${cssHref ? `<link rel="stylesheet" href="${cssHref}">` : ''}
 <style>
-  /* ── 基礎 ── */
+  /* 確保顏色完整列印 */
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-  @page { size: A4 portrait; margin: 15mm 20mm; }
-  body { margin: 0; padding: 20px 0; background: #f7f3ec; font-family: -apple-system,'Noto Sans TC','PingFang TC',sans-serif; }
-  .handbook { max-width: 680px; margin: 0 auto; border-radius: 0; box-shadow: 0 4px 32px rgba(0,0,0,.12); background: #fff; }
-  .hbEditable { border: none !important; background: transparent !important; padding: 0; }
-  .hbCoverUpload, .hbActions, .bookSubTabs { display: none !important; }
-  .hbSection { break-inside: avoid; page-break-inside: avoid; }
-  .hbDay     { break-inside: avoid; page-break-inside: avoid; }
-  .hbHotelCard { break-inside: avoid; page-break-inside: avoid; }
-
-  /* ── 各色彩主題 CSS 變數 ── */
-  .hbColor-green { --hb-a:#3d5141; --hb-al:#d0e8d8; --hb-al2:#a8cbb8; }
-  .hbColor-sage  { --hb-a:#565f56; --hb-al:#d8e5dc; --hb-al2:#b5c8be; }
-  .hbColor-blush { --hb-a:#7a4e58; --hb-al:#eed5da; --hb-al2:#d0a8b5; }
-  .hbColor-navy  { --hb-a:#2e3f5c; --hb-al:#cdd8e8; --hb-al2:#a0b8d0; }
-  .hbColor-sand  { --hb-a:#7a6040; --hb-al:#e5d8c8; --hb-al2:#c8b498; }
-
-  /* ══ 封面：全頁設計 ══ */
-  .hbCover {
-    min-height: 420px;
-    flex-direction: column;
-    justify-content: flex-end;
-    padding: 0;
-    overflow: hidden;
-  }
-  .hbCoverInner { padding: 52px 44px; position: relative; z-index: 2; }
-  .hbEyebrow { font-size: 10px; letter-spacing: 4px; opacity: .52; margin-bottom: 22px; text-transform: uppercase; }
-  .hbTitle   { font-size: clamp(32px, 5.5vw, 48px) !important; font-weight: 900; line-height: 1.1; margin: 0 0 16px !important; }
-  .hbCoverDest { font-size: 17px; opacity: .85; margin-bottom: 6px; }
-  .hbCoverMeta { font-size: 13px; opacity: .62; }
-  .hbCoverTravelers { margin-top: 28px; padding-top: 18px; border-top: 1px solid rgba(255,255,255,.28); font-size: 14px; font-weight: 700; opacity: .85; }
-  /* 封面無圖時：底部漸層加深 */
-  .hbCoverOverlay { background: linear-gradient(to top, rgba(0,0,0,.48) 0%, rgba(0,0,0,.08) 55%, transparent 100%); }
-
-  /* ══ Section 標題：左側色條 + 下方色線 ══ */
-  .hbSectionLabel {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 9px;
-    letter-spacing: 3px;
-    font-weight: 900;
-    text-transform: uppercase;
-    color: var(--hb-a, #9b8e85);
-    border-bottom: 1.5px solid var(--hb-al, #e8e2da);
-    padding-bottom: 10px;
-    margin-bottom: 18px;
-  }
-  .hbSectionLabel::before {
-    content: '';
-    width: 3px;
-    height: 14px;
-    background: var(--hb-a, #9b8e85);
-    border-radius: 2px;
-    flex-shrink: 0;
-  }
-
-  /* ══ 旅程總覽：底部色邊 ══ */
-  .hbOverviewItem { border-bottom: 2px solid var(--hb-al2, #ccc); }
-
-  /* ══ 航班：左側色邊 ══ */
-  .hbFlightSeg { border-left: 3px solid var(--hb-a, #4A5D4E); border-radius: 0 8px 8px 0; }
-
-  /* ══ 住宿：色框 ══ */
-  .hbHotelCard { border: 1px solid var(--hb-al, #e8e2da); }
-  .hbHotelName { color: var(--hb-a, #3d5141); }
-
-  /* ══ 每日行程頭：色帶 ══ */
-  .hbDay { padding: 0; border-left: none !important; margin-bottom: 22px; }
-  .hbDayHead {
-    background: var(--hb-al, #f5f0ea);
-    border-left: 4px solid var(--hb-a, #4A5D4E);
-    padding: 8px 14px;
-    margin-bottom: 14px;
-    border-radius: 0 6px 6px 0;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-  .hbDayTitle { color: var(--hb-a, #3d5141); font-size: 13px; font-weight: 900; }
-  .hbDayDate  { font-size: 11px; color: #9b8e85; }
-  .hbDayHotel { margin-left: auto; font-size: 11px; color: #9b8e85; }
-
-  /* ══ 行程 Timeline ══ */
-  .hbPlanList {
-    position: relative;
-    padding-left: 54px;
-    display: block;
-    gap: 0;
-  }
-  /* 垂直連線 */
-  .hbPlanList::before {
-    content: '';
-    position: absolute;
-    left: 42px;
-    top: 10px;
-    bottom: 8px;
-    width: 1px;
-    background: var(--hb-al2, #d8d8d8);
-  }
-  .hbPlanItem {
-    position: relative;
-    margin-bottom: 13px;
-    display: block;
-    flex-wrap: unset;
-    gap: 0;
-  }
-  /* 時間 */
-  .hbPlanTime {
-    position: absolute;
-    left: -54px;
-    width: 38px;
-    text-align: right;
-    font-size: 10px;
-    color: var(--hb-a, #4A5D4E);
-    font-weight: 800;
-    top: 2px;
-    flex: none;
-  }
-  /* 時間點 */
-  .hbPlanItem::before {
-    content: '';
-    position: absolute;
-    left: -15px;
-    top: 5px;
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: var(--hb-a, #4A5D4E);
-    z-index: 1;
-  }
-  .hbPlanName { display: block; font-weight: 700; font-size: 13px; flex: none; }
-  .hbPlanAddr { display: block; padding-left: 0; font-size: 11px; margin-top: 2px; color: #9b8e85; }
-
-  /* ══ 口袋景點 ══ */
-  .hbSpotCard { border: 1px solid var(--hb-al, #e8e2da); break-inside: avoid; }
-  .hbSpotName { color: var(--hb-a, #3d5141); }
-
-  /* ══ 匯率 ══ */
-  .hbRateChip { background: var(--hb-al, #d9efe6); color: var(--hb-a, #3d5141); }
-
-  @media print {
-    body { padding: 0; background: #fff; }
-    .handbook { max-width: none; box-shadow: none; }
-    .hbCover { min-height: 92vh; page-break-after: always; break-after: page; }
-  }
+  @page { size: A4 portrait; margin: 14mm 18mm; }
+  body { margin: 0; padding: 0; background: #f7f3ec; font-family: -apple-system,'Noto Sans TC','PingFang TC',sans-serif; }
+  /* 版面調整 */
+  .handbook { max-width: none !important; box-shadow: none !important; border-radius: 0 !important; }
+  /* 隱藏編輯 UI */
+  .hbEditable { border: none !important; background: transparent !important; padding: 0 !important; min-height: 0 !important; }
+  .hbCoverUpload, .hbActions, .bookSubTabs, .noPrint, .hbShareCard { display: none !important; }
+  /* 分頁控制 */
+  .hbSection, .hbDay, .hbHotelCard, .hbSpotCard { break-inside: avoid; page-break-inside: avoid; }
+  /* 封面佔整頁 */
+  .hbCover { min-height: 92vh !important; page-break-after: always; break-after: page; }
+  @media print { body { background: #fff; } }
 </style>
 </head>
 <body>
