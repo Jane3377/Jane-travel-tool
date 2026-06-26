@@ -10954,3 +10954,157 @@ body.sheetOpen { overflow: hidden; }
   color: #bbb;
 }
 .diaryTextStyleBarInline { margin-top: 4px; }
+
+/* ══════════════════════════════════════════
+   旅程清單改版 (v97)
+   ══════════════════════════════════════════ */
+
+/* Hero */
+.tripListHero p { margin: 6px 0 0; }
+.tripHeroBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.tripHeroBadge-upcoming {
+  background: rgba(98,143,128,.12);
+  color: var(--primary);
+}
+.tripHeroBadge-active {
+  background: #e8f2f8;
+  color: #3a6d8f;
+}
+.tripHeroMeta {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 8px 0 0 !important;
+}
+
+/* Card list container */
+.tripCardList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 14px 0;
+}
+
+/* Trip card */
+.tripCard {
+  background: rgba(255,255,255,.95);
+  border: 1px solid rgba(220,215,205,.8);
+  border-left: 4px solid var(--tc-accent, #ddd);
+  border-radius: 20px;
+  padding: 16px 16px 14px;
+  box-shadow: 0 2px 12px rgba(80,65,50,.06);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.tripCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(80,65,50,.10);
+}
+.tripCard.archived { opacity: .58; }
+.tripStatus-upcoming { --tc-accent: var(--primary); }
+.tripStatus-active   { --tc-accent: #4f82a8; }
+.tripStatus-past     { --tc-accent: #c8c8c8; }
+.tripStatus-none     { --tc-accent: #e0dbd4; }
+
+/* Card header row */
+.tripCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.tripCardDest {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -.3px;
+  line-height: 1.2;
+}
+.tripCardName {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 3px;
+}
+.tripCardDate {
+  font-size: 13px;
+  color: var(--ink);
+  margin-bottom: 2px;
+}
+.tripCardUpdated {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* Status chip */
+.tripStatusChip {
+  flex-shrink: 0;
+  padding: 4px 11px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.tripStatusChip-upcoming { background: rgba(98,143,128,.12); color: var(--primary); }
+.tripStatusChip-active   { background: #e8f2f8; color: #3a6d8f; }
+.tripStatusChip-past     { background: #f0f0f0; color: #999; }
+
+/* Card footer */
+.tripCardFooter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+.tripCardSecondary {
+  display: flex;
+  gap: 10px;
+  margin-left: auto;
+}
+.tripSecBtn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 4px 0;
+  line-height: 1;
+}
+.tripSecBtn:hover { color: var(--ink); }
+.tripSecBtn-danger:hover { color: #c0392b; }
+
+/* Empty state */
+.tripEmptyHint {
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+  padding: 30px 16px;
+  border: 1.5px dashed var(--line);
+  border-radius: 16px;
+}
+
+/* Archive section */
+.tripArchiveSection {
+  margin: 10px 0;
+  background: rgba(255,255,255,.94);
+  border: 1px solid rgba(255,255,255,.86);
+  border-radius: 26px;
+  box-shadow: var(--shadow);
+  padding: 14px 18px;
+}
+.tripArchiveSection > summary {
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--muted);
+  font-weight: 600;
+  user-select: none;
+  list-style: none;
+}
+.tripArchiveSection > summary::before { content: '▸ '; }
+.tripArchiveSection[open] > summary::before { content: '▾ '; }

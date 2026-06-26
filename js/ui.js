@@ -1096,26 +1096,36 @@ function renderTripList() {
   if (!el) return;
   const active   = tripList.filter(t => !t.archived);
   const archived = tripList.filter(t =>  t.archived);
+  const today    = formatLocalDate(new Date());
+
+  // Hero badge: 最近一趟即將出發或旅行中的行程
+  const nextTrip = active.find(t => t.start && today <= (t.end || t.start));
+  let heroBadge  = '';
+  if (nextTrip) {
+    if (today >= nextTrip.start) {
+      heroBadge = `<div class="tripHeroBadge tripHeroBadge-active">🗺️ 旅行中 · ${esc(nextTrip.dest || nextTrip.title || '')}</div>`;
+    } else {
+      heroBadge = `<div class="tripHeroBadge tripHeroBadge-upcoming">🗓 還有 ${daysBetween(today, nextTrip.start)} 天出發 · ${esc(nextTrip.dest || nextTrip.title || '')}</div>`;
+    }
+  }
 
   el.innerHTML = `
     <div class="gateShell">
       <div class="tripListHero">
-        <div>
-          ${_brandHtml()}
-          <h1>我的旅程</h1>
-          <p>每趟旅程都是一包獨立資料，資料分開保存。</p>
-        </div>
-        <div class="tripListCount">${active.length}/${MAX_TRIPS}</div>
+        ${_brandHtml()}
+        <h1>我的旅程</h1>
+        ${heroBadge}
+        <p class="tripHeroMeta">共 ${active.length} 趟旅程</p>
       </div>
 
-      <div class="tripGrid">
-        ${active.map(tripCard).join('') || '<div class="tripListCard tripColor-cream"><div class="tripCardTop"><h3>還沒有旅程</h3></div></div>'}
+      <div class="tripCardList">
+        ${active.map(tripCard).join('') || '<div class="tripEmptyHint">還沒有旅程，從下方新增第一趟吧！</div>'}
       </div>
 
       ${archived.length ? `
-        <details class="tripCreateCard">
+        <details class="tripArchiveSection">
           <summary>封存旅程（${archived.length}）</summary>
-          <div class="tripGrid">${archived.map(tripCard).join('')}</div>
+          <div class="tripCardList">${archived.map(tripCard).join('')}</div>
         </details>` : ''}
 
       <div class="tripCreateCard">
@@ -1132,14 +1142,6 @@ function renderTripList() {
             </select>
             <input id="newTripCityCustom" placeholder="自訂城市名稱" style="display:none;margin-top:6px">
           </div>
-          <div><label>卡片色系</label>
-            <input id="newTripColor" type="hidden" value="cream">
-            <div class="newTripColorDots">
-              ${CARD_COLORS.map(({key,label}, i) =>
-                `<button type="button" class="tripColorDot color-${key}${i===0?' active':''}" title="${label}"
-                  onclick="$('newTripColor').value='${key}';this.parentElement.querySelectorAll('.tripColorDot').forEach(b=>b.classList.remove('active'));this.classList.add('active')"
-                ></button>`).join('')}
-            </div></div>
           <div><label>出發日</label><input id="newTripStart" type="date"></div>
           <div><label>回程日</label><input id="newTripEnd"   type="date"></div>
           <div style="align-self:end">
@@ -1161,32 +1163,41 @@ function renderTripList() {
 }
 
 function tripCard(t) {
-  const color = CARD_COLORS.some(c => c.key === t.cardColor) ? t.cardColor : 'cream';
+  const today    = formatLocalDate(new Date());
+  const status   = !t.start ? 'none'
+    : today < t.start             ? 'upcoming'
+    : today <= (t.end || t.start) ? 'active'
+    : 'past';
+  const statusLabel = {
+    upcoming: `還有 ${daysBetween(today, t.start)} 天`,
+    active:   '旅行中',
+    past:     '已結束',
+    none:     ''
+  }[status];
+  const duration = t.start && t.end ? daysBetween(t.start, t.end) + 1 : null;
+  const dateStr  = t.start
+    ? `${short(t.start)} – ${short(t.end || t.start)}${duration ? ` · ${duration} 天` : ''}`
+    : '日期未設定';
+
   return `
-    <div class="tripListCard tripColor-${color} ${t.archived?'archived':''}">
-      <div class="tripCardTop">
-        <div>
-          <span class="tripBadge">${t.archived ? '封存' : '旅程'}</span>
-          <h3>${esc(t.title || '未命名旅程')}</h3>
+    <div class="tripCard tripStatus-${status}${t.archived ? ' archived' : ''}">
+      <div class="tripCardHeader">
+        <div class="tripCardInfo">
+          <div class="tripCardDest">${esc(t.dest || '未設定目的地')}</div>
+          <div class="tripCardName">${esc(t.title || '未命名旅程')}</div>
         </div>
+        ${statusLabel ? `<div class="tripStatusChip tripStatusChip-${status}">${statusLabel}</div>` : ''}
       </div>
-      <div class="tripCardMetaGrid">
-        <div><span>目的地</span><b>${esc(t.dest || '未設定')}</b></div>
-        <div><span>日期</span><b>${t.start && t.end ? `${short(t.start)}-${short(t.end)}` : '未設定'}</b></div>
-      </div>
-      <div class="meta">${t.updatedAtClient ? `最後更新：${new Date(t.updatedAtClient).toLocaleDateString('zh-TW')}` : ''}</div>
-      <div class="tripCardColorRow">
-        ${CARD_COLORS.map(({key, label}) =>
-          `<button type="button" class="tripColorDot color-${key}${key === color ? ' active' : ''}" title="${label}"
-            onclick="event.stopPropagation();setTripColor('${t.id}','${key}')"></button>`
-        ).join('')}
-      </div>
-      <div class="btns">
-        <button class="btn dark compact" onclick="startSelectTrip('${t.id}', this)">繼續編輯</button>
-        ${t.archived
-          ? `<button class="btn blue compact" onclick="restoreTrip('${t.id}')">還原</button>`
-          : `<button class="btn soft compact" onclick="archiveTrip('${t.id}')">封存</button>`}
-        <button class="btn danger compact" onclick="deleteTrip('${t.id}')">刪除</button>
+      <div class="tripCardDate">${dateStr}</div>
+      ${t.updatedAtClient ? `<div class="tripCardUpdated">更新於 ${new Date(t.updatedAtClient).toLocaleDateString('zh-TW')}</div>` : ''}
+      <div class="tripCardFooter">
+        <button class="btn dark" onclick="startSelectTrip('${t.id}', this)">繼續編輯</button>
+        <div class="tripCardSecondary">
+          ${t.archived
+            ? `<button class="tripSecBtn" onclick="restoreTrip('${t.id}')">還原</button>`
+            : `<button class="tripSecBtn" onclick="archiveTrip('${t.id}')">封存</button>`}
+          <button class="tripSecBtn tripSecBtn-danger" onclick="deleteTrip('${t.id}')">刪除</button>
+        </div>
       </div>
     </div>`;
 }
