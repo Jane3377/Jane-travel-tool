@@ -9290,6 +9290,7 @@ body.sheetOpen { overflow: hidden; }
   transition: opacity .15s;
 }
 .diaryPhotoItem:hover .diaryPhotoCtrl { opacity: 1; }
+@media (hover: none) { .diaryPhotoCtrl { opacity: 1 !important; } }
 .diaryPhotoCtrl button {
   background: rgba(0,0,0,.55);
   color: #fff;
@@ -9417,51 +9418,40 @@ body.sheetOpen { overflow: hidden; }
 }
 .diaryTagAddBtn:hover { border-color: #4A5D4E; color: #4A5D4E; background: #f0f7f3; }
 
-/* ── 照片地點標籤 pill ── */
-.diaryPhotoTagPill {
-  position: absolute;
-  top: 7px;
-  left: 7px;
-  background: rgba(0,0,0,.52);
-  color: #fff;
-  border-radius: 999px;
-  padding: 3px 9px;
-  font-size: 11px;
-  font-weight: 700;
-  pointer-events: none;
-  line-height: 1.45;
-  max-width: calc(100% - 14px);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  backdrop-filter: blur(2px);
-}
-.diaryPhotoTagPillStory {
-  position: static;
+/* ── 照片地點標籤 pill（顯示用） ── */
+.diaryPhotoTagPillMemo {
   display: inline-flex;
+  align-items: center;
+  gap: 3px;
   background: #d9efe6;
   color: #2e4a38;
   border-radius: 999px;
   padding: 3px 10px;
   font-size: 11px;
   font-weight: 700;
-  margin-bottom: 4px;
+  line-height: 1.45;
+}
+.diaryPhotoTagsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  align-items: center;
+  margin-top: 6px;
 }
 
 /* ── 上傳表單地點標籤列 ── */
+.storyPhotoTagLabel {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: #8b827a;
+  margin: 8px 0 4px;
+}
 .storyPhotoTagRow {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  align-items: center;
-  margin: 8px 0 4px;
-}
-.storyPhotoTagLabel {
-  font-size: 12px;
-  font-weight: 700;
-  color: #8b827a;
-  flex: 0 0 auto;
-  margin: 0;
+  margin-bottom: 6px;
 }
 .storyPhotoTagBtn {
   border: 1.5px solid #d9d0c8;
@@ -9478,8 +9468,69 @@ body.sheetOpen { overflow: hidden; }
 }
 .storyPhotoTagBtn:hover { border-color: #628f80; color: #2e4a38; background: #f0f7f3; }
 .storyPhotoTagBtn.active { background: #d9efe6; border-color: #628f80; color: #2e4a38; }
-.storyPhotoTagClear { border-color: transparent; background: transparent; color: #b0a09a; }
-.storyPhotoTagClear:hover { background: #fbedf2; border-color: transparent; color: #a06070; }
+.storyPhotoTagCustomRow {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin: 4px 0;
+}
+.storyPhotoTagCustomInput {
+  flex: 1;
+  border: 1.5px dashed #c0b8b0;
+  border-radius: 20px;
+  background: transparent;
+  padding: 4px 10px;
+  font-size: 12px;
+  color: #5c554e;
+  font-family: inherit;
+  width: auto;
+  min-width: 0;
+}
+.storyPhotoTagCustomInput:focus { border-color: #628f80; outline: none; }
+.storyPhotoTagCustomAdd {
+  background: none;
+  border: 1.5px dashed #c0b8b0;
+  border-radius: 20px;
+  color: #628f80;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 3px 12px;
+  font-family: inherit;
+  transition: all .12s;
+  flex-shrink: 0;
+}
+.storyPhotoTagCustomAdd:hover { border-color: #628f80; background: #f0f7f3; }
+.storyPhotoTagSelected {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  min-height: 0;
+  margin-bottom: 4px;
+}
+.storyPhotoTagPillSel {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: #d9efe6;
+  color: #2e4a38;
+  border-radius: 999px;
+  padding: 3px 8px 3px 10px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.storyPhotoTagRemove {
+  background: none;
+  border: none;
+  color: #5a8a70;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+}
+.storyPhotoTagRemove:hover { color: #c0392b; }
 
 /* ── 風格主題 ── */
 

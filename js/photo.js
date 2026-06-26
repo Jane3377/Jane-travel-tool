@@ -184,16 +184,100 @@ function clearPendingPhoto(day) {
 }
 
 function selectStoryPhotoTag(day, planId, btn) {
-  const row = btn.closest('.storyPhotoTagRow');
-  row.querySelectorAll('.storyPhotoTagBtn').forEach(b => b.classList.remove('active'));
-  if (!planId) {
-    delete storyPendingPhotoTags[day];
-    return;
-  }
+  if (!storyPendingPhotoTags[day]) storyPendingPhotoTags[day] = [];
   const p = data.plans.find(x => x.id === planId);
   if (!p) return;
-  storyPendingPhotoTags[day] = `${activityIcon(p.type)} ${p.name}`;
-  btn.classList.add('active');
+  const tag = `${activityIcon(p.type)} ${p.name}`;
+  const tags = storyPendingPhotoTags[day];
+  const idx  = tags.indexOf(tag);
+  if (idx >= 0) { tags.splice(idx, 1); btn.classList.remove('active'); }
+  else          { tags.push(tag);       btn.classList.add('active'); }
+  _updatePendingTagsDisplay(day);
+}
+
+function _updatePendingTagsDisplay(day) {
+  const container = document.getElementById(`storyPhotoTagSelected-${day}`);
+  if (!container) return;
+  const tags = storyPendingPhotoTags[day] || [];
+  container.innerHTML = tags.map((t, i) => `
+    <span class="storyPhotoTagPillSel">${esc(t)}<button type="button" class="storyPhotoTagRemove"
+      onclick="_removePendingTag('${day}',${i})">×</button></span>`).join('');
+}
+
+function _removePendingTag(day, idx) {
+  const tags = storyPendingPhotoTags[day];
+  if (!tags) return;
+  const removed = tags.splice(idx, 1)[0];
+  document.getElementById(`storyPhotoTagRow-${day}`)?.querySelectorAll('.storyPhotoTagBtn').forEach(btn => {
+    if (btn.dataset.tag === removed) btn.classList.remove('active');
+  });
+  _updatePendingTagsDisplay(day);
+}
+
+function addCustomPhotoTagToDay(day, inputId) {
+  const input = document.getElementById(inputId);
+  const tag   = (input?.value || '').trim();
+  if (!tag) return;
+  if (!storyPendingPhotoTags[day]) storyPendingPhotoTags[day] = [];
+  if (!storyPendingPhotoTags[day].includes(tag)) {
+    storyPendingPhotoTags[day].push(tag);
+    _updatePendingTagsDisplay(day);
+  }
+  if (input) input.value = '';
+}
+
+function removePhotoTag(photoId, idx) {
+  const p = data.photos.find(x => x.id === photoId);
+  if (!p) return;
+  const tags = _photoTags(p);
+  tags.splice(idx, 1);
+  p.tags = tags;
+  delete p.tag;
+  save();
+  renderPhotoBook();
+}
+
+function addInlinePhotoTag(photoId, inputEl) {
+  const tag = (inputEl.value || '').trim();
+  if (!tag) return;
+  const p = data.photos.find(x => x.id === photoId);
+  if (!p) return;
+  if (!p.tags) p.tags = _photoTags(p);
+  delete p.tag;
+  if (!p.tags.includes(tag)) p.tags.push(tag);
+  inputEl.value = '';
+  save();
+  renderPhotoBook();
+}
+
+function removePhotoTagFromModal(photoId, idx) {
+  const p = data.photos.find(x => x.id === photoId);
+  if (!p) return;
+  const tags = _photoTags(p);
+  tags.splice(idx, 1);
+  p.tags = tags;
+  delete p.tag;
+  save();
+  openPhotoEditModal(photoId);
+}
+
+function addPhotoTagFromModal(photoId, inputEl) {
+  const tag = (inputEl.value || '').trim();
+  if (!tag) return;
+  const p = data.photos.find(x => x.id === photoId);
+  if (!p) return;
+  if (!p.tags) p.tags = _photoTags(p);
+  delete p.tag;
+  if (!p.tags.includes(tag)) p.tags.push(tag);
+  inputEl.value = '';
+  save();
+  openPhotoEditModal(photoId);
+}
+
+function _photoTags(p) {
+  if (p.tags) return [...p.tags];
+  if (p.tag)  return [p.tag];
+  return [];
 }
 
 async function addPhotoToDay(day) {
@@ -213,7 +297,7 @@ async function addPhotoToDay(day) {
       day,
       title:     document.getElementById(`storyPhotoTitle-${day}`)?.value || '',
       memo:      document.getElementById(`storyPhotoMemo-${day}`)?.value  || '',
-      tag:       storyPendingPhotoTags[day] || '',
+      tags:      (storyPendingPhotoTags[day] || []).slice(),
       src:       result.src,
       publicId:  result.publicId,
       width:     result.width,
@@ -260,12 +344,20 @@ function openPhotoEditModal(id) {
         <button class="photoEditClose" onclick="closePhotoEditModal()">×</button>
       </div>
       <img class="photoEditPreview" src="${p.src}">
-      <label>地點標籤</label>
-      <input id="modalPhotoTag" value="${esc(p.tag||'')}" placeholder="例：🏛 白淺灘文化村">
       <label>照片標題</label>
       <input id="modalPhotoTitle" value="${esc(p.title||'')}">
       <label>一句照片日記</label>
       <textarea id="modalPhotoMemo">${esc(p.memo||'')}</textarea>
+      <label>地點標籤</label>
+      <div class="diaryPhotoTagsRow" id="modalPhotoTagsList">
+        ${_photoTags(p).map((t, i) => `<span class="diaryPhotoTagPillMemo">${esc(t)}<button type="button" class="diaryTagRemove" onclick="removePhotoTagFromModal('${p.id}',${i})">×</button></span>`).join('')}
+        <span class="diaryTagInputWrap">
+          <input class="diaryTagInput" id="modalPhotoTagInput" placeholder="新增標籤"
+            onkeydown="if(event.key==='Enter'){addPhotoTagFromModal('${p.id}',this);event.preventDefault()}">
+          <button class="diaryTagAddBtn" type="button"
+            onclick="addPhotoTagFromModal('${p.id}',document.getElementById('modalPhotoTagInput'))">＋</button>
+        </span>
+      </div>
       <div class="photoEditActions">
         <button class="btn dark" onclick="savePhotoEdit()">儲存</button>
         <button class="btn soft" onclick="closePhotoEditModal()">取消</button>
@@ -281,7 +373,6 @@ function closePhotoEditModal() {
 function savePhotoEdit() {
   const p = data.photos.find(x => x.id === activePhotoEditId);
   if (!p) return;
-  p.tag   = $('modalPhotoTag')?.value   || '';
   p.title = $('modalPhotoTitle')?.value || '';
   p.memo  = $('modalPhotoMemo')?.value  || '';
   closePhotoEditModal();
@@ -380,7 +471,7 @@ function storyPhotoUploadForm(day) {
   const file       = storyPendingPhotoFiles[day];
   const previewUrl = storyPhotoPreviewUrls[day] || '';
   const dayPlans   = sortedPlans(day);
-  const selTag     = storyPendingPhotoTags[day] || '';
+  const selTags    = storyPendingPhotoTags[day] || [];
   return `
     <div class="storyPhotoUploadCard noPrint">
       <div class="storyPhotoPickBox">
@@ -397,21 +488,27 @@ function storyPhotoUploadForm(day) {
           ${previewUrl ? `<img src="${previewUrl}">` : ''}
         </div>
       </div>
-      ${dayPlans.length ? `
-      <div class="storyPhotoTagRow" id="storyPhotoTagRow-${day}">
-        <span class="storyPhotoTagLabel">地點標籤</span>
-        ${dayPlans.map(p => {
-          const tag = `${activityIcon(p.type)} ${p.name}`;
-          return `<button type="button" class="storyPhotoTagBtn${selTag===tag?' active':''}"
-                    onclick="selectStoryPhotoTag('${day}','${p.id}',this)">
-                    ${activityIcon(p.type)} ${esc(p.name)}
-                  </button>`;
-        }).join('')}
-        ${selTag ? `<button type="button" class="storyPhotoTagBtn storyPhotoTagClear"
-                      onclick="selectStoryPhotoTag('${day}','',this)">✕</button>` : ''}
-      </div>` : ''}
       <input id="storyPhotoTitle-${day}" placeholder="照片標題（選填）">
       <input id="storyPhotoMemo-${day}"  placeholder="一句照片日記（選填）">
+      <div class="storyPhotoTagLabel">地點標籤</div>
+      ${dayPlans.length ? `
+      <div class="storyPhotoTagRow" id="storyPhotoTagRow-${day}">
+        ${dayPlans.map(p => {
+          const tag = `${activityIcon(p.type)} ${p.name}`;
+          return `<button type="button" class="storyPhotoTagBtn${selTags.includes(tag)?' active':''}"
+                    data-tag="${esc(tag)}"
+                    onclick="selectStoryPhotoTag('${day}','${p.id}',this)">${tag}</button>`;
+        }).join('')}
+      </div>` : ''}
+      <div class="storyPhotoTagCustomRow">
+        <input class="storyPhotoTagCustomInput" id="storyPhotoTagCustom-${day}" placeholder="自訂標籤"
+          onkeydown="if(event.key==='Enter'){addCustomPhotoTagToDay('${day}','storyPhotoTagCustom-${day}');event.preventDefault()}">
+        <button type="button" class="storyPhotoTagCustomAdd"
+          onclick="addCustomPhotoTagToDay('${day}','storyPhotoTagCustom-${day}')">＋</button>
+      </div>
+      <div class="storyPhotoTagSelected" id="storyPhotoTagSelected-${day}">
+        ${selTags.map((t, i) => `<span class="storyPhotoTagPillSel">${esc(t)}<button type="button" class="storyPhotoTagRemove" onclick="_removePendingTag('${day}',${i})">×</button></span>`).join('')}
+      </div>
       <div class="storyPhotoUploadActions">
         <button class="btn soft" type="button" onclick="clearPendingPhoto('${day}')">清除</button>
         <button class="btn dark" type="button" onclick="addPhotoToDay('${day}')">新增到 ${dayTitle(day)}</button>
@@ -705,15 +802,13 @@ function diaryPhotoGridHtml(photos, capStyle = '') {
   const shown = photos.slice(0, 6);
   const count = shown.length;
   if (!count) return '<div class="diaryNoPhotos">還沒有照片，點下方上傳</div>';
-  const withMemo = shown.filter(p => p.memo);
   const cap = capStyle ? ` style="${capStyle}"` : '';
+  const withContent = shown.filter(p => p.title || p.memo || _photoTags(p).length);
   return `
     <div class="diaryPhotoGrid count-${count}">
       ${shown.map((p, i) => `
         <div class="diaryPhotoItem${i === 0 ? ' featured' : ''}">
           <img src="${p.src}" alt="${esc(p.title || '')}">
-          ${p.tag ? `<div class="diaryPhotoTagPill">${esc(p.tag)}</div>` : ''}
-          ${p.title ? `<div class="diaryPhotoCaption"${cap}>${esc(p.title)}</div>` : ''}
           ${shareViewMode ? '' : `<div class="diaryPhotoCtrl noPrint">
             <button onclick="reorderDiaryPhoto('${p.id}',-1)" ${i===0?'disabled':''} title="往前">↑</button>
             <button onclick="reorderDiaryPhoto('${p.id}',1)"  ${i===shown.length-1?'disabled':''} title="往後">↓</button>
@@ -723,11 +818,25 @@ function diaryPhotoGridHtml(photos, capStyle = '') {
         </div>`).join('')}
     </div>
     ${photos.length > 6 ? `<div class="diaryMorePhotos">還有 ${photos.length - 6} 張</div>` : ''}
-    ${withMemo.length ? `<div class="diaryPhotoMemos">
-      ${withMemo.map(p => `<div class="diaryPhotoMemoItem"${cap}>
-        ${p.title ? `<span class="diaryMemoLabel">${esc(p.title)}</span>` : ''}
-        <span class="diaryMemoText">${esc(p.memo)}</span>
-      </div>`).join('')}
+    ${withContent.length ? `<div class="diaryPhotoMemos">
+      ${withContent.map(p => {
+        const tags = _photoTags(p);
+        return `<div class="diaryPhotoMemoItem"${cap}>
+          ${p.title ? `<div class="diaryMemoLabel"${cap}>${esc(p.title)}</div>` : ''}
+          ${p.memo  ? `<div class="diaryMemoText">${esc(p.memo)}</div>` : ''}
+          <div class="diaryPhotoTagsRow">
+            ${tags.map((t, ti) => `<span class="diaryPhotoTagPillMemo">${esc(t)}${shareViewMode?'':
+              `<button type="button" class="diaryTagRemove" onclick="removePhotoTag('${p.id}',${ti})">×</button>`}</span>`).join('')}
+            ${shareViewMode ? '' : `
+              <span class="diaryTagInputWrap">
+                <input class="diaryTagInput" placeholder="新增標籤"
+                  onkeydown="if(event.key==='Enter'){addInlinePhotoTag('${p.id}',this);event.preventDefault()}">
+                <button class="diaryTagAddBtn" type="button"
+                  onclick="addInlinePhotoTag('${p.id}',this.previousElementSibling)">＋</button>
+              </span>`}
+          </div>
+        </div>`;
+      }).join('')}
     </div>` : ''}`;
 }
 
@@ -748,12 +857,22 @@ function diaryPhotoStoryHtml(photos, capStyle = '') {
               <button onclick="deletePhoto('${p.id}')">×</button>
             </div>`}
           </div>
-          ${p.tag || p.title || p.memo ? `
+          ${(() => { const tags = _photoTags(p); return (p.title || p.memo || tags.length) ? `
           <div class="diaryPhotoStoryText"${cap}>
-            ${p.tag   ? `<div class="diaryPhotoTagPill diaryPhotoTagPillStory">${esc(p.tag)}</div>` : ''}
             ${p.title ? `<div class="diaryPhotoStoryCaption">${esc(p.title)}</div>` : ''}
             ${p.memo  ? `<div class="diaryPhotoStoryMemo">${esc(p.memo)}</div>`   : ''}
-          </div>` : ''}
+            ${tags.length ? `<div class="diaryPhotoTagsRow">
+              ${tags.map((t, ti) => `<span class="diaryPhotoTagPillMemo">${esc(t)}${shareViewMode?'':
+                `<button type="button" class="diaryTagRemove" onclick="removePhotoTag('${p.id}',${ti})">×</button>`}</span>`).join('')}
+              ${shareViewMode ? '' : `
+                <span class="diaryTagInputWrap">
+                  <input class="diaryTagInput" placeholder="新增標籤"
+                    onkeydown="if(event.key==='Enter'){addInlinePhotoTag('${p.id}',this);event.preventDefault()}">
+                  <button class="diaryTagAddBtn" type="button"
+                    onclick="addInlinePhotoTag('${p.id}',this.previousElementSibling)">＋</button>
+                </span>`}
+            </div>` : ''}
+          </div>` : ''; })()
         </div>`).join('')}
     </div>
     ${photos.length > 6 ? `<div class="diaryMorePhotos">還有 ${photos.length - 6} 張</div>` : ''}`;
