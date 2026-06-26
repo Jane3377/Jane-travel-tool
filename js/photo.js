@@ -829,21 +829,13 @@ function diaryCoverHtml() {
   return `
     ${shareViewMode ? '' : `
       <div class="diarySetup noPrint">
-        <div class="diarySetupLeft">
-          ${cover
-            ? `<div class="diarySetupCoverPreview">
-                 <img src="${cover}">
-                 <button class="diaryCoverRemoveBtn" onclick="removeTripCover()">× 移除</button>
-               </div>`
-            : `<label class="diarySetupCoverEmpty">
-                 <span>＋ 上傳封面照</span>
-                 <input type="file" accept="image/*" onchange="addTripCover(this.files[0])" style="display:none">
-               </label>`}
-          ${cover ? `<label class="btn soft compact diarySetupChangeBtn">
-            更換封面<input type="file" accept="image/*" onchange="addTripCover(this.files[0])" style="display:none">
-          </label>` : ''}
+        ${!cover ? `<div class="diarySetupLeft">
+          <label class="diarySetupCoverEmpty">
+            <span>＋ 上傳封面照</span>
+            <input type="file" accept="image/*" onchange="addTripCover(this.files[0])" style="display:none">
+          </label>
           <div class="photoUploadStatus" id="coverUploadStatus"></div>
-        </div>
+        </div>` : `<div class="photoUploadStatus" id="coverUploadStatus"></div>`}
         <div class="diarySetupRight">
           <div class="diaryStyleLabel">書冊風格</div>
           <div class="diaryStyleBtns">
@@ -885,6 +877,14 @@ function diaryCoverHtml() {
           ${data.trip.start ? `${short(data.trip.start)} — ${short(data.trip.end)}` : ''}
         </div>
       </div>
+      ${shareViewMode ? '' : `
+        <div class="diaryCoverOverlayBtns noPrint">
+          <label class="diaryCoverOverlayBtn">
+            ${cover ? '更換封面' : '＋ 上傳封面照'}
+            <input type="file" accept="image/*" onchange="addTripCover(this.files[0])" style="display:none">
+          </label>
+          ${cover ? `<button class="diaryCoverOverlayBtn" onclick="removeTripCover()">移除</button>` : ''}
+        </div>`}
     </div>`;
 }
 
