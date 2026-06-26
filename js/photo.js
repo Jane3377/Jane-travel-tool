@@ -173,6 +173,7 @@ function clearPendingPhoto(day) {
     delete storyPhotoPreviewUrls[day];
   }
   delete storyPendingPhotoFiles[day];
+  delete storyPendingPhotoTags[day];
   const input = document.getElementById(`storyPhotoFile-${day}`);
   if (input) input.value = '';
   updatePhotoPickUI(day, null);
@@ -180,6 +181,19 @@ function clearPendingPhoto(day) {
   const memo  = document.getElementById(`storyPhotoMemo-${day}`);
   if (title) title.value = '';
   if (memo)  memo.value  = '';
+}
+
+function selectStoryPhotoTag(day, planId, btn) {
+  const row = btn.closest('.storyPhotoTagRow');
+  row.querySelectorAll('.storyPhotoTagBtn').forEach(b => b.classList.remove('active'));
+  if (!planId) {
+    delete storyPendingPhotoTags[day];
+    return;
+  }
+  const p = data.plans.find(x => x.id === planId);
+  if (!p) return;
+  storyPendingPhotoTags[day] = `${activityIcon(p.type)} ${p.name}`;
+  btn.classList.add('active');
 }
 
 async function addPhotoToDay(day) {
@@ -199,6 +213,7 @@ async function addPhotoToDay(day) {
       day,
       title:     document.getElementById(`storyPhotoTitle-${day}`)?.value || '',
       memo:      document.getElementById(`storyPhotoMemo-${day}`)?.value  || '',
+      tag:       storyPendingPhotoTags[day] || '',
       src:       result.src,
       publicId:  result.publicId,
       width:     result.width,
@@ -206,6 +221,7 @@ async function addPhotoToDay(day) {
       bytes:     result.bytes
     });
 
+    delete storyPendingPhotoTags[day];
     clearPendingPhoto(day);
     _flushDiaryTexts();
     save();
@@ -244,6 +260,8 @@ function openPhotoEditModal(id) {
         <button class="photoEditClose" onclick="closePhotoEditModal()">×</button>
       </div>
       <img class="photoEditPreview" src="${p.src}">
+      <label>地點標籤</label>
+      <input id="modalPhotoTag" value="${esc(p.tag||'')}" placeholder="例：🏛 白淺灘文化村">
       <label>照片標題</label>
       <input id="modalPhotoTitle" value="${esc(p.title||'')}">
       <label>一句照片日記</label>
@@ -263,6 +281,7 @@ function closePhotoEditModal() {
 function savePhotoEdit() {
   const p = data.photos.find(x => x.id === activePhotoEditId);
   if (!p) return;
+  p.tag   = $('modalPhotoTag')?.value   || '';
   p.title = $('modalPhotoTitle')?.value || '';
   p.memo  = $('modalPhotoMemo')?.value  || '';
   closePhotoEditModal();
@@ -360,6 +379,8 @@ function storyPhotoUploadForm(day) {
   if (count >= 10) return '';
   const file       = storyPendingPhotoFiles[day];
   const previewUrl = storyPhotoPreviewUrls[day] || '';
+  const dayPlans   = sortedPlans(day);
+  const selTag     = storyPendingPhotoTags[day] || '';
   return `
     <div class="storyPhotoUploadCard noPrint">
       <div class="storyPhotoPickBox">
@@ -376,8 +397,21 @@ function storyPhotoUploadForm(day) {
           ${previewUrl ? `<img src="${previewUrl}">` : ''}
         </div>
       </div>
-      <input id="storyPhotoTitle-${day}" placeholder="照片標題">
-      <input id="storyPhotoMemo-${day}"  placeholder="一句照片日記">
+      ${dayPlans.length ? `
+      <div class="storyPhotoTagRow" id="storyPhotoTagRow-${day}">
+        <span class="storyPhotoTagLabel">地點標籤</span>
+        ${dayPlans.map(p => {
+          const tag = `${activityIcon(p.type)} ${p.name}`;
+          return `<button type="button" class="storyPhotoTagBtn${selTag===tag?' active':''}"
+                    onclick="selectStoryPhotoTag('${day}','${p.id}',this)">
+                    ${activityIcon(p.type)} ${esc(p.name)}
+                  </button>`;
+        }).join('')}
+        ${selTag ? `<button type="button" class="storyPhotoTagBtn storyPhotoTagClear"
+                      onclick="selectStoryPhotoTag('${day}','',this)">✕</button>` : ''}
+      </div>` : ''}
+      <input id="storyPhotoTitle-${day}" placeholder="照片標題（選填）">
+      <input id="storyPhotoMemo-${day}"  placeholder="一句照片日記（選填）">
       <div class="storyPhotoUploadActions">
         <button class="btn soft" type="button" onclick="clearPendingPhoto('${day}')">清除</button>
         <button class="btn dark" type="button" onclick="addPhotoToDay('${day}')">新增到 ${dayTitle(day)}</button>
@@ -678,6 +712,7 @@ function diaryPhotoGridHtml(photos, capStyle = '') {
       ${shown.map((p, i) => `
         <div class="diaryPhotoItem${i === 0 ? ' featured' : ''}">
           <img src="${p.src}" alt="${esc(p.title || '')}">
+          ${p.tag ? `<div class="diaryPhotoTagPill">${esc(p.tag)}</div>` : ''}
           ${p.title ? `<div class="diaryPhotoCaption"${cap}>${esc(p.title)}</div>` : ''}
           ${shareViewMode ? '' : `<div class="diaryPhotoCtrl noPrint">
             <button onclick="reorderDiaryPhoto('${p.id}',-1)" ${i===0?'disabled':''} title="往前">↑</button>
@@ -713,8 +748,9 @@ function diaryPhotoStoryHtml(photos, capStyle = '') {
               <button onclick="deletePhoto('${p.id}')">×</button>
             </div>`}
           </div>
-          ${p.title || p.memo ? `
+          ${p.tag || p.title || p.memo ? `
           <div class="diaryPhotoStoryText"${cap}>
+            ${p.tag   ? `<div class="diaryPhotoTagPill diaryPhotoTagPillStory">${esc(p.tag)}</div>` : ''}
             ${p.title ? `<div class="diaryPhotoStoryCaption">${esc(p.title)}</div>` : ''}
             ${p.memo  ? `<div class="diaryPhotoStoryMemo">${esc(p.memo)}</div>`   : ''}
           </div>` : ''}
@@ -736,14 +772,6 @@ function diaryDayHtml(d) {
   const textColor  = mood.textColor  || '';
   const textStroke = mood.textStroke || false;
   const textBold   = mood.textBold   || false;
-
-  // Tags
-  const savedTags       = mood.tags      || [];
-  const dismissed       = mood.dismissed || [];
-  const planSuggestions = plans.filter(p => {
-    const t = `${activityIcon(p.type)} ${p.name}`;
-    return !savedTags.includes(t) && !dismissed.includes(t);
-  });
 
   const isStory = style === 'story' || style === 'sketch' || style === 'polar';
 
@@ -797,28 +825,10 @@ function diaryDayHtml(d) {
       ${moodColorBar}
       <div class="diaryTextSection">${moodBlock}</div>
 
+      ${shareViewMode ? '' : storyPhotoUploadForm(d.key)}
+
       ${photoColorBar}
       <div class="diaryPhotoSection">${isStory ? diaryPhotoStoryHtml(photos, capStyle) : diaryPhotoGridHtml(photos, capStyle)}</div>
-
-      <div class="diaryTagsSection">
-        ${savedTags.map((t, i) => `
-          <span class="diaryPlanTag active">
-            ${esc(t)}
-            ${shareViewMode ? '' : `<button class="diaryTagRemove" onclick="diaryRemoveTag('${d.key}',${i})" title="移除">×</button>`}
-          </span>`).join('')}
-        ${shareViewMode ? '' : planSuggestions.map(p => `
-          <button class="diaryPlanTag suggestion" onclick="diaryTogglePlanTag('${d.key}','${p.id}')">
-            ${activityIcon(p.type)} ${esc(p.name)} <span class="diaryTagPlus">＋</span>
-          </button>`).join('')}
-        ${shareViewMode ? '' : `
-          <span class="diaryTagInputWrap">
-            <input class="diaryTagInput" placeholder="自訂標籤"
-              onkeydown="if(event.key==='Enter'){diaryAddCustomTag('${d.key}',this);event.preventDefault()}">
-            <button class="diaryTagAddBtn" type="button" onclick="diaryAddCustomTag('${d.key}',this.previousElementSibling)">＋</button>
-          </span>`}
-      </div>
-
-      ${shareViewMode ? '' : storyPhotoUploadForm(d.key)}
     </div>`;
 }
 

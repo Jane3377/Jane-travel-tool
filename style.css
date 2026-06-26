@@ -9417,6 +9417,70 @@ body.sheetOpen { overflow: hidden; }
 }
 .diaryTagAddBtn:hover { border-color: #4A5D4E; color: #4A5D4E; background: #f0f7f3; }
 
+/* ── 照片地點標籤 pill ── */
+.diaryPhotoTagPill {
+  position: absolute;
+  top: 7px;
+  left: 7px;
+  background: rgba(0,0,0,.52);
+  color: #fff;
+  border-radius: 999px;
+  padding: 3px 9px;
+  font-size: 11px;
+  font-weight: 700;
+  pointer-events: none;
+  line-height: 1.45;
+  max-width: calc(100% - 14px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  backdrop-filter: blur(2px);
+}
+.diaryPhotoTagPillStory {
+  position: static;
+  display: inline-flex;
+  background: #d9efe6;
+  color: #2e4a38;
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+/* ── 上傳表單地點標籤列 ── */
+.storyPhotoTagRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin: 8px 0 4px;
+}
+.storyPhotoTagLabel {
+  font-size: 12px;
+  font-weight: 700;
+  color: #8b827a;
+  flex: 0 0 auto;
+  margin: 0;
+}
+.storyPhotoTagBtn {
+  border: 1.5px solid #d9d0c8;
+  background: #fff;
+  border-radius: 999px;
+  padding: 4px 11px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #5c554e;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all .14s;
+  line-height: 1.4;
+}
+.storyPhotoTagBtn:hover { border-color: #628f80; color: #2e4a38; background: #f0f7f3; }
+.storyPhotoTagBtn.active { background: #d9efe6; border-color: #628f80; color: #2e4a38; }
+.storyPhotoTagClear { border-color: transparent; background: transparent; color: #b0a09a; }
+.storyPhotoTagClear:hover { background: #fbedf2; border-color: transparent; color: #a06070; }
+
 /* ── 風格主題 ── */
 
 /* 🌿 清新 */

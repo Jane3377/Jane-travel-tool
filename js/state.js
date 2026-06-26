@@ -93,6 +93,7 @@ let photoBookTab = 'handbook';
 /* ── 照片暫存 ── */
 let storyPendingPhotoFiles = {};
 let storyPhotoPreviewUrls  = {};
+let storyPendingPhotoTags  = {};
 let activePhotoEditId      = null;
 
 /* ── 多旅程系統 ── */
