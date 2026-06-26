@@ -1250,6 +1250,15 @@ function renderTripList() {
     </div>`;
 }
 
+function _tripDestDisplay(t) {
+  if (!t.dest) return '';
+  if (t.country && t.dest !== t.country && t.dest.startsWith(t.country)) {
+    const city = t.dest.slice(t.country.length);
+    return city ? `${t.country}・${city}` : t.country;
+  }
+  return t.dest;
+}
+
 function tripCard(t) {
   const today  = formatLocalDate(new Date());
   const status = !t.start ? 'draft'
@@ -1266,7 +1275,12 @@ function tripCard(t) {
   const dateStr  = t.start
     ? `${short(t.start)} – ${short(t.end || t.start)}${duration ? ` · ${duration} 天` : ''}`
     : '日期未設定';
-  const btnLabel = status === 'past' ? '查看旅程' : '繼續規劃';
+  const btnLabel   = status === 'past' ? '查看旅程' : '繼續規劃';
+  const destDisplay = _tripDestDisplay(t);
+  // 旅程名稱為主標題；若沒有名稱則以目的地 fallback
+  const hasCustomTitle = t.title && t.title !== t.dest && t.title !== '未命名旅程';
+  const mainTitle  = hasCustomTitle ? t.title : (t.dest || '未命名旅程');
+  const showDest   = hasCustomTitle && destDisplay;
 
   return `
     <div class="tripCard2 tripStatus2-${status}${t.archived ? ' archived' : ''}">
@@ -1282,8 +1296,8 @@ function tripCard(t) {
           </div>
         </div>
       </div>
-      <div class="tripCard2Dest">${esc(t.dest || '未設定目的地')}</div>
-      <div class="tripCard2Name">${esc(t.title || '未命名旅程')}</div>
+      <div class="tripCard2Title">${esc(mainTitle)}</div>
+      ${showDest ? `<div class="tripCard2DestRow">${esc(destDisplay)}</div>` : ''}
       <div class="tripCard2Date">${dateStr}</div>
       ${t.updatedAtClient ? `<div class="tripCard2Updated">更新於 ${new Date(t.updatedAtClient).toLocaleDateString('zh-TW')}</div>` : ''}
       ${t.importedAt ? `<div class="tripCard2ImportedTag">📥 匯入於 ${new Date(t.importedAt).toLocaleDateString('zh-TW')}</div>` : ''}

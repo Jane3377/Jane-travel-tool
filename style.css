@@ -11413,3 +11413,19 @@ body.sheetOpen { overflow: hidden; }
   color: #7A6A55;
   background: #F5EFE3;
 }
+
+/* ── 旅程卡片資訊層級調整 v100 ── */
+.tripCard2Title {
+  font-size: 24px;
+  font-weight: 750;
+  letter-spacing: -.3px;
+  color: #3F3A37;
+  line-height: 1.25;
+  margin-top: 2px;
+}
+.tripCard2DestRow {
+  font-size: 15px;
+  font-weight: 600;
+  color: #6A8C78;
+  margin-top: 4px;
+}
