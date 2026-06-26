@@ -4687,6 +4687,10 @@ body[data-theme-mode] .btn.pink{
   gap:8px;
   margin-bottom:10px;
 }
+.storyPhotoDetails{
+  display:grid;
+  gap:8px;
+}
 .storyPhotoQuickFields{
   display:grid;
   grid-template-columns:1fr 1fr;
@@ -9430,6 +9434,10 @@ body.sheetOpen { overflow: hidden; }
   font-family: inherit;
   transition: all .14s;
   line-height: 1.4;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .storyPhotoTagBtn:hover { border-color: #628f80; color: #2e4a38; background: #f0f7f3; }
 .storyPhotoTagBtn.active { background: #d9efe6; border-color: #628f80; color: #2e4a38; }
@@ -10951,7 +10959,7 @@ body.sheetOpen { overflow: hidden; }
   padding: 8px 12px; background: #faf7f2; border-radius: 12px;
   margin-bottom: 8px;
 }
-.diaryStyleBarLabel { font-size: 11px; color: var(--muted); font-weight: 700; white-space: nowrap; }
+.diaryStyleBarLabel { font-size: 12px; color: #7a6e64; font-weight: 800; white-space: nowrap; letter-spacing: .02em; }
 .diaryColorPalette { display: flex; gap: 5px; align-items: center; }
 .diaryColorSwatch {
   width: 22px; height: 22px; border-radius: 50%; border: 2px solid #ddd;

@@ -153,9 +153,13 @@ function selectStoryPhotoFile(day, file) {
 }
 
 function updatePhotoPickUI(day, url, filename) {
-  const meta    = document.getElementById(`storyPhotoPickMeta-${day}`);
-  const preview = document.getElementById(`storyPhotoPickPreview-${day}`);
-  if (meta) meta.textContent = filename ? `已選擇：${filename}` : '請先選擇照片';
+  const meta      = document.getElementById(`storyPhotoPickMeta-${day}`);
+  const preview   = document.getElementById(`storyPhotoPickPreview-${day}`);
+  const details   = document.getElementById(`storyPhotoDetails-${day}`);
+  const labelText = document.getElementById(`storyPhotoPickLabelText-${day}`);
+  if (meta) meta.textContent = filename ? `已選擇：${filename}` : '';
+  if (labelText) labelText.textContent = filename ? '已選擇，可補標題再上傳' : '＋ 選擇照片';
+  if (details) details.style.display = filename ? '' : 'none';
   if (preview) {
     if (url) {
       preview.classList.add('show');
@@ -427,44 +431,48 @@ function storyPhotoUploadForm(day) {
     <div class="storyPhotoUploadCard noPrint">
       <div class="storyPhotoPickBox">
         <label class="storyPhotoPickLabel">
-          ${file ? '已選擇，可補標題再上傳' : '＋ 選擇照片'}
+          <span id="storyPhotoPickLabelText-${day}">${file ? '已選擇，可補標題再上傳' : '＋ 選擇照片'}</span>
           <input id="storyPhotoFile-${day}" type="file" accept="image/*"
                  onchange="selectStoryPhotoFile('${day}',this.files[0])">
         </label>
         <div class="storyPhotoPickMeta" id="storyPhotoPickMeta-${day}">
-          ${file ? `已選擇：${esc(file.name)}` : '請先選擇照片'}
+          ${file ? `已選擇：${esc(file.name)}` : ''}
         </div>
         <div class="storyPhotoPickPreview ${previewUrl?'show':''}"
              id="storyPhotoPickPreview-${day}">
           ${previewUrl ? `<img src="${previewUrl}">` : ''}
         </div>
       </div>
-      <input id="storyPhotoTitle-${day}" placeholder="照片標題（選填）">
-      <input id="storyPhotoMemo-${day}"  placeholder="一句照片日記（選填）">
-      <div class="storyPhotoTagLabel">地點標籤</div>
-      ${dayPlans.length ? `
-      <div class="storyPhotoTagRow" id="storyPhotoTagRow-${day}">
-        ${dayPlans.map(p => {
-          const tag = `${activityIcon(p.type)} ${p.name}`;
-          return `<button type="button" class="storyPhotoTagBtn${selTags.includes(tag)?' active':''}"
-                    data-tag="${esc(tag)}"
-                    onclick="selectStoryPhotoTag('${day}','${p.id}',this)">${tag}</button>`;
-        }).join('')}
-      </div>` : ''}
-      <div class="storyPhotoTagCustomRow">
-        <input class="storyPhotoTagCustomInput" id="storyPhotoTagCustom-${day}" placeholder="自訂標籤"
-          onkeydown="if(event.key==='Enter'){addCustomPhotoTagToDay('${day}','storyPhotoTagCustom-${day}');event.preventDefault()}">
-        <button type="button" class="storyPhotoTagCustomAdd"
-          onclick="addCustomPhotoTagToDay('${day}','storyPhotoTagCustom-${day}')">＋</button>
+      <div class="storyPhotoDetails" id="storyPhotoDetails-${day}" style="${file ? '' : 'display:none'}">
+        <input id="storyPhotoTitle-${day}" placeholder="照片標題（選填）">
+        <input id="storyPhotoMemo-${day}"  placeholder="一句照片日記（選填）">
+        <div class="storyPhotoTagLabel">地點標籤</div>
+        ${dayPlans.length ? `
+        <div class="storyPhotoTagRow" id="storyPhotoTagRow-${day}">
+          ${dayPlans.map(p => {
+            const tag = activityIcon(p.type) + ' ' + p.name;
+            return '<button type="button" class="storyPhotoTagBtn' + (selTags.includes(tag) ? ' active' : '') + '"'
+              + ' data-tag="' + esc(tag) + '"'
+              + ' title="' + esc(p.name) + '"'
+              + ' onclick="selectStoryPhotoTag(\'' + day + '\',\'' + p.id + '\',this)">'
+              + esc(tag) + '</button>';
+          }).join('')}
+        </div>` : ''}
+        <div class="storyPhotoTagCustomRow">
+          <input class="storyPhotoTagCustomInput" id="storyPhotoTagCustom-${day}" placeholder="自訂標籤"
+            onkeydown="if(event.key==='Enter'){addCustomPhotoTagToDay('${day}','storyPhotoTagCustom-${day}');event.preventDefault()}">
+          <button type="button" class="storyPhotoTagCustomAdd"
+            onclick="addCustomPhotoTagToDay('${day}','storyPhotoTagCustom-${day}')">＋</button>
+        </div>
+        <div class="storyPhotoTagSelected" id="storyPhotoTagSelected-${day}">
+          ${selTags.map((t, i) => '<span class="storyPhotoTagPillSel">' + esc(t) + '<button type="button" class="storyPhotoTagRemove" onclick="_removePendingTag(\'' + day + '\',' + i + ')">×</button></span>').join('')}
+        </div>
+        <div class="storyPhotoUploadActions">
+          <button class="btn soft" type="button" onclick="clearPendingPhoto('${day}')">清除</button>
+          <button class="btn dark" type="button" onclick="addPhotoToDay('${day}')">新增到 ${dayTitle(day)}</button>
+        </div>
+        <div class="photoUploadStatus" id="storyPhotoStatus-${day}"></div>
       </div>
-      <div class="storyPhotoTagSelected" id="storyPhotoTagSelected-${day}">
-        ${selTags.map((t, i) => `<span class="storyPhotoTagPillSel">${esc(t)}<button type="button" class="storyPhotoTagRemove" onclick="_removePendingTag('${day}',${i})">×</button></span>`).join('')}
-      </div>
-      <div class="storyPhotoUploadActions">
-        <button class="btn soft" type="button" onclick="clearPendingPhoto('${day}')">清除</button>
-        <button class="btn dark" type="button" onclick="addPhotoToDay('${day}')">新增到 ${dayTitle(day)}</button>
-      </div>
-      <div class="photoUploadStatus" id="storyPhotoStatus-${day}"></div>
     </div>`;
 }
 
