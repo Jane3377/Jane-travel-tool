@@ -370,63 +370,27 @@ function handleBackupFile(input) {
     try { payload = JSON.parse(e.target.result); }
     catch { return toast('檔案格式錯誤，請選擇正確的備份 JSON'); }
     if (!payload?.data?.trip) return toast('備份內容無效，找不到旅程資料');
-    const tripData = payload.data;
-    const tripName = payload._tripName || tripData.trip?.dest || '匯入的旅程';
-    const start    = tripData.trip?.start || '';
-    const end      = tripData.trip?.end   || '';
-    const dateStr  = start ? `${short(start)}–${short(end)}` : '日期未設定';
-    showBackupImportConfirm(tripName, dateStr, tripData);
+    confirmBackupImport(payload.data);
   };
   reader.readAsText(file);
 }
 
-function showBackupImportConfirm(tripName, dateStr, tripData) {
-  const existing = document.getElementById('backupImportModal');
-  if (existing) existing.remove();
-
-  const modal = document.createElement('div');
-  modal.id        = 'backupImportModal';
-  modal.className = 'modalOverlay';
-  modal.innerHTML = `
-    <div class="modalBox" style="max-width:360px">
-      <h3 style="margin:0 0 12px">匯入備份</h3>
-      <div class="box" style="margin-bottom:14px">
-        <b>${esc(tripName)}</b><br>
-        <span style="color:var(--muted);font-size:13px">${esc(dateStr)}</span>
-      </div>
-      <p style="font-size:14px;margin:0 0 16px">將新建一趟旅程匯入，不影響目前資料。</p>
-      <div class="btns">
-        <button class="btn dark" id="backupImportBtn" onclick="confirmBackupImport()">新建並匯入</button>
-        <button class="btn soft" onclick="document.getElementById('backupImportModal').remove()">取消</button>
-      </div>
-    </div>`;
-  modal.addEventListener('click', ev => { if (ev.target === modal) modal.remove(); });
-  document.body.appendChild(modal);
-  window._pendingBackupData = tripData;
-}
-
-async function confirmBackupImport() {
-  const tripData = window._pendingBackupData;
+async function confirmBackupImport(tripData) {
   if (!tripData) return;
 
-  const btn = $('backupImportBtn');
-  if (btn) { btn.disabled = true; btn.textContent = '匯入中…'; }
+  toast('匯入中…');
 
-  delete window._pendingBackupData;
-
-  const newId    = `trip_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
-  const tripName = tripData.trip?.dest || '匯入的旅程';
+  const newId      = `trip_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+  const tripName   = tripData.trip?.dest || '匯入的旅程';
+  const importedAt = new Date().toISOString();
 
   currentTripId = newId;
   localStorage.setItem(CURRENT_TRIP_KEY, newId);
   data = normalizeData(tripData);
 
-  tripList.unshift({ ...currentTripMeta(), cardColor: 'cream' });
+  tripList.unshift({ ...currentTripMeta(), cardColor: 'cream', importedAt });
   localSaveTrip();
 
-  document.getElementById('backupImportModal')?.remove();
-
-  // 先切換進旅程（本機資料已備妥），雲端同步在背景執行
   try {
     await selectTrip(newId);
     showImportBanner(tripName);

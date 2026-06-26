@@ -1286,6 +1286,7 @@ function tripCard(t) {
       <div class="tripCard2Name">${esc(t.title || '未命名旅程')}</div>
       <div class="tripCard2Date">${dateStr}</div>
       ${t.updatedAtClient ? `<div class="tripCard2Updated">更新於 ${new Date(t.updatedAtClient).toLocaleDateString('zh-TW')}</div>` : ''}
+      ${t.importedAt ? `<div class="tripCard2ImportedTag">📥 匯入於 ${new Date(t.importedAt).toLocaleDateString('zh-TW')}</div>` : ''}
       <div class="tripCard2Footer">
         <button class="tripCardMainBtn" onclick="startSelectTrip('${t.id}',this)">${btnLabel}</button>
       </div>

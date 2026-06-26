@@ -11400,3 +11400,16 @@ body.sheetOpen { overflow: hidden; }
     gap: 12px;
   }
 }
+
+.tripCard2ImportedTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 5px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #7A6A55;
+  background: #F5EFE3;
+}
