@@ -220,18 +220,10 @@ function ensureBackupMenuButtons() {
   btnExport.textContent = '匯出備份';
   btnExport.onclick     = () => { closeAccountMenu(); exportTripBackup(); };
 
-  const btnImport = document.createElement('button');
-  btnImport.id          = 'menuImport';
-  btnImport.type        = 'button';
-  btnImport.textContent = '匯入備份';
-  btnImport.onclick     = () => { closeAccountMenu(); $('backupFileInput')?.click(); };
-
   if (logout) {
     menu.insertBefore(btnExport, logout);
-    menu.insertBefore(btnImport, logout);
   } else {
     menu.appendChild(btnExport);
-    menu.appendChild(btnImport);
   }
 }
 
@@ -404,7 +396,7 @@ function showBackupImportConfirm(tripName, dateStr, tripData) {
       </div>
       <p style="font-size:14px;margin:0 0 16px">將新建一趟旅程匯入，不影響目前資料。</p>
       <div class="btns">
-        <button class="btn dark" onclick="confirmBackupImport()">新建並匯入</button>
+        <button class="btn dark" id="backupImportBtn" onclick="confirmBackupImport()">新建並匯入</button>
         <button class="btn soft" onclick="document.getElementById('backupImportModal').remove()">取消</button>
       </div>
     </div>`;
@@ -416,12 +408,14 @@ function showBackupImportConfirm(tripName, dateStr, tripData) {
 async function confirmBackupImport() {
   const tripData = window._pendingBackupData;
   if (!tripData) return;
-  delete window._pendingBackupData;
-  document.getElementById('backupImportModal')?.remove();
 
-  const newId       = `trip_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
-  const prevTripId  = currentTripId;
-  const prevData    = data;
+  const btn = $('backupImportBtn');
+  if (btn) { btn.disabled = true; btn.textContent = '匯入中…'; }
+
+  delete window._pendingBackupData;
+
+  const newId    = `trip_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+  const tripName = tripData.trip?.dest || '匯入的旅程';
 
   currentTripId = newId;
   localStorage.setItem(CURRENT_TRIP_KEY, newId);
@@ -430,15 +424,18 @@ async function confirmBackupImport() {
   tripList.unshift({ ...currentTripMeta(), cardColor: 'cream' });
   localSaveTrip();
 
+  document.getElementById('backupImportModal')?.remove();
+
+  // 先切換進旅程（本機資料已備妥），雲端同步在背景執行
   try {
-    await saveTripListCloud();
-    await saveToCloudNow();
-    toast('匯入成功，正在開啟新旅程…');
     await selectTrip(newId);
+    showImportBanner(tripName);
   } catch (e) {
-    currentTripId = prevTripId;
-    data          = prevData;
-    console.error('backup import failed', e);
+    console.error('backup import selectTrip failed', e);
     toast('匯入失敗，請重試');
+    return;
   }
+
+  saveTripListCloud().catch(e => console.warn('backup cloud list save failed', e));
+  saveToCloudNow().catch(e => console.warn('backup cloud save failed', e));
 }

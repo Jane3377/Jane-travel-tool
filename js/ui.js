@@ -331,6 +331,19 @@ function _addFormHtml(v, e = null) {
   return '';
 }
 
+function showImportBanner(tripName) {
+  const existing = $('importBanner');
+  if (existing) existing.remove();
+  const banner = document.createElement('div');
+  banner.id        = 'importBanner';
+  banner.className = 'importBanner';
+  banner.innerHTML = `↑ 已從備份匯入：<b>${esc(tripName)}</b><button class="importBannerClose" onclick="this.parentElement.remove()">✕</button>`;
+  const header = $('header');
+  if (header) header.insertAdjacentElement('afterend', banner);
+  else document.body.prepend(banner);
+  setTimeout(() => banner?.remove(), 7000);
+}
+
 function renderSetupStrip() {
   const el = $('setupStrip');
   if (!el) return;
@@ -1133,6 +1146,12 @@ function renderTripList() {
             <button class="btn dark" style="width:100%" onclick="createTrip()">建立旅程</button>
           </div>
         </div>
+      </div>
+
+      <div class="tripCreateCard tripImportCard">
+        <h3>↑ 從備份匯入</h3>
+        <p style="font-size:13px;color:var(--muted);margin:0 0 14px;line-height:1.6">選取之前匯出的 .json 備份檔，將新建一趟旅程，不影響現有資料。</p>
+        <button class="btn soft" style="width:100%" onclick="$('backupFileInput').click()">選擇備份檔</button>
       </div>
 
       <div class="btns">

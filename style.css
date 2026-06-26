@@ -6666,6 +6666,32 @@ body[data-theme-mode] .btn.pink{
 .tripCreateCard h3{
   margin-top:0;
 }
+.tripImportCard{
+  border:2px dashed rgba(var(--primary-rgb),.25);
+  background:rgba(255,255,255,.7);
+}
+.importBanner{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:9px 16px;
+  background:var(--primary);
+  color:#fff;
+  font-size:13.5px;
+  animation:fadeIn .3s ease;
+}
+.importBanner b{ font-weight:700; }
+.importBannerClose{
+  margin-left:auto;
+  background:none;
+  border:none;
+  color:#fff;
+  font-size:15px;
+  cursor:pointer;
+  padding:2px 6px;
+  opacity:.75;
+}
+.importBannerClose:hover{ opacity:1; }
 
 /* 航班住宿頁：避免去回程在大螢幕被拉成兩個超寬欄位 */
 #stayView .stayFlightGrid{
