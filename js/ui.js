@@ -55,6 +55,7 @@ function showShell(mode) {
   if (list)   list.classList.toggle('hidden',   mode !== 'list');
   if (app)    app.classList.toggle('hidden',    mode !== 'app');
   if (widget) widget.style.display = mode === 'app' ? '' : 'none';
+  if (mode !== 'list') { const s = $('newTripSheetOverlay'); if (s) s.hidden = true; }
 }
 
 /* ══════════════════════════════════════════
@@ -1091,113 +1092,202 @@ function renderLoginView(message = '') {
     </div>`;
 }
 
-function renderTripList() {
-  const el     = $('tripListView');
-  if (!el) return;
-  const active   = tripList.filter(t => !t.archived);
-  const archived = tripList.filter(t =>  t.archived);
-  const today    = formatLocalDate(new Date());
+/* ── 旅程排序 ── */
+function _sortTripList(trips) {
+  const today = formatLocalDate(new Date());
+  const rank = t => {
+    if (!t.start) return 3;
+    if (today >= t.start && today <= (t.end || t.start)) return 1;
+    if (t.start > today) return 2;
+    return 4;
+  };
+  return [...trips].sort((a, b) => {
+    const ra = rank(a), rb = rank(b);
+    if (ra !== rb) return ra - rb;
+    if (ra === 2) return (a.start || '').localeCompare(b.start || '');
+    if (ra === 4) return (b.end || '').localeCompare(a.end || '');
+    return 0;
+  });
+}
 
-  // Hero badge: 最近一趟即將出發或旅行中的行程
-  const nextTrip = active.find(t => t.start && today <= (t.end || t.start));
-  let heroBadge  = '';
+/* ── 新增旅程 Bottom Sheet ── */
+function openNewTripSheet() {
+  let overlay = $('newTripSheetOverlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'newTripSheetOverlay';
+    overlay.className = 'addSheetOverlay';
+    overlay.addEventListener('click', e => { if (e.target === overlay) closeNewTripSheet(); });
+    overlay.innerHTML = `
+      <div class="addSheet" id="newTripSheet">
+        <div class="addSheetHandle"></div>
+        <div class="addSheetHeader">
+          <span class="addSheetTitle">新增旅程</span>
+          <button class="addSheetClose" onclick="closeNewTripSheet()">✕</button>
+        </div>
+        <div class="addSheetBody" style="padding:0 20px 40px">
+          <div class="tripCreateGrid" style="margin-top:16px">
+            <div><label>旅程名稱</label><input id="newTripTitle" placeholder="例：2026 釜山自由行"></div>
+            <div><label>國家</label>
+              <select id="newTripCountry" onchange="newTripCountryChanged()">
+                ${[...Object.keys(CURRENCY_MAP),'其他'].map(c=>`<option>${c}</option>`).join('')}
+              </select></div>
+            <div><label>城市 / 路線</label>
+              <select id="newTripCitySelect" onchange="newTripCityVisibility()">
+                ${cityOptions('韓國', '釜山')}
+              </select>
+              <input id="newTripCityCustom" placeholder="自訂城市名稱" style="display:none;margin-top:6px">
+            </div>
+            <div><label>出發日</label><input id="newTripStart" type="date"></div>
+            <div><label>回程日</label><input id="newTripEnd"   type="date"></div>
+            <div style="align-self:end;margin-top:4px">
+              <button class="tripBtnPrimary" style="width:100%;height:46px" onclick="createTrip()">建立旅程</button>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+  }
+  overlay.hidden = false;
+  requestAnimationFrame(() => overlay.querySelector('#newTripSheet')?.classList.add('open'));
+}
+
+function closeNewTripSheet() {
+  const overlay = $('newTripSheetOverlay');
+  if (!overlay) return;
+  const sheet = overlay.querySelector('#newTripSheet');
+  if (sheet) sheet.classList.remove('open');
+  setTimeout(() => { if (overlay) overlay.hidden = true; }, 320);
+}
+
+/* ── 更多選單 ── */
+let _openTripMenuId = null;
+
+function openTripMenu(id, btn) {
+  const menuId = `tripMenu_${id}`;
+  const menu = document.getElementById(menuId);
+  if (!menu) return;
+  if (!menu.hidden) { closeTripMenu(); return; }
+  closeTripMenu();
+  menu.hidden = false;
+  _openTripMenuId = id;
+}
+
+function closeTripMenu() {
+  if (!_openTripMenuId) return;
+  const menu = document.getElementById(`tripMenu_${_openTripMenuId}`);
+  if (menu) menu.hidden = true;
+  _openTripMenuId = null;
+}
+
+document.addEventListener('click', e => {
+  if (_openTripMenuId && !e.target.closest?.('.tripMoreMenu') && !e.target.closest?.('.tripMoreBtn')) {
+    closeTripMenu();
+  }
+});
+
+/* ── 旅程清單渲染 ── */
+function renderTripList() {
+  const el = $('tripListView');
+  if (!el) return;
+  const today    = formatLocalDate(new Date());
+  const allActive = tripList.filter(t => !t.archived);
+  const archived  = tripList.filter(t =>  t.archived);
+  const sorted    = _sortTripList(allActive);
+
+  const upcoming = sorted.filter(t => !t.start || today <= (t.end || t.start));
+  const past     = sorted.filter(t =>  t.start &&  (t.end || t.start) < today);
+
+  const nextTrip = sorted.find(t => t.start && today <= (t.end || t.start));
+  let heroBadge = '';
   if (nextTrip) {
     if (today >= nextTrip.start) {
-      heroBadge = `<div class="tripHeroBadge tripHeroBadge-active">🗺️ 旅行中 · ${esc(nextTrip.dest || nextTrip.title || '')}</div>`;
+      heroBadge = `<div class="tripHeroBadge tripHeroBadge-active">🗺️ 旅行中・${esc(nextTrip.dest || nextTrip.title || '')}</div>`;
     } else {
-      heroBadge = `<div class="tripHeroBadge tripHeroBadge-upcoming">🗓 還有 ${daysBetween(today, nextTrip.start)} 天出發 · ${esc(nextTrip.dest || nextTrip.title || '')}</div>`;
+      heroBadge = `<div class="tripHeroBadge tripHeroBadge-upcoming">🗓 還有 ${daysBetween(today, nextTrip.start)} 天出發・${esc(nextTrip.dest || nextTrip.title || '')}</div>`;
     }
   }
 
   el.innerHTML = `
     <div class="gateShell">
-      <div class="tripListHero">
+      <div class="tripHeroCard">
         ${_brandHtml()}
-        <h1>我的旅程</h1>
+        <h1 class="tripHeroTitle">我的旅程</h1>
         ${heroBadge}
-        <p class="tripHeroMeta">共 ${active.length} 趟旅程</p>
-      </div>
-
-      <div class="tripCardList">
-        ${active.map(tripCard).join('') || '<div class="tripEmptyHint">還沒有旅程，從下方新增第一趟吧！</div>'}
-      </div>
-
-      ${archived.length ? `
-        <details class="tripArchiveSection">
-          <summary>封存旅程（${archived.length}）</summary>
-          <div class="tripCardList">${archived.map(tripCard).join('')}</div>
-        </details>` : ''}
-
-      <div class="tripCreateCard">
-        <h3>＋ 新增旅程</h3>
-        <div class="tripCreateGrid">
-          <div><label>旅程名稱</label><input id="newTripTitle" placeholder="例：2026 釜山自由行"></div>
-          <div><label>國家</label>
-            <select id="newTripCountry" onchange="newTripCountryChanged()">
-              ${[...Object.keys(CURRENCY_MAP),'其他'].map(c=>`<option>${c}</option>`).join('')}
-            </select></div>
-          <div><label>城市 / 路線</label>
-            <select id="newTripCitySelect" onchange="newTripCityVisibility()">
-              ${cityOptions('韓國', '釜山')}
-            </select>
-            <input id="newTripCityCustom" placeholder="自訂城市名稱" style="display:none;margin-top:6px">
-          </div>
-          <div><label>出發日</label><input id="newTripStart" type="date"></div>
-          <div><label>回程日</label><input id="newTripEnd"   type="date"></div>
-          <div style="align-self:end">
-            <button class="btn dark" style="width:100%" onclick="createTrip()">建立旅程</button>
-          </div>
+        <p class="tripHeroCount">共 ${allActive.length} 趟旅程</p>
+        <div class="tripHeroActions">
+          <button class="tripBtnPrimary" onclick="openNewTripSheet()">＋ 新增旅程</button>
+          <button class="tripBtnSecondary" onclick="$('backupFileInput').click()">↑ 匯入備份</button>
         </div>
       </div>
 
-      <div class="tripCreateCard tripImportCard">
-        <h3>↑ 從備份匯入</h3>
-        <p style="font-size:13px;color:var(--muted);margin:0 0 14px;line-height:1.6">選取之前匯出的 .json 備份檔，將新建一趟旅程，不影響現有資料。</p>
-        <button class="btn soft" style="width:100%" onclick="$('backupFileInput').click()">選擇備份檔</button>
-      </div>
+      ${upcoming.length ? `
+        <div class="tripSection">
+          <h2 class="tripSectionTitle">即將出發</h2>
+          <div class="tripCardList2">${upcoming.map(tripCard).join('')}</div>
+        </div>` : allActive.length === 0 ? `
+        <div class="tripEmptyState">
+          <div class="tripEmptyIcon">🗺️</div>
+          <p>還沒有旅程</p>
+          <p class="tripEmptyHint">點擊「＋ 新增旅程」開始規劃</p>
+        </div>` : ''}
 
-      <div class="btns">
+      ${past.length ? `
+        <div class="tripSection">
+          <h2 class="tripSectionTitle">過去旅程</h2>
+          <div class="tripCardList2">${past.map(tripCard).join('')}</div>
+        </div>` : ''}
+
+      ${archived.length ? `
+        <details class="tripArchiveSection2">
+          <summary>封存旅程（${archived.length}）</summary>
+          <div class="tripCardList2" style="margin-top:10px">${archived.map(tripCard).join('')}</div>
+        </details>` : ''}
+
+      <div class="tripListFooter">
         <button class="btn soft" onclick="firebaseSignOut()">登出</button>
       </div>
     </div>`;
 }
 
 function tripCard(t) {
-  const today    = formatLocalDate(new Date());
-  const status   = !t.start ? 'none'
-    : today < t.start             ? 'upcoming'
-    : today <= (t.end || t.start) ? 'active'
+  const today  = formatLocalDate(new Date());
+  const status = !t.start ? 'draft'
+    : today >= t.start && today <= (t.end || t.start) ? 'active'
+    : t.start > today ? 'upcoming'
     : 'past';
   const statusLabel = {
     upcoming: `還有 ${daysBetween(today, t.start)} 天`,
-    active:   '旅行中',
+    active:   '進行中',
     past:     '已結束',
-    none:     ''
+    draft:    '草稿'
   }[status];
   const duration = t.start && t.end ? daysBetween(t.start, t.end) + 1 : null;
   const dateStr  = t.start
     ? `${short(t.start)} – ${short(t.end || t.start)}${duration ? ` · ${duration} 天` : ''}`
     : '日期未設定';
+  const btnLabel = status === 'past' ? '查看旅程' : '繼續規劃';
 
   return `
-    <div class="tripCard tripStatus-${status}${t.archived ? ' archived' : ''}">
-      <div class="tripCardHeader">
-        <div class="tripCardInfo">
-          <div class="tripCardDest">${esc(t.dest || '未設定目的地')}</div>
-          <div class="tripCardName">${esc(t.title || '未命名旅程')}</div>
+    <div class="tripCard2 tripStatus2-${status}${t.archived ? ' archived' : ''}">
+      <div class="tripCard2Top">
+        <div class="tripStatusChip2 tripStatusChip2-${status}">${statusLabel}</div>
+        <div style="position:relative">
+          <button class="tripMoreBtn" onclick="openTripMenu('${t.id}',this)" title="更多">⋯</button>
+          <div class="tripMoreMenu" id="tripMenu_${t.id}" hidden>
+            ${t.archived
+              ? `<button onclick="restoreTrip('${t.id}');closeTripMenu()">還原旅程</button>`
+              : `<button onclick="archiveTrip('${t.id}');closeTripMenu()">封存旅程</button>`}
+            <button class="tripMenuDanger" onclick="deleteTrip('${t.id}');closeTripMenu()">刪除旅程</button>
+          </div>
         </div>
-        ${statusLabel ? `<div class="tripStatusChip tripStatusChip-${status}">${statusLabel}</div>` : ''}
       </div>
-      <div class="tripCardDate">${dateStr}</div>
-      ${t.updatedAtClient ? `<div class="tripCardUpdated">更新於 ${new Date(t.updatedAtClient).toLocaleDateString('zh-TW')}</div>` : ''}
-      <div class="tripCardFooter">
-        <button class="btn dark" onclick="startSelectTrip('${t.id}', this)">繼續編輯</button>
-        <div class="tripCardSecondary">
-          ${t.archived
-            ? `<button class="tripSecBtn" onclick="restoreTrip('${t.id}')">還原</button>`
-            : `<button class="tripSecBtn" onclick="archiveTrip('${t.id}')">封存</button>`}
-          <button class="tripSecBtn tripSecBtn-danger" onclick="deleteTrip('${t.id}')">刪除</button>
-        </div>
+      <div class="tripCard2Dest">${esc(t.dest || '未設定目的地')}</div>
+      <div class="tripCard2Name">${esc(t.title || '未命名旅程')}</div>
+      <div class="tripCard2Date">${dateStr}</div>
+      ${t.updatedAtClient ? `<div class="tripCard2Updated">更新於 ${new Date(t.updatedAtClient).toLocaleDateString('zh-TW')}</div>` : ''}
+      <div class="tripCard2Footer">
+        <button class="tripCardMainBtn" onclick="startSelectTrip('${t.id}',this)">${btnLabel}</button>
       </div>
     </div>`;
 }
