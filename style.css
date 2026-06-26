@@ -4690,6 +4690,12 @@ body[data-theme-mode] .btn.pink{
 .storyPhotoDetails{
   display:grid;
   gap:8px;
+  min-width:0;
+  overflow:hidden;
+}
+.storyPhotoDetails > input {
+  width:100%;
+  box-sizing:border-box;
 }
 .storyPhotoQuickFields{
   display:grid;
@@ -11485,8 +11491,8 @@ body.sheetOpen { overflow: hidden; }
   z-index: 3;
 }
 .diaryCoverOverlayBtn {
-  background: rgba(255,255,255,.22);
-  border: 1.5px solid rgba(255,255,255,.55);
+  background: rgba(0,0,0,.38);
+  border: 1.5px solid rgba(255,255,255,.5);
   color: #fff;
   border-radius: 999px;
   padding: 6px 14px;
@@ -11500,4 +11506,15 @@ body.sheetOpen { overflow: hidden; }
   display: inline-flex;
   align-items: center;
 }
-.diaryCoverOverlayBtn:hover { background: rgba(255,255,255,.35); }
+.diaryCoverOverlayBtn:hover { background: rgba(0,0,0,.52); }
+/* 沒有封面照時：改用深色系按鈕，在淺色封面背景上清晰可見 */
+.diaryCoverOverlayBtns.no-cover .diaryCoverOverlayBtn {
+  background: rgba(30,24,18,.72);
+  border-color: rgba(255,255,255,.3);
+  color: #fff;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+.diaryCoverOverlayBtns.no-cover .diaryCoverOverlayBtn:hover {
+  background: rgba(30,24,18,.88);
+}

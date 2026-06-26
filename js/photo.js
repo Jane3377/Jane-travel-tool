@@ -841,7 +841,7 @@ function diaryCoverHtml() {
         </div>
       </div>
       ${shareViewMode ? '' : `
-        <div class="diaryCoverOverlayBtns noPrint">
+        <div class="diaryCoverOverlayBtns noPrint${cover ? '' : ' no-cover'}">
           <label class="diaryCoverOverlayBtn">
             ${cover ? '更換封面' : '＋ 上傳封面照'}
             <input type="file" accept="image/*" onchange="addTripCover(this.files[0])" style="display:none">
