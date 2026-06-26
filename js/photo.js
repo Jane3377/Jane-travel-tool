@@ -280,6 +280,26 @@ function _photoTags(p) {
   return [];
 }
 
+function _photoTagsHtml(p, allowEdit) {
+  const tags = _photoTags(p);
+  if (!tags.length && !allowEdit) return '';
+  const pills = tags.map(function(t, ti) {
+    const btn = allowEdit
+      ? '<button type="button" class="diaryTagRemove" onclick="removePhotoTag(\'' + p.id + '\',' + ti + ')">×</button>'
+      : '';
+    return '<span class="diaryPhotoTagPillMemo">' + esc(t) + btn + '</span>';
+  }).join('');
+  const addInput = allowEdit
+    ? '<span class="diaryTagInputWrap">' +
+      '<input class="diaryTagInput" placeholder="新增標籤"' +
+      ' onkeydown="if(event.key===\'Enter\'){addInlinePhotoTag(\'' + p.id + '\',this);event.preventDefault()}">' +
+      '<button class="diaryTagAddBtn" type="button"' +
+      ' onclick="addInlinePhotoTag(\'' + p.id + '\',this.previousElementSibling)">＋</button>' +
+      '</span>'
+    : '';
+  return '<div class="diaryPhotoTagsRow">' + pills + addInput + '</div>';
+}
+
 async function addPhotoToDay(day) {
   const file = storyPendingPhotoFiles[day];
   if (!file) return toast('請先選擇照片');
@@ -819,24 +839,11 @@ function diaryPhotoGridHtml(photos, capStyle = '') {
     </div>
     ${photos.length > 6 ? `<div class="diaryMorePhotos">還有 ${photos.length - 6} 張</div>` : ''}
     ${withContent.length ? `<div class="diaryPhotoMemos">
-      ${withContent.map(p => {
-        const tags = _photoTags(p);
-        return `<div class="diaryPhotoMemoItem"${cap}>
-          ${p.title ? `<div class="diaryMemoLabel"${cap}>${esc(p.title)}</div>` : ''}
-          ${p.memo  ? `<div class="diaryMemoText">${esc(p.memo)}</div>` : ''}
-          <div class="diaryPhotoTagsRow">
-            ${tags.map((t, ti) => `<span class="diaryPhotoTagPillMemo">${esc(t)}${shareViewMode?'':
-              `<button type="button" class="diaryTagRemove" onclick="removePhotoTag('${p.id}',${ti})">×</button>`}</span>`).join('')}
-            ${shareViewMode ? '' : `
-              <span class="diaryTagInputWrap">
-                <input class="diaryTagInput" placeholder="新增標籤"
-                  onkeydown="if(event.key==='Enter'){addInlinePhotoTag('${p.id}',this);event.preventDefault()}">
-                <button class="diaryTagAddBtn" type="button"
-                  onclick="addInlinePhotoTag('${p.id}',this.previousElementSibling)">＋</button>
-              </span>`}
-          </div>
-        </div>`;
-      }).join('')}
+      ${withContent.map(p => `<div class="diaryPhotoMemoItem"${cap}>
+        ${p.title ? `<div class="diaryMemoLabel"${cap}>${esc(p.title)}</div>` : ''}
+        ${p.memo  ? `<div class="diaryMemoText">${esc(p.memo)}</div>` : ''}
+        ${_photoTagsHtml(p, !shareViewMode)}
+      </div>`).join('')}
     </div>` : ''}`;
 }
 
@@ -857,22 +864,12 @@ function diaryPhotoStoryHtml(photos, capStyle = '') {
               <button onclick="deletePhoto('${p.id}')">×</button>
             </div>`}
           </div>
-          ${(() => { const tags = _photoTags(p); return (p.title || p.memo || tags.length) ? `
+          ${(p.title || p.memo || _photoTags(p).length) ? `
           <div class="diaryPhotoStoryText"${cap}>
             ${p.title ? `<div class="diaryPhotoStoryCaption">${esc(p.title)}</div>` : ''}
             ${p.memo  ? `<div class="diaryPhotoStoryMemo">${esc(p.memo)}</div>`   : ''}
-            ${tags.length ? `<div class="diaryPhotoTagsRow">
-              ${tags.map((t, ti) => `<span class="diaryPhotoTagPillMemo">${esc(t)}${shareViewMode?'':
-                `<button type="button" class="diaryTagRemove" onclick="removePhotoTag('${p.id}',${ti})">×</button>`}</span>`).join('')}
-              ${shareViewMode ? '' : `
-                <span class="diaryTagInputWrap">
-                  <input class="diaryTagInput" placeholder="新增標籤"
-                    onkeydown="if(event.key==='Enter'){addInlinePhotoTag('${p.id}',this);event.preventDefault()}">
-                  <button class="diaryTagAddBtn" type="button"
-                    onclick="addInlinePhotoTag('${p.id}',this.previousElementSibling)">＋</button>
-                </span>`}
-            </div>` : ''}
-          </div>` : ''; })()
+            ${_photoTagsHtml(p, !shareViewMode)}
+          </div>` : ''}
         </div>`).join('')}
     </div>
     ${photos.length > 6 ? `<div class="diaryMorePhotos">還有 ${photos.length - 6} 張</div>` : ''}`;
