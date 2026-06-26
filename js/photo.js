@@ -51,7 +51,7 @@ async function uploadToCloudinary(blob, filename = 'photo.jpg') {
 }
 
 function setUploadStatus(id, msg) {
-  const el = $(id) || document.getElementById(id);
+  const el = $(id);
   if (!el) return;
   el.textContent = msg || '';
   el.classList.toggle('show', !!msg);
