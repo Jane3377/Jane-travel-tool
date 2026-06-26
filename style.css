@@ -9339,42 +9339,7 @@ body.sheetOpen { overflow: hidden; }
 }
 .diaryMemoText { flex: 1; }
 
-/* ── 標籤區（可編輯） ── */
-.diaryTagsSection {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-  margin-top: 12px;
-  min-height: 28px;
-}
-.diaryPlanTag {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background: #f0ece6;
-  border: none;
-  border-radius: 20px;
-  padding: 4px 10px;
-  font-size: 11px;
-  color: #7a6e64;
-  cursor: default;
-  font-family: inherit;
-}
-.diaryPlanTag.active {
-  background: #d9efe6;
-  color: #2e4a38;
-  font-weight: 600;
-}
-.diaryPlanTag.suggestion {
-  border: 1.5px dashed #c0b8b0;
-  background: transparent;
-  color: #9b8e85;
-  cursor: pointer;
-  transition: all .12s;
-}
-.diaryPlanTag.suggestion:hover { border-color: #4A5D4E; color: #4A5D4E; background: #f0f7f3; }
-.diaryTagPlus { font-size: 10px; opacity: .7; }
+/* ── 標籤通用（編輯/新增） ── */
 .diaryTagRemove {
   background: none;
   border: none;
@@ -9586,10 +9551,6 @@ body.sheetOpen { overflow: hidden; }
 .diaryDay.diaryStyle-film .diaryDayText:empty::before { color: #666; }
 .diaryDay.diaryStyle-film .diaryTagInput { border-color: #555; color: #ccc; }
 .diaryDay.diaryStyle-film .diaryTagInput:focus { border-color: #f0c060; color: #f0e8d0; }
-.diaryDay.diaryStyle-film .diaryPlanTag { background: #333; color: #ccc; }
-.diaryDay.diaryStyle-film .diaryPlanTag.active { background: #3a3000; color: #f0c060; }
-.diaryDay.diaryStyle-film .diaryPlanTag.suggestion { border-color: #555; color: #888; }
-.diaryDay.diaryStyle-film .diaryPlanTag.suggestion:hover { border-color: #f0c060; color: #f0c060; background: #2a2000; }
 .diaryDay.diaryStyle-film .diaryTagRemove { color: #666; }
 .diaryDay.diaryStyle-film .diaryIconBtn { background: #333; }
 .diaryDay.diaryStyle-film .diaryIconBtn.active { border-color: #f0c060; background: #3a3000; }
@@ -9636,11 +9597,6 @@ body.sheetOpen { overflow: hidden; }
 }
 .diaryDay.diaryStyle-film .diaryDayText {
   border-left-color: #f0c060;
-}
-.diaryStyle-film .diaryTagsSection {
-  border-top: 1px solid #333;
-  padding-top: 10px;
-  margin-top: 14px;
 }
 .diaryDay.diaryStyle-film .diaryTagAddBtn { border-color: #555; color: #888; }
 .diaryDay.diaryStyle-film .diaryTagAddBtn:hover { border-color: #f0c060; color: #f0c060; background: #2a2000; }
@@ -9817,8 +9773,6 @@ body.sheetOpen { overflow: hidden; }
 .diaryStyle-story .diaryPhotoStoryImgWrap { border-radius: 8px; }
 .diaryStyle-story .diaryPhotoStoryCaption { color: #1e3a4f; font-size: 14px; }
 .diaryStyle-story .diaryPhotoStoryMemo    { color: #4a8ab0; font-size: 12px; }
-.diaryStyle-story .diaryPlanTag { border-color: #4a8ab0; color: #1e3a4f; }
-.diaryStyle-story .diaryPlanTag.active { background: #d0e8f5; color: #1e3a4f; }
 
 /* ══════════════════════════════════════════
    ✏️ 手繪插畫 — Sketch
@@ -9915,23 +9869,6 @@ body.sheetOpen { overflow: hidden; }
   line-height: 1.55;
 }
 
-/* Sketch — tags */
-.diaryStyle-sketch .diaryPlanTag {
-  font-family: 'Caveat', cursive;
-  font-size: 1rem;
-  border: 2px solid #8b6040;
-  border-radius: 3px;
-  background: #fff8e8;
-  color: #5a3a1a;
-  padding: 2px 8px;
-}
-.diaryStyle-sketch .diaryPlanTag.active {
-  background: #f5ddb5;
-  border-color: #8b3a0f;
-  color: #3d2b1a;
-}
-.diaryStyle-sketch .diaryPlanTag.suggestion { border-style: dashed; color: #8b6040; }
-.diaryStyle-sketch .diaryPlanTag.suggestion:hover { border-color: #8b3a0f; background: #f5e8d0; }
 .diaryStyle-sketch .diaryTagRemove { color: #8b6040; }
 .diaryStyle-sketch .diaryTagInput {
   font-family: 'Caveat', cursive;
@@ -10027,21 +9964,6 @@ body.sheetOpen { overflow: hidden; }
   line-height: 1.6;
 }
 
-/* Tags */
-.diaryStyle-polar .diaryPlanTag {
-  border: 1px solid #e0c0c0;
-  border-radius: 20px;
-  background: #fdf5f4;
-  color: #8a5050;
-  font-size: 0.78rem;
-}
-.diaryStyle-polar .diaryPlanTag.active {
-  background: #fde8e8;
-  border-color: #c07070;
-  color: #7a3030;
-}
-.diaryStyle-polar .diaryPlanTag.suggestion { border-style: dashed; color: #b08080; }
-.diaryStyle-polar .diaryPlanTag.suggestion:hover { border-color: #b06060; background: #fdf0ee; }
 .diaryStyle-polar .diaryTagRemove { color: #c0a0a0; }
 .diaryStyle-polar .diaryTagInput {
   border-width: 0 0 1px 0;
@@ -10214,7 +10136,7 @@ body.sheetOpen { overflow: hidden; }
   .diaryActionBar, .diarySetup, .diaryMoodPicker,
   .diaryPhotoCtrl, .storyPhotoUploadCard,
   .diaryTagRemove, .diaryTagInputWrap, .diaryItineraryReset,
-  .diaryPlanTag.suggestion { display: none !important; }
+  .storyPhotoTagRow, .storyPhotoTagCustomRow, .storyPhotoTagSelected { display: none !important; }
   .diaryDayText { border: none !important; background: transparent !important; }
   .diaryItinerary { border: none !important; background: transparent !important; cursor: default; }
   .diaryCoverPage { page-break-after: always; break-after: page; min-height: 90vh; }

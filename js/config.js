@@ -3,7 +3,7 @@
    ================================================================ */
 
 /* ── App 版本 ── */
-const APP_VERSION = 'v104';
+const APP_VERSION = 'v105';
 
 /* ── Firebase 設定 ── */
 const FIREBASE_CONFIG = {

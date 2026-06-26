@@ -413,77 +413,8 @@ function photoOrientation(p) {
 }
 
 /* ══════════════════════════════════════════
-   旅遊書 HTML 產生器
+   旅日記照片上傳表單
    ══════════════════════════════════════════ */
-
-function storyBookCoverHtml() {
-  const cover = data.tripCover;
-  return `
-    <section class="storyBookCover noPrint">
-      <div class="v65CoverEditor">
-        <div class="v65CoverPreview">
-          ${cover
-            ? `<img src="${cover}"><button type="button" onclick="removeTripCover()">移除封面</button>`
-            : '<div class="v65NoCover">尚未上傳封面照</div>'}
-        </div>
-        <div>
-          <label>選擇封面照片</label>
-          <input type="file" accept="image/*" onchange="addTripCover(this.files[0])">
-          <div class="photoUploadStatus" id="coverUploadStatus"></div>
-        </div>
-        <div class="templateRail">
-          ${['fresh','fun','diary'].map(k =>
-            `<div class="templateCard ${data.meta.bookStyle===k?'active':''}"
-                  onclick="data.meta.bookStyle='${k}';save()">
-               <b>${{fresh:'🌿 韓系清新',fun:'🌈 活潑可愛',diary:'✎ 手帳日記'}[k]}</b>
-             </div>`
-          ).join('')}
-        </div>
-      </div>
-    </section>
-    <section class="storyBookCover printOnly">
-      ${cover ? `<img class="storyBookCoverImage" src="${cover}">` : ''}
-      <div class="storyBookCoverText">
-        <span class="eyebrow">MY TRAVEL BOOK</span>
-        <h1>${esc(data.meta.title || '我的旅行手帳')}</h1>
-        <p>${esc(data.meta.subtitle || '')}</p>
-        <div class="storyBookCoverMeta">
-          <span>${esc(data.trip.dest || '')}</span>
-          <span>${short(data.trip.start)} - ${short(data.trip.end)}</span>
-        </div>
-      </div>
-    </section>`;
-}
-
-function storyPhotoCard(p, idx) {
-  const ori = photoOrientation(p);
-  return `
-    <div class="storyPhotoCard ${idx===0?'featured':''} orientation-${ori}">
-      <div class="storyPhotoImage"><img src="${p.src}" alt="${esc(p.title||'')}"></div>
-      <div class="storyPhotoText">
-        <h3>${esc(p.title || '照片紀錄')}</h3>
-        <p>${esc(p.memo || '')}</p>
-        <div class="storyPhotoCardActions noPrint">
-          <button class="small" onclick="openPhotoEditModal('${p.id}')">編輯</button>
-          <button class="small" onclick="deletePhoto('${p.id}')">刪除</button>
-        </div>
-      </div>
-    </div>`;
-}
-
-function storyDayCoverCandidates(day) {
-  const photos = photosForDay(day);
-  if (!photos.length) return '<div class="v65DayCoverHint">尚無照片，可直接上傳封面。</div>';
-  return `
-    <div class="v65DayCoverHint">從今日照片選一張當封面：</div>
-    <div class="v65CoverCandidates">
-      ${photos.slice(0, 10).map(p => `
-        <div class="v65CoverCandidate">
-          <img src="${p.src}">
-          <button type="button" onclick="setDayCoverFromPhoto('${day}','${p.id}')">設為封面</button>
-        </div>`).join('')}
-    </div>`;
-}
 
 function storyPhotoUploadForm(day) {
   const count = photosForDay(day).length;
@@ -537,59 +468,6 @@ function storyPhotoUploadForm(day) {
     </div>`;
 }
 
-function storyBookDay(d) {
-  const plans  = sortedPlans(d.key);
-  const photos = photosForDay(d.key);
-  const cover  = data.dayCovers?.[d.key] || photos[0]?.src || '';
-  return `
-    <section class="storyDay">
-      <div class="storyDayHeader">
-        <div>
-          <span class="eyebrow">${d.title}</span>
-          <h2>${d.label}</h2>
-          <p>住宿：${hotelFor(d.key)?.name || '未設定'}｜${plans.length} 行程｜${photos.length} 張照片</p>
-        </div>
-        <div class="bookDayBadge">${plans.length} 行程</div>
-      </div>
-      <div class="storyDayCoverBlock noPrint">
-        <div class="v65CoverUploadRow">
-          <label>今日封面：<input type="file" accept="image/*"
-                 onchange="addDayCover('${d.key}',this.files[0])"></label>
-          ${cover && data.dayCovers?.[d.key]
-            ? `<button class="small" onclick="removeDayCover('${d.key}')">移除</button>` : ''}
-        </div>
-        ${storyDayCoverCandidates(d.key)}
-      </div>
-      <div class="storyDayHero ${cover?'':'storyInlineEmpty'}">
-        ${cover ? `<img src="${cover}">` : '<div>尚未上傳封面</div>'}
-      </div>
-      <div class="storyDayBody">
-        <div>
-          <div class="storyTimelineTitle">今天的路線</div>
-          ${plans.length
-            ? `<div class="storyTimeline">${plans.map(p=>`
-                <div class="storyTimelineItem">
-                  <div class="storyTimelineTime">${esc(p.start||'--:--')}</div>
-                  <div><b>${activityIcon(p.type)} ${esc(p.name)}</b>
-                    ${p.note?`<span>｜${esc(p.note)}</span>`:''}
-                  </div>
-                </div>`).join('')}</div>`
-            : '<div class="storyEmpty">這天還沒有行程</div>'}
-        </div>
-        <div>
-          <div class="storyPhotosTitle">今日照片日記 ${photos.length}/10</div>
-          ${storyPhotoUploadForm(d.key)}
-          ${photos.length
-            ? `<div class="storyPhotoLayout">${photos.map(storyPhotoCard).join('')}</div>`
-            : '<div class="storyEmpty">還沒有照片，上傳幾張今天的代表照片吧。</div>'}
-        </div>
-      </div>
-    </section>`;
-}
-
-function exportPhotoBookPDF() {
-  open('export.html', '_blank');
-}
 
 /* ════════════════════════════════════════
    旅日記（全新排版）
@@ -753,55 +631,6 @@ function setCoverTextColor(color) {
   renderPhotoBook();
 }
 
-function diaryRemoveTag(day, idx) {
-  _flushDiaryTexts();
-  if (!data.dayMoods?.[day]?.tags) return;
-  const removedTag = data.dayMoods[day].tags[idx];
-  data.dayMoods[day].tags.splice(idx, 1);
-  if (removedTag) {
-    if (!data.dayMoods[day].dismissed) data.dayMoods[day].dismissed = [];
-    if (!data.dayMoods[day].dismissed.includes(removedTag))
-      data.dayMoods[day].dismissed.push(removedTag);
-  }
-  save();
-  renderPhotoBook();
-}
-
-function diaryTogglePlanTag(day, planId) {
-  _flushDiaryTexts();
-  const p = data.plans.find(x => x.id === planId);
-  if (!p) return;
-  const tag = `${activityIcon(p.type)} ${p.name}`;
-  if (!data.dayMoods) data.dayMoods = {};
-  if (!data.dayMoods[day]) data.dayMoods[day] = {};
-  const tags      = data.dayMoods[day].tags      || [];
-  const dismissed = data.dayMoods[day].dismissed || [];
-  const idx = tags.indexOf(tag);
-  if (idx >= 0) {
-    tags.splice(idx, 1);
-    if (!dismissed.includes(tag)) dismissed.push(tag);
-  } else {
-    tags.push(tag);
-    const di = dismissed.indexOf(tag);
-    if (di >= 0) dismissed.splice(di, 1);
-  }
-  data.dayMoods[day].tags      = tags;
-  data.dayMoods[day].dismissed = dismissed;
-  save();
-  renderPhotoBook();
-}
-
-function diaryAddCustomTag(day, inputEl) {
-  const tag = (inputEl.value || '').trim();
-  if (!tag) return;
-  _flushDiaryTexts();
-  if (!data.dayMoods) data.dayMoods = {};
-  if (!data.dayMoods[day]) data.dayMoods[day] = {};
-  const tags = data.dayMoods[day].tags || [];
-  if (!tags.includes(tag)) { tags.push(tag); data.dayMoods[day].tags = tags; save(); }
-  inputEl.value = '';
-  renderPhotoBook();
-}
 
 function reorderDiaryPhoto(photoId, dir) {
   const photo = data.photos.find(p => p.id === photoId);
