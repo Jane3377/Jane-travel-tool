@@ -203,9 +203,10 @@ function _updatePendingTagsDisplay(day) {
   const container = document.getElementById(`storyPhotoTagSelected-${day}`);
   if (!container) return;
   const tags = storyPendingPhotoTags[day] || [];
-  container.innerHTML = tags.map((t, i) => `
-    <span class="storyPhotoTagPillSel">${esc(t)}<button type="button" class="storyPhotoTagRemove"
-      onclick="_removePendingTag('${day}',${i})">×</button></span>`).join('');
+  container.innerHTML = tags.map((t, i) =>
+    '<span class="storyPhotoTagPillSel"><span class="pillText">' + esc(t) + '</span>'
+    + '<button type="button" class="storyPhotoTagRemove" onclick="_removePendingTag(\'' + day + '\',' + i + ')">×</button></span>'
+  ).join('');
 }
 
 function _removePendingTag(day, idx) {
@@ -465,7 +466,7 @@ function storyPhotoUploadForm(day) {
             onclick="addCustomPhotoTagToDay('${day}','storyPhotoTagCustom-${day}')">＋</button>
         </div>
         <div class="storyPhotoTagSelected" id="storyPhotoTagSelected-${day}">
-          ${selTags.map((t, i) => '<span class="storyPhotoTagPillSel">' + esc(t) + '<button type="button" class="storyPhotoTagRemove" onclick="_removePendingTag(\'' + day + '\',' + i + ')">×</button></span>').join('')}
+          ${selTags.map((t, i) => '<span class="storyPhotoTagPillSel"><span class="pillText">' + esc(t) + '</span><button type="button" class="storyPhotoTagRemove" onclick="_removePendingTag(\'' + day + '\',' + i + ')">×</button></span>').join('')}
         </div>
         <div class="storyPhotoUploadActions">
           <button class="btn soft" type="button" onclick="clearPendingPhoto('${day}')">清除</button>

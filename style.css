@@ -4684,11 +4684,20 @@ body[data-theme-mode] .btn.pink{
   background:#fffdf9;
   padding:12px;
   display:grid;
+  grid-template-columns:1fr;
   gap:8px;
   margin-bottom:10px;
+  overflow:hidden;
+  min-width:0;
+  box-sizing:border-box;
+}
+.storyPhotoPickBox{
+  min-width:0;
+  overflow:hidden;
 }
 .storyPhotoDetails{
   display:grid;
+  grid-template-columns:1fr;
   gap:8px;
   min-width:0;
   overflow:hidden;
@@ -4696,6 +4705,7 @@ body[data-theme-mode] .btn.pink{
 .storyPhotoDetails > input {
   width:100%;
   box-sizing:border-box;
+  min-width:0;
 }
 .storyPhotoQuickFields{
   display:grid;
@@ -9427,6 +9437,8 @@ body.sheetOpen { overflow: hidden; }
   flex-wrap: wrap;
   gap: 6px;
   margin-bottom: 6px;
+  min-width: 0;
+  overflow: hidden;
 }
 .storyPhotoTagBtn {
   border: 1.5px solid #d9d0c8;
@@ -9486,6 +9498,8 @@ body.sheetOpen { overflow: hidden; }
   gap: 5px;
   min-height: 0;
   margin-bottom: 4px;
+  min-width: 0;
+  overflow: hidden;
 }
 .storyPhotoTagPillSel {
   display: inline-flex;
@@ -9497,6 +9511,15 @@ body.sheetOpen { overflow: hidden; }
   padding: 3px 8px 3px 10px;
   font-size: 12px;
   font-weight: 700;
+  max-width: 100%;
+  overflow: hidden;
+}
+.storyPhotoTagPillSel .pillText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  flex: 1;
 }
 .storyPhotoTagRemove {
   background: none;
