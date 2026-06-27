@@ -656,6 +656,20 @@ function reorderDiaryPhoto(photoId, dir) {
   renderPhotoBook();
 }
 
+/* 旅日記照片的 <img>：延遲載入 + 載入失敗自動重試 */
+function _diaryImgTag(p) {
+  return `<img src="${p.src}" alt="${esc(p.title || '')}" loading="lazy" onerror="diaryImgRetry(this)">`;
+}
+
+/* 圖片載入失敗時自動重試（最多 2 次，加 query 參數強制重抓） */
+function diaryImgRetry(img) {
+  const n = parseInt(img.dataset.retry || '0', 10);
+  if (n >= 2) return;
+  img.dataset.retry = n + 1;
+  const base = img.dataset.base || (img.dataset.base = img.src.split('?')[0]);
+  setTimeout(() => { img.src = base + '?_retry=' + (n + 1); }, 600 * (n + 1));
+}
+
 /* 照片右上角控制鈕（往前／往後／編輯／刪除）。i 為全清單索引、total 為當天總張數 */
 function _diaryPhotoCtrl(p, i, total) {
   if (shareViewMode) return '';
@@ -704,7 +718,7 @@ function diaryPhotoGridHtml(photos, capStyle = '') {
         <div class="diaryPhotoExtra">
           ${extra.map((p, j) => `
           <div class="diaryPhotoItem">
-            <img src="${p.src}" alt="${esc(p.title || '')}" loading="lazy">
+            ${_diaryImgTag(p)}
             ${_diaryPhotoCtrl(p, j + 6, total)}
           </div>`).join('')}
         </div>
@@ -716,7 +730,7 @@ function diaryPhotoGridHtml(photos, capStyle = '') {
     <div class="diaryPhotoGrid count-${featured.length}">
       ${featured.map((p, i) => `
         <div class="diaryPhotoItem${i === 0 ? ' featured' : ''}">
-          <img src="${p.src}" alt="${esc(p.title || '')}">
+          ${_diaryImgTag(p)}
           ${_diaryPhotoCtrl(p, i, total)}
         </div>`).join('')}
     </div>
@@ -731,7 +745,7 @@ function diaryPhotoStoryHtml(photos, capStyle = '') {
   const item = (p, i) => `
     <div class="diaryPhotoStoryItem${i % 2 === 1 ? ' alt' : ''}">
       <div class="diaryPhotoStoryImgWrap">
-        <img src="${p.src}" alt="${esc(p.title || '')}"${i >= 6 ? ' loading="lazy"' : ''}>
+        ${_diaryImgTag(p)}
         ${_diaryPhotoCtrl(p, i, total)}
       </div>
       ${(p.title || p.memo || _photoTags(p).length) ? `
@@ -1071,7 +1085,7 @@ ${cover ? `
     </div>
   </div>` : ''}
 ${daysHtml}
-<script>window.addEventListener('load',function(){var t=[];if(document.fonts&&document.fonts.ready)t.push(document.fonts.ready);[].forEach.call(document.images,function(img){if(!img.complete)t.push(new Promise(function(r){img.onload=img.onerror=r;}));});Promise.all(t).then(function(){setTimeout(window.print.bind(window),200);});});<\/script>
+<script>window.addEventListener('load',function(){var t=[];if(document.fonts&&document.fonts.ready)t.push(document.fonts.ready);[].forEach.call(document.images,function(img){img.loading='eager';if(!img.complete)t.push(new Promise(function(r){img.onload=img.onerror=r;}));});Promise.all(t).then(function(){setTimeout(window.print.bind(window),200);});});<\/script>
 </body>
 </html>`);
   win.document.close();
