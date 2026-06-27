@@ -116,6 +116,7 @@ async function selectTrip(id) {
     }
 
     cur = currentDay = data.days?.[0]?.key || data.trip?.start || '';
+    _photoBookTabTouched = false;   // 換旅程後，旅遊書子頁依新旅程階段重新套預設
     localSaveTrip();
     suppressCloudSave = false;
 

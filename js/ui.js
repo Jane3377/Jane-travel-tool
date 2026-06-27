@@ -35,6 +35,10 @@ function go(v, opts = {}) {
     if (today) currentDay = cur = today;
     else if (!currentDay) currentDay = cur = data.days?.[0]?.key || '';
   }
+  // 旅遊書：未手動切換過時，依旅程階段套用預設子頁
+  if (v === 'photoBook' && !_photoBookTabTouched) {
+    photoBookTab = defaultPhotoBookTab();
+  }
   renderNav();
   render();
   updateFab();
@@ -973,6 +977,19 @@ function renderPacking() {
 
 let _photoBookHtmlCache = '';
 
+/* 依旅程階段決定旅遊書預設子頁：出發前（或未設日期）→ 旅程手冊；旅行中／後 → 旅日記 */
+function defaultPhotoBookTab() {
+  const cs = tripCountdownState();
+  return (!cs || cs.state === 'pre') ? 'handbook' : 'diary';
+}
+
+/* 使用者手動切換旅遊書子頁（之後就不再自動套預設） */
+function setPhotoBookTab(tab) {
+  photoBookTab = tab;
+  _photoBookTabTouched = true;
+  renderPhotoBook();
+}
+
 function renderPhotoBook() {
   const el = $('photoBookView');
   if (!el) return;
@@ -983,9 +1000,9 @@ function renderPhotoBook() {
     </div>
     <div class="bookSubTabs noPrint">
       <button class="bookSubTab ${photoBookTab === 'handbook' ? 'active' : ''}"
-              onclick="photoBookTab='handbook';renderPhotoBook()">旅程手冊</button>
+              onclick="setPhotoBookTab('handbook')">旅程手冊</button>
       <button class="bookSubTab ${photoBookTab === 'diary' ? 'active' : ''}"
-              onclick="photoBookTab='diary';renderPhotoBook()">旅日記</button>
+              onclick="setPhotoBookTab('diary')">旅日記</button>
     </div>
     ${photoBookTab === 'handbook' ? handbookHtml() : _diaryHtml()}`;
   if (newHtml === _photoBookHtmlCache) return;

@@ -89,6 +89,7 @@ let pendingDateAdjust = null;
 
 /* ── 旅遊書子頁 ── */
 let photoBookTab = 'handbook';
+let _photoBookTabTouched = false;   // 使用者是否手動切換過子頁（切換過就不再自動套預設）
 
 /* ── 照片暫存 ── */
 let storyPendingPhotoFiles = {};
