@@ -918,10 +918,15 @@ function diaryCoverHtml() {
 
 function exportDiaryPDF() {
   _flushDiaryTexts();
-  const cssHref = document.querySelector('link[rel="stylesheet"]')?.href || '';
+  // 帶入全部樣式表（字型 + style.css），否則旅日記排版會整個跑掉
+  const cssLinks = [...document.querySelectorAll('link[rel="stylesheet"]')]
+    .map(l => `<link rel="stylesheet" href="${esc(l.href)}">`).join('\n');
   const cover   = data.tripCover;
   const style   = data.meta.bookStyle || 'fresh';
   const daysHtml = data.days.map(d => diaryDayHtml(d)).join('');
+  // 手機（含平板）改用預覽頁 + 手動按鈕；電腦維持自動跳列印
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+                   || window.matchMedia('(max-width:768px)').matches;
 
   const win = window.open('', '_blank');
   if (!win) { toast('請允許彈出視窗後再試'); return; }
@@ -934,9 +939,17 @@ function exportDiaryPDF() {
 <title>${esc(data.meta.title || '旅日記')}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&display=swap">
-${cssHref ? `<link rel="stylesheet" href="${cssHref}">` : ''}
+${cssLinks}
 <style>
   * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+  /* 預覽頁頂部列印工具列（列印時自動隱藏） */
+  .pdfPrintBar{position:sticky;top:0;z-index:9999;display:flex;gap:10px;justify-content:center;
+    padding:12px;background:#2f2a25;box-shadow:0 2px 10px rgba(0,0,0,.25);}
+  .pdfPrintBar button{border:0;border-radius:999px;padding:11px 20px;font-size:15px;font-weight:800;
+    cursor:pointer;font-family:inherit;}
+  .pdfPrintBtn{background:#fff;color:#2f2a25;}
+  .pdfCloseBtn{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.55)!important;}
+  @media print{.pdfPrintBar{display:none!important;}}
   @page { size:A4 portrait; margin:15mm 18mm; }
   body { margin:0; padding:0; background:#f5f0e8; font-family:-apple-system,'Noto Sans TC','PingFang TC',sans-serif; }
   .diaryDay { max-width:none; break-after:page; page-break-after:always; }
@@ -1072,6 +1085,10 @@ ${cssHref ? `<link rel="stylesheet" href="${cssHref}">` : ''}
 </style>
 </head>
 <body class="pStyle-${style}">
+<div class="pdfPrintBar">
+  <button class="pdfPrintBtn" onclick="window.print()">🖨 列印 / 存成 PDF</button>
+  <button class="pdfCloseBtn" onclick="window.close()">關閉</button>
+</div>
 ${cover ? `
   <div class="diaryCoverPage diaryStyle-${style}">
     <img class="diaryCoverBg" src="${cover}">
@@ -1085,7 +1102,7 @@ ${cover ? `
     </div>
   </div>` : ''}
 ${daysHtml}
-<script>window.addEventListener('load',function(){var t=[];if(document.fonts&&document.fonts.ready)t.push(document.fonts.ready);[].forEach.call(document.images,function(img){img.loading='eager';if(!img.complete)t.push(new Promise(function(r){img.onload=img.onerror=r;}));});Promise.all(t).then(function(){setTimeout(window.print.bind(window),200);});});<\/script>
+<script>window.addEventListener('load',function(){[].forEach.call(document.images,function(img){img.loading='eager';});${isMobile ? '' : `var t=[];if(document.fonts&&document.fonts.ready)t.push(document.fonts.ready);[].forEach.call(document.images,function(img){if(!img.complete)t.push(new Promise(function(r){img.onload=img.onerror=r;}));});Promise.all(t).then(function(){setTimeout(window.print.bind(window),200);});`}});<\/script>
 </body>
 </html>`);
   win.document.close();
