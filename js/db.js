@@ -346,24 +346,6 @@ function exportBackup() {
   a.click();
   URL.revokeObjectURL(a.href);
 }
-function importBackup(file) {
-  if (!file) return;
-  if (!confirm('匯入備份會覆蓋目前資料，確定嗎？')) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    try {
-      data = normalizeData(JSON.parse(e.target.result));
-      localSaveTrip();
-      cur = currentDay = data.days?.[0]?.key || data.trip.start || '';
-      render();
-      toast('已匯入備份');
-    } catch {
-      toast('備份檔格式錯誤');
-    }
-  };
-  reader.readAsText(file);
-}
-
 /* ── 旅程 meta ── */
 function currentTripMeta() {
   return {

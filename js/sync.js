@@ -213,18 +213,30 @@ function ensureBackupMenuButtons() {
   const menu = $('accountMenu');
   if (!menu || $('menuExport')) return;
   const logout = $('menuLogout');
+  const before = el => { if (logout) menu.insertBefore(el, logout); else menu.appendChild(el); };
 
   const btnExport = document.createElement('button');
   btnExport.id          = 'menuExport';
   btnExport.type        = 'button';
   btnExport.textContent = '匯出備份';
   btnExport.onclick     = () => { closeAccountMenu(); exportTripBackup(); };
+  before(btnExport);
 
-  if (logout) {
-    menu.insertBefore(btnExport, logout);
-  } else {
-    menu.appendChild(btnExport);
-  }
+  const btnImport = document.createElement('button');
+  btnImport.id          = 'menuImport';
+  btnImport.type        = 'button';
+  btnImport.textContent = '匯入備份';
+  btnImport.onclick     = () => { closeAccountMenu(); $('backupFileInput')?.click(); };
+  before(btnImport);
+
+  // 清除全部資料：危險操作，放在選單最下方
+  const btnReset = document.createElement('button');
+  btnReset.id          = 'menuReset';
+  btnReset.type        = 'button';
+  btnReset.className    = 'acctMenuDanger';
+  btnReset.textContent = '清除全部資料';
+  btnReset.onclick     = () => { closeAccountMenu(); resetAllData(); };
+  menu.appendChild(btnReset);
 }
 
 // 點外面關閉帳號選單

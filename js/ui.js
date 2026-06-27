@@ -1011,6 +1011,7 @@ function _diaryHtml() {
              <button class="btn soft compact" onclick="copyDiaryLink()">📋 複製連結</button>
              <button class="btn danger compact" onclick="unpublishDiary()">取消發布</button>`
           : `<button class="btn dark compact" onclick="publishDiary()">🌐 發布遊記</button>`}
+        <button class="btn soft compact" onclick="exportDiaryPDF()">📄 匯出 PDF</button>
       </div>
     </div>
     <div class="diaryWrap diaryFont-${font}">
@@ -1023,48 +1024,36 @@ function renderHelp() {
   const el = $('helpView');
   if (!el) return;
   el.innerHTML = `
-    <div class="section"><div><h2>說明與備份</h2></div></div>
+    <div class="section"><div><h2>使用說明</h2></div></div>
 
-    <div class="card"><h3>🔄 雲端同步</h3>
-      <div class="box mint" id="syncStatus"><span class="syncDot off"></span><b>尚未同步</b></div>
-      <div class="btns">
-        <button class="btn dark" onclick="saveToCloudNow()">立即同步</button>
-        <button class="btn blue" onclick="loadFromCloud({force:true})">載入雲端</button>
-      </div>
+    <div class="card"><h3>🗺 行程</h3>
+      <p class="helpText">安排每天的行程節點（景點、餐廳、咖啡廳、交通、住宿等）。可設定時間、拖曳排序，點節點可編輯或刪除。按「AI 健檢」能檢查行程鬆緊、動線是否順，再用「AI 匯入」把回覆貼回來。</p>
     </div>
 
-    <div class="card"><h3>💾 備份資料</h3>
-      <div class="btns">
-        <button class="btn dark" onclick="exportBackup()">匯出備份</button>
-        <label class="btn soft" style="display:inline-block">匯入備份
-          <input type="file" accept=".json" onchange="importBackup(this.files[0])" style="display:none">
-        </label>
-      </div>
+    <div class="card"><h3>📍 口袋景點</h3>
+      <p class="helpText">先把想去的地方收集起來，之後再分配到各天行程。可手動新增，或用「AI 找景點」依你的偏好產生口袋名單再匯入。</p>
     </div>
 
-    <div class="card"><h3>🤖 AI 功能</h3>
-      <div class="hint" style="margin-bottom:8px">旅遊偏好請在產生提示詞時於 modal 內設定。</div>
-      <div class="btns">
-        <button class="btn blue" onclick="showAIPrompt('spots')">AI 景點提示詞</button>
-        <button class="btn blue" onclick="showAIPrompt('itinerary')">AI 行程健檢</button>
-        <button class="btn soft" onclick="openImportModal()">匯入 AI 回傳</button>
-      </div>
+    <div class="card"><h3>💰 費用</h3>
+      <p class="helpText">記錄每筆花費，支援外幣／台幣與即時匯率換算，可指定付款人、分類與日期，並依分類或日期篩選、查看總計。</p>
     </div>
 
-    <div class="card"><h3>🎨 外觀設定</h3>
-      <div class="btns"><button class="btn dark" onclick="openThemePanel()">外觀設定</button></div>
+    <div class="card"><h3>🧳 清單</h3>
+      <p class="helpText">行前待辦、手提行李、托運行李、離開飯店檢查四份清單可勾選。用「AI 行李」依天氣與天數產生建議清單。</p>
     </div>
 
-    <div class="card"><h3>📖 照片旅遊書</h3>
-      <div class="btns"><button class="btn dark" onclick="exportPhotoBookPDF()">開啟 PDF 匯出</button></div>
+    <div class="card"><h3>📖 旅遊書</h3>
+      <p class="helpText">分成「旅程手冊」與「旅日記」兩部分。手冊整理行程總覽可匯出 PDF 或分享到 LINE；旅日記能上傳照片、寫每日心情、選擇版型，每天最多 25 張照片，也能發布成分享連結或匯出 PDF。</p>
     </div>
 
-    <div class="card"><h3>⚠️ 重置</h3>
-      <div class="btns">
-        <button class="btn soft"   onclick="loadSampleData()">載入範例</button>
-        <button class="btn danger" onclick="resetAllData()">清除全部資料</button>
-      </div>
+    <div class="card"><h3>✈️ 旅遊地・航班住宿</h3>
+      <p class="helpText">「旅遊地」設定國家、城市與日期；「航班住宿」登記去回程航班與住宿，存好後可一鍵帶入首尾行程與費用。</p>
     </div>
+
+    <div class="card"><h3>👤 帳號與資料（右上角頭像）</h3>
+      <p class="helpText">點右上角頭像可：Google 登入、雲端同步（跨裝置）、外觀設定、<b>匯出／匯入備份</b>，以及<b>清除全部資料</b>。登入後資料會自動雲端同步。</p>
+    </div>
+
     <footer style="text-align:center;padding:24px;color:#aaa;font-size:12px">
       <b>貞選旅管家 ${APP_VERSION}</b>
     </footer>`;
@@ -1362,26 +1351,8 @@ function render() {
 }
 
 /* ══════════════════════════════════════════
-   範例資料 / 重置
+   重置
    ══════════════════════════════════════════ */
-
-function loadSampleData() {
-  data = makeDefaultData();
-  data.meta.title    = '釜山小旅行手帳';
-  data.meta.subtitle = '把海風、咖啡廳、夜市小吃收進行程裡，準備一趟釜山旅行。';
-  data.trip = { dest:'韓國釜山', country:'韓國', city:'釜山', currency:'KRW', rate:.023,
-    start:'2026-06-04', end:'2026-06-10', travelerCount:2, travelers:['Jane','Allen'] };
-  data.days = mkDays(data.trip.start, data.trip.end);
-  data.hotels = [{ id:uid(), name:'城市律動', start:'2026-06-05', end:'2026-06-07', addr:'釜山西面站附近', note:'' }];
-  data.spots  = [
-    { id:uid(), name:'甘川洞文化村', type:'景點', day:'2026-06-05', addr:'釜山', memo:'', source:'手動' },
-    { id:uid(), name:'海雲台',       type:'景點', day:'2026-06-06', addr:'釜山', memo:'', source:'手動' }
-  ];
-  cur = currentDay = data.days[0].key;
-  localSaveTrip();
-  render();
-  toast('已載入範例');
-}
 
 function resetAllData() {
   if (!confirm('確定清除全部資料？')) return;

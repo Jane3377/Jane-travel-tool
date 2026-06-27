@@ -937,6 +937,21 @@ html, body { max-width: 100%; overflow-x: hidden; }
 .accountMenu button:hover{
   background:#f7f3ec;
 }
+.accountMenu .acctMenuDanger{
+  color:#c0392b;
+  margin-top:4px;
+  border-top:1px solid var(--theme-line,#eadfd4);
+  border-radius:0 0 12px 12px;
+}
+.accountMenu .acctMenuDanger:hover{
+  background:#fcebe9;
+}
+.helpText{
+  margin:0;
+  font-size:14px;
+  line-height:1.8;
+  color:var(--theme-muted,#6b6259);
+}
 .syncMini{
   position:fixed;
   top:calc(58px + env(safe-area-inset-top, 0px));
