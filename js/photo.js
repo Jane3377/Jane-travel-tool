@@ -580,8 +580,8 @@ function _diaryColorBar(day, label, fields, cur) {
 function diaryItineraryHtml(d) {
   const mood     = (data.dayMoods || {})[d.key] || {};
 
-  // 分享檢視時，使用者選擇隱藏的行程不顯示
-  if (shareViewMode && mood.hideItinerary) return '';
+  // 分享檢視或匯出 PDF 時，使用者選擇隱藏的行程不顯示
+  if ((shareViewMode || _diaryPdfExport) && mood.hideItinerary) return '';
 
   const plans    = sortedPlans(d.key);
   const hasCustom = mood.itinerary !== undefined;
@@ -916,6 +916,8 @@ function diaryCoverHtml() {
     </div>`;
 }
 
+let _diaryPdfExport = false;   // 匯出 PDF 期間為 true，讓「分享時隱藏」的行程也一併隱藏
+
 function exportDiaryPDF() {
   _flushDiaryTexts();
   // 帶入全部樣式表（字型 + style.css），否則旅日記排版會整個跑掉
@@ -923,7 +925,9 @@ function exportDiaryPDF() {
     .map(l => `<link rel="stylesheet" href="${esc(l.href)}">`).join('\n');
   const cover   = data.tripCover;
   const style   = data.meta.bookStyle || 'fresh';
+  _diaryPdfExport = true;
   const daysHtml = data.days.map(d => diaryDayHtml(d)).join('');
+  _diaryPdfExport = false;
   // 手機（含平板）改用預覽頁 + 手動按鈕；電腦維持自動跳列印
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
                    || window.matchMedia('(max-width:768px)').matches;
