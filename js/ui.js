@@ -71,9 +71,8 @@ function renderNav() {
     ).join('');
   }
   if (mobile) {
-    // 手機底部只顯示主要幾個
-    const mobileViews = [['planner','行程'],['spots','景點'],['budget','費用'],['packing','清單'],['photoBook','旅遊書'],['trip','旅遊地'],['stay','機酒']];
-    mobile.innerHTML = mobileViews.map(([k, l]) =>
+    // 與桌機分頁共用 VIEWS，確保名稱一致（手機列可橫向捲動）
+    mobile.innerHTML = VIEWS.map(([k, l]) =>
       `<button class="nav ${k===view?'active':''}" onclick="go('${k}')">${l}</button>`
     ).join('');
   }
@@ -112,7 +111,7 @@ function openAddSheet() {
     setTimeout(() => document.getElementById('qname')?.focus(), 100);
     return;
   }
-  const titles = { planner: '新增行程', spots: '新增景點', packing: '新增清單項目' };
+  const titles = { planner: '新增行程', spots: '新增口袋景點', packing: '新增清單項目' };
   if (titleEl) titleEl.textContent = titles[view] || '新增';
   body.innerHTML = _addFormHtml(view);
   overlay.hidden = false;
@@ -646,7 +645,7 @@ function renderPlanner() {
         <div id="lockedTimeHint" class="lockedFieldHint" style="display:none">
           飛行時間由航班設定決定，請從「航班」頁調整。
         </div>
-        <label>地點</label>
+        <label>名稱</label>
         <input id="pname">
         <div id="lockedNameHint" class="lockedFieldHint" style="display:none">
           此行程由航班／住宿帶入，名稱不可編輯。
