@@ -308,7 +308,7 @@ function _photoTagsHtml(p, allowEdit) {
 async function addPhotoToDay(day) {
   const file = storyPendingPhotoFiles[day];
   if (!file) return toast('請先選擇照片');
-  if (photosForDay(day).length >= 10) return toast('每天最多 10 張照片');
+  if (photosForDay(day).length >= 25) return toast('每天最多 25 張照片');
 
   const statusId = `storyPhotoStatus-${day}`;
   try {
@@ -656,61 +656,111 @@ function reorderDiaryPhoto(photoId, dir) {
   renderPhotoBook();
 }
 
+/* 照片右上角控制鈕（往前／往後／編輯／刪除）。i 為全清單索引、total 為當天總張數 */
+function _diaryPhotoCtrl(p, i, total) {
+  if (shareViewMode) return '';
+  return `<div class="diaryPhotoCtrl noPrint">
+    <button onclick="reorderDiaryPhoto('${p.id}',-1)" ${i===0?'disabled':''} title="往前">↑</button>
+    <button onclick="reorderDiaryPhoto('${p.id}',1)"  ${i===total-1?'disabled':''} title="往後">↓</button>
+    <button onclick="openPhotoEditModal('${p.id}')">✎</button>
+    <button onclick="deletePhoto('${p.id}')">×</button>
+  </div>`;
+}
+
+/* 照片標題／日記／標籤的文字區塊 */
+function _diaryMemosHtml(photos, cap) {
+  const withContent = photos.filter(p => p.title || p.memo || _photoTags(p).length);
+  if (!withContent.length) return '';
+  return `<div class="diaryPhotoMemos">
+    ${withContent.map(p => `<div class="diaryPhotoMemoItem"${cap}>
+      ${p.title ? `<div class="diaryMemoLabel"${cap}>${esc(p.title)}</div>` : ''}
+      ${p.memo  ? `<div class="diaryMemoText">${esc(p.memo)}</div>` : ''}
+      ${_photoTagsHtml(p, !shareViewMode)}
+    </div>`).join('')}
+  </div>`;
+}
+
+/* 展開／收合「第 7 張以後」的照片 */
+function toggleDiaryPhotoExpand(btn) {
+  const wrap = btn.closest('.diaryPhotoExtraWrap');
+  if (!wrap) return;
+  const expanded = wrap.classList.toggle('expanded');
+  btn.textContent = expanded ? '收合照片' : btn.dataset.label;
+}
+
 function diaryPhotoGridHtml(photos, capStyle = '') {
-  const shown = photos.slice(0, 6);
-  const count = shown.length;
-  if (!count) return '<div class="diaryNoPhotos">還沒有照片，點下方上傳</div>';
+  const total = photos.length;
+  if (!total) return '<div class="diaryNoPhotos">還沒有照片，點下方上傳</div>';
   const cap = capStyle ? ` style="${capStyle}"` : '';
-  const withContent = shown.filter(p => p.title || p.memo || _photoTags(p).length);
+  const featured = photos.slice(0, 6);
+  const extra    = photos.slice(6);
+
+  const extraBlock = extra.length ? `
+    <div class="diaryPhotoExtraWrap">
+      <button class="diaryExpandBtn noPrint" type="button"
+              data-label="展開全部 ${total} 張"
+              onclick="toggleDiaryPhotoExpand(this)">展開全部 ${total} 張</button>
+      <div class="diaryPhotoExtraInner">
+        <div class="diaryPhotoExtra">
+          ${extra.map((p, j) => `
+          <div class="diaryPhotoItem">
+            <img src="${p.src}" alt="${esc(p.title || '')}" loading="lazy">
+            ${_diaryPhotoCtrl(p, j + 6, total)}
+          </div>`).join('')}
+        </div>
+        ${_diaryMemosHtml(extra, cap)}
+      </div>
+    </div>` : '';
+
   return `
-    <div class="diaryPhotoGrid count-${count}">
-      ${shown.map((p, i) => `
+    <div class="diaryPhotoGrid count-${featured.length}">
+      ${featured.map((p, i) => `
         <div class="diaryPhotoItem${i === 0 ? ' featured' : ''}">
           <img src="${p.src}" alt="${esc(p.title || '')}">
-          ${shareViewMode ? '' : `<div class="diaryPhotoCtrl noPrint">
-            <button onclick="reorderDiaryPhoto('${p.id}',-1)" ${i===0?'disabled':''} title="往前">↑</button>
-            <button onclick="reorderDiaryPhoto('${p.id}',1)"  ${i===shown.length-1?'disabled':''} title="往後">↓</button>
-            <button onclick="openPhotoEditModal('${p.id}')">✎</button>
-            <button onclick="deletePhoto('${p.id}')">×</button>
-          </div>`}
+          ${_diaryPhotoCtrl(p, i, total)}
         </div>`).join('')}
     </div>
-    ${photos.length > 6 ? `<div class="diaryMorePhotos">還有 ${photos.length - 6} 張</div>` : ''}
-    ${withContent.length ? `<div class="diaryPhotoMemos">
-      ${withContent.map(p => `<div class="diaryPhotoMemoItem"${cap}>
-        ${p.title ? `<div class="diaryMemoLabel"${cap}>${esc(p.title)}</div>` : ''}
-        ${p.memo  ? `<div class="diaryMemoText">${esc(p.memo)}</div>` : ''}
-        ${_photoTagsHtml(p, !shareViewMode)}
-      </div>`).join('')}
-    </div>` : ''}`;
+    ${_diaryMemosHtml(featured, cap)}
+    ${extraBlock}`;
 }
 
 function diaryPhotoStoryHtml(photos, capStyle = '') {
-  const shown = photos.slice(0, 6);
-  if (!shown.length) return '<div class="diaryNoPhotos">還沒有照片，點下方上傳</div>';
+  const total = photos.length;
+  if (!total) return '<div class="diaryNoPhotos">還沒有照片，點下方上傳</div>';
   const cap = capStyle ? ` style="${capStyle}"` : '';
+  const item = (p, i) => `
+    <div class="diaryPhotoStoryItem${i % 2 === 1 ? ' alt' : ''}">
+      <div class="diaryPhotoStoryImgWrap">
+        <img src="${p.src}" alt="${esc(p.title || '')}"${i >= 6 ? ' loading="lazy"' : ''}>
+        ${_diaryPhotoCtrl(p, i, total)}
+      </div>
+      ${(p.title || p.memo || _photoTags(p).length) ? `
+      <div class="diaryPhotoStoryText"${cap}>
+        ${p.title ? `<div class="diaryPhotoStoryCaption">${esc(p.title)}</div>` : ''}
+        ${p.memo  ? `<div class="diaryPhotoStoryMemo">${esc(p.memo)}</div>`   : ''}
+        ${_photoTagsHtml(p, !shareViewMode)}
+      </div>` : ''}
+    </div>`;
+  const featured = photos.slice(0, 6);
+  const extra    = photos.slice(6);
+
+  const extraBlock = extra.length ? `
+    <div class="diaryPhotoExtraWrap">
+      <button class="diaryExpandBtn noPrint" type="button"
+              data-label="展開全部 ${total} 張"
+              onclick="toggleDiaryPhotoExpand(this)">展開全部 ${total} 張</button>
+      <div class="diaryPhotoExtraInner">
+        <div class="diaryPhotoStoryList">
+          ${extra.map((p, j) => item(p, j + 6)).join('')}
+        </div>
+      </div>
+    </div>` : '';
+
   return `
     <div class="diaryPhotoStoryList">
-      ${shown.map((p, i) => `
-        <div class="diaryPhotoStoryItem${i % 2 === 1 ? ' alt' : ''}">
-          <div class="diaryPhotoStoryImgWrap">
-            <img src="${p.src}" alt="${esc(p.title || '')}">
-            ${shareViewMode ? '' : `<div class="diaryPhotoCtrl noPrint">
-              <button onclick="reorderDiaryPhoto('${p.id}',-1)" ${i===0?'disabled':''} title="往前">↑</button>
-              <button onclick="reorderDiaryPhoto('${p.id}',1)"  ${i===shown.length-1?'disabled':''} title="往後">↓</button>
-              <button onclick="openPhotoEditModal('${p.id}')">✎</button>
-              <button onclick="deletePhoto('${p.id}')">×</button>
-            </div>`}
-          </div>
-          ${(p.title || p.memo || _photoTags(p).length) ? `
-          <div class="diaryPhotoStoryText"${cap}>
-            ${p.title ? `<div class="diaryPhotoStoryCaption">${esc(p.title)}</div>` : ''}
-            ${p.memo  ? `<div class="diaryPhotoStoryMemo">${esc(p.memo)}</div>`   : ''}
-            ${_photoTagsHtml(p, !shareViewMode)}
-          </div>` : ''}
-        </div>`).join('')}
+      ${featured.map((p, i) => item(p, i)).join('')}
     </div>
-    ${photos.length > 6 ? `<div class="diaryMorePhotos">還有 ${photos.length - 6} 張</div>` : ''}`;
+    ${extraBlock}`;
 }
 
 function diaryDayHtml(d) {
@@ -881,6 +931,9 @@ ${cssHref ? `<link rel="stylesheet" href="${cssHref}">` : ''}
   .storyPhotoUploadCard, .diaryTagRemove, .diaryTagInputWrap,
   .diaryPlanTag.suggestion { display:none!important; }
   .diaryDayText { border:none!important; background:transparent!important; }
+  /* 匯出時第 7 張以後的照片全部展開 */
+  .diaryExpandBtn { display:none!important; }
+  .diaryPhotoExtraInner { display:block!important; }
   .diaryTagsSection { display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; padding-top:0; }
   .diaryPlanTag { display:inline-flex!important; align-items:center; gap:4px; background:#f0ece6; border-radius:20px; padding:4px 10px; font-size:11px; color:#7a6e64; }
   .diaryPlanTag.active { background:#d9efe6!important; color:#2e4a38!important; font-weight:600; }

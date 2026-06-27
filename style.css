@@ -9268,7 +9268,33 @@ body.sheetOpen { overflow: hidden; }
   border: 2px dashed #e0d8d0;
   border-radius: 10px;
 }
-.diaryMorePhotos { font-size: 12px; color: #9b8e85; text-align: right; margin-top: 4px; }
+/* 第 7 張以後：展開／收合 */
+.diaryPhotoExtraWrap { margin-top: 8px; }
+.diaryExpandBtn {
+  width: 100%;
+  border: 1px dashed var(--theme-line, #e2ddd5);
+  background: rgba(255,255,255,.6);
+  color: var(--theme-primary, #628f80);
+  border-radius: 12px;
+  padding: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background .14s;
+}
+.diaryExpandBtn:hover { background: #f0f7f3; }
+.diaryPhotoExtraInner { display: none; margin-top: 8px; }
+.diaryPhotoExtraWrap.expanded .diaryPhotoExtraInner { display: block; }
+.diaryPhotoExtra {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.diaryPhotoExtra .diaryPhotoItem { aspect-ratio: 1; }
+
 .diaryPhotoGrid {
   display: grid;
   gap: 6px;
