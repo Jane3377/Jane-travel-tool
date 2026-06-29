@@ -138,3 +138,4 @@ let shareViewMode  = false;
 let shareViewToken = null;
 let shareSection   = null;   // 分享頁目前所在分區（null = 首頁）
 let sharePackList  = null;   // 分享頁清單分區目前選的清單情境（null = 第一個）
+let shareSpotFilter = '';    // 分享頁口袋景點的分類篩選（'' = 全部）

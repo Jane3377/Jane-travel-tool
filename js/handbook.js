@@ -379,6 +379,14 @@ function exportHandbookPDF() {
   _openHandbookPreview(true);
 }
 
+/* ── 費用是否顯示於分享連結 ── */
+function toggleShareBudget(on) {
+  if (!data.meta) data.meta = {};
+  data.meta.shareBudget = !!on;
+  save();   // 會重新渲染並同步到 publicShares
+  toast(on ? '費用已開放分享' : '費用已從分享隱藏');
+}
+
 /* ── LINE 分享 ── */
 function shareHandbookLine() {
   _openHandbookPreview(false);
@@ -398,11 +406,18 @@ function handbookHtml() {
     <div class="hbShareCard noPrint">
       <div class="hbShareTitle">🔗 旅伴分享連結</div>
       ${shareUrl ? `
-        <div class="hbShareDesc">旅伴可透過此連結即時查看所有行程、住宿、費用（唯讀）。</div>
+        <div class="hbShareDesc">旅伴可透過此連結即時查看行程、住宿、景點等（唯讀）。</div>
         <div class="hbShareUrlRow">
           <input class="hbShareUrlInput" readonly value="${esc(shareUrl)}">
           <button class="btn dark compact" onclick="copyShareLink()">複製</button>
         </div>
+        <label class="hbShareToggleRow">
+          <span>費用顯示於分享連結</span>
+          <span class="switch">
+            <input type="checkbox" ${data.meta?.shareBudget ? 'checked' : ''} onchange="toggleShareBudget(this.checked)">
+            <span class="slider"></span>
+          </span>
+        </label>
         <div class="hbShareBtns">
           <button class="btn blue compact" onclick="shareToLine()">LINE 分享</button>
           <button class="hbShareRevoke" onclick="revokeShareLink()">停用連結</button>

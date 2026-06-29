@@ -10831,6 +10831,61 @@ body.sheetOpen { overflow: hidden; }
 .spPackTab.active .spPackTabCnt { background: rgba(255,255,255,.22); }
 .spPackList { display: flex; flex-direction: column; }
 
+/* 口袋景點：可點 + 候選日期 + 探索底卡 */
+.spSpotCardTap { cursor: pointer; }
+.spSpotCardTap:active { background: #faf6f0; }
+.spSpotSide {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 4px;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+.spSpotDate {
+  font-size: 11px;
+  font-weight: 900;
+  color: #6f6257;
+  background: #f3eee8;
+  border-radius: 999px;
+  padding: 3px 9px;
+  white-space: nowrap;
+}
+.spExploreGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 4px 2px 8px;
+}
+.spExploreBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 14px 10px;
+  border-radius: 14px;
+  background: #f3eee8;
+  color: #4a443d;
+  font-size: 14px;
+  font-weight: 800;
+  text-decoration: none;
+  border: 1px solid #e8e0d4;
+}
+.spExploreBtn:active { background: #e8e0d4; }
+
+/* 手冊分享卡：費用顯示開關 */
+.hbShareToggleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 10px 0;
+  font-size: 13px;
+  font-weight: 800;
+  color: #5d554e;
+}
+
 .spPackGroup { margin-bottom: 14px; }
 .spPackGroupLabel {
   font-size: 11px;

@@ -459,6 +459,7 @@ async function loadSharedTrip(token) {
   shareViewToken = token;
   shareSection   = null;   // 一律從首頁開始
   sharePackList  = null;   // 清單情境回到第一個
+  shareSpotFilter = '';    // 口袋景點篩選回到全部
 
   // 先顯示 loading
   const loginEl = $('loginView');
@@ -504,15 +505,21 @@ const SHARE_SECTIONS = {
 function goShareSection(key) { shareSection = key; _renderSharePage(); window.scrollTo(0, 0); }
 function goShareHome()       { shareSection = null; _renderSharePage(); window.scrollTo(0, 0); }
 
+function _shareBudgetVisible() { return !!data.meta?.shareBudget; }
+
 function _renderSharePage() {
   const el = $('loginView');
   if (!el) return;
+  // 預算未開放分享時，不允許進入該分區
+  if (shareSection === 'budget' && !_shareBudgetVisible()) shareSection = null;
   if (shareSection && SHARE_SECTIONS[shareSection]) _renderShareSectionPage(el);
   else { shareSection = null; _renderShareHomePage(el); }
   showShell('login');
 }
 
-const _SHARE_MODAL = `<div class="spDetailModal" id="spDetailModal" onclick="if(event.target===this)closeSharePlanDetail()"></div>`;
+const _SHARE_MODAL = `
+  <div class="spDetailModal" id="spDetailModal" onclick="if(event.target===this)closeSharePlanDetail()"></div>
+  <div class="spDetailModal" id="spExploreModal" onclick="if(event.target===this)closeShareSpotExplore()"></div>`;
 
 function _shareHeroHtml() {
   const title     = data.meta?.title || '我的旅程';
@@ -561,9 +568,9 @@ function _renderShareHomePage(el) {
     { key:'hotels',  sum: hotels.length ? `${hotels.length} 間` : '尚未設定' },
     { key:'days',    sum: totalDays ? `${totalDays} 天` : '尚未安排' },
     { key:'spots',   sum: `${unscheduled.length} 個` },
-    { key:'packing', sum: packItems.length ? `${packItems.length} 項` : '尚無項目' },
-    { key:'budget',  sum: budgetSum }
+    { key:'packing', sum: packItems.length ? `${packItems.length} 項` : '尚無項目' }
   ];
+  if (_shareBudgetVisible()) cards.push({ key:'budget', sum: budgetSum });
 
   el.innerHTML = `
     <div class="spPage">
@@ -638,19 +645,85 @@ function _buildShareDaysHtml() {
   }).join('');
 }
 
-/* 口袋景點 */
+/* 口袋景點：分類篩選 + 依候選日期排序 + 點入探索 */
+function goShareSpotFilter(t) { shareSpotFilter = t; _renderSharePage(); }
+
 function _buildShareSpotsHtml() {
-  const unscheduled = (data.spots || []).filter(s => !spotPlanExists(s));
-  if (!unscheduled.length) return `<div class="spEmpty">尚無口袋景點</div>`;
-  return `<div class="spSpotsGrid">${unscheduled.map(s => `
-    <div class="spSpotCard">
+  const spots = (data.spots || []).filter(s => !spotPlanExists(s));
+  if (!spots.length) return `<div class="spEmpty">尚無口袋景點</div>`;
+
+  // 分類篩選 chips
+  const types = [];
+  spots.forEach(s => { const t = s.type || '其他'; if (!types.includes(t)) types.push(t); });
+  let cur = shareSpotFilter;
+  if (cur && !types.includes(cur)) cur = '';
+  const chips = `<div class="spPackTabs">
+    <button class="spPackTab ${!cur ? 'active' : ''}" onclick="goShareSpotFilter('')">全部<span class="spPackTabCnt">${spots.length}</span></button>
+    ${types.map(t => `<button class="spPackTab ${cur === t ? 'active' : ''}" onclick="goShareSpotFilter('${esc(t)}')">${esc(t)}<span class="spPackTabCnt">${spots.filter(s => (s.type || '其他') === t).length}</span></button>`).join('')}
+  </div>`;
+
+  // 篩選 + 依候選日期排序（有日期者依日期遞增在前，未定者在後）
+  const list = (cur ? spots.filter(s => (s.type || '其他') === cur) : spots.slice())
+    .sort((a, b) => {
+      const da = a.day || '', db = b.day || '';
+      if (da && db) return da < db ? -1 : da > db ? 1 : 0;
+      if (da) return -1;
+      if (db) return 1;
+      return 0;
+    });
+
+  const cards = list.map(s => `
+    <div class="spSpotCard spSpotCardTap" onclick="openShareSpotExplore('${s.id}')">
       ${s.photo ? `<img class="spSpotThumb" src="${esc(s.photo)}" loading="lazy">` : ''}
       <div class="spSpotInner">
         <div class="spSpotName">${activityIcon(s.type)} ${esc(s.name)}</div>
         ${s.addr ? `<div class="spSpotAddr">📍 ${esc(s.addr)}</div>` : ''}
         ${s.memo || s.note ? `<div class="spSpotNote">${esc(s.memo || s.note)}</div>` : ''}
       </div>
-    </div>`).join('')}</div>`;
+      <div class="spSpotSide">
+        <span class="spSpotDate">${s.day ? shortWithDay(s.day) : '未定'}</span>
+        <span class="spPlanChevron">›</span>
+      </div>
+    </div>`).join('');
+
+  return `${chips}<div class="spSpotsGrid">${cards}</div>`;
+}
+
+/* 口袋景點探索（唯讀分享頁）：四種外部搜尋 + 地圖 */
+function openShareSpotExplore(id) {
+  const s = (data.spots || []).find(x => x.id === id);
+  if (!s) return;
+  const kw     = encodeURIComponent([s.name, s.addr || '', data.trip?.dest || ''].filter(Boolean).join(' '));
+  const isKorea = data.trip?.country === '韓國';
+  const mapQ   = encodeURIComponent(s.krName || s.addr || s.name);
+  const gMap   = encodeURIComponent(s.addr || s.name);
+  const modal  = document.getElementById('spExploreModal');
+  if (!modal) return;
+  modal.innerHTML = `
+    <div class="spDetailBox">
+      <div class="spDetailHandle"></div>
+      <div class="spDetailHead">
+        <div class="spDetailIcon">${activityIcon(s.type)}</div>
+        <div class="spDetailTitleWrap">
+          <div class="spDetailTitle">${esc(s.name)}</div>
+          ${s.addr ? `<div class="spDetailTime">📍 ${esc(s.addr)}</div>` : ''}
+        </div>
+        <button class="spDetailClose" onclick="closeShareSpotExplore()">✕</button>
+      </div>
+      <div class="spExploreGrid">
+        <a class="spExploreBtn" target="_blank" rel="noopener" href="https://www.google.com/search?q=${kw}+遊記心得">📝 遊記</a>
+        <a class="spExploreBtn" target="_blank" rel="noopener" href="https://www.youtube.com/results?search_query=${kw}">▶️ 影片</a>
+        <a class="spExploreBtn" target="_blank" rel="noopener" href="https://www.google.com/search?q=${kw}+site:instagram.com+OR+site:facebook.com+OR+site:threads.net">📸 打卡</a>
+        <a class="spExploreBtn" target="_blank" rel="noopener" href="https://www.google.com/search?q=${kw}+官方網站">🏢 官方</a>
+        <a class="spExploreBtn" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${gMap}">🗺 Google 地圖</a>
+        ${isKorea ? `<a class="spExploreBtn" target="_blank" rel="noopener" href="https://map.naver.com/v5/search/${mapQ}">🇰🇷 Naver 地圖</a>` : ''}
+      </div>
+    </div>`;
+  modal.classList.add('show');
+}
+
+function closeShareSpotExplore() {
+  document.getElementById('spExploreModal')?.classList.remove('show');
 }
 
 function _buildShareFlightHtml() {
