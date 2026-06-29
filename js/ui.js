@@ -69,15 +69,18 @@ function showShell(mode) {
 function renderNav() {
   const tabs   = $('tabs');
   const mobile = $('mobileTopNav') || $('mobile');
+  // 航班住宿頁有未讀的 AI 住宿建議時，分頁顯示紅點
+  const dot = k => (k === 'stay' && data?.aiReviews?.stay && !data.aiReviews.stay.seen)
+    ? '<span class="navDot"></span>' : '';
   if (tabs) {
     tabs.innerHTML = VIEWS.map(([k, l]) =>
-      `<button class="tab ${k===view?'active':''}" onclick="go('${k}')">${l}</button>`
+      `<button class="tab ${k===view?'active':''}" onclick="go('${k}')">${l}${dot(k)}</button>`
     ).join('');
   }
   if (mobile) {
     // 與桌機分頁共用 VIEWS，確保名稱一致（手機列可橫向捲動）
     mobile.innerHTML = VIEWS.map(([k, l]) =>
-      `<button class="nav ${k===view?'active':''}" onclick="go('${k}')">${l}</button>`
+      `<button class="nav ${k===view?'active':''}" onclick="go('${k}')">${l}${dot(k)}</button>`
     ).join('');
   }
   renderSetupStrip();
@@ -518,14 +521,48 @@ function renderTrip() {
     </div>`;
 }
 
+function aiStayCardHtml() {
+  const stay = data.aiReviews?.stay;
+  if (!stay || !stay.items?.length || shareViewMode) return '';
+  const dest = data.trip?.dest || '';
+  return `
+    <div class="card aiStayCard">
+      <div class="aiStayHead">
+        <b>🏨 AI 建議住宿</b>
+        <button class="aiStayDismiss" onclick="dismissAiStay()" title="清除建議">×</button>
+      </div>
+      ${stay.items.map(s => {
+        const q = encodeURIComponent([s.name || s.area, dest].filter(Boolean).join(' '));
+        return `
+        <div class="aiStayItem">
+          <div class="aiStayArea">${esc(s.area || s.name || '')}${s.name && s.area ? '｜' + esc(s.name) : ''}</div>
+          ${s.reason ? `<div class="aiStayReason">${esc(s.reason)}</div>` : ''}
+          <a class="aiStayMap" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${q}">🗺 在地圖查看</a>
+        </div>`;
+      }).join('')}
+      <div class="aiStayNote">建議僅供參考，實際請依入住日期與空房自行訂房。</div>
+    </div>`;
+}
+
+function dismissAiStay() {
+  if (data.aiReviews?.stay) { delete data.aiReviews.stay; save(); }
+}
+
 function renderStay() {
   const el = $('stayView');
   if (!el) return;
   const h = editingHotelId ? data.hotels.find(x => x.id === editingHotelId) : null;
   data.hotels.sort((a, b) => String(a.start).localeCompare(b.start));
+  // 進入此頁即標記住宿建議為已讀（清掉分頁紅點）
+  if (data.aiReviews?.stay && !data.aiReviews.stay.seen) {
+    data.aiReviews.stay.seen = true;
+    silentSave();
+    renderNav();
+  }
 
   el.innerHTML = `
     <div class="section"><div><h2>✈️ 航班與住宿</h2></div></div>
+    ${aiStayCardHtml()}
 
     <details class="card">
       <summary>✈️ 航班設定</summary>
@@ -686,8 +723,9 @@ function renderPlanner() {
       <div class="card ${shareViewMode ? '' : 'aiBarPlanner'}">
         ${shareViewMode ? '' : `
         <div class="aiBarLabel">AI 輔助</div>
-        <div class="hint" style="margin-bottom:10px">只檢查已排入行程；偏好在產生提示詞時設定。</div>
+        <div class="hint" style="margin-bottom:10px">範例行程依航班補空檔；健檢只看已排入行程。偏好在產生提示詞時設定。</div>
         <div class="btns">
+          <button class="btn soft compact" onclick="showAIPrompt('plan')">AI 範例行程</button>
           <button class="btn dark compact" onclick="showAIPrompt('itinerary')">AI 健檢</button>
           <button class="btn blue compact" onclick="openImportModal()">AI 匯入</button>
         </div>`}

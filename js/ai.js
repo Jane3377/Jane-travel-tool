@@ -14,11 +14,13 @@ function loadAiPrefs() {
   try { return JSON.parse(localStorage.getItem(AI_PREF_KEY) || '{}'); } catch (e) { return {}; }
 }
 function saveAiPrefs() {
+  const cur = loadAiPrefs();
   const prefs = {
     style:  $('aiTravelStyle')?.value || '',
     mbti:   $('aiMbti')?.value        || '',
     zodiac: $('aiZodiac')?.value      || '',
-    note:   $('aiUserNote')?.value    || ''
+    note:   $('aiUserNote')?.value    || '',
+    pace:   $('aiPace')?.value || cur.pace || '標準'   // 行程密度（AI 範例行程用）
   };
   try { localStorage.setItem(AI_PREF_KEY, JSON.stringify(prefs)); } catch (e) {}
   return prefs;
@@ -212,6 +214,64 @@ ${dayPlans}
 }`;
 }
 
+function buildPlanGeneratePrompt() {
+  const c       = buildTripContext();
+  const isKorea = data.trip.country === '韓國';
+  const pace    = loadAiPrefs().pace || '標準';
+  const paceMap = {
+    '鬆弛': '每天約 3 個行程（含既有行程）',
+    '標準': '每天約 4–5 個行程（含既有行程）',
+    '緊湊': '每天約 6–7 個行程（含既有行程）'
+  };
+
+  const dayStatus = data.days.map(d => {
+    const plans = sortedPlans(d.key).filter(p => p.name);
+    if (!plans.length) return `${d.title}（${d.key}）：尚無行程`;
+    const list = plans.map(p => `${p.start || '--:--'} ${p.name}`).join('、');
+    return `${d.title}（${d.key}）：已有 ${list} → 請補空檔時段，勿與這些時間重疊`;
+  }).join('\n');
+
+  return `請依照以下旅行設定，幫我規劃「範例行程」並推薦住宿，產出可匯入「貞選旅管家」的 JSON。
+
+旅行設定：
+- 目的地：${c.dest}｜${c.country}｜${c.city || c.dest}
+- 日期：${c.dates}（共 ${data.days.length} 天）
+- 旅伴：${c.travelers}
+- 行程密度：${pace}（${paceMap[pace] || paceMap['標準']}）
+
+使用者偏好 / 需求：
+${aiPrefsText()}
+
+航班資訊：
+${buildFlightContext()}
+
+住宿：
+${c.hotels}
+
+各天現況（請在「空檔時段」補行程，不要與既有行程時間重疊；既有行程不要更動）：
+${dayStatus}
+
+請注意：
+1. 配合營業時間與公休：例如博物館多週一公休、夜市排晚上、咖啡廳排下午，把每個點排在實際營業且合理的時段。
+2. 配合航班：抵達當天進市區後才開始排、別太滿；回程當天只排到出發前並預留前往機場時間。
+3. 動線要順：同區域集中、減少來回。
+4. 每筆填 day(YYYY-MM-DD)、start/end(HH:MM)、type、name、addr、note（推薦理由或提醒）。
+5. type 只能是：景點、餐廳、咖啡廳、購物、交通、雨天備案、其他。
+6. 依上面的使用者偏好/需求與行程密度調整選點與數量。
+7. 住宿推薦 2～3 個「區域或飯店」+ 理由（交通、機場接駁、離景點近），放在 staySuggestions。${isKorea ? `
+8. 每筆行程附 krName（韓文名稱）、krAddress（韓文地址，精確到路名門牌）。` : ''}
+${isKorea ? '9' : '8'}. 只輸出純 JSON，不要 Markdown 或說明文字，格式如下：
+
+{
+  "plans": [
+    {"day":"YYYY-MM-DD","start":"HH:MM","end":"HH:MM","type":"景點","name":"景點名稱","addr":"地址或區域","note":"推薦理由或提醒"${isKorea ? `,"krName":"韓文名稱","krAddress":"韓文地址"` : ''}}
+  ],
+  "staySuggestions": [
+    {"area":"建議區域","name":"具體飯店或留空","reason":"推薦理由（交通、機場接駁、離景點近）"}
+  ]
+}`;
+}
+
 /* ══════════════════════════════════════════
    AI 提示詞 Modal
    ══════════════════════════════════════════ */
@@ -234,19 +294,30 @@ function showAIPrompt(type = 'spots') {
     document.body.appendChild(modal);
   }
 
-  const isSpot = type === 'spots';
-  const prefs  = loadAiPrefs();
+  const prefs = loadAiPrefs();
+  const heads = {
+    spots:     ['AI 找景點', '加入偏好後，AI 會依航班、住宿與已排入行程推薦更適合的口袋景點。'],
+    itinerary: ['AI 行程健檢', '加入偏好後，AI 會用更貼近你的旅行節奏檢查行程。'],
+    plan:      ['AI 範例行程', 'AI 會依航班、天數與你的偏好，把空白時段補成一份範例行程，並推薦住宿。']
+  };
+  const [h, p] = heads[type] || heads.spots;
+  const paceSel = type === 'plan' ? `
+    <div class="aiPrefs" style="margin-bottom:10px">
+      <div class="aiPrefsTitle">行程密度</div>
+      <select id="aiPace" onchange="saveAiPrefs()">
+        ${['鬆弛', '標準', '緊湊'].map(x => `<option ${x === (prefs.pace || '標準') ? 'selected' : ''}>${x}</option>`).join('')}
+      </select>
+    </div>` : '';
   modal.innerHTML = `
     <div class="aiPromptBox">
       <div class="aiModalHead">
         <div>
-          <h3>${isSpot ? 'AI 找景點' : 'AI 行程健檢'}</h3>
-          <p>${isSpot
-            ? '加入偏好後，AI 會依航班、住宿與已排入行程推薦更適合的口袋景點。'
-            : '加入偏好後，AI 會用更貼近你的旅行節奏檢查行程。'}</p>
+          <h3>${h}</h3>
+          <p>${p}</p>
         </div>
         <button class="aiModalClose" onclick="$('aiPrefsModal').classList.remove('show')">×</button>
       </div>
+      ${paceSel}
       ${aiPrefsHtml()}
       <div class="btns" style="margin-top:14px">
         <button class="btn dark" onclick="_savePrefsAndShowPrompt('${type}')">產生提示詞</button>
@@ -269,10 +340,12 @@ function _showPromptModal(type) {
   const prompt = type === 'spots'   ? buildSpotsPrompt()
                : type === 'packing' ? buildPackingPrompt()
                : type === 'budget'  ? buildBudgetPrompt()
+               : type === 'plan'    ? buildPlanGeneratePrompt()
                : buildItineraryPrompt();
   const title  = type === 'spots'   ? 'AI 找景點'
                : type === 'packing' ? 'AI 行李清單'
                : type === 'budget'  ? 'AI 費用'
+               : type === 'plan'    ? 'AI 範例行程'
                : 'AI 行程健檢';
 
   let modal = $('aiPromptModal');
@@ -522,6 +595,124 @@ function confirmSpotsImport() {
   _importPreviewSpots = [];
 }
 
+/* ── AI 範例行程匯入 ── */
+let _importPreviewPlans = [];
+let _importPreviewStays = [];
+
+// 生成的行程是否與既有行程時段重疊
+function _planOverlapsExisting(p) {
+  if (!p.day || !p.start) return false;
+  const s = timeToMin(p.start), e = timeToMin(p.end) || s + 60;
+  return (data.plans || []).some(x => {
+    if (x.day !== p.day || !x.start) return false;
+    const xs = timeToMin(x.start), xe = timeToMin(x.end) || xs + 60;
+    return s < xe && xs < e;
+  });
+}
+
+function _showPlansImportPreview(plans, stays) {
+  _importPreviewPlans = plans.filter(p => p.name)
+    .map(p => ({ ...p, _overlap: _planOverlapsExisting(p) }))
+    .sort((a, b) => String(a.day).localeCompare(String(b.day)) || String(a.start).localeCompare(String(b.start)));
+  _importPreviewStays = (stays || []).filter(s => s.area || s.name);
+
+  let modal = $('aiImportModal');
+  if (!modal) { openImportModal(); modal = $('aiImportModal'); }
+  if (!modal) return;
+
+  const TYPE_ICONS = { '景點':'📍','餐廳':'🍴','咖啡廳':'☕','購物':'🛍️','交通':'🚗','雨天備案':'☔','其他':'✨' };
+  const dayTitle = k => {
+    const d = (data.days || []).find(x => x.key === k);
+    return d ? `${d.title}（${shortWithDay(k)}）` : (k || '未指定日期');
+  };
+
+  let lastDay = null;
+  const rows = _importPreviewPlans.map((p, i) => {
+    let header = '';
+    if (p.day !== lastDay) { lastDay = p.day; header = `<div class="plansImportDay">${esc(dayTitle(p.day))}</div>`; }
+    return header + `
+      <label class="spotsImportRow">
+        <input type="checkbox" class="plansImportChk" data-i="${i}" ${p._overlap ? '' : 'checked'}>
+        <span class="spotsImportIcon">${TYPE_ICONS[p.type] || '📍'}</span>
+        <span class="plansImportTime">${esc(p.start || '')}</span>
+        <span class="spotsImportName">${esc(p.name)}</span>
+        ${p._overlap ? '<span class="plansImportWarn">⚠️ 時段重疊</span>' : ''}
+      </label>`;
+  }).join('');
+
+  const stayHtml = _importPreviewStays.length ? `
+    <div class="plansImportStay">
+      <div class="plansImportStayHead">🏨 建議住宿（將存到「航班住宿」頁）</div>
+      ${_importPreviewStays.map(s => `
+        <div class="plansImportStayItem">
+          <b>${esc(s.area || s.name || '')}</b>${s.name && s.area ? '｜' + esc(s.name) : ''}
+          ${s.reason ? `<div class="plansImportStayReason">${esc(s.reason)}</div>` : ''}
+        </div>`).join('')}
+    </div>` : '';
+
+  modal.innerHTML = `
+    <div class="aiPromptBox">
+      <div class="section">
+        <h3>AI 範例行程（${_importPreviewPlans.length} 筆）</h3>
+        <button class="iconBtn" onclick="closeImportModal()">×</button>
+      </div>
+      <div class="hint" style="margin-bottom:10px">勾選要加入的行程（與既有行程時段重疊者預設不勾）。只會新增，不會更動既有行程。</div>
+      <div class="spotsImportList">
+        <label class="spotsImportRow spotsImportAll">
+          <input type="checkbox" id="plansImportSelectAll" onchange="plansImportToggleAll(this.checked)">
+          <b>全選 / 全不選</b>
+        </label>
+        ${rows || '<div class="hint">沒有可匯入的行程</div>'}
+      </div>
+      ${stayHtml}
+      <div class="btns" style="margin-top:12px">
+        <button class="btn dark" onclick="confirmPlansImport()">確定匯入</button>
+        <button class="btn soft" onclick="closeImportModal()">取消</button>
+      </div>
+    </div>`;
+  modal.classList.add('show');
+}
+
+function plansImportToggleAll(checked) {
+  document.querySelectorAll('.plansImportChk').forEach(cb => cb.checked = checked);
+}
+
+function confirmPlansImport() {
+  const checked = [...document.querySelectorAll('.plansImportChk:checked')].map(cb => Number(cb.dataset.i));
+  const toAdd = checked.map(i => _importPreviewPlans[i]).filter(Boolean);
+
+  toAdd.forEach(p => {
+    const day = data.days.some(d => d.key === p.day) ? p.day : (data.days[0]?.key || '');
+    data.plans.push({
+      id: uid(), day,
+      start: String(p.start || ''), end: String(p.end || ''),
+      type: normalizePlanType(p.type), name: String(p.name || ''),
+      address: String(p.addr || p.address || ''),
+      krName: String(p.krName || ''), krAddress: String(p.krAddress || ''),
+      note: String(p.note || ''), memo: 'AI 範例行程',
+      mode: 'foreign', foreign: 0, twd: 0, payer: '未定', payMethod: '未定',
+      adjusted: false, pinnedTime: !!p.start, source: 'AI生成'
+    });
+  });
+
+  if (_importPreviewStays.length) {
+    if (!data.aiReviews) data.aiReviews = {};
+    data.aiReviews.stay = {
+      seen: false, createdAt: new Date().toISOString(),
+      items: _importPreviewStays.map(s => ({ area: String(s.area || ''), name: String(s.name || ''), reason: String(s.reason || '') }))
+    };
+  }
+
+  save();
+  const msgs = [];
+  if (toAdd.length) msgs.push(`已加入 ${toAdd.length} 筆行程`);
+  if (_importPreviewStays.length) msgs.push('住宿建議已放到「航班住宿」頁');
+  toast(msgs.join('，') || '沒有勾選任何行程');
+  closeImportModal();
+  _importPreviewPlans = [];
+  _importPreviewStays = [];
+}
+
 function importAiJson() {
   let raw = $('aiImportText')?.value || '';
   // 清理 markdown
@@ -554,6 +745,14 @@ function importAiJson() {
       save();
       toast(`已匯入 ${budgetItems.length} 筆費用項目`);
       closeImportModal();
+      return;
+    }
+
+    // AI 範例行程匯入（行程 + 住宿建議）
+    const planItems = Array.isArray(obj.plans) ? obj.plans : [];
+    const stayItems = Array.isArray(obj.staySuggestions) ? obj.staySuggestions : [];
+    if (planItems.length || stayItems.length) {
+      _showPlansImportPreview(planItems, stayItems);
       return;
     }
 

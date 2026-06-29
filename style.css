@@ -8712,6 +8712,26 @@ body.shareView .check input[type="checkbox"] { pointer-events: none; }
 .spotsImportName { font-weight:900; flex:1; min-width:0; }
 .spotsImportType { font-size:11px; background:#f3eee8; border-radius:999px; padding:3px 7px; white-space:nowrap; color:var(--muted); }
 .spotsImportAddr { font-size:11px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:90px; }
+/* ── AI 範例行程匯入預覽 ── */
+.plansImportDay { font-size:12px; font-weight:900; color:var(--dark,#628f80); margin:10px 4px 4px; }
+.plansImportTime { font-size:12px; font-weight:900; color:var(--muted); flex:0 0 40px; }
+.plansImportWarn { font-size:11px; color:#a85252; background:#ffecec; border-radius:999px; padding:3px 7px; white-space:nowrap; flex:0 0 auto; }
+.plansImportStay { margin-top:12px; border:1px dashed var(--line); border-radius:14px; padding:12px; background:var(--green,#edf8f3); }
+.plansImportStayHead { font-weight:900; font-size:13px; margin-bottom:8px; }
+.plansImportStayItem { font-size:13px; padding:6px 0; border-top:1px solid rgba(0,0,0,.05); }
+.plansImportStayItem:first-of-type { border-top:0; }
+.plansImportStayReason { font-size:12px; color:var(--muted); margin-top:2px; line-height:1.5; }
+/* ── 航班住宿頁：AI 建議住宿卡片 ── */
+.aiStayCard { border:1px solid var(--mint2,#b9dccc); background:var(--green,#edf8f3); }
+.aiStayHead { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; font-size:15px; }
+.aiStayDismiss { border:0; background:transparent; color:var(--muted); font-size:18px; font-weight:900; cursor:pointer; line-height:1; }
+.aiStayItem { padding:8px 0; border-top:1px solid rgba(0,0,0,.06); }
+.aiStayArea { font-weight:900; font-size:14px; }
+.aiStayReason { font-size:13px; color:#5c6b60; margin:3px 0 6px; line-height:1.6; }
+.aiStayMap { font-size:12px; font-weight:900; color:var(--dark,#628f80); text-decoration:none; }
+.aiStayNote { font-size:11px; color:var(--muted); margin-top:8px; }
+/* ── 分頁未讀紅點 ── */
+.navDot { display:inline-block; width:7px; height:7px; border-radius:50%; background:#e0533d; margin-left:5px; vertical-align:middle; }
 /* ── 行程卡片韓文資訊 ── */
 .planKrDetails { margin-top:8px; border-top:1px solid var(--line); padding-top:6px; }
 .planKrDetails summary { font-size:12px; color:var(--muted); cursor:pointer; list-style:none; display:flex; align-items:center; gap:5px; font-weight:900; }
