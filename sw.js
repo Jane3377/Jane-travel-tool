@@ -46,10 +46,10 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // 同源 App 檔案：網路優先（永遠取最新版，離線時才用快取）
+  // 同源 App 檔案：網路優先 + 強制向伺服器驗證（no-cache），避免吃到 HTTP 舊快取；離線時才用快取
   if (url.origin === self.location.origin) {
     e.respondWith(
-      fetch(request)
+      fetch(request, { cache: 'no-cache' })
         .then(resp => {
           if (resp && resp.status === 200)
             caches.open(CACHE).then(c => c.put(request, resp.clone()));
