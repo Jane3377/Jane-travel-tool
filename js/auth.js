@@ -458,6 +458,7 @@ async function loadSharedTrip(token) {
   shareViewMode  = true;
   shareViewToken = token;
   shareSection   = null;   // 一律從首頁開始
+  sharePackList  = null;   // 清單情境回到第一個
 
   // 先顯示 loading
   const loginEl = $('loginView');
@@ -723,28 +724,35 @@ function _buildShareBudgetHtml() {
     ${typeRows}`;
 }
 
+function goSharePackList(id) { sharePackList = id; _renderSharePage(); }
+
 function _buildSharePackingHtml() {
   const items = data.packing || [];
-  if (!items.length) return `<div class="spEmpty">尚無清單項目</div>`;
-
   const lists = data.packLists?.length
     ? data.packLists
-    : [{ id: 'pre', name: '出國前' }, { id: 'out', name: '離開飯店' }];
+    : [{ id: 'todo', name: '行前待辦' }, { id: 'carry', name: '手提行李' }, { id: 'check', name: '托運行李' }, { id: 'out', name: '離開飯店檢查' }];
+  if (!lists.length) return `<div class="spEmpty">尚無清單項目</div>`;
 
-  return lists.map(list => {
-    const listItems = items.filter(x => x.type === list.id);
-    if (!listItems.length) return '';
-    return `
-      <div class="spPackGroup">
-        <div class="spPackGroupLabel">${esc(list.name)}</div>
-        ${listItems.map(x => `
-          <div class="spPackItem ${x.checked ? 'spPackChecked' : ''}">
-            <span class="spPackCheck">${x.checked ? '✓' : '○'}</span>
-            <span class="spPackName">${esc(x.name)}</span>
-            ${x.note ? `<span class="spPackNote">${esc(x.note)}</span>` : ''}
-          </div>`).join('')}
-      </div>`;
-  }).join('');
+  // 預設選第一個清單情境；若選的清單已不存在則回退到第一個
+  let cur = sharePackList;
+  if (!cur || !lists.some(l => l.id === cur)) cur = lists[0].id;
+
+  const tabs = `<div class="spPackTabs">${lists.map(l => {
+    const cnt = items.filter(x => x.type === l.id).length;
+    return `<button class="spPackTab ${l.id === cur ? 'active' : ''}" onclick="goSharePackList('${l.id}')">${esc(l.name)}<span class="spPackTabCnt">${cnt}</span></button>`;
+  }).join('')}</div>`;
+
+  const listItems = items.filter(x => x.type === cur);
+  const body = listItems.length
+    ? listItems.map(x => `
+        <div class="spPackItem ${x.checked ? 'spPackChecked' : ''}">
+          <span class="spPackCheck">${x.checked ? '✓' : '○'}</span>
+          <span class="spPackName">${esc(x.name)}</span>
+          ${x.note ? `<span class="spPackNote">${esc(x.note)}</span>` : ''}
+        </div>`).join('')
+    : `<div class="spEmpty">這個清單還沒有項目</div>`;
+
+  return `${tabs}<div class="spPackList">${body}</div>`;
 }
 
 function openSharePlanDetail(planId) {

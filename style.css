@@ -10802,6 +10802,35 @@ body.sheetOpen { overflow: hidden; }
 }
 
 /* ── 行李清單 ── */
+/* 清單情境切換 tabs（分享頁） */
+.spPackTabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+  margin-bottom: 8px;
+  -webkit-overflow-scrolling: touch;
+}
+.spPackTab {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #e8e0d4;
+  background: #fff;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #6f6257;
+  cursor: pointer;
+  font-family: inherit;
+}
+.spPackTab.active { background: #3f3a35; color: #fff; border-color: #3f3a35; }
+.spPackTabCnt { background: rgba(0,0,0,.08); border-radius: 999px; padding: 1px 7px; font-size: 11px; }
+.spPackTab.active .spPackTabCnt { background: rgba(255,255,255,.22); }
+.spPackList { display: flex; flex-direction: column; }
+
 .spPackGroup { margin-bottom: 14px; }
 .spPackGroupLabel {
   font-size: 11px;
