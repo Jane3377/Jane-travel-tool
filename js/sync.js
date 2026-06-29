@@ -229,6 +229,13 @@ function ensureBackupMenuButtons() {
   btnImport.onclick     = () => { closeAccountMenu(); $('backupFileInput')?.click(); };
   before(btnImport);
 
+  const btnUpdate = document.createElement('button');
+  btnUpdate.id          = 'menuUpdate';
+  btnUpdate.type        = 'button';
+  btnUpdate.textContent = '檢查更新';
+  btnUpdate.onclick     = () => { closeAccountMenu(); checkForUpdate({ manual: true }); };
+  before(btnUpdate);
+
   // 清除全部資料：危險操作，放在選單最下方
   const btnReset = document.createElement('button');
   btnReset.id          = 'menuReset';
