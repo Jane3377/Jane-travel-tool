@@ -928,9 +928,7 @@ function exportDiaryPDF() {
   _diaryPdfExport = true;
   const daysHtml = data.days.map(d => diaryDayHtml(d)).join('');
   _diaryPdfExport = false;
-  // 手機（含平板）改用預覽頁 + 手動按鈕；電腦維持自動跳列印
-  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
-                   || window.matchMedia('(max-width:768px)').matches;
+  const isMobile = isMobileDevice();   // 手機改預覽 + 手動按鈕；電腦自動跳列印
 
   const win = window.open('', '_blank');
   if (!win) { toast('請允許彈出視窗後再試'); return; }
@@ -946,14 +944,7 @@ function exportDiaryPDF() {
 ${cssLinks}
 <style>
   * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
-  /* 預覽頁頂部列印工具列（列印時自動隱藏） */
-  .pdfPrintBar{position:sticky;top:0;z-index:9999;display:flex;gap:10px;justify-content:center;
-    padding:12px;background:#2f2a25;box-shadow:0 2px 10px rgba(0,0,0,.25);}
-  .pdfPrintBar button{border:0;border-radius:999px;padding:11px 20px;font-size:15px;font-weight:800;
-    cursor:pointer;font-family:inherit;}
-  .pdfPrintBtn{background:#fff;color:#2f2a25;}
-  .pdfCloseBtn{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.55)!important;}
-  @media print{.pdfPrintBar{display:none!important;}}
+  ${PDF_PRINT_BAR_CSS}
   @page { size:A4 portrait; margin:15mm 18mm; }
   body { margin:0; padding:0; background:#f5f0e8; font-family:-apple-system,'Noto Sans TC','PingFang TC',sans-serif; }
   .diaryDay { max-width:none; break-after:page; page-break-after:always; }
@@ -1089,10 +1080,7 @@ ${cssLinks}
 </style>
 </head>
 <body class="pStyle-${style}">
-<div class="pdfPrintBar">
-  <button class="pdfPrintBtn" onclick="window.print()">🖨 列印 / 存成 PDF</button>
-  <button class="pdfCloseBtn" onclick="window.close()">關閉</button>
-</div>
+${PDF_PRINT_BAR_HTML}
 ${cover ? `
   <div class="diaryCoverPage diaryStyle-${style}">
     <img class="diaryCoverBg" src="${cover}">
@@ -1106,7 +1094,7 @@ ${cover ? `
     </div>
   </div>` : ''}
 ${daysHtml}
-<script>window.addEventListener('load',function(){[].forEach.call(document.images,function(img){img.loading='eager';});${isMobile ? '' : `var t=[];if(document.fonts&&document.fonts.ready)t.push(document.fonts.ready);[].forEach.call(document.images,function(img){if(!img.complete)t.push(new Promise(function(r){img.onload=img.onerror=r;}));});Promise.all(t).then(function(){setTimeout(window.print.bind(window),200);});`}});<\/script>
+${pdfPrintScript(!isMobile)}
 </body>
 </html>`);
   win.document.close();

@@ -10528,43 +10528,7 @@ body.sheetOpen { overflow: hidden; }
   font-weight: 900;
 }
 
-/* ── Accordion ── */
-.spAccordion {
-  background: #fff;
-  border: 1px solid #e8e0d4;
-  border-radius: 18px;
-  margin-bottom: 10px;
-  overflow: hidden;
-  box-shadow: 0 4px 16px rgba(88,72,55,.06);
-}
-.spAccordionHead {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 14px 16px;
-  cursor: pointer;
-  list-style: none;
-  font-weight: 900;
-  font-size: 15px;
-  color: #3f3a35;
-  position: relative;
-}
-.spAccordionHead::-webkit-details-marker { display: none; }
-.spAccordionHead::after {
-  content: "⌄";
-  margin-left: auto;
-  font-size: 17px;
-  color: #8b827a;
-  transition: transform .18s;
-  flex-shrink: 0;
-}
-.spAccordion[open] .spAccordionHead::after { transform: rotate(180deg); }
-
-/* Day accordions have left color bar */
-.spAccordionHead:not(.spAccordionHeadFlat) {
-  border-left: 4px solid var(--sp-color, #4A7C59);
-  padding-left: 12px;
-}
+/* ── 每日行程區塊（日標題列 spDayBlockHead 自帶左側色條） ── */
 .spDayLabel {
   font-weight: 900;
   font-size: 14px;
@@ -10886,15 +10850,6 @@ body.sheetOpen { overflow: hidden; }
   color: #5d554e;
 }
 
-.spPackGroup { margin-bottom: 14px; }
-.spPackGroupLabel {
-  font-size: 11px;
-  font-weight: 900;
-  letter-spacing: 1px;
-  color: #8b827a;
-  text-transform: uppercase;
-  margin-bottom: 8px;
-}
 .spPackItem {
   display: flex;
   align-items: baseline;
