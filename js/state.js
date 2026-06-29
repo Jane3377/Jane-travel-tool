@@ -136,3 +136,4 @@ let selectingTrip    = false;
 /* ── 分享唯讀模式 ── */
 let shareViewMode  = false;
 let shareViewToken = null;
+let shareSection   = null;   // 分享頁目前所在分區（null = 首頁）

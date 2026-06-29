@@ -457,6 +457,7 @@ async function bootFirebase() {
 async function loadSharedTrip(token) {
   shareViewMode  = true;
   shareViewToken = token;
+  shareSection   = null;   // 一律從首頁開始
 
   // 先顯示 loading
   const loginEl = $('loginView');
@@ -489,10 +490,30 @@ async function loadSharedTrip(token) {
   }
 }
 
+/* 分享頁分區設定 */
+const SHARE_SECTIONS = {
+  flights: { icon:'✈️', name:'航班資訊', build: () => _buildShareFlightHtml() },
+  hotels:  { icon:'🏨', name:'住宿資訊', build: () => _buildShareHotelHtml() },
+  days:    { icon:'🗓', name:'每日行程', build: () => _buildShareDaysHtml() },
+  spots:   { icon:'📍', name:'口袋景點', build: () => _buildShareSpotsHtml() },
+  packing: { icon:'📋', name:'清單',     build: () => _buildSharePackingHtml() },
+  budget:  { icon:'💰', name:'費用總覽', build: () => _buildShareBudgetHtml() }
+};
+
+function goShareSection(key) { shareSection = key; _renderSharePage(); window.scrollTo(0, 0); }
+function goShareHome()       { shareSection = null; _renderSharePage(); window.scrollTo(0, 0); }
+
 function _renderSharePage() {
   const el = $('loginView');
   if (!el) return;
+  if (shareSection && SHARE_SECTIONS[shareSection]) _renderShareSectionPage(el);
+  else { shareSection = null; _renderShareHomePage(el); }
+  showShell('login');
+}
 
+const _SHARE_MODAL = `<div class="spDetailModal" id="spDetailModal" onclick="if(event.target===this)closeSharePlanDetail()"></div>`;
+
+function _shareHeroHtml() {
   const title     = data.meta?.title || '我的旅程';
   const dest      = data.trip?.dest  || '';
   const start     = data.trip?.start || '';
@@ -503,25 +524,98 @@ function _renderSharePage() {
   const totalDays = (data.days || []).length;
   const nights    = Math.max(0, totalDays - 1);
   const now       = new Date().toLocaleTimeString('zh-TW', { hour:'2-digit', minute:'2-digit' });
+  return `
+    <div class="spHero" ${coverImg ? `style="background-image:url('${esc(coverImg)}');background-size:cover;background-position:center"` : ''}>
+      ${coverImg ? '<div class="spHeroOverlay"></div>' : ''}
+      <div class="spHeroContent">
+        <div class="spBrand">貞選旅管家</div>
+        <h1 class="spTitle">${esc(title)}</h1>
+        <div class="spMeta">${esc(dest)}${start ? `｜${short(start)} — ${short(end)}` : ''}${totalDays ? `｜${totalDays}天${nights}夜` : ''}</div>
+        ${travelers.length > 0 ? `<div class="spTravelers">${travelers.map(esc).join('・')}</div>` : ''}
+      </div>
+      <div class="spSyncBadge">⟳ 已更新 ${now}</div>
+    </div>`;
+}
 
-  // ── 航班 ──
-  const flightHtml = _buildShareFlightHtml();
+/* 首頁：封面 + 功能卡片（含摘要） */
+function _renderShareHomePage(el) {
+  const totalDays   = (data.days || []).length;
+  const hotels      = data.hotels || [];
+  const unscheduled = (data.spots || []).filter(s => !spotPlanExists(s));
+  const packItems   = data.packing || [];
 
-  // ── 住宿 ──
-  const hotelHtml = _buildShareHotelHtml();
+  const out  = normalizeFlightObj(data.flights?.out  || {});
+  const back = normalizeFlightObj(data.flights?.back || {});
+  const hasOut  = (out.segments  || []).some(s => s.no || s.from);
+  const hasBack = (back.segments || []).some(s => s.no || s.from);
+  const flightSum = hasOut && hasBack ? '去程・回程' : hasOut ? '僅去程' : hasBack ? '僅回程' : '尚未設定';
 
-  // ── 每日行程（一天一個 details） ──
-  const daysHtml = (data.days || []).map((d, idx) => {
+  const rate     = Number(data.trip?.rate || 1);
+  const expenses = data.expenses || [];
+  const total    = expenses.reduce((s, e) => s + (e.mode === 'TWD' ? Number(e.twd || 0) : Math.round(Number(e.foreign || 0) * rate)), 0);
+  const budgetSum = expenses.length ? `TWD ${total.toLocaleString('zh-TW')}` : '尚無記錄';
+
+  const cards = [
+    { key:'flights', sum: flightSum },
+    { key:'hotels',  sum: hotels.length ? `${hotels.length} 間` : '尚未設定' },
+    { key:'days',    sum: totalDays ? `${totalDays} 天` : '尚未安排' },
+    { key:'spots',   sum: `${unscheduled.length} 個` },
+    { key:'packing', sum: packItems.length ? `${packItems.length} 項` : '尚無項目' },
+    { key:'budget',  sum: budgetSum }
+  ];
+
+  el.innerHTML = `
+    <div class="spPage">
+      ${_shareHeroHtml()}
+      <div class="spBody">
+        <div class="spHomeGrid">
+          ${cards.map(c => {
+            const s = SHARE_SECTIONS[c.key];
+            return `
+            <button class="spCard" onclick="goShareSection('${c.key}')">
+              <span class="spCardIcon">${s.icon}</span>
+              <span class="spCardName">${s.name}</span>
+              <span class="spCardSummary">${esc(c.sum)}</span>
+              <span class="spCardArrow">›</span>
+            </button>`;
+          }).join('')}
+        </div>
+      </div>
+      <div class="spFooter">貞選旅管家 Janeselect Travel Manager<br>此頁面由旅行主辦人即時同步</div>
+    </div>
+    ${_SHARE_MODAL}`;
+}
+
+/* 分區內頁：返回列 + 該區完整內容（全部展開） */
+function _renderShareSectionPage(el) {
+  const sec = SHARE_SECTIONS[shareSection];
+  el.innerHTML = `
+    <div class="spPage spSectionPage">
+      <div class="spBackBar">
+        <button class="spBackBtn" onclick="goShareHome()">‹ 返回</button>
+        <span class="spSectionTitle">${sec.icon} ${sec.name}</span>
+      </div>
+      <div class="spBody">${sec.build()}</div>
+      <div class="spFooter">貞選旅管家 Janeselect Travel Manager<br>此頁面由旅行主辦人即時同步</div>
+    </div>
+    ${_SHARE_MODAL}`;
+}
+
+/* 每日行程（全部展開，不收合） */
+function _buildShareDaysHtml() {
+  const days = data.days || [];
+  if (!days.length) return `<div class="spEmpty">尚未安排行程</div>`;
+  return days.map((d, idx) => {
     const plans = sortedPlans(d.key);
     const hotel = hotelFor(d.key);
     const color = ['#4A7C59','#3A6EA5','#B85C5C','#7A5EA7','#C17E3C','#2A8090','#8A6040','#5B7EA8'][idx % 8];
     return `
-      <details class="spAccordion" ${idx === 0 ? 'open' : ''}>
-        <summary class="spAccordionHead" style="--sp-color:${color}">
+      <div class="spDayBlock">
+        <div class="spDayBlockHead" style="--sp-color:${color}">
           <span class="spDayLabel" style="color:${color}">${esc(d.title)}</span>
           <span class="spDayDate">${shortWithDay(d.key)}</span>
           <span class="spDayCnt">${plans.length}</span>
-        </summary>
+        </div>
         <div class="spAccordionBody">
           ${hotel ? `<div class="spHotelChip">🏨 ${esc(hotel.name)}</div>` : ''}
           ${plans.length ? plans.map(p => {
@@ -539,87 +633,23 @@ function _renderSharePage() {
               </div>`;
           }).join('') : `<div class="spEmpty">這天尚未安排行程</div>`}
         </div>
-      </details>`;
+      </div>`;
   }).join('');
+}
 
-  // ── 口袋景點 ──
+/* 口袋景點 */
+function _buildShareSpotsHtml() {
   const unscheduled = (data.spots || []).filter(s => !spotPlanExists(s));
-  const spotsHtml = unscheduled.length
-    ? unscheduled.map(s => `
-        <div class="spSpotCard">
-          ${s.photo ? `<img class="spSpotThumb" src="${esc(s.photo)}" loading="lazy">` : ''}
-          <div class="spSpotInner">
-            <div class="spSpotName">${activityIcon(s.type)} ${esc(s.name)}</div>
-            ${s.addr ? `<div class="spSpotAddr">📍 ${esc(s.addr)}</div>` : ''}
-            ${s.memo || s.note ? `<div class="spSpotNote">${esc(s.memo || s.note)}</div>` : ''}
-          </div>
-        </div>`).join('')
-    : `<div class="spEmpty">尚無口袋景點</div>`;
-
-  // ── 預算總覽 ──
-  const budgetHtml = _buildShareBudgetHtml();
-
-  // ── 行李清單 ──
-  const packingHtml = _buildSharePackingHtml();
-
-  el.innerHTML = `
-    <div class="spPage">
-      <!-- Hero -->
-      <div class="spHero" ${coverImg ? `style="background-image:url('${esc(coverImg)}');background-size:cover;background-position:center"` : ''}>
-        ${coverImg ? '<div class="spHeroOverlay"></div>' : ''}
-        <div class="spHeroContent">
-          <div class="spBrand">貞選旅管家</div>
-          <h1 class="spTitle">${esc(title)}</h1>
-          <div class="spMeta">${esc(dest)}${start ? `｜${short(start)} — ${short(end)}` : ''}${totalDays ? `｜${totalDays}天${nights}夜` : ''}</div>
-          ${travelers.length > 0 ? `<div class="spTravelers">${travelers.map(esc).join('・')}</div>` : ''}
-        </div>
-        <div class="spSyncBadge">⟳ 已更新 ${now}</div>
+  if (!unscheduled.length) return `<div class="spEmpty">尚無口袋景點</div>`;
+  return `<div class="spSpotsGrid">${unscheduled.map(s => `
+    <div class="spSpotCard">
+      ${s.photo ? `<img class="spSpotThumb" src="${esc(s.photo)}" loading="lazy">` : ''}
+      <div class="spSpotInner">
+        <div class="spSpotName">${activityIcon(s.type)} ${esc(s.name)}</div>
+        ${s.addr ? `<div class="spSpotAddr">📍 ${esc(s.addr)}</div>` : ''}
+        ${s.memo || s.note ? `<div class="spSpotNote">${esc(s.memo || s.note)}</div>` : ''}
       </div>
-
-      <!-- Accordion body -->
-      <div class="spBody">
-        <!-- 航班 -->
-        <details class="spAccordion" open>
-          <summary class="spAccordionHead spAccordionHeadFlat">✈️ 航班資訊</summary>
-          <div class="spAccordionBody">${flightHtml}</div>
-        </details>
-
-        <!-- 住宿 -->
-        <details class="spAccordion">
-          <summary class="spAccordionHead spAccordionHeadFlat">🏨 住宿資訊</summary>
-          <div class="spAccordionBody">${hotelHtml}</div>
-        </details>
-
-        <!-- 每日行程 -->
-        ${daysHtml}
-
-        <!-- 口袋景點 -->
-        ${unscheduled.length ? `
-        <details class="spAccordion">
-          <summary class="spAccordionHead spAccordionHeadFlat">📍 口袋景點</summary>
-          <div class="spAccordionBody spSpotsGrid">${spotsHtml}</div>
-        </details>` : ''}
-
-        <!-- 清單 -->
-        <details class="spAccordion">
-          <summary class="spAccordionHead spAccordionHeadFlat">📋 清單</summary>
-          <div class="spAccordionBody">${packingHtml}</div>
-        </details>
-
-        <!-- 預算 -->
-        <details class="spAccordion">
-          <summary class="spAccordionHead spAccordionHeadFlat">💰 費用總覽</summary>
-          <div class="spAccordionBody">${budgetHtml}</div>
-        </details>
-      </div>
-
-      <div class="spFooter">貞選旅管家 Janeselect Travel Manager<br>此頁面由旅行主辦人即時同步</div>
-    </div>
-
-    <!-- 行程詳細資訊彈窗 -->
-    <div class="spDetailModal" id="spDetailModal" onclick="if(event.target===this)closeSharePlanDetail()"></div>`;
-
-  showShell('login');
+    </div>`).join('')}</div>`;
 }
 
 function _buildShareFlightHtml() {

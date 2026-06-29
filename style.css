@@ -10450,6 +10450,84 @@ body.sheetOpen { overflow: hidden; }
   padding: 14px 14px calc(40px + env(safe-area-inset-bottom, 0px));
 }
 
+/* ── 首頁功能卡片 ── */
+.spHomeGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.spCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  text-align: left;
+  background: #fff;
+  border: 1px solid #e8e0d4;
+  border-radius: 18px;
+  padding: 16px 14px;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(88,72,55,.06);
+  font-family: inherit;
+  transition: transform .12s, box-shadow .12s;
+}
+.spCard:active { transform: scale(.97); }
+.spCardIcon { font-size: 26px; line-height: 1; margin-bottom: 4px; }
+.spCardName { font-size: 15px; font-weight: 900; color: #3f3a35; }
+.spCardSummary { font-size: 13px; font-weight: 700; color: #8b827a; }
+.spCardArrow {
+  position: absolute;
+  top: 14px; right: 14px;
+  font-size: 20px; color: #c4bab0; font-weight: 900;
+}
+
+/* ── 分區內頁返回列 ── */
+.spBackBar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px calc(12px + env(safe-area-inset-top, 0px));
+  background: rgba(255,253,250,.96);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid #ece4d8;
+}
+.spBackBtn {
+  border: 0;
+  background: #f3eee8;
+  color: #5d554e;
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+  font-family: inherit;
+}
+.spBackBtn:active { background: #e8e0d4; }
+.spSectionTitle { font-size: 16px; font-weight: 900; color: #3f3a35; }
+
+/* ── 每日行程（內頁全展開的日區塊） ── */
+.spDayBlock {
+  background: #fff;
+  border: 1px solid #e8e0d4;
+  border-radius: 18px;
+  margin-bottom: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(88,72,55,.06);
+}
+.spDayBlockHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 16px 14px 12px;
+  border-left: 4px solid var(--sp-color, #4A7C59);
+  font-weight: 900;
+}
+
 /* ── Accordion ── */
 .spAccordion {
   background: #fff;
