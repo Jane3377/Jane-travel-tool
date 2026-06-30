@@ -289,7 +289,7 @@ function openNearbySpotDetail(spotId) {
       </div>
       ${s.photo ? `<img class="nearbyDetailPhoto" src="${s.photo}" alt="${esc(s.name)}">` : ''}
       ${s.memo ? `<div class="box pink" style="margin:10px 0">${esc(s.memo)}</div>` : ''}
-      ${s.note ? `<div class="box" style="margin:10px 0"><b>注意：</b>${esc(s.note)}</div>` : ''}
+      ${s.note ? `<div class="box" style="margin:10px 0"><b>說明：</b>${esc(s.note)}</div>` : ''}
       ${isKorea && (s.krName || s.krAddress) ? `
         <div class="nearbyDetailKr">
           ${s.krName    ? `<div class="planKrRow"><span>韓文名稱</span><b>${esc(s.krName)}</b><button class="planKrCopy" onclick="copyText('${esc(s.krName)}')">複製</button></div>` : ''}

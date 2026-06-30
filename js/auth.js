@@ -926,7 +926,7 @@ function printSharePage() {
           <div>
             <div class="main">${esc(p.name||'未命名')}${autoTag}</div>
             ${p.address ? `<div class="mini">地址：${esc(p.address)}</div>` : ''}
-            ${p.note    ? `<div class="mini">注意：${esc(p.note)}</div>`    : ''}
+            ${p.note    ? `<div class="mini">說明：${esc(p.note)}</div>`    : ''}
           </div>
         </div>`;
       }).join('') : '<div class="mini">尚未安排正式行程</div>'}

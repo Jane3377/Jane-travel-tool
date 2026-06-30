@@ -189,7 +189,7 @@ function buildItineraryPrompt() {
     const hotel = hotelFor(d.key);
     return `${d.title}｜${d.label}（${hotel?.name || '住宿未設定'}）\n${
       plans.length
-        ? plans.map(p => `  ${p.start||'--:--'} ${p.name}（${p.type}）${p.note ? '\n  注意：'+p.note : ''}`).join('\n')
+        ? plans.map(p => `  ${p.start||'--:--'} ${p.name}（${p.type}）${p.note ? '\n  說明：'+p.note : ''}`).join('\n')
         : '  這天尚無行程'
     }`;
   }).join('\n\n');
@@ -449,7 +449,7 @@ function buildBudgetPrompt() {
       const time = [p.start, p.end].filter(Boolean).join('-');
       const parts = [`${d.key} ${time ? time + '｜' : ''}${p.type}｜${p.name}`];
       if (p.address) parts.push(`地址：${p.address}`);
-      if (p.note)    parts.push(`注意：${p.note}`);
+      if (p.note)    parts.push(`說明：${p.note}`);
       return parts.join('｜');
     }).join('\n');
   }).filter(Boolean).join('\n');
@@ -958,7 +958,7 @@ function _buildDaySection() {
             <div class="sharePlanName">${activityIcon(p.type)} ${esc(p.name||'未命名')}</div>
             ${autoTag ? `<span class="shareAutoTag">${autoTag}</span>` : ''}
             ${p.address ? `<div class="shareMuted">地址：${esc(p.address)}</div>` : ''}
-            ${p.note    ? `<div class="shareMuted">注意：${esc(p.note)}</div>` : ''}
+            ${p.note    ? `<div class="shareMuted">說明：${esc(p.note)}</div>` : ''}
           </div>
         </div>`;
       }).join('') : '<div class="shareMuted">尚未安排正式行程</div>'}
@@ -1055,7 +1055,7 @@ function printItinerary() {
           <div>
             <div class="main">${esc(p.name||'未命名')}</div>
             ${p.address ? `<div class="mini">地址：${esc(p.address)}</div>` : ''}
-            ${p.note    ? `<div class="mini">注意：${esc(p.note)}</div>`    : ''}
+            ${p.note    ? `<div class="mini">說明：${esc(p.note)}</div>`    : ''}
           </div>
         </div>`;
       }).join('') : '<div class="mini">尚未安排正式行程</div>'}

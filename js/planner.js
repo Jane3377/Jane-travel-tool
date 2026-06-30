@@ -501,7 +501,7 @@ function planCard(p, num, total, conflict = false) {
           ${conflict ? '<span class="conflictBadge">⚠ 時間重疊</span>' : ''}
           ${moneyTwd(p) ? `<span class="itinerarySourcePill">TWD ${fmt(moneyTwd(p))}</span>` : ''}
         </div>
-        ${p.note ? `<div class="itineraryNote"><b>注意：</b>${esc(p.note)}</div>` : ''}
+        ${p.note ? `<div class="itineraryNote"><b>說明：</b>${esc(p.note)}</div>` : ''}
         ${p.memo ? `<div class="itineraryNote"><b>備註：</b>${esc(p.memo)}</div>` : ''}
         ${hasKr ? `
         <details class="planKrDetails">
