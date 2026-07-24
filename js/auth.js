@@ -6,8 +6,20 @@
    登入 / 登出
    ══════════════════════════════════════════ */
 
+// 偵測 LINE / IG / FB 等「App 內建瀏覽器」— Google OAuth 會以 disallowed_useragent 擋掉
+function isInAppBrowser() {
+  const ua = navigator.userAgent || '';
+  return /Line\/|FBAN|FBAV|FB_IAB|Instagram|MicroMessenger|KAKAOTALK/i.test(ua);
+}
+
 function firebaseSignIn() {
   if (!fbAuth) return toast('Firebase 尚未初始化');
+  // 在 LINE/IG 內建瀏覽器登入會被 Google 擋，先提醒改用外部瀏覽器
+  if (isInAppBrowser()) {
+    renderLoginView();
+    alert('偵測到你在 LINE／IG 等 App 內建瀏覽器開啟，Google 會擋住登入。\n\n請改用 Safari 或 Chrome 開啟本網站再登入：\n點畫面角落的「⋯」→「用預設瀏覽器開啟」，或複製網址貼到 Safari。');
+    return;
+  }
   fbAuth.signInWithPopup(new firebase.auth.GoogleAuthProvider())
     .catch(err => alert('登入失敗：' + err.message));
 }

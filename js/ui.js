@@ -1127,12 +1127,41 @@ function renderLoginView(message = '') {
         <h1>登入以使用旅管家</h1>
         <p>登入後可建立與管理旅程，並跨裝置同步資料。</p>
         ${message ? `<div class="box pink" style="margin-top:12px">${esc(message)}</div>` : ''}
+        ${isInAppBrowser() ? `
+        <div class="box pink" style="margin-top:12px;text-align:left;line-height:1.75">
+          ⚠️ 偵測到你在 <b>LINE／IG 等 App 內建瀏覽器</b>開啟，Google 基於安全政策會擋住登入。<br>
+          請改用 <b>Safari 或 Chrome</b> 開啟本網站再登入：<br>
+          ① 點畫面角落的 <b>「⋯」</b> → <b>「用預設瀏覽器開啟 / 在 Safari 開啟」</b><br>
+          ② 或按下方「複製網址」，貼到 Safari 開啟
+          <div class="btns" style="margin-top:10px">
+            <button class="btn dark compact" onclick="copyAppUrl()">複製網址</button>
+          </div>
+        </div>` : ''}
         <div class="btns">
           <button class="btn dark" onclick="firebaseSignIn()">使用 Google 登入</button>
         </div>
         <div class="cloudHint">授權帳號：${ALLOWED_EMAILS.map(esc).join('、')}</div>
       </div>
     </div>`;
+}
+
+// 複製目前網址，方便使用者貼到 Safari／Chrome 開啟
+function copyAppUrl() {
+  const url = location.href;
+  const done = () => toast('已複製網址，請貼到 Safari／Chrome 開啟');
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(url).then(done).catch(() => _fallbackCopy(url, done));
+  } else {
+    _fallbackCopy(url, done);
+  }
+}
+function _fallbackCopy(text, done) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); done(); } catch (e) { toast('複製失敗，請手動複製網址'); }
+  document.body.removeChild(ta);
 }
 
 /* ── 旅程排序 ── */
