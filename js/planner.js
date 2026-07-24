@@ -381,6 +381,7 @@ function connHtml(a, b) {
   const arrival  = addMinutes(a.end, totalH * 60 + totalM);
   const isTaxi   = conn.mode === '開車/計程車';
   const isKorea  = data.trip.country === '韓國';
+  const isChina  = data.trip.country === '中國';
   const timeLabel = totalH > 0 && totalM > 0 ? `${totalH}時${totalM}分`
                   : totalH > 0 ? `${totalH}時`
                   : totalM > 0 ? `${totalM}分` : '0分';
@@ -390,14 +391,16 @@ function connHtml(a, b) {
   const bName = isKorea ? (b.krName || b.name) : b.name;
   const googleMapsBtn = (compact) => `<button class="btn blue ${compact?'compact':''}" onclick="${compact?'event.stopPropagation();':''}openRoute('${jsStr(encodeURIComponent(a.name+' '+data.trip.dest))}','${jsStr(encodeURIComponent(b.name+' '+data.trip.dest))}','${jsStr(conn.mode)}')">Google Maps${compact?'':' 查路線'}</button>`;
   const naverMapBtn   = (compact) => `<button class="btn soft ${compact?'compact':''}" onclick="${compact?'event.stopPropagation();':''}window.open('https://map.naver.com/p/search/${jsStr(encodeURIComponent(bName))}','_blank')">NAVER Map${compact?'':' 搜尋'}</button>`;
+  // 中國：Google 只有開車路線，改用高德看大眾運輸路線／時間
+  const amapBtn       = (compact) => `<button class="btn soft ${compact?'compact':''}" onclick="${compact?'event.stopPropagation();':''}window.open('https://uri.amap.com/search?keyword=${jsStr(encodeURIComponent(b.name))}','_blank')">高德地圖${compact?'':' 查路線'}</button>`;
 
-  const summaryRouteBtns = isKorea
-    ? naverMapBtn(true) + googleMapsBtn(true)
-    : googleMapsBtn(true);
+  const summaryRouteBtns = isKorea ? naverMapBtn(true) + googleMapsBtn(true)
+                         : isChina ? amapBtn(true) + googleMapsBtn(true)
+                         : googleMapsBtn(true);
 
-  const detailRouteBtns = isKorea
-    ? naverMapBtn(false) + googleMapsBtn(false)
-    : googleMapsBtn(false);
+  const detailRouteBtns = isKorea ? naverMapBtn(false) + googleMapsBtn(false)
+                        : isChina ? amapBtn(false) + googleMapsBtn(false)
+                        : googleMapsBtn(false);
 
   const taxiBlock = isTaxi ? `
     <div class="four" style="margin-top:8px">
@@ -471,6 +474,7 @@ function connHtml(a, b) {
 function planCard(p, num, total, conflict = false) {
   const isAuto      = p.source === 'flight' || p.source === 'hotel';
   const isKorea     = data.trip.country === '韓國';
+  const isChina     = data.trip.country === '中國';
   const isTransport = p.type === '交通';
   const mapQuery    = encodeURIComponent(
     isKorea && (p.krAddress || p.krName)
@@ -483,6 +487,9 @@ function planCard(p, num, total, conflict = false) {
   const mapBtn    = showMap ? `<button class="small" onclick="openMap('${mapQuery}')">Google Maps</button>` : '';
   const naverBtn  = showMap && isKorea
     ? `<button class="small" onclick="window.open('https://map.naver.com/v5/search/${encodeURIComponent(p.krName||p.name)}','_blank')">Naver Map</button>`
+    : '';
+  const amapBtn   = showMap && isChina
+    ? `<button class="small" onclick="window.open('https://uri.amap.com/search?keyword=${encodeURIComponent(p.name)}','_blank')">高德地圖</button>`
     : '';
 
   const cardContent = `
@@ -559,8 +566,8 @@ function planCard(p, num, total, conflict = false) {
             <button class="planMoveBtn" type="button" onclick="reorderPlan('${p.id}',-1)" title="上移" ${num===1?'disabled':''}>↑</button>
             <button class="planMoveBtn" type="button" onclick="reorderPlan('${p.id}',1)" title="下移" ${num===total?'disabled':''}>↓</button>
           </div>`}
-        ${isKorea ? naverBtn : mapBtn}
-        ${isKorea ? mapBtn : ''}
+        ${isKorea ? naverBtn : isChina ? amapBtn : mapBtn}
+        ${(isKorea || isChina) ? mapBtn : ''}
         ${shareViewMode || ['航班','住宿'].includes(p.type) ? '' :
           (spotForPlan(p.id)
             ? `<button class="small" onclick="go('spots')" title="已在口袋景點，前往探索">★ 已加入</button>`

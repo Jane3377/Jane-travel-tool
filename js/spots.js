@@ -286,6 +286,7 @@ function openNearbySpotDetail(spotId) {
   const s = data.spots.find(x => x.id === spotId);
   if (!s) return;
   const isKorea  = data.trip.country === '韓國';
+  const isChina  = data.trip.country === '中國';
   const mapQuery = encodeURIComponent(
     isKorea && (s.krAddress || s.krName)
       ? `${s.krAddress || ''} ${s.krName || s.name}`.trim()
@@ -328,6 +329,7 @@ function openNearbySpotDetail(spotId) {
       <div class="btns" style="margin-top:14px;flex-wrap:wrap">
         <button class="btn soft compact" onclick="openMap('${mapQuery}')">Google Maps</button>
         ${isKorea ? `<button class="btn soft compact" onclick="naverMapSpot('${s.id}')">NAVER</button>` : ''}
+        ${isChina ? `<button class="btn soft compact" onclick="window.open('https://uri.amap.com/search?keyword=${encodeURIComponent(s.name)}','_blank')">高德</button>` : ''}
         <button class="btn blue compact" onclick="openExploreModal('${s.id}')">探索遊記</button>
       </div>
     </div>`;
