@@ -114,6 +114,7 @@ let cloudReady        = false;
 let cloudSaveTimer    = null;
 let suppressCloudSave = false;
 let cloudUnsub        = null;
+let tripListUnsub     = null;   // 旅程清單即時監聽
 let lastCloudUpdatedAt = 0;
 let syncState = { kind: 'off', title: '尚未同步', desc: '', at: 0 };
 

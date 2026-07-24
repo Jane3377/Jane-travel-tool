@@ -301,23 +301,39 @@ async function loadTripListCloud() {
   if (!fbUser || !fbDb) return localLoadTripList();
   try {
     const snap = await tripIndexRef().get();
-    const cloud = snap.exists && Array.isArray(snap.data()?.trips) ? snap.data().trips : [];
-    const local = localLoadTripList();
-    const map   = new Map();
-    [...cloud, ...local].forEach(t => {
-      if (!t?.id) return;
-      const old = map.get(t.id);
-      if (!old || Number(t.updatedAtClient || 0) >= Number(old.updatedAtClient || 0))
-        map.set(t.id, t);
-    });
-    tripList = [...map.values()].sort((a, b) => Number(b.updatedAtClient || 0) - Number(a.updatedAtClient || 0));
-    localSaveTripList();
-    await saveTripListCloud();
+    if (snap.exists && Array.isArray(snap.data()?.trips)) {
+      // 以雲端為準：清單一律取雲端版本，避免已刪除的旅程從本地 localStorage 被合併復活
+      tripList = snap.data().trips;
+      localSaveTripList();
+    } else {
+      // 雲端尚無清單（首次使用）→ 用本地並上傳建立
+      tripList = localLoadTripList();
+      await saveTripListCloud();
+    }
   } catch (e) {
     console.warn('loadTripListCloud fallback local', e);
     tripList = localLoadTripList();
   }
   return tripList;
+}
+
+/* ── 旅程清單即時監聽（跨裝置同步新增／刪除／改名） ── */
+function listenTripList() {
+  if (!fbUser || !fbDb) return;
+  if (tripListUnsub) { tripListUnsub(); tripListUnsub = null; }
+  tripListUnsub = tripIndexRef().onSnapshot(snap => {
+    if (!snap.exists) return;
+    const trips = snap.data()?.trips;
+    if (!Array.isArray(trips)) return;
+    // 雲端為單一真相：直接覆蓋本地清單並重畫
+    tripList = trips;
+    localSaveTripList();
+    renderTripList();
+  }, err => console.warn('tripList listener failed', err));
+}
+
+function stopTripListListener() {
+  if (tripListUnsub) { tripListUnsub(); tripListUnsub = null; }
 }
 
 /* ── 白名單動態載入 ── */

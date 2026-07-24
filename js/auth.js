@@ -27,6 +27,7 @@ async function handleAuth(user) {
 
   // 停止舊的監聽
   if (cloudUnsub) { cloudUnsub(); cloudUnsub = null; }
+  stopTripListListener();
 
   // 未登入
   if (!user) {
@@ -50,9 +51,10 @@ async function handleAuth(user) {
     return;
   }
 
-  // 登入成功 → 載入旅程清單
+  // 登入成功 → 載入旅程清單，並啟動即時監聽（跨裝置同步）
   setSyncStatus('warn', '登入成功', '載入旅程清單中');
   await loadTripListCloud();
+  listenTripList();
   renderAccountWidget(user);
 
   // 嘗試恢復上次的旅程
