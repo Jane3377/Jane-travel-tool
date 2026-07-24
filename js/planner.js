@@ -436,7 +436,7 @@ function connHtml(a, b) {
         <div class="three">
           <div><label>交通方式</label>
             <select onchange="changeConnMode('${conn.id}',this.value)">
-              ${['大眾運輸','走路','開車/計程車','自訂'].map(mode =>
+              ${['大眾運輸','走路','開車/計程車','航班','自訂'].map(mode =>
                 `<option ${conn.mode===mode?'selected':''}>${mode}</option>`).join('')}
             </select>
             ${conn.mode === '自訂' ? `

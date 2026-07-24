@@ -171,10 +171,11 @@ function flightHasPlans() {
   return data.plans.some(p => p.source === 'flight');
 }
 
-function flightPlanTemplates() {
-  const out  = normalizeFlightObj(data.flights.out);
-  const back = normalizeFlightObj(data.flights.back);
-  const tpls = [];
+// 產出「機場地點卡」+「航班交通連線」（以地點為主，飛機變成兩張機場卡之間的交通）
+function flightPlanData() {
+  const outF  = normalizeFlightObj(data.flights.out);
+  const backF = normalizeFlightObj(data.flights.back);
+  const plans = [], conns = [];
 
   const pad = dt => {
     if (!dt) return { day: data.trip.start || '', time: '' };
@@ -186,58 +187,93 @@ function flightPlanTemplates() {
     const d = new Date(new Date(dt).getTime() + min * 60000);
     return { day: formatLocalDate(d), time: `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}` };
   };
+  const durHM = (dep, arr) => {
+    if (!dep || !arr) return { h: 0, m: 0 };
+    let min = Math.round((new Date(arr) - new Date(dep)) / 60000);
+    if (!(min > 0)) min = 0;
+    return { h: Math.floor(min / 60), m: min % 60 };
+  };
+  const durLabel = (dep, arr) => {
+    const { h, m } = durHM(dep, arr);
+    return h && m ? `${h}時${m}分` : h ? `${h}時` : m ? `${m}分` : '';
+  };
 
-  const flightNode = (id, name, startDt, endDt, type, note) => ({
-    id, source: 'flight', sourceType: 'flight', lockedName: true,
-    day: startDt.day, start: startDt.time, end: endDt.time,
-    type, name, note: note || '', memo: '由航班資料帶入'
+  [['out', outF, '去程'], ['back', backF, '回程']].forEach(([dir, f, dirLabel]) => {
+    const segs = f.segments.filter(s => s.dep || s.from || s.to);
+    if (!segs.length) return;
+    const N = segs.length;
+    const airId = i => `flight-${dir}-air-${i}`;
+
+    // 機場地點卡：N 段航班 → N+1 張機場卡
+    for (let i = 0; i <= N; i++) {
+      const isFirst = i === 0, isLast = i === N;
+      const airport = isFirst ? (segs[0].from || '機場') : (segs[i-1].to || '機場');
+      const arrTerm = isFirst ? '' : (segs[i-1].toTerminal || '');
+      const depTerm = isLast  ? '' : (segs[i].fromTerminal || '');
+      const term    = isFirst ? depTerm : isLast ? arrTerm : (arrTerm || depTerm);
+
+      let day, start, end;
+      if (isFirst)     { const p = pad(segs[0].dep), e = addMin(segs[0].dep, -120); day = e.day || p.day; start = e.time; end = p.time; }
+      else if (isLast) { const p = pad(segs[N-1].arr); day = p.day; start = p.time; end = p.time; }
+      else             { const a = pad(segs[i-1].arr), d = pad(segs[i].dep); day = a.day; start = a.time; end = d.time; }
+
+      const lines = [];
+      if (isFirst)     lines.push(`${dirLabel}出發${term ? `｜${term}` : ''}`);
+      else if (isLast) lines.push(`${dirLabel}抵達${term ? `｜${term}` : ''}`);
+      else             lines.push(`轉機${arrTerm ? `｜抵達 ${arrTerm}` : ''}${depTerm ? ` → 出發 ${depTerm}` : ''}`);
+      if (!isLast) {                                    // 備援：把離站航班資訊寫在出發機場卡
+        const s = segs[i], dl = durLabel(s.dep, s.arr);
+        lines.push(`✈️ ${s.no || '航班'}${dl ? `｜飛行約 ${dl}` : ''}`);
+      }
+      if (isFirst && f.toAirport)   lines.push(f.toAirport);
+      if (isLast  && f.fromAirport) lines.push(f.fromAirport);
+
+      plans.push({
+        id: airId(i), source: 'flight', sourceType: 'flight', lockedName: true, lockedTime: true,
+        day, start, end, type: '交通',
+        name: `${airport}${term ? ` ${term}` : ''}`,
+        note: lines.join('\n'), memo: '由航班資料帶入'
+      });
+    }
+
+    // 航班交通連線：每段航班 = 相鄰兩張機場卡之間的 ✈️ 連線
+    for (let i = 0; i < N; i++) {
+      const s = segs[i], { h, m } = durHM(s.dep, s.arr);
+      conns.push({
+        id: `flight-${dir}-conn-${i}`, a: airId(i), b: airId(i + 1),
+        mode: '航班', h, m,
+        memo: `${s.no ? s.no + ' ' : ''}${s.from || ''}→${s.to || ''}`.trim(),
+        fareForeign: 0, fareTwd: 0, payer: '未定', payMethod: '未定'
+      });
+    }
   });
 
-  // 去程
-  const os = out.segments[0] || {};
-  const ol = out.segments[out.segments.length - 1] || {};
-  if (os.dep) tpls.push(flightNode('flight-out-to-airport', `出發去 ${os.from || '機場'}`,
-    addMin(os.dep, -180), addMin(os.dep, -120), '交通', out.toAirport));
-  out.segments.forEach((s, i) => {
-    if (!s.dep) return;
-    tpls.push({
-      id: `flight-out-seg-${i}`, source: 'flight', sourceType: 'flight', lockedName: true, lockedTime: true,
-      day: pad(s.dep).day, start: pad(s.dep).time, end: pad(s.arr).time,
-      type: '航班', name: `去程飛機${s.no ? ' ' + s.no : ''}`,
-      note: `${s.from || ''} → ${s.to || ''}`, memo: '由航班資料帶入'
-    });
-  });
-  if (ol.arr) tpls.push(flightNode('flight-out-arrival', `從 ${ol.to || '機場'} 前往飯店`,
-    pad(ol.arr), addMin(ol.arr, 120), '交通', out.fromAirport));
+  return { plans: plans.filter(p => p.day), conns };
+}
 
-  // 回程
-  const bs = back.segments[0] || {};
-  const bl = back.segments[back.segments.length - 1] || {};
-  if (bs.dep) tpls.push(flightNode('flight-back-to-airport', `從飯店前往 ${bs.from || '機場'}`,
-    addMin(bs.dep, -180), addMin(bs.dep, -120), '交通', back.toAirport));
-  back.segments.forEach((s, i) => {
-    if (!s.dep) return;
-    tpls.push({
-      id: `flight-back-seg-${i}`, source: 'flight', sourceType: 'flight', lockedName: true, lockedTime: true,
-      day: pad(s.dep).day, start: pad(s.dep).time, end: pad(s.arr).time,
-      type: '航班', name: `回程飛機${s.no ? ' ' + s.no : ''}`,
-      note: `${s.from || ''} → ${s.to || ''}`, memo: '由航班資料帶入'
-    });
-  });
-  if (bl.arr) tpls.push(flightNode('flight-back-home', `從 ${bl.to || '機場'} 回家`,
-    pad(bl.arr), addMin(bl.arr, 120), '交通', back.fromAirport));
-
-  return tpls.filter(t => t.day);
+// 相容舊呼叫：只要卡片清單
+function flightPlanTemplates() {
+  return flightPlanData().plans;
 }
 
 function syncFlightPlans() {
-  const tpls    = flightPlanTemplates();
+  const { plans: tpls, conns: cpls } = flightPlanData();
   const keepIds = new Set(tpls.map(t => t.id));
   data.plans    = data.plans.filter(p => p.source !== 'flight' || keepIds.has(p.id));
   tpls.forEach(tpl => {
     const idx = data.plans.findIndex(p => p.id === tpl.id);
     if (idx >= 0) Object.assign(data.plans[idx], tpl);
     else data.plans.push({ mode:'foreign', foreign:0, twd:0, payer:'未定', payMethod:'未定', ...tpl });
+  });
+
+  // 同步航班交通連線（id 以 flight-…-conn 開頭）
+  if (!Array.isArray(data.conns)) data.conns = [];
+  const connKeep = new Set(cpls.map(c => c.id));
+  data.conns = data.conns.filter(c => !String(c.id).startsWith('flight-') || connKeep.has(c.id));
+  cpls.forEach(cpl => {
+    const idx = data.conns.findIndex(c => c.id === cpl.id);
+    if (idx >= 0) Object.assign(data.conns[idx], cpl);
+    else data.conns.push(cpl);
   });
 }
 
@@ -395,19 +431,21 @@ function addHotelPlans(id) {
   // 先清除舊的住宿行程
   data.plans = data.plans.filter(p => !(p.source === 'hotel' && p.hotelId === id));
 
-  const make = (day, start, end, name) => ({
-    id: `hotel-${id}-${day}-${name.slice(0,4)}`, source: 'hotel', sourceType: 'hotel',
+  // 名稱一律用飯店名，動作（Check in／出發／回飯店）寫在說明，交通連線才不會看錯
+  const make = (day, start, end, role, action) => ({
+    id: `hotel-${id}-${day}-${role}`, source: 'hotel', sourceType: 'hotel',
     hotelId: id, lockedName: true, day, start, end,
-    type: '住宿', name, address: h.addr || '', note: h.addr || '', memo: '由住宿資料帶入',
+    type: '住宿', name: h.name, address: h.addr || '',
+    note: action + (h.addr ? `\n${h.addr}` : ''), memo: '由住宿資料帶入',
     mode: 'foreign', foreign: 0, twd: 0, payer: '未定', payMethod: '未定'
   });
 
-  data.plans.push(make(h.start, '15:00', '15:30', `入住 ${h.name}`));
+  data.plans.push(make(h.start, '15:00', '15:30', 'in', 'Check in 入住'));
   dateRange(dateAdd(h.start, 1), h.end).forEach(day =>
-    data.plans.push(make(day, '09:00', '09:10', `從 ${h.name} 出發`))
+    data.plans.push(make(day, '09:00', '09:10', 'out', '從飯店出發'))
   );
   dateRange(h.start, dateAdd(h.end, -1)).forEach(day =>
-    data.plans.push(make(day, '21:00', '21:10', `回到 ${h.name}`))
+    data.plans.push(make(day, '21:00', '21:10', 'back', '回到飯店休息'))
   );
 
   save();
