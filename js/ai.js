@@ -664,6 +664,10 @@ function _showPlansImportPreview(plans, stays) {
         </label>
         ${rows || '<div class="hint">沒有可匯入的行程</div>'}
       </div>
+      <label class="spotsImportRow spotsImportAll" style="margin-top:8px">
+        <input type="checkbox" id="plansImportAlsoSpots" checked>
+        <b>同時加入口袋景點（可探索遊記／地圖）</b>
+      </label>
       ${stayHtml}
       <div class="btns" style="margin-top:12px">
         <button class="btn dark" onclick="confirmPlansImport()">確定匯入</button>
@@ -681,9 +685,10 @@ function confirmPlansImport() {
   const checked = [...document.querySelectorAll('.plansImportChk:checked')].map(cb => Number(cb.dataset.i));
   const toAdd = checked.map(i => _importPreviewPlans[i]).filter(Boolean);
 
+  const addedPlans = [];
   toAdd.forEach(p => {
     const day = data.days.some(d => d.key === p.day) ? p.day : (data.days[0]?.key || '');
-    data.plans.push({
+    const plan = {
       id: uid(), day,
       start: String(p.start || ''), end: String(p.end || ''),
       type: normalizePlanType(p.type), name: String(p.name || ''),
@@ -692,8 +697,16 @@ function confirmPlansImport() {
       note: String(p.note || ''), memo: 'AI 範例行程',
       mode: 'foreign', foreign: 0, twd: 0, payer: '未定', payMethod: '未定',
       adjusted: false, pinnedTime: !!p.start, source: 'AI生成'
-    });
+    };
+    data.plans.push(plan);
+    addedPlans.push(plan);
   });
+
+  // A：同時加入口袋景點（用 planId 連結，不重複、航班/住宿自動略過）
+  let spotCount = 0;
+  if (document.getElementById('plansImportAlsoSpots')?.checked) {
+    addedPlans.forEach(pl => { if (makeSpotFromPlan(pl)) spotCount++; });
+  }
 
   if (_importPreviewStays.length) {
     if (!data.aiReviews) data.aiReviews = {};
@@ -706,6 +719,7 @@ function confirmPlansImport() {
   save();
   const msgs = [];
   if (toAdd.length) msgs.push(`已加入 ${toAdd.length} 筆行程`);
+  if (spotCount) msgs.push(`${spotCount} 個已加入口袋景點`);
   if (_importPreviewStays.length) msgs.push('住宿建議已放到「航班住宿」頁');
   toast(msgs.join('，') || '沒有勾選任何行程');
   closeImportModal();

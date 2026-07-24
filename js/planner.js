@@ -561,6 +561,10 @@ function planCard(p, num, total, conflict = false) {
           </div>`}
         ${isKorea ? naverBtn : mapBtn}
         ${isKorea ? mapBtn : ''}
+        ${shareViewMode || ['航班','住宿'].includes(p.type) ? '' :
+          (spotForPlan(p.id)
+            ? `<button class="small" onclick="go('spots')" title="已在口袋景點，前往探索">★ 已加入</button>`
+            : `<button class="small" onclick="addPlanToSpots('${p.id}')" title="加入口袋景點，可探索遊記／地圖">＋口袋景點</button>`)}
         <button class="small" onclick="editPlan('${p.id}')">編輯</button>
         <button class="small" onclick="deletePlan('${p.id}')">刪除</button>
       </div>

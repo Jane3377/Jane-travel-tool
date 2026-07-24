@@ -60,6 +60,36 @@ function setSpotStars(id, stars) {
   }
 }
 
+/* ── 行程 → 口袋景點（用 planId 連結，不複製、不重複） ── */
+function spotForPlan(planId) {
+  return (data.spots || []).find(s => s.planId === planId);
+}
+function makeSpotFromPlan(p) {
+  if (!p || !p.name) return false;
+  if (spotForPlan(p.id)) return false;                  // 已連結，避免重複
+  if (['航班', '住宿'].includes(p.type)) return false;   // 航班/住宿非探索型景點
+  const spotType = ['景點', '餐廳', '咖啡廳', '購物', '雨天備案', '其他'].includes(p.type) ? p.type : '其他';
+  data.spots.push({
+    id: uid(), source: '由行程帶入', planId: p.id,
+    name:      String(p.name || ''),
+    type:      spotType,
+    day:       '',                                       // 日期由 planId 連動，不另設
+    addr:      String(p.address || p.addr || ''),
+    memo:      String(p.note || p.memo || ''),
+    krName:    String(p.krName || ''),
+    krAddress: String(p.krAddress || '')
+  });
+  return true;
+}
+// B：行程卡片一鍵加入口袋景點
+function addPlanToSpots(planId) {
+  const p = (data.plans || []).find(x => x.id === planId);
+  if (!p) return;
+  if (spotForPlan(planId)) return toast('已在口袋景點');
+  if (makeSpotFromPlan(p)) { save(); toast('已加入口袋景點，可到口袋景點探索'); }
+  else toast('此類型不加入景點');
+}
+
 function saveSpot() {
   if (!$form('sn')?.value) return toast('請輸入景點名稱');
 
