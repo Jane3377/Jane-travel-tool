@@ -351,7 +351,82 @@ function hotelCard(h) {
           : `<button class="small" onclick="addHotelBudget('${h.id}')">帶入費用</button>`}
         <button class="small danger" onclick="deleteHotel('${h.id}')">刪除</button>
       </div>
+      ${docsSectionHtml(h.docs, `addHotelDocs('${h.id}',this)`, id => `removeHotelDoc('${h.id}','${id}')`, '訂房確認…')}
     </div>`;
+}
+
+/* ── 訂購檔案／截圖（航班 + 住宿共用） ── */
+function docItemHtml(doc, removeCall) {
+  if (doc.kind === 'pdf') {
+    return `<div class="docItem">
+      <a class="docPdf" href="${esc(doc.src)}" target="_blank" rel="noopener" title="${esc(doc.name || 'PDF')}">📄<span>${esc(doc.name || 'PDF')}</span></a>
+      <button class="docDel" onclick="${removeCall}" title="刪除">×</button>
+    </div>`;
+  }
+  return `<div class="docItem">
+    <a href="${esc(doc.src)}" target="_blank" rel="noopener"><img class="docThumb" src="${esc(doc.src)}" alt="${esc(doc.name || '')}" loading="lazy"></a>
+    <button class="docDel" onclick="${removeCall}" title="刪除">×</button>
+  </div>`;
+}
+function docsSectionHtml(docs, addCall, removeCallFn, placeholder) {
+  docs = docs || [];
+  return `
+    <div class="docSection">
+      <div class="docHead">📎 訂購檔案／截圖
+        <label class="docAddBtn">＋ 上傳
+          <input type="file" accept="image/*,application/pdf" multiple style="display:none" onchange="${addCall}">
+        </label>
+      </div>
+      <div class="docGrid">${
+        docs.map(d => docItemHtml(d, removeCallFn(d.id))).join('')
+        || `<span class="docEmpty">尚未上傳（${esc(placeholder)}）</span>`
+      }</div>
+    </div>`;
+}
+function flightDocsHtml() {
+  return docsSectionHtml(data.flightDocs, 'addFlightDocs(this)', id => `removeFlightDoc('${id}')`, '機票訂單、電子機票…');
+}
+
+async function _uploadDocsFrom(input, targetArr) {
+  const files = [...(input.files || [])];
+  input.value = '';
+  if (!files.length) return 0;
+  let n = 0;
+  for (const f of files) {
+    try {
+      toast('上傳中…');
+      const d = await uploadDocToCloudinary(f);
+      targetArr.push({ id: uid(), ...d });
+      n++;
+    } catch (e) {
+      toast('上傳失敗：' + e.message);
+    }
+  }
+  return n;
+}
+async function addFlightDocs(input) {
+  if (!Array.isArray(data.flightDocs)) data.flightDocs = [];
+  const n = await _uploadDocsFrom(input, data.flightDocs);
+  if (n) { save(); renderStay(); toast(`已上傳 ${n} 個檔案`); }
+}
+function removeFlightDoc(id) {
+  if (!confirm('刪除這個檔案？')) return;
+  data.flightDocs = (data.flightDocs || []).filter(d => d.id !== id);
+  save(); renderStay();
+}
+async function addHotelDocs(hotelId, input) {
+  const h = data.hotels.find(x => x.id === hotelId);
+  if (!h) return;
+  if (!Array.isArray(h.docs)) h.docs = [];
+  const n = await _uploadDocsFrom(input, h.docs);
+  if (n) { save(); renderStay(); toast(`已上傳 ${n} 個檔案`); }
+}
+function removeHotelDoc(hotelId, id) {
+  const h = data.hotels.find(x => x.id === hotelId);
+  if (!h) return;
+  if (!confirm('刪除這個檔案？')) return;
+  h.docs = (h.docs || []).filter(d => d.id !== id);
+  save(); renderStay();
 }
 
 function saveHotel() {

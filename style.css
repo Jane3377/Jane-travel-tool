@@ -8712,6 +8712,18 @@ body.shareView .check input[type="checkbox"] { pointer-events: none; }
 .spotsImportName { font-weight:900; flex:1; min-width:0; }
 .spotsImportType { font-size:11px; background:#f3eee8; border-radius:999px; padding:3px 7px; white-space:nowrap; color:var(--muted); }
 .spotsImportAddr { font-size:11px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:90px; }
+/* ── 訂購檔案／截圖 ── */
+.docSection { margin-top:12px; border-top:1px dashed var(--line); padding-top:10px; }
+.docHead { display:flex; align-items:center; justify-content:space-between; font-size:13px; font-weight:900; color:var(--muted); margin-bottom:8px; }
+.docAddBtn { font-size:12px; font-weight:900; color:var(--dark,#628f80); background:#f3eee8; border-radius:999px; padding:4px 10px; cursor:pointer; }
+.docAddBtn:hover { background:var(--mint,#d9efe6); }
+.docGrid { display:flex; flex-wrap:wrap; gap:8px; }
+.docItem { position:relative; }
+.docThumb { width:72px; height:72px; object-fit:cover; border-radius:10px; border:1px solid var(--line); display:block; }
+.docPdf { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; width:72px; height:72px; border-radius:10px; border:1px solid var(--line); background:#fff6f0; color:#a85a3c; font-size:20px; text-decoration:none; }
+.docPdf span { font-size:9px; max-width:64px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:0 4px; color:var(--muted); }
+.docDel { position:absolute; top:-6px; right:-6px; width:20px; height:20px; border-radius:50%; border:0; background:#e0533d; color:#fff; font-size:13px; font-weight:900; line-height:1; cursor:pointer; display:grid; place-items:center; }
+.docEmpty { font-size:12px; color:var(--muted); }
 /* ── AI 範例行程匯入預覽 ── */
 .plansImportDay { font-size:12px; font-weight:900; color:var(--dark,#628f80); margin:10px 4px 4px; }
 .plansImportTime { font-size:12px; font-weight:900; color:var(--muted); flex:0 0 40px; }

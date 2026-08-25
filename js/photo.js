@@ -50,6 +50,30 @@ async function uploadToCloudinary(blob, filename = 'photo.jpg') {
   };
 }
 
+// 上傳訂購檔案：圖片壓縮後上傳；PDF 原檔上傳（auto 判斷資源類型）
+async function uploadDocToCloudinary(file) {
+  const isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name || '');
+  if (isPdf) {
+    const form = new FormData();
+    form.append('file', file);
+    form.append('upload_preset', CLOUDINARY_CONFIG.uploadPreset);
+    if (CLOUDINARY_CONFIG.folder) form.append('folder', CLOUDINARY_CONFIG.folder + '/docs');
+    const res = await fetch(
+      `https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.cloudName}/auto/upload`,
+      { method: 'POST', body: form }
+    );
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err?.error?.message || `上傳失敗 (HTTP ${res.status})`);
+    }
+    const r = await res.json();
+    return { src: r.secure_url, publicId: r.public_id, kind: 'pdf', name: file.name || 'PDF' };
+  }
+  const blob = await compressImage(file, 1800, 0.85);   // 訂單截圖有文字，較高解析度
+  const r = await uploadToCloudinary(blob, file.name || 'doc.jpg');
+  return { src: r.src, publicId: r.publicId, kind: 'image', name: file.name || '截圖' };
+}
+
 function setUploadStatus(id, msg) {
   const el = $(id);
   if (!el) return;

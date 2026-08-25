@@ -102,6 +102,7 @@ function normalizeData(raw) {
   if (!d.dayCovers)    d.dayCovers    = {};
   if (!d.dayCoverMeta) d.dayCoverMeta = {};
   if (!d.aiReviews)    d.aiReviews    = {};
+  if (!Array.isArray(d.flightDocs)) d.flightDocs = [];   // 航班訂購檔案／截圖
   if (!d.packing?.length)   d.packing   = makePacking();
   if (!d.packLists?.length) d.packLists = [{ id: 'todo', name: '行前待辦' }, { id: 'carry', name: '手提行李' }, { id: 'check', name: '托運行李' }, { id: 'out', name: '離開飯店檢查' }];
   if (!d.diaryShare) d.diaryShare = { token: '', published: false, font: 'noto', publishedAt: null };

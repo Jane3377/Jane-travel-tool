@@ -577,6 +577,7 @@ function renderStay() {
         <div class="btns">
           <button class="btn dark" onclick="saveFlights()">驗證並同步行程</button>
         </div>
+        ${flightDocsHtml()}
       </div>
     </details>
 
