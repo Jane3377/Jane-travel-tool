@@ -740,6 +740,18 @@ function closeShareSpotExplore() {
   document.getElementById('spExploreModal')?.classList.remove('show');
 }
 
+// 分享頁：訂購檔案／截圖（唯讀縮圖，點擊開新分頁看大圖）
+function _shareDocsHtml(docs) {
+  docs = docs || [];
+  if (!docs.length) return '';
+  const items = docs.map(d =>
+    d.kind === 'pdf'
+      ? `<a class="spDocPdf" href="${esc(d.src)}" target="_blank" rel="noopener">📄 ${esc(d.name || 'PDF')}</a>`
+      : `<a class="spDocThumb" href="${esc(d.src)}" target="_blank" rel="noopener"><img src="${esc(d.src)}" alt="${esc(d.name || '')}" loading="lazy"></a>`
+  ).join('');
+  return `<div class="spDocsBlock"><div class="spDocsLabel">📎 訂購檔案／截圖</div><div class="spDocsGrid">${items}</div></div>`;
+}
+
 function _buildShareFlightHtml() {
   const out  = normalizeFlightObj(data.flights?.out  || {});
   const back = normalizeFlightObj(data.flights?.back || {});
@@ -767,7 +779,9 @@ function _buildShareFlightHtml() {
       </div>`;
   };
   const html = dirHtml(out, '去程') + dirHtml(back, '回程');
-  return html || `<div class="spEmpty">尚未設定航班</div>`;
+  const docs = _shareDocsHtml(data.flightDocs);
+  if (!html && !docs) return `<div class="spEmpty">尚未設定航班</div>`;
+  return (html || '') + docs;
 }
 
 function _buildShareHotelHtml() {
@@ -778,6 +792,7 @@ function _buildShareHotelHtml() {
       ${h.start ? `<div class="spHotelDates">${short(h.start)} — ${short(h.end)}</div>` : ''}
       ${h.addr ? `<div class="spHotelAddr">📍 ${esc(h.addr)}</div>` : ''}
       ${h.note ? `<div class="spHotelNote">${esc(h.note)}</div>` : ''}
+      ${_shareDocsHtml(h.docs)}
     </div>`).join('');
 }
 

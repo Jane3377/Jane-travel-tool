@@ -8735,6 +8735,12 @@ body.shareView .check input[type="checkbox"] { pointer-events: none; }
 .updateIcon { font-size:38px; line-height:1; }
 .updateSpinner { width:38px; height:38px; margin:4px auto 2px; border:4px solid var(--line,#eadfd4); border-top-color:var(--dark,#628f80); border-radius:50%; animation:updateSpin .8s linear infinite; }
 @keyframes updateSpin { to { transform:rotate(360deg); } }
+/* ── 分享頁：訂購檔案／截圖 ── */
+.spDocsBlock { margin-top:10px; }
+.spDocsLabel { font-size:12px; font-weight:900; color:var(--muted); margin-bottom:6px; }
+.spDocsGrid { display:flex; flex-wrap:wrap; gap:8px; }
+.spDocThumb img { width:84px; height:84px; object-fit:cover; border-radius:10px; border:1px solid var(--line); display:block; }
+.spDocPdf { display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:900; color:var(--dark,#628f80); background:#fff6f0; border:1px solid var(--line); border-radius:10px; padding:8px 12px; text-decoration:none; }
 /* ── AI 範例行程匯入預覽 ── */
 .plansImportDay { font-size:12px; font-weight:900; color:var(--dark,#628f80); margin:10px 4px 4px; }
 .plansImportTime { font-size:12px; font-weight:900; color:var(--muted); flex:0 0 40px; }
