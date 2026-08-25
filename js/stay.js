@@ -394,10 +394,9 @@ async function _uploadDocsFrom(input, targetArr) {
   let n = 0;
   for (const f of files) {
     try {
-      toast('上傳中…');
-      const d = await uploadDocToCloudinary(f);
-      targetArr.push({ id: uid(), ...d });
-      n++;
+      toast(/\.pdf$/i.test(f.name || '') ? 'PDF 轉檔上傳中…' : '上傳中…');
+      const docs = await uploadDocToCloudinary(f);   // 一律回傳陣列
+      docs.forEach(d => { targetArr.push({ id: uid(), ...d }); n++; });
     } catch (e) {
       toast('上傳失敗：' + e.message);
     }

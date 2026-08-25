@@ -50,28 +50,65 @@ async function uploadToCloudinary(blob, filename = 'photo.jpg') {
   };
 }
 
-// 上傳訂購檔案：圖片壓縮後上傳；PDF 原檔上傳（auto 判斷資源類型）
+// 動態載入 pdf.js（只有選到 PDF 時才載）
+let _pdfLibPromise = null;
+function ensurePdfLib() {
+  if (window.pdfjsLib) return Promise.resolve();
+  if (_pdfLibPromise) return _pdfLibPromise;
+  _pdfLibPromise = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/legacy/build/pdf.min.js';
+    s.onload = () => {
+      try {
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+          'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/legacy/build/pdf.worker.min.js';
+      } catch (e) {}
+      resolve();
+    };
+    s.onerror = () => { _pdfLibPromise = null; reject(new Error('PDF 函式庫載入失敗，請確認網路')); };
+    document.head.appendChild(s);
+  });
+  return _pdfLibPromise;
+}
+
+// PDF → 每頁一張 JPEG blob（前端轉檔，避免存 PDF 需開放帳號設定）
+async function pdfToImageBlobs(file) {
+  await ensurePdfLib();
+  const buf = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+  const pages = Math.min(pdf.numPages, 12);   // 最多 12 頁，避免爆量
+  const blobs = [];
+  for (let i = 1; i <= pages; i++) {
+    const pageObj  = await pdf.getPage(i);
+    const viewport = pageObj.getViewport({ scale: 2 });   // 2x 讓文字清楚
+    const canvas   = document.createElement('canvas');
+    canvas.width  = viewport.width;
+    canvas.height = viewport.height;
+    await pageObj.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+    blobs.push(await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.85)));
+  }
+  return { blobs, total: pdf.numPages };
+}
+
+// 上傳訂購檔案：圖片壓縮上傳；PDF 先轉成圖片再上傳。一律回傳陣列（PDF 可能多頁）
 async function uploadDocToCloudinary(file) {
   const isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name || '');
   if (isPdf) {
-    const form = new FormData();
-    form.append('file', file);
-    form.append('upload_preset', CLOUDINARY_CONFIG.uploadPreset);
-    if (CLOUDINARY_CONFIG.folder) form.append('folder', CLOUDINARY_CONFIG.folder + '/docs');
-    const res = await fetch(
-      `https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.cloudName}/auto/upload`,
-      { method: 'POST', body: form }
-    );
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err?.error?.message || `上傳失敗 (HTTP ${res.status})`);
+    const { blobs, total } = await pdfToImageBlobs(file);
+    const base = (file.name || 'PDF').replace(/\.pdf$/i, '');
+    const out  = [];
+    for (let i = 0; i < blobs.length; i++) {
+      const r = await uploadToCloudinary(blobs[i], base + '.jpg');
+      out.push({
+        src: r.src, publicId: r.publicId, kind: 'image',
+        name: blobs.length > 1 ? `${base}（${i + 1}/${total}）` : base
+      });
     }
-    const r = await res.json();
-    return { src: r.secure_url, publicId: r.public_id, kind: 'pdf', name: file.name || 'PDF' };
+    return out;
   }
   const blob = await compressImage(file, 1800, 0.85);   // 訂單截圖有文字，較高解析度
   const r = await uploadToCloudinary(blob, file.name || 'doc.jpg');
-  return { src: r.src, publicId: r.publicId, kind: 'image', name: file.name || '截圖' };
+  return [{ src: r.src, publicId: r.publicId, kind: 'image', name: file.name || '截圖' }];
 }
 
 function setUploadStatus(id, msg) {
