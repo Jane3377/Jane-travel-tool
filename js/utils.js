@@ -133,7 +133,8 @@ function dayTitle(k) {
   return d ? `${d.title}｜${shortWithDay(k)}` : k;
 }
 function hotelFor(k) {
-  return data.hotels.find(h => k >= h.start && k <= h.end);
+  // end 是退房日（當天不算住宿），住宿夜為 start ～ end-1
+  return data.hotels.find(h => k >= h.start && k < h.end);
 }
 function travelerName(v) {
   if (v === '共同' || v === '未定') return v;
