@@ -1029,13 +1029,9 @@ function renderPacking() {
         </div>
       </div>
     </div>
-    <div class="card shareEditOnly addInlineForm">
-      <div class="two">
-        <div><label>新增項目</label><input id="pkn"></div>
-        <div><label>備註</label><input id="pkm"></div>
-      </div>
+    <div class="card shareEditOnly">
       <div class="btns">
-        <button class="btn dark" onclick="addPackItem()">新增到此清單</button>
+        <button class="btn dark" onclick="openAddSheet()">＋ 新增清單項目</button>
         <button class="btn soft" onclick="uncheckCurrentList()">取消勾選</button>
       </div>
     </div>
