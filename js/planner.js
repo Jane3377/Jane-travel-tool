@@ -431,7 +431,7 @@ function connHtml(a, b) {
           <span class="connModeLabel">${esc(modeLabel)}</span>
           ${timeLabel ? `<span class="connTimeLabel">· ${timeLabel}</span>` : ''}
           ${arrival  ? `<span class="connArrival">→ ${esc(arrival)}</span>` : ''}
-          ${summaryRouteBtns}
+          <span class="connSummaryChevron">▸</span>
         </span>
         <span class="connSummaryLine"></span>
       </summary>

@@ -11767,5 +11767,10 @@ body.sheetOpen { overflow: hidden; }
 
 /* ── 行程卡動作列收斂（覆蓋前面多組 media 定義；置於檔尾確保生效） ── */
 .itineraryActions { flex-direction: row; align-items: center; gap: 5px; }
-.itineraryCard:has(.planMenu[open]),
-.itineraryItem:has(.planMenu[open]) { overflow: visible; }
+/* ⋯ 選單展開時：卡片放行 overflow 並浮到上層，避免被下方交通列蓋住／裁切 */
+.itineraryCard:has(.planMenu[open]) { overflow: visible; }
+.itineraryItem:has(.planMenu[open]) { overflow: visible; position: relative; z-index: 60; }
+.planMenuList { z-index: 60; }
+/* 交通列收合時的展開箭頭（取代原本會被切邊的地圖按鈕） */
+.connSummaryChevron { font-size: 11px; color: #b9c7bf; margin-left: 2px; transition: transform .2s ease; }
+.connRow[open] .connSummaryChevron { transform: rotate(90deg); }
