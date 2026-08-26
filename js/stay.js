@@ -64,6 +64,30 @@ function flightSegmentForm(k, idx, seg = {}) {
     </details>`;
 }
 
+// 航班是否已填（決定收合區塊預設開合）
+function flightIsSet() {
+  const o = normalizeFlightObj(data.flights?.out);
+  const b = normalizeFlightObj(data.flights?.back);
+  return (o.segments || []).some(s => s.no || s.from) || (b.segments || []).some(s => s.no || s.from);
+}
+// 航班摘要（收合時顯示，一眼看到去回程）
+function flightSummaryLine() {
+  const code = s => { const t = String(s || '').split(/[｜|]/).pop().trim(); return t.split(' ')[0] || t; };
+  const one = (f, label) => {
+    const o = normalizeFlightObj(f);
+    const segs = (o.segments || []).filter(s => s.no || s.from || s.to);
+    if (!segs.length) return '';
+    const first = segs[0], last = segs[segs.length - 1];
+    const no = segs.map(s => s.no).filter(Boolean).join('+');
+    const route = `${code(first.from)}→${code(last.to)}`;
+    const dt = first.dep ? first.dep.slice(5, 10).replace('-', '/') : '';
+    return `<span class="flightSumItem"><b>${label}</b> ${esc(no || '—')} · ${esc(route)}${dt ? ' · ' + dt : ''}${segs.length > 1 ? ' · 轉機' : ''}</span>`;
+  };
+  const out = one(data.flights?.out, '去程'), back = one(data.flights?.back, '回程');
+  if (!out && !back) return `<div class="flightSumEmpty">尚未設定，點此填寫航班</div>`;
+  return `<div class="flightSumWrap">${out}${back}</div>`;
+}
+
 function flightForm(k) {
   const f    = normalizeFlightObj(data.flights[k]);
   const segs = [f.segments[0]||{}, f.segments[1]||{}];

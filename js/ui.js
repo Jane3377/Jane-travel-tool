@@ -616,8 +616,11 @@ function renderStay() {
     <div class="section"><div><h2>✈️ 航班與住宿</h2></div></div>
     ${aiStayCardHtml()}
 
-    <details class="card">
-      <summary>✈️ 航班設定</summary>
+    <details class="card flightDetails" ${flightIsSet() ? '' : 'open'}>
+      <summary class="flightSummary">
+        <div class="flightSummaryTop"><span>✈️ 航班設定</span><span class="flightSummaryChevron">▾</span></div>
+        ${flightSummaryLine()}
+      </summary>
       <div class="detailBody flightFormWrap">
         <div class="grid2">
           <div class="box blue flightBox"><b class="flightBoxTitle">去程</b>${flightForm('out')}</div>
