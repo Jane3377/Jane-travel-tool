@@ -518,6 +518,47 @@ function renderTrip() {
         ).join('')}
       </div>
       <div class="btns shareEditOnly"><button class="btn dark" onclick="saveBasic()">儲存旅遊地設定</button></div>
+    </div>
+    ${_myMapCardHtml()}`;
+}
+
+/* ── Google 我的地圖（嵌入） ── */
+function extractMyMapMid(input) {
+  const s = String(input || '');
+  const m = s.match(/[?&]mid=([^&"'\s]+)/);
+  if (m) return decodeURIComponent(m[1]);
+  if (/^[\w-]{10,}$/.test(s.trim())) return s.trim();   // 純 mid
+  return '';
+}
+function myMapEmbedUrl() {
+  const mid = data.trip?.myMapMid || '';
+  return mid ? `https://www.google.com/maps/d/embed?mid=${encodeURIComponent(mid)}` : '';
+}
+function saveMyMap() {
+  const raw = ($('myMapInput')?.value || '').trim();
+  if (!raw) { delete data.trip.myMapMid; save(); renderTrip(); return toast('已清除地圖'); }
+  const mid = extractMyMapMid(raw);
+  if (!mid) return toast('看不出地圖連結，請貼「嵌入」或分享網址');
+  data.trip.myMapMid = mid;
+  save(); renderTrip(); toast('已儲存我的地圖');
+}
+function removeMyMap() {
+  delete data.trip.myMapMid; save(); renderTrip(); toast('已移除地圖');
+}
+function _myMapCardHtml() {
+  const url = myMapEmbedUrl();
+  return `
+    <div class="card">
+      <h2 style="margin:0 0 4px">🗺 我的地圖</h2>
+      <div class="hint" style="margin-bottom:12px">在電腦建立 Google 我的地圖（設為「知道連結的人可看」）後，貼上「嵌入」或分享網址；行程手冊都會顯示這張地圖（含各天圖層與路線），平板／手機也看得到。</div>
+      <div class="two">
+        <input id="myMapInput" value="${esc(url)}" placeholder="貼上我的地圖 嵌入／分享 網址">
+        <button class="btn dark" onclick="saveMyMap()">儲存</button>
+      </div>
+      ${url ? `
+        <div class="myMapWrap"><iframe src="${esc(url)}" loading="lazy"></iframe></div>
+        <div class="btns" style="margin-top:8px"><button class="btn soft compact" onclick="removeMyMap()">移除地圖</button></div>`
+      : `<div class="hint" style="margin-top:8px">貼上後這裡會顯示地圖預覽。</div>`}
     </div>`;
 }
 

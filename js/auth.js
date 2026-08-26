@@ -513,8 +513,15 @@ const SHARE_SECTIONS = {
   days:    { icon:'🗓', name:'每日行程', build: () => _buildShareDaysHtml() },
   spots:   { icon:'📍', name:'口袋景點', build: () => _buildShareSpotsHtml() },
   packing: { icon:'📋', name:'清單',     build: () => _buildSharePackingHtml() },
-  budget:  { icon:'💰', name:'費用總覽', build: () => _buildShareBudgetHtml() }
+  budget:  { icon:'💰', name:'費用總覽', build: () => _buildShareBudgetHtml() },
+  map:     { icon:'🗺', name:'地圖',     build: () => _buildShareMapHtml() }
 };
+
+function _buildShareMapHtml() {
+  const url = (typeof myMapEmbedUrl === 'function') ? myMapEmbedUrl() : '';
+  if (!url) return `<div class="spEmpty">尚未設定地圖</div>`;
+  return `<div class="myMapWrap"><iframe src="${esc(url)}" loading="lazy"></iframe></div>`;
+}
 
 function goShareSection(key) { shareSection = key; _renderSharePage(); window.scrollTo(0, 0); }
 function goShareHome()       { shareSection = null; _renderSharePage(); window.scrollTo(0, 0); }
@@ -585,6 +592,7 @@ function _renderShareHomePage(el) {
     { key:'packing', sum: packItems.length ? `${packItems.length} 項` : '尚無項目' }
   ];
   if (_shareBudgetVisible()) cards.push({ key:'budget', sum: budgetSum });
+  if (data.trip?.myMapMid) cards.push({ key:'map', sum: '我的地圖' });
 
   el.innerHTML = `
     <div class="spPage">
