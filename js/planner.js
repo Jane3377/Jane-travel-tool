@@ -360,6 +360,76 @@ function removeNearbyFromPlan(planId, spotId) {
   renderPlanner();
 }
 
+/* ══════════════════════════════════════════
+   匯出到 Google 我的地圖（每天一個 CSV）
+   ══════════════════════════════════════════ */
+function _csvCell(v) {
+  const s = String(v == null ? '' : v);
+  return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+function myMapsCsvForDay(dayKey) {
+  const plans = sortedPlans(dayKey).filter(p => p.name);
+  const head  = ['名稱', '地址', '時間', '分類', '說明'];
+  const rows  = [head];
+  plans.forEach((p, i) => {
+    const addr = (p.address || '').trim() || (p.krAddress || '').trim()
+      || `${p.name} ${data.trip.dest || ''}`.trim();
+    rows.push([`${i + 1}. ${p.name}`, addr, p.start || '', p.type || '', p.note || '']);
+  });
+  return rows.map(r => r.map(_csvCell).join(',')).join('\r\n');
+}
+function downloadMyMapsDay(dayKey, filename) {
+  const csv  = '﻿' + myMapsCsvForDay(dayKey);   // BOM 避免中文亂碼
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  toast('已下載 ' + filename);
+}
+function openMyMapsExport() {
+  const withPlans = (data.days || []).filter(d => sortedPlans(d.key).some(p => p.name));
+  if (!withPlans.length) return toast('目前沒有可匯出的行程');
+
+  let modal = $('myMapsModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'myMapsModal';
+    modal.className = 'aiPromptModal';
+    modal.onclick = e => { if (e.target === modal) modal.classList.remove('show'); };
+    document.body.appendChild(modal);
+  }
+  modal.innerHTML = `
+    <div class="aiPromptBox">
+      <div class="section">
+        <h3>🗺 匯出到我的地圖</h3>
+        <button class="iconBtn" onclick="$('myMapsModal').classList.remove('show')">×</button>
+      </div>
+      <div class="hint" style="margin-bottom:10px">每天一個 CSV，匯入 Google 我的地圖後各自成一個圖層（可命名、上色、單獨開關）。圖釘標題已帶順序編號。</div>
+      <div class="myMapsList">
+        ${withPlans.map(d => {
+          const cnt = sortedPlans(d.key).filter(p => p.name).length;
+          const fn  = `我的地圖_${String(d.title).replace(/\s/g, '')}_${d.key.replace(/-/g, '')}.csv`;
+          return `<div class="myMapsRow">
+            <div class="myMapsRowInfo"><b>${esc(d.title)}</b><span class="hint">${shortWithDay(d.key)} · ${cnt} 點</span></div>
+            <button class="btn dark compact" onclick="downloadMyMapsDay('${d.key}','${esc(fn)}')">下載 CSV</button>
+          </div>`;
+        }).join('')}
+      </div>
+      <div class="myMapsSteps">
+        <b>匯入步驟</b>
+        <ol>
+          <li>開 <a href="https://www.google.com/maps/d/" target="_blank" rel="noopener">Google 我的地圖</a> → 建立新地圖</li>
+          <li>「匯入」→ 選一天的 CSV → 定位欄選「地址」、標題欄選「名稱」</li>
+          <li>每天重複匯入（各成一層），可命名 / 上色；想要路線再手動加「路線」圖層</li>
+        </ol>
+      </div>
+      <div class="btns"><button class="btn soft" onclick="$('myMapsModal').classList.remove('show')">關閉</button></div>
+    </div>`;
+  modal.classList.add('show');
+}
+
 function changeConnMode(id, val) {
   const openSet = new Set(
     [...document.querySelectorAll('details.connRow[open]')]

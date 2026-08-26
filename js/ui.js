@@ -729,6 +729,7 @@ function renderPlanner() {
           <button class="btn soft compact" onclick="showAIPrompt('plan')">AI 範例行程</button>
           <button class="btn dark compact" onclick="showAIPrompt('itinerary')">AI 健檢</button>
           <button class="btn blue compact" onclick="openImportModal()">AI 匯入</button>
+          <button class="btn soft compact" onclick="openMyMapsExport()">🗺 匯出我的地圖</button>
         </div>`}
         ${aiReviewHtml()}
       </div>`);
