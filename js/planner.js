@@ -379,7 +379,17 @@ function myMapsCsvForDay(dayKey) {
   return rows.map(r => r.map(_csvCell).join(',')).join('\r\n');
 }
 function downloadMyMapsDay(dayKey, filename) {
-  const csv  = '﻿' + myMapsCsvForDay(dayKey);   // BOM 避免中文亂碼
+  const csv = '﻿' + myMapsCsvForDay(dayKey);   // BOM 避免中文亂碼
+  // iPad / iPhone：blob 下載常失效，改用分享面板（可存「檔案」或 AirDrop 到電腦）
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  try {
+    const file = new File([csv], filename, { type: 'text/csv' });
+    if (isIOS && navigator.canShare && navigator.canShare({ files: [file] })) {
+      navigator.share({ files: [file], title: filename }).catch(() => {});
+      return;
+    }
+  } catch (e) {}
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
@@ -417,10 +427,14 @@ function openMyMapsExport() {
           </div>`;
         }).join('')}
       </div>
+      <div class="box pink" style="margin-top:12px;font-size:12.5px;line-height:1.7">
+        ⚠️ 「我的地圖」的<b>建立／匯入要用電腦瀏覽器</b>操作。平板／手機點連結會跳到 Google 地圖 App（無法匯入），CSV 可先下載到「檔案」，再到電腦匯入。
+      </div>
       <div class="myMapsSteps">
-        <b>匯入步驟</b>
+        <b>匯入步驟（電腦）</b>
         <ol>
-          <li>開 <a href="https://www.google.com/maps/d/" target="_blank" rel="noopener">Google 我的地圖</a> → 建立新地圖</li>
+          <li>電腦瀏覽器開 <code>mymaps.google.com</code> → 建立新地圖
+            <button class="btn soft compact" style="margin-left:6px" onclick="copyText('https://www.google.com/maps/d/')">複製網址</button></li>
           <li>「匯入」→ 選一天的 CSV → 定位欄選「地址」、標題欄選「名稱」</li>
           <li>每天重複匯入（各成一層），可命名 / 上色；想要路線再手動加「路線」圖層</li>
         </ol>
