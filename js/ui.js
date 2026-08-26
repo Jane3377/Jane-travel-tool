@@ -545,6 +545,17 @@ function saveMyMap() {
 function removeMyMap() {
   delete data.trip.myMapMid; save(); renderTrip(); toast('已移除地圖');
 }
+// 行程頁上方：可收合的整趟地圖卡（僅有設定時顯示）
+function plannerMyMapHtml() {
+  const url = myMapEmbedUrl();
+  if (!url) return '';
+  return `
+    <details class="card myMapDetails">
+      <summary class="myMapSummary">🗺 我的地圖<span class="myMapChevron">▸</span></summary>
+      <div class="myMapWrap" style="margin-top:12px"><iframe src="${esc(url)}" loading="lazy"></iframe></div>
+    </details>`;
+}
+
 function _myMapCardHtml() {
   const url = myMapEmbedUrl();
   return `
@@ -701,6 +712,8 @@ function renderPlanner() {
       </div>
       <button class="btn soft compact" onclick="openDayMap()" title="在 Google Maps 查看今日行程路線">🗺 地圖</button>
     </div>
+
+    ${plannerMyMapHtml()}
 
     <details class="card${editingPlanId || v16PendingSpotId ? '' : ' addInlineForm'}" ${editingPlanId || v16PendingSpotId ? 'open' : ''}>
       <summary>${editingPlanId ? '編輯行程' : '＋ 新增行程'}</summary>
