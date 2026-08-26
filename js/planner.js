@@ -475,7 +475,8 @@ function planCard(p, num, total, conflict = false) {
   const isAuto      = p.source === 'flight' || p.source === 'hotel';
   const isKorea     = data.trip.country === '韓國';
   const isChina     = data.trip.country === '中國';
-  const isTransport = p.type === '交通';
+  // 航班帶入的機場卡以一般卡片呈現（時間在前、不收縮）；只有手動的交通節點才收縮
+  const isTransport = p.type === '交通' && p.source !== 'flight';
   const mapQuery    = encodeURIComponent(
     isKorea && (p.krAddress || p.krName)
       ? [(p.krAddress||''), (p.krName||p.name)].filter(Boolean).join(' ')
