@@ -492,16 +492,27 @@ function planCard(p, num, total, conflict = false) {
     ? `<button class="small" onclick="window.open('https://uri.amap.com/search?keyword=${encodeURIComponent(p.name)}','_blank')">高德地圖</button>`
     : '';
 
+  const _dur = (p.start && p.end) ? (timeToMin(p.end) - timeToMin(p.start)) : 0;
+  const durLabel = _dur > 0
+    ? (_dur >= 60 ? `${Math.floor(_dur/60)}h${_dur%60 ? (_dur%60)+'m' : ''}` : `${_dur}m`)
+    : '';
+  const primaryMapClick = isKorea
+    ? `window.open('https://map.naver.com/v5/search/${encodeURIComponent(p.krName||p.name)}','_blank')`
+    : isChina
+    ? `window.open('https://uri.amap.com/search?keyword=${encodeURIComponent(p.name)}','_blank')`
+    : `openMap('${mapQuery}')`;
+
   const cardContent = `
     <div class="itineraryTop">
       <div class="itineraryTimeBlock">
         <span class="itineraryTime">${esc(p.start||'--:--')}</span>
-        ${p.end ? `<span class="itineraryEndTime">至 ${esc(p.end)}</span>` : ''}
+        ${durLabel ? `<span class="itineraryEndTime">${durLabel}</span>`
+          : (p.end ? `<span class="itineraryEndTime">至 ${esc(p.end)}</span>` : '')}
       </div>
       <div class="itineraryTitleBlock">
         <h3 class="itineraryTitle">${activityIcon(p.type)} ${esc(p.name)}</h3>
         <div class="itineraryMeta">
-          <span class="itineraryTypePill">${esc(p.type||'其他')}</span>
+          <span class="planTypeTag"><span class="planTypeDot" style="background:${planTypeColor(p.type)}"></span>${esc(p.type||'其他')}</span>
           ${p.source==='flight' ? '<span class="itinerarySourcePill">航班帶入</span>' : ''}
           ${p.source==='hotel'  ? '<span class="itinerarySourcePill">住宿帶入</span>' : ''}
           ${p.adjusted ? '<span class="itineraryTypePill">已自動調整</span>' : ''}
@@ -565,15 +576,20 @@ function planCard(p, num, total, conflict = false) {
           <div class="planMoveRow">
             <button class="planMoveBtn" type="button" onclick="reorderPlan('${p.id}',-1)" title="上移" ${num===1?'disabled':''}>↑</button>
             <button class="planMoveBtn" type="button" onclick="reorderPlan('${p.id}',1)" title="下移" ${num===total?'disabled':''}>↓</button>
-          </div>`}
-        ${isKorea ? naverBtn : isChina ? amapBtn : mapBtn}
-        ${(isKorea || isChina) ? mapBtn : ''}
-        ${shareViewMode || ['航班','住宿'].includes(p.type) ? '' :
-          (spotForPlan(p.id)
-            ? `<button class="small" onclick="go('spots')" title="已在口袋景點，前往探索">★ 已加入</button>`
-            : `<button class="small" onclick="addPlanToSpots('${p.id}')" title="加入口袋景點，可探索遊記／地圖">＋口袋景點</button>`)}
-        <button class="small" onclick="editPlan('${p.id}')">編輯</button>
-        <button class="small" onclick="deletePlan('${p.id}')">刪除</button>
+          </div>
+          ${showMap ? `<button class="small" onclick="${primaryMapClick}" title="地圖">🗺</button>` : ''}
+          <details class="planMenu">
+            <summary class="planMenuBtn" title="更多">⋯</summary>
+            <div class="planMenuList">
+              <button onclick="editPlan('${p.id}')">編輯</button>
+              ${['航班','住宿'].includes(p.type) ? '' :
+                (spotForPlan(p.id)
+                  ? `<button onclick="go('spots')">★ 已在口袋景點</button>`
+                  : `<button onclick="addPlanToSpots('${p.id}')">＋ 加入口袋景點</button>`)}
+              ${(isKorea || isChina) && showMap ? `<button onclick="openMap('${mapQuery}')">Google 地圖</button>` : ''}
+              <button class="danger" onclick="deletePlan('${p.id}')">刪除</button>
+            </div>
+          </details>`}
       </div>
     </div>`;
 

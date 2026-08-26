@@ -157,6 +157,11 @@ function activityIcon(type) {
   const icons = { '餐廳':'🍴','咖啡廳':'☕','購物':'🛍️','交通':'🚗','航班':'✈️','住宿':'🏨','雨天備案':'☔','其他':'✨' };
   return icons[type] || '📍';
 }
+function planTypeColor(type) {
+  const m = { '景點':'#628f80','餐廳':'#d98a3d','咖啡廳':'#b07a48','購物':'#c26aa0',
+    '交通':'#5a86b0','航班':'#5a86b0','住宿':'#7b83c4','雨天備案':'#7b8a97','其他':'#8b827a' };
+  return m[type] || '#8b827a';
+}
 function normalizePlanType(type) {
   return PLAN_TYPES.includes(type) ? type : '其他';
 }
