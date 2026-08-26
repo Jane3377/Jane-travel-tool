@@ -70,18 +70,25 @@ function flightIsSet() {
   const b = normalizeFlightObj(data.flights?.back);
   return (o.segments || []).some(s => s.no || s.from) || (b.segments || []).some(s => s.no || s.from);
 }
-// 航班摘要（收合時顯示，一眼看到去回程）
+// 航班摘要（收合時顯示）：日期 · 時間起迄 · 航班號 · 出發›目的地
 function flightSummaryLine() {
   const code = s => { const t = String(s || '').split(/[｜|]/).pop().trim(); return t.split(' ')[0] || t; };
+  const hm = dt => dt ? String(dt).slice(11, 16) : '';
+  const md = dt => dt ? String(dt).slice(5, 10).replace('-', '/') : '';
   const one = (f, label) => {
     const o = normalizeFlightObj(f);
     const segs = (o.segments || []).filter(s => s.no || s.from || s.to);
     if (!segs.length) return '';
     const first = segs[0], last = segs[segs.length - 1];
-    const no = segs.map(s => s.no).filter(Boolean).join('+');
-    const route = `${code(first.from)}→${code(last.to)}`;
-    const dt = first.dep ? first.dep.slice(5, 10).replace('-', '/') : '';
-    return `<span class="flightSumItem"><b>${label}</b> ${esc(no || '—')} · ${esc(route)}${dt ? ' · ' + dt : ''}${segs.length > 1 ? ' · 轉機' : ''}</span>`;
+    const no    = segs.map(s => s.no).filter(Boolean).join('+') || '—';
+    const time  = (hm(first.dep) && hm(last.arr)) ? `${hm(first.dep)}–${hm(last.arr)}` : hm(first.dep);
+    const route = `${code(first.from)} › ${code(last.to)}`;
+    return `<div class="flightSumItem">
+      <span class="flightSumLabel">${label}</span>
+      <span class="flightSumDate">${esc(md(first.dep))}${time ? ' ' + esc(time) : ''}</span>
+      <span class="flightSumNo">${esc(no)}</span>
+      <span class="flightSumRoute">${esc(route)}${segs.length > 1 ? ' · 轉機' : ''}</span>
+    </div>`;
   };
   const out = one(data.flights?.out, '去程'), back = one(data.flights?.back, '回程');
   if (!out && !back) return `<div class="flightSumEmpty">尚未設定，點此填寫航班</div>`;
