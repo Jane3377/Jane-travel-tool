@@ -428,45 +428,85 @@ function removeHotelDoc(hotelId, id) {
   save(); renderStay();
 }
 
+let _pendingHotelId = null;   // 剛新增的住宿 id（供「帶入行程/費用」選項使用）
+
 function saveHotel() {
-  if (!$('hname').value) return toast('請輸入住宿名稱');
+  if (!$('hname')?.value) return toast('請輸入住宿名稱');
   const start = $('hstart').value;
   const end   = $('hend').value;
   if (!start || !end) return toast('請填入住日與退房日');
 
-  const item = {
-    name:  $('hname').value,
-    start, end,
-    addr:  $('haddr').value,
-    note:  $('hnote').value
-  };
+  const item = { name: $('hname').value, start, end, addr: $('haddr').value, note: $('hnote').value };
+  const editing = editingHotelId;
 
-  let hotelId;
-  if (editingHotelId) {
-    hotelId = editingHotelId;
-    Object.assign(data.hotels.find(h => h.id === editingHotelId), item);
-    if (hotelHasPlans(hotelId)) addHotelPlans(hotelId);
-    editingHotelId = null;
+  if (editing) {
+    Object.assign(data.hotels.find(h => h.id === editing) || {}, item);
+    if (hotelHasPlans(editing)) addHotelPlans(editing);   // 日期改了 → 重建住宿行程
+    data.hotels.sort((a, b) => String(a.start).localeCompare(b.start));
+    closeHotelForm();
     save();
+    renderStay();
     toast('已更新住宿');
   } else {
-    hotelId = uid();
+    const hotelId = uid();
     data.hotels.push({ id: hotelId, ...item });
     data.hotels.sort((a, b) => String(a.start).localeCompare(b.start));
-    v16KeepHotelOpen = true;
+    _pendingHotelId = hotelId;
+    closeHotelForm();
     silentSave();
     renderStay();
-    // 顯示選項 modal
-    $('hotelOptionModal')?.classList.add('show');
-    return;
+    $('hotelOptionModal')?.classList.add('show');   // 詢問是否帶入行程/費用
   }
 }
 
+function openHotelForm(id) {
+  editingHotelId = id || null;
+  const h = id ? data.hotels.find(x => x.id === id) : null;
+  let modal = $('hotelFormModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'hotelFormModal';
+    modal.className = 'aiPromptModal';
+    modal.onclick = e => { if (e.target === modal) closeHotelForm(); };
+    document.body.appendChild(modal);
+  }
+  modal.innerHTML = `
+    <div class="aiPromptBox">
+      <div class="section">
+        <h3>${h ? '編輯住宿' : '新增住宿'}</h3>
+        <button class="iconBtn" onclick="closeHotelForm()">×</button>
+      </div>
+      <label>住宿名稱</label>
+      <input id="hname" value="${esc(h?.name || '')}" placeholder="例：首爾樂天飯店">
+      <div class="two">
+        <div><label>入住日</label>
+          <input id="hstart" type="date" value="${h?.start || data.trip.start}" min="${data.trip.start}" max="${data.trip.end}"></div>
+        <div><label>退房日</label>
+          <input id="hend" type="date" value="${h?.end || data.trip.end}" min="${data.trip.start}" max="${data.trip.end}"></div>
+      </div>
+      <label>地址</label>
+      <div class="two">
+        <input id="haddr" value="${esc(h?.addr || '')}" placeholder="可貼上飯店地址">
+        <button class="btn blue compact" onclick="searchHotelAddr()">查地圖</button>
+      </div>
+      <label>備註</label>
+      <textarea id="hnote">${esc(h?.note || '')}</textarea>
+      <div class="btns" style="margin-top:12px">
+        <button class="btn dark" onclick="saveHotel()">${h ? '儲存修改' : '新增住宿'}</button>
+        <button class="btn soft" onclick="closeHotelForm()">取消</button>
+      </div>
+    </div>`;
+  modal.classList.add('show');
+  setTimeout(() => $('hname')?.focus(), 50);
+}
+
+function closeHotelForm() {
+  $('hotelFormModal')?.classList.remove('show');
+  editingHotelId = null;
+}
+
 function editHotel(id) {
-  editingHotelId = id;
-  v16KeepHotelOpen = true;
-  renderStay();
-  scrollTo(0, 0);
+  openHotelForm(id);
 }
 
 function deleteHotel(id) {
@@ -490,7 +530,8 @@ function closeHotelOptions() {
 }
 
 function confirmHotelOptions() {
-  const id = data.hotels[data.hotels.length - 1]?.id;
+  const id = _pendingHotelId || data.hotels[data.hotels.length - 1]?.id;
+  _pendingHotelId = null;
   if (!id) return closeHotelOptions();
   if ($('hotelOptionAddPlans')?.checked) addHotelPlans(id);
   if ($('hotelOptionAddBudget')?.checked) addHotelBudget(id);

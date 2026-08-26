@@ -633,28 +633,13 @@ function renderStay() {
       </div>
     </details>
 
-    <details class="card" ${v16KeepHotelOpen || editingHotelId ? 'open' : ''}>
+    <details class="card" open>
       <summary>🏨 住宿</summary>
       <div class="detailBody">
-        <div class="three compactMobile">
-          <div class="full"><label>住宿名稱</label><input id="hname" value="${esc(h?.name||'')}"></div>
-          <div><label>入住日</label>
-            <input id="hstart" type="date" value="${h?.start||data.trip.start}" min="${data.trip.start}" max="${data.trip.end}"></div>
-          <div><label>退房日</label>
-            <input id="hend"   type="date" value="${h?.end||data.trip.end}"   min="${data.trip.start}" max="${data.trip.end}"></div>
+        <div class="btns shareEditOnly" style="margin-bottom:12px">
+          <button class="btn dark" onclick="openHotelForm()">＋ 新增住宿</button>
         </div>
-        <label>地址</label>
-        <div class="two">
-          <input id="haddr" value="${esc(h?.addr||'')}" placeholder="可貼上飯店地址">
-          <button class="btn blue compact" onclick="searchHotelAddr()">查地圖</button>
-        </div>
-        <label>備註</label>
-        <textarea id="hnote">${esc(h?.note||'')}</textarea>
-        <div class="btns">
-          <button class="btn dark" onclick="saveHotel()">${h ? '儲存住宿修改' : '新增住宿'}</button>
-          ${h ? `<button class="btn soft" onclick="editingHotelId=null;v16KeepHotelOpen=false;renderStay()">取消編輯</button>` : ''}
-        </div>
-        <div class="grid2" style="margin-top:10px">
+        <div class="grid2">
           ${data.hotels.map(hotelCard).join('') || '<div class="empty">尚未新增住宿</div>'}
         </div>
       </div>
