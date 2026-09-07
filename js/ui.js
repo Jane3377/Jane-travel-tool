@@ -904,6 +904,11 @@ function renderBudget() {
       </div>
     </div>
     ${budgetSummaryHtml(items)}
+    <div class="card shareEditOnly">
+      <div class="btns">
+        <button class="btn dark" onclick="openAddSheet()">＋ 新增費用</button>
+      </div>
+    </div>
     <details class="card shareEditOnly aiSection">
       <summary class="addFormSummary">🤖 AI 輔助</summary>
       <div class="detailBody">
