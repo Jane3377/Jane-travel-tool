@@ -703,52 +703,11 @@ function renderPlanner() {
 
     ${plannerMyMapHtml()}
 
-    <details class="card${editingPlanId || v16PendingSpotId ? '' : ' addInlineForm'}" ${editingPlanId || v16PendingSpotId ? 'open' : ''}>
-      <summary>${editingPlanId ? '編輯行程' : '＋ 新增行程'}</summary>
-      <div class="detailBody">
-        <div class="three compactMobile">
-          <div class="full"><label>日期</label>
-            <select id="pday">${optsDays(currentDay)}</select></div>
-          <div><label>開始</label>${timeSelHtml('ps', '10:00', 'planStartChange()')}</div>
-          <div><label>時長</label>
-            <select id="pdur" onchange="planDurationChange()">
-              <option value="">—</option>
-              ${[30,60,90,120,150,180,210,240,270,300].map(m => {
-                const h = Math.floor(m/60), r = m%60;
-                const label = h && r ? `${h} 小時 ${r} 分` : h ? `${h} 小時` : `${r} 分`;
-                return `<option value="${m}">${label}</option>`;
-              }).join('')}
-            </select></div>
-          <div><label>結束 <span id="pdurDisplay" class="pdurDisplay"></span></label>
-            ${timeSelHtml('pe', '11:30', 'planEndChange()')}</div>
-        </div>
-        <div class="two">
-          <div><label>分類</label><select id="ptype">${optsPlanTypes()}</select></div>
-          <div></div>
-        </div>
-        <div id="lockedTimeHint" class="lockedFieldHint" style="display:none">
-          飛行時間由航班設定決定，請從「航班」頁調整。
-        </div>
-        <label>名稱</label>
-        <input id="pname">
-        <div id="lockedNameHint" class="lockedFieldHint" style="display:none">
-          此行程由航班／住宿帶入，名稱不可編輯。
-        </div>
-        <label>地址</label>
-        <input id="paddress">
-        ${data.trip.country === '韓國' ? `
-        <div class="two">
-          <div><label>韓文名稱（選填）</label><input id="pkrName" placeholder="예: 감천문화마을"></div>
-          <div><label>韓文地址（選填）</label><input id="pkrAddr" placeholder="예: 부산광역시 사하구 감내2로 203"></div>
-        </div>` : ''}
-        <label>說明</label><textarea id="pnote"></textarea>
-        <div class="btns">
-          <button class="btn dark" onclick="savePlanForm()">${editingPlanId ? '儲存行程' : '加入行程'}</button>
-          ${editingPlanId || v16PendingSpotId
-            ? '<button class="btn soft" onclick="clearPlanForm()">取消</button>' : ''}
-        </div>
+    <div class="card shareEditOnly">
+      <div class="btns">
+        <button class="btn dark" onclick="openAddSheet()">＋ 新增行程</button>
       </div>
-    </details>
+    </div>
 
     <div id="pcards">${planCards(plans)}</div>`;
 
