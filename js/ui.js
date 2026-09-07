@@ -801,45 +801,11 @@ function renderSpots() {
       </div>
     </div>
 
-    <details class="card${e ? '' : ' addInlineForm'}" ${e ? 'open' : ''}>
-      <summary>${e ? '編輯口袋景點' : '＋ 新增口袋景點'}</summary>
-      <div class="detailBody">
-        <div class="three compactMobile">
-          <div class="full"><label>名稱</label><input id="sn" value="${esc(e?.name||'')}"></div>
-          <div><label>分類</label>
-            <select id="st">
-              ${['景點','餐廳','咖啡廳','購物','雨天備案','其他'].map(t=>
-                `<option ${e?.type===t?'selected':''}>${t}</option>`).join('')}
-            </select></div>
-          <div><label>候選日期</label>
-            <select id="sd"><option value="">未排</option>${optsDays(e?.day||'')}</select></div>
-        </div>
-        <label>地址 / 區域</label>
-        <div class="two">
-          <input id="sa" value="${esc(e?.addr||'')}">
-          <button class="btn blue compact" onclick="mapSpotDraft()">查地圖</button>
-        </div>
-        <label>說明</label><textarea id="sm">${esc(e?.note || e?.memo || '')}</textarea>
-        ${isKorea ? `
-        <div class="two">
-          <div><label>韓文名稱（選填）</label><input id="skrName" value="${esc(e?.krName||'')}" placeholder="예: 감천문화마을"></div>
-          <div><label>韓文地址（選填）</label><input id="skrAddr" value="${esc(e?.krAddress||'')}" placeholder="예: 부산광역시 사하구 감내2로 203"></div>
-        </div>` : ''}
-        <div class="three compactMobile">
-          <div class="full"><label>排入行程？</label>
-            <select id="sToPlan">
-              <option value="no">先放口袋</option>
-              <option value="yes">同步排入行程</option>
-            </select></div>
-          <div><label>預設開始</label>${timeSelHtml('sStart', e?.start||'10:00')}</div>
-          <div><label>預設結束</label>${timeSelHtml('sEnd', e?.end||'11:30')}</div>
-        </div>
-        <div class="btns">
-          <button class="btn dark" onclick="saveSpot()">${e ? '儲存修改' : '加入景點'}</button>
-          ${e ? '<button class="btn soft" onclick="clearSpotForm()">取消編輯</button>' : ''}
-        </div>
+    <div class="card shareEditOnly">
+      <div class="btns">
+        <button class="btn dark" onclick="openAddSheet()">＋ 新增口袋景點</button>
       </div>
-    </details>
+    </div>
 
     <div class="card spotFilterBar">
       <div class="spotTypeChips">
