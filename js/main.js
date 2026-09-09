@@ -31,19 +31,71 @@ async function boot() {
   await bootFirebase();
 }
 
-/* ── 外部帶入景點（iOS 捷徑 / 分享）：?spotName=&spotAddr=&spotUrl= ── */
+/* ── 外部帶入景點（iOS 捷徑 / 分享） ──
+   支援兩種參數：
+   1) ?spotText=...  ← 建議：把「分享」的整段文字丟進來，由 App 解析名稱／網址／地址
+      （iOS 捷徑只要 2 步：取得輸入內容的文字 → 打開 URL，最穩定，不用在捷徑裡爬網頁）
+   2) ?spotName=&spotAddr=&spotUrl=  ← 舊版：捷徑已自行拆好欄位時仍可用 */
 let _incomingSpot = null;
+
+/* 把分享的整段文字解析成 { name, addr, url }
+   常見格式：
+     台北101\nhttps://maps.app.goo.gl/xxxx
+     Check out 台北101 on Google Maps: https://maps.app.goo.gl/xxxx
+     在 Google 地圖上查看「台北101」：https://maps.app.goo.gl/xxxx */
+function _parseSharedPlaceText(raw) {
+  let text = String(raw || '').replace(/\r/g, '').trim();
+  if (!text) return null;
+
+  // 取出網址
+  let url = '';
+  const m = text.match(/https?:\/\/[^\s]+/);
+  if (m) { url = m[0]; text = text.replace(m[0], ' '); }
+
+  // 優先抓引號「」『』"" 內的名稱
+  let name = '';
+  const q = text.match(/[「『“"]([^」』”"]{1,80})[」』”"]/);
+  if (q) name = q[1];
+
+  if (!name) {
+    // 去掉常見的分享句型前後綴
+    let t = text
+      .replace(/check out\s+/ig, '')
+      .replace(/\s+on google maps.*$/ig, '')
+      .replace(/在\s*google\s*地圖(上)?查看/ig, '')
+      .replace(/google\s*地圖/ig, '')
+      .replace(/[:：]\s*$/g, '');
+    // 取第一行非空、且不是網址的文字
+    const line = t.split('\n').map(x => x.trim())
+                  .find(x => x && !/^https?:\/\//i.test(x));
+    name = line || '';
+  }
+
+  name = name.replace(/^[「『“"]+|[」』”"：:]+$/g, '').trim();
+  return { name, url, addr: '' };
+}
+
 (function parseIncomingSpot() {
   try {
     const p = new URLSearchParams(location.search);
     if (p.get('diary') || p.get('share')) return;          // 分享檢視模式，不處理
-    const name = (p.get('spotName') || '').trim();
-    if (!name) return;
-    _incomingSpot = {
-      name,
-      addr: (p.get('spotAddr') || '').trim(),
-      url:  (p.get('spotUrl')  || '').trim()
-    };
+
+    const rawText = p.get('spotText');
+    let s = null;
+    if (rawText) {
+      s = _parseSharedPlaceText(rawText);
+      // 若捷徑另外帶了乾淨網址，優先採用
+      const explicitUrl = (p.get('spotUrl') || '').trim();
+      if (s && explicitUrl) s.url = explicitUrl;
+    } else {
+      const name = (p.get('spotName') || '').trim();
+      const url  = (p.get('spotUrl')  || '').trim();
+      const addr = (p.get('spotAddr') || '').trim();
+      if (name || url) s = { name, url, addr };
+    }
+
+    if (!s || (!s.name && !s.url)) return;
+    _incomingSpot = s;
     history.replaceState(null, '', location.pathname);      // 清網址，避免重整重複匯入
   } catch (e) {}
 })();
@@ -51,14 +103,28 @@ let _incomingSpot = null;
 function applyIncomingSpot() {
   if (!_incomingSpot || !currentTripId || !data || !Array.isArray(data.spots)) return;
   const s = _incomingSpot; _incomingSpot = null;
-  data.spots.push({
-    id: uid(), source: '地圖匯入', name: s.name, type: '景點', day: '',
-    addr: s.addr, memo: '', note: s.url ? `Google 地圖：${s.url}` : '',
+
+  const hasName = !!(s.name && s.name.trim());
+  const spot = {
+    id: uid(), source: '地圖匯入',
+    name: hasName ? s.name.trim() : '待命名地點',
+    type: '景點', day: '',
+    addr: s.addr || '',
+    memo: '',
+    note: s.url ? `地圖連結：${s.url}` : '',
     krName: '', krAddress: ''
-  });
+  };
+  data.spots.push(spot);
   save();
-  toast('已加入口袋景點：' + s.name);
+
   if (typeof go === 'function') go('spots');
+  // 名稱抓不到（只有連結）時，打開編輯讓使用者一鍵命名；抓得到就直接完成
+  if (hasName) {
+    toast('已加入口袋景點：' + spot.name);
+  } else {
+    toast('已加入景點，請確認名稱');
+    if (typeof openEditSheet === 'function') setTimeout(() => openEditSheet('spot', spot.id), 300);
+  }
 }
 
 /* ── 啟動 ── */
