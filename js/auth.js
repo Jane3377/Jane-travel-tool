@@ -536,6 +536,7 @@ function _renderSharePage() {
   if (shareSection && SHARE_SECTIONS[shareSection]) _renderShareSectionPage(el);
   else { shareSection = null; _renderShareHomePage(el); }
   showShell('login');
+  if (typeof ensureWeather === 'function') ensureWeather();
 }
 
 const _SHARE_MODAL = `
@@ -645,8 +646,10 @@ function _buildShareDaysHtml() {
           <span class="spDayLabel" style="color:${color}">${esc(d.title)}</span>
           <span class="spDayDate">${shortWithDay(d.key)}</span>
           <span class="spDayCnt">${plans.length}</span>
+          ${wxSlot(d.key, 'wxChipDay')}
         </div>
         <div class="spAccordionBody">
+          ${wxRainSlot(d.key)}
           ${hotel ? `<div class="spHotelChip">🏨 ${esc(hotel.name)}</div>` : ''}
           ${plans.length ? plans.map(p => {
             const time = p.start || '';

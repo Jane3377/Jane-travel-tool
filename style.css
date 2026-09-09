@@ -8765,6 +8765,13 @@ body.shareView .check input[type="checkbox"] { pointer-events: none; }
 .flightSumNo { font-weight:700; color:#3f6a8c; }
 .flightSumRoute { color:var(--muted,#8b827a); }
 .flightSumEmpty { font-size:14px; color:var(--muted,#8b827a); margin-top:8px; }
+/* ── 天氣 ── */
+.wxChip { color:#5c6b60; font-weight:700; }
+.wxChip:empty { display:none; }
+.wxChipDay { display:block; margin-top:3px; font-size:11px; color:#8b827a; }
+.wxChipHead { font-size:14px; font-weight:700; color:#5c6b60; margin-left:4px; }
+.wxRainBadge { display:inline-block; margin-top:6px; font-size:12px; font-weight:900; color:#3f6a8c; background:#e3f0fa; border-radius:999px; padding:3px 10px; }
+.wxRainBadge[hidden] { display:none; }
 /* ── 更新彈窗 ── */
 .updateModal { position:fixed; inset:0; background:rgba(40,34,28,.45); display:none; align-items:center; justify-content:center; z-index:9999; padding:24px; }
 .updateModal.show { display:flex; }

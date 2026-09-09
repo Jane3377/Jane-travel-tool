@@ -92,6 +92,7 @@ function buildTripContext() {
 function buildPackingPrompt() {
   const c = buildTripContext();
   const existing = (data.packing || []).map(x => x.name).join('、') || '（尚無）';
+  const wx = (typeof weatherSummaryText === 'function') ? weatherSummaryText() : '';
   return `請依照以下旅行設定，幫我產出可匯入「貞選旅管家」的行李清單 JSON。
 
 旅行設定：
@@ -99,7 +100,7 @@ function buildPackingPrompt() {
 - 國家/區域：${c.country}
 - 日期：${c.dates}（${data.days.length} 天）
 - 旅伴：${c.travelers}
-
+${wx ? `\n各天天氣預報（請據此建議，如雨天帶傘/防水、低溫帶保暖）：\n${wx}\n` : ''}
 已有的行李項目：${existing}
 
 請注意：

@@ -452,8 +452,10 @@ function renderSide() {
         <b>${d.title}</b>
         <span class="dayDate">${shortWithDay(d.key)}</span>
         <span class="dayMeta"><span class="dayCnt">${count}</span> 項${hotel ? `｜${esc(hotel.name)}` : ''}</span>
+        ${wxSlot(d.key, 'wxChipDay')}
       </div>`;
   }).join('');
+  if (typeof ensureWeather === 'function') ensureWeather();
 }
 
 /* ══════════════════════════════════════════
@@ -695,8 +697,9 @@ function renderPlanner() {
   el.innerHTML = `
     <div class="section plannerDaySection" style="--day-color:${_dayColor}">
       <div>
-        <h2>${dayTitle(currentDay)} <span class="plannerDayCnt">${plans.length} 項</span></h2>
+        <h2>${dayTitle(currentDay)} <span class="plannerDayCnt">${plans.length} 項</span> ${wxSlot(currentDay, 'wxChipHead')}</h2>
         <div class="hint">住宿：${hotelFor(currentDay)?.name || '未設定'}</div>
+        ${wxRainSlot(currentDay)}
       </div>
       <button class="btn soft compact" onclick="openDayMap()" title="在 Google Maps 查看今日行程路線">🗺 地圖</button>
     </div>
@@ -736,6 +739,7 @@ function renderPlanner() {
       </div>`);
   }
   initPlannerSortable();
+  if (typeof ensureWeather === 'function') ensureWeather();
 }
 
 function renderSpots() {
