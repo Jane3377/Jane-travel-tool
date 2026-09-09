@@ -129,28 +129,35 @@ function _parseSharedPlaceText(raw) {
 function applyIncomingSpot() {
   if (!_incomingSpot || !currentTripId || !data || !Array.isArray(data.spots)) return;
   const s = _incomingSpot; _incomingSpot = null;
+  const noteText = s.url ? `地圖連結：${s.url}` : '';
 
-  const hasName = !!(s.name && s.name.trim());
-  const spot = {
-    id: uid(), source: '地圖匯入',
-    name: hasName ? s.name.trim() : '待命名地點',
-    type: '景點', day: '',
-    addr: s.addr || '',
-    memo: '',
-    note: s.url ? `地圖連結：${s.url}` : '',
-    krName: '', krAddress: ''
-  };
-  data.spots.push(spot);
-  save();
-
-  if (typeof go === 'function') go('spots');
-  // 名稱抓不到（只有連結）時，打開編輯讓使用者一鍵命名；抓得到就直接完成
-  if (hasName) {
-    toast('已加入口袋景點：' + spot.name);
-  } else {
-    toast('已加入景點，請確認名稱');
-    if (typeof openEditSheet === 'function') setTimeout(() => openEditSheet('spot', spot.id), 300);
+  // 名稱抓得到（Apple 地圖 / 手動帶入）→ 直接建立完成
+  if (s.name && s.name.trim()) {
+    data.spots.push({
+      id: uid(), source: '地圖匯入', name: s.name.trim(), type: '景點', day: '',
+      addr: s.addr || '', memo: '', note: noteText, krName: '', krAddress: ''
+    });
+    save();
+    if (typeof go === 'function') go('spots');
+    toast('已加入口袋景點：' + s.name.trim());
+    return;
   }
+
+  // 名稱抓不到（Google 分享只給連結）→ 開「新增景點」表單，連結先填好、游標停在名稱
+  if (typeof go === 'function') go('spots');
+  setTimeout(() => {
+    if (typeof openAddSheet !== 'function') return;
+    openAddSheet();
+    setTimeout(() => {
+      const noteEl = document.getElementById('sm');
+      if (noteEl && noteText) noteEl.value = noteText;
+      const addrEl = document.getElementById('sa');
+      if (addrEl && s.addr) addrEl.value = s.addr;
+      const nameEl = document.getElementById('sn');
+      if (nameEl) { nameEl.placeholder = '輸入地點名稱'; nameEl.focus(); }
+    }, 150);
+  }, 200);
+  toast('連結已帶入，請輸入地點名稱');
 }
 
 /* ── 啟動 ── */
