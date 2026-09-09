@@ -129,35 +129,25 @@ function _parseSharedPlaceText(raw) {
 function applyIncomingSpot() {
   if (!_incomingSpot || !currentTripId || !data || !Array.isArray(data.spots)) return;
   const s = _incomingSpot; _incomingSpot = null;
+  const name     = (s.name || '').trim();
   const noteText = s.url ? `地圖連結：${s.url}` : '';
 
-  // 名稱抓得到（Apple 地圖 / 手動帶入）→ 直接建立完成
-  if (s.name && s.name.trim()) {
-    data.spots.push({
-      id: uid(), source: '地圖匯入', name: s.name.trim(), type: '景點', day: '',
-      addr: s.addr || '', memo: '', note: noteText, krName: '', krAddress: ''
-    });
-    save();
-    if (typeof go === 'function') go('spots');
-    toast('已加入口袋景點：' + s.name.trim());
-    return;
-  }
-
-  // 名稱抓不到（Google 分享只給連結）→ 開「新增景點」表單，連結先填好、游標停在名稱
+  // 一律打開「新增景點」表單，名稱先填好；使用者自己選分類、決定是否寫說明再儲存
   if (typeof go === 'function') go('spots');
   setTimeout(() => {
     if (typeof openAddSheet !== 'function') return;
     openAddSheet();
     setTimeout(() => {
-      const noteEl = document.getElementById('sm');
-      if (noteEl && noteText) noteEl.value = noteText;
-      const addrEl = document.getElementById('sa');
-      if (addrEl && s.addr) addrEl.value = s.addr;
       const nameEl = document.getElementById('sn');
-      if (nameEl) { nameEl.placeholder = '輸入地點名稱'; nameEl.focus(); }
+      const addrEl = document.getElementById('sa');
+      const noteEl = document.getElementById('sm');
+      if (nameEl) { nameEl.value = name; nameEl.placeholder = '輸入地點名稱'; }
+      if (addrEl && s.addr) addrEl.value = s.addr;
+      if (noteEl && noteText) noteEl.value = noteText;
+      if (!name && nameEl) nameEl.focus();   // 沒帶到名稱才把游標停在名稱欄
     }, 150);
   }, 200);
-  toast('連結已帶入，請輸入地點名稱');
+  toast(name ? `已帶入「${name}」，選分類後儲存` : '請輸入地點名稱');
 }
 
 /* ── 啟動 ── */
