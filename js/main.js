@@ -31,6 +31,36 @@ async function boot() {
   await bootFirebase();
 }
 
+/* ── 外部帶入景點（iOS 捷徑 / 分享）：?spotName=&spotAddr=&spotUrl= ── */
+let _incomingSpot = null;
+(function parseIncomingSpot() {
+  try {
+    const p = new URLSearchParams(location.search);
+    if (p.get('diary') || p.get('share')) return;          // 分享檢視模式，不處理
+    const name = (p.get('spotName') || '').trim();
+    if (!name) return;
+    _incomingSpot = {
+      name,
+      addr: (p.get('spotAddr') || '').trim(),
+      url:  (p.get('spotUrl')  || '').trim()
+    };
+    history.replaceState(null, '', location.pathname);      // 清網址，避免重整重複匯入
+  } catch (e) {}
+})();
+
+function applyIncomingSpot() {
+  if (!_incomingSpot || !currentTripId || !data || !Array.isArray(data.spots)) return;
+  const s = _incomingSpot; _incomingSpot = null;
+  data.spots.push({
+    id: uid(), source: '地圖匯入', name: s.name, type: '景點', day: '',
+    addr: s.addr, memo: '', note: s.url ? `Google 地圖：${s.url}` : '',
+    krName: '', krAddress: ''
+  });
+  save();
+  toast('已加入口袋景點：' + s.name);
+  if (typeof go === 'function') go('spots');
+}
+
 /* ── 啟動 ── */
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', boot);

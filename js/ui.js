@@ -1392,6 +1392,7 @@ function newTripCityVisibility() {
    ══════════════════════════════════════════ */
 
 function render() {
+  if (_incomingSpot && currentTripId) setTimeout(applyIncomingSpot, 0);   // 外部帶入景點
   normalizePlans();
   renderHead();
   renderSide();
