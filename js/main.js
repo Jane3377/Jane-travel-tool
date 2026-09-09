@@ -38,19 +38,44 @@ async function boot() {
    2) ?spotName=&spotAddr=&spotUrl=  ← 舊版：捷徑已自行拆好欄位時仍可用 */
 let _incomingSpot = null;
 
+/* 把地圖連結清乾淨：
+   - 拆掉 Apple Maps 包裝（maps.apple.com/?q=<真正連結>）
+   - 去掉分享追蹤與捷徑雜訊（g_st、com.apple.shortcuts.Run-Workflow.(null) 等） */
+function _cleanMapUrl(u) {
+  if (!u) return '';
+  // 有些會被 URL 編碼包好幾層，先試著解開
+  for (let i = 0; i < 3 && /%[0-9a-f]{2}/i.test(u); i++) {
+    try { const d = decodeURIComponent(u); if (d === u) break; u = d; } catch (e) { break; }
+  }
+  // Apple Maps 包裝：取出 ?q= 後面的真正連結
+  const q = u.match(/[?&]q=(https?[^\s&]+)/i);
+  if (q) u = q[1];
+  // 若仍夾帶多個 http 連結，取最後一個內嵌的（通常是原始地圖連結）
+  const all = u.match(/https?:\/\/[^\s]+/g);
+  if (all && all.length) u = all[all.length - 1];
+  // 去掉捷徑／分享雜訊
+  u = u.replace(/[?&]g_st=[^?&\s]*/ig, '')
+       .replace(/com\.apple\.shortcuts\.Run-Workflow\.?\(?null\)?/ig, '')
+       .replace(/\.\(null\)/ig, '')
+       .replace(/[?&(]+$/g, '')
+       .trim();
+  return u;
+}
+
 /* 把分享的整段文字解析成 { name, addr, url }
    常見格式：
      台北101\nhttps://maps.app.goo.gl/xxxx
      Check out 台北101 on Google Maps: https://maps.app.goo.gl/xxxx
-     在 Google 地圖上查看「台北101」：https://maps.app.goo.gl/xxxx */
+     在 Google 地圖上查看「台北101」：https://maps.app.goo.gl/xxxx
+   若只拿到地圖連結（iOS 分享常只給連結、抓不到名稱），name 會是空字串。 */
 function _parseSharedPlaceText(raw) {
   let text = String(raw || '').replace(/\r/g, '').trim();
   if (!text) return null;
 
-  // 取出網址
+  // 取出網址並清乾淨
   let url = '';
-  const m = text.match(/https?:\/\/[^\s]+/);
-  if (m) { url = m[0]; text = text.replace(m[0], ' '); }
+  const m = text.match(/https?:\/\/\S+/);
+  if (m) { url = _cleanMapUrl(m[0]); text = text.replace(m[0], ' '); }
 
   // 優先抓引號「」『』"" 內的名稱
   let name = '';
@@ -65,9 +90,10 @@ function _parseSharedPlaceText(raw) {
       .replace(/在\s*google\s*地圖(上)?查看/ig, '')
       .replace(/google\s*地圖/ig, '')
       .replace(/[:：]\s*$/g, '');
-    // 取第一行非空、且不是網址的文字
+    // 取第一行非空、不是網址、也不是 apple/shortcuts 雜訊的文字
     const line = t.split('\n').map(x => x.trim())
-                  .find(x => x && !/^https?:\/\//i.test(x));
+                  .find(x => x && !/^https?:\/\//i.test(x) &&
+                             !/maps\.apple\.com|shortcuts\.Run-Workflow|\(null\)/i.test(x));
     name = line || '';
   }
 
